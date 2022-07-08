@@ -32,6 +32,8 @@
 #include "RevLoader.h"
 #include "RevProc.h"
 #include "RevNIC.h"
+#include "XbgasNIC.h"
+#include "RevXbgas.h"
 #include "PanNet.h"
 #include "PanExec.h"
 
@@ -95,6 +97,7 @@ namespace SST {
         {"memCost",         "Memory latency range in cycles min:max",       "core:0:10"},
         {"table",           "Instruction cost table",                       "core:/path/to/table"},
         {"enable_nic",      "Enable the internal RevNIC",                   "0"},
+        {"enable_xbgas",    "Enable XBGAS",                                 "0"},
         {"enable_pan",      "Enable PAN network endpoint",                  "0"},
         {"enable_test",     "Enable PAN network endpoint test",             "0"},
         {"enable_pan_stats","Enable PAN network statistics",                "1"},
@@ -120,6 +123,7 @@ namespace SST {
       // -------------------------------------------------------
       SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
         {"nic", "Network interface", "SST::RevCPU::RevNIC"},
+        {"xbgas_nic", "XBGAS Network interface", "SST::RevCPU::XbgasNIC"},
         {"pan_nic", "PAN Network interface", "SST::RevCPU::PanNet"}
       )
 
@@ -197,6 +201,7 @@ namespace SST {
       RevOpts *Opts;                      ///< RevCPU: Simulation options object
       RevMem *Mem;                        ///< RevCPU: RISC-V main memory object
       RevLoader *Loader;                  ///< RevCPU: RISC-V loader
+      RevXbgas *Xbgas;                    ///< RevCPU: RISC-V Xbgas object
       std::vector<RevProc *> Procs;       ///< RevCPU: RISC-V processor objects
       bool *Enabled;                      ///< RevCPU: Completion structure
 
@@ -212,6 +217,7 @@ namespace SST {
       uint64_t PrevAddr;                  ///< RevCPU: previous address for handling PAN messages
 
       bool EnableNIC;                     ///< RevCPU: Flag for enabling the NIC
+      bool EnableXBGAS;                   ///< RevCPU: Flag for enabling the XBGAS
       bool EnablePAN;                     ///< RevCPU: Flag for enabling the PAN operations
       bool EnablePANTest;                 ///< RevCPU: Flag for enabling the PAN test operations
       bool EnablePANStats;                ///< RevCPU: Flag for enabling PAN statistics
@@ -230,6 +236,7 @@ namespace SST {
       SST::Output output;                 ///< RevCPU: SST output handler
 
       nicAPI *Nic;                        ///< RevCPU: Network interface controller
+      xbgasNicAPI *XNic;                  ///< RevCPU: xBGAS network interface controller
       panNicAPI *PNic;                    ///< RevCPU: PAN network interface controller
       PanExec *PExec;                     ///< RevCPU: PAN execution context
 

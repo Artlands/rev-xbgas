@@ -33,8 +33,8 @@ const char *pan_splash_msg = "\
 
 RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id), testStage(0), PrivTag(0), address(-1), PrevAddr(_PAN_RDMA_MAILBOX_),
-    EnableNIC(false), EnablePAN(false), EnablePANStats(false), ReadyForRevoke(false),
-    Nic(nullptr), PNic(nullptr), PExec(nullptr) {
+    EnableNIC(false), EnableXBGAS(false), EnablePAN(false), EnablePANStats(false), ReadyForRevoke(false),
+    Nic(nullptr), XNic(nullptr), PNic(nullptr), PExec(nullptr) {
 
   const int Verbosity = params.find<int>("verbose", 0);
 
@@ -239,6 +239,24 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     Enabled[i] = true;
   }
 
+  // See if we should load the XBGAS network interface controller
+  EnableXBGAS = params.find<bool>("enable_xbgas", 0);
+
+  if( EnableXBGAS ){
+    // Look up the network component
+    XNic = loadUserSubComponent<xbgasNicAPI>("xbgas_nic");
+
+    // check to see if the nic was loaded.  if not, DO NOT load an anonymous endpoint
+    if(!XNic)
+      output.fatal(CALL_INFO, -1, "Error: no NIC object loaded into RevCPU\n");
+
+    // XNic->setMsgHandler(new Event::Handler<RevCPU>(this, &RevCPU::handleXbgasMessage));
+    Xbgas = new RevXbgas( XNic, Opts, Mem, &output );
+
+    // record the number of injected messages per cycle
+    msgPerCycle = params.find<unsigned>("msgPerCycle", 1);
+  }
+
   {
     const unsigned Splash = params.find<bool>("splash",0);
 
@@ -429,6 +447,10 @@ void RevCPU::setup(){
     Nic->setup();
     address = Nic->getAddress();
   }
+  if( EnableXBGAS ){
+    XNic->setup();
+    address = XNic->getAddress();
+  }
   if( EnablePAN ){
     PNic->setup();
     address = PNic->getAddress();
@@ -442,6 +464,8 @@ void RevCPU::finish(){
 void RevCPU::init( unsigned int phase ){
   if( EnableNIC )
     Nic->init(phase);
+  if( EnableXBGAS )
+    XNic->init(phase);
   if( EnablePAN )
     PNic->init(phase);
 }
@@ -2305,6 +2329,11 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
                      i, static_cast<uint64_t>(currentCycle));
       }
     }
+  }
+
+  // Clock the Xbgas module
+  if ( EnableXBGAS ) {
+    Xbgas->clockTick( currentCycle, msgPerCycle );
   }
   // Clock the PAN network transport module
   if( EnablePAN ){
