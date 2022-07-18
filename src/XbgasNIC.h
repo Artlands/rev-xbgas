@@ -101,6 +101,12 @@ namespace SST {
       /// xbgasNicEvent: build a failed packet
       bool buildFailed(uint8_t Tag);
 
+      /// xbgasNicEvent: virtual function to clone an event
+      virtual Event* clone(void) override{
+        xbgasNicEvent* ev = new xbgasNicEvent(*this);
+        return ev;
+      }
+
       /// xbgasNicEvent: second constructor
       xbgasNicEvent() : Event() {}
 

@@ -225,11 +225,6 @@ bool RevProc::SeedInstTable(){
     EnableExt(static_cast<RevExt *>(new RV64P(feature,RegFile,mem,output)),false);
   }
 
-  // XBGAS Extension
-  if( feature->IsModeEnabled(RV_E) ){
-    EnableExt(static_cast<RevExt *>(new RV32E(feature,RegFile,mem,output)),false);
-  }
-
   return true;
 }
 
@@ -380,9 +375,6 @@ bool RevProc::Reset(){
       RegFile[t].RV64[i] = 0x00ull;
       RegFile[t].SPF[i]  = 0.f;
       RegFile[t].DPF[i]  = 0.f;
-      // extended register files
-      RegFile[t].ERV32[i] = 0x00l;
-      RegFile[t].ERV64[i] = 0x00ull;
     }
 
     // initialize all the relevant program registers

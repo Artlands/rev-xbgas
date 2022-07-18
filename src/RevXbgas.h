@@ -39,8 +39,18 @@ namespace SST {
       /// RevXbgas: XbgasNIC message handler
       void handleXbgasMessage(SST::Event *ev);
 
+      /// RevXbgas: NLB initialization
+      void initNLB(xbgasNicAPI *XNic);
+      
+      /// RevXbgas: check finish status
+      bool isFinished();
+
       /// RevXbgas: clock function
-      bool clockTick(Cycle_t currentCycle, unsigned msgPerCycle );
+      void clockTick(Cycle_t currentCycle, unsigned msgPerCycle );
+      
+      // void clockTickTest(Cycle_t currentCycle);
+      // void clockTickWriteTest(Cycle_t currentCycle);
+      // void clockTickReadTest(Cycle_t currentCycle);
 
       bool checkGetRequests( uint64_t Nmspace, uint64_t Addr, uint8_t *Tag );
 
@@ -61,16 +71,20 @@ namespace SST {
       void ReadU64( uint64_t Nmspace, uint64_t Addr );
       void ReadFloat( uint64_t Nmspace, uint64_t Addr );
       void ReadDouble( uint64_t Nmspace, uint64_t Addr );
+    
+    public:
+      std::list<std::pair<uint8_t,int>> TrackTags;    ///< RevXbgas: tracks the outgoing remote memory request; pair<Tag,Dest>
 
     private:
       xbgasNicAPI *xnic;                              ///< RevXbgas: XbgasNic object
       RevOpts *opts;                                  ///< RevXbgas: options object
       RevMem *mem;                                    ///< RevXbgas: memory object
       SST::Output *output;                            ///< RevXbgas: output handler
+      // unsigned testStage;                             ///< RevXbgas: controls the XBGAS Test harness staging
       uint8_t PrivTag;                                ///< RevXbgas: private tag locator
       std::vector<std::pair<uint64_t, 
                             SST::Interfaces::SimpleNetwork::nid_t>> NLB;      ///< RevXbgas: namespace lookaside buffer; pair<Namespace, Dest>
-      std::list<std::pair<uint8_t,int>> TrackTags;    ///< RevXbgas: tracks the outgoing remote memory request; pair<Tag,Dest>
+      // std::list<std::pair<uint8_t,int>> TrackTags;    ///< RevXbgas: tracks the outgoing remote memory request; pair<Tag,Dest>
       
       std::vector<std::tuple<uint8_t,
                              int,
@@ -117,6 +131,10 @@ namespace SST {
 
       bool WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, void *Data );
       bool ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len );
+
+      // /// RevXbgas: execute tests
+      // void execReadTest();
+      // void execWriteTest();
 
     }; // class RevXbgas
   } // namespace RevCPU

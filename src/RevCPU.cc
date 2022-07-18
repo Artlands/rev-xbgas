@@ -43,6 +43,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
 
   // Determine whether we're running the test harness
   EnablePANTest = params.find<bool>("enable_test", 0);
+  EnableXBGASTest = params.find<bool>("enable_xbgas_test", 0);
 
   // Register a new clock handler
   {
@@ -50,6 +51,9 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     if( EnablePANTest ){
       timeConverter  = registerClock(cpuClock, new SST::Clock::Handler<RevCPU>(this,&RevCPU::clockTickPANTest));
       testIters = params.find<unsigned>("testIters", 255);
+    }
+    else if ( EnableXBGASTest ){
+      timeConverter  = registerClock(cpuClock, new SST::Clock::Handler<RevCPU>(this,&RevCPU::clockTickXBGASTest));
     }else{
       timeConverter  = registerClock(cpuClock, new SST::Clock::Handler<RevCPU>(this,&RevCPU::clockTick));
     }
@@ -250,7 +254,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     if(!XNic)
       output.fatal(CALL_INFO, -1, "Error: no NIC object loaded into RevCPU\n");
 
-    // XNic->setMsgHandler(new Event::Handler<RevCPU>(this, &RevCPU::handleXbgasMessage));
+    // XNic->setMsgHandler(new Event::Handler<RevXbgas>(this, &RevXbgas::handleXbgasMessage));
     Xbgas = new RevXbgas( XNic, Opts, Mem, &output );
 
     // record the number of injected messages per cycle
@@ -450,6 +454,7 @@ void RevCPU::setup(){
   if( EnableXBGAS ){
     XNic->setup();
     address = XNic->getAddress();
+    Xbgas->initNLB(XNic);
   }
   if( EnablePAN ){
     PNic->setup();
@@ -2325,8 +2330,8 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
       if( !Procs[i]->ClockTick(currentCycle) ){
          UpdateCoreStatistics(i);
         Enabled[i] = false;
-      output.verbose(CALL_INFO, 5, 0, "Closing Processor %d at Cycle: %" PRIu64 "\n",
-                     i, static_cast<uint64_t>(currentCycle));
+        output.verbose(CALL_INFO, 5, 0, "Closing Processor %d at Cycle: %" PRIu64 "\n",
+                      i, static_cast<uint64_t>(currentCycle));
       }
     }
   }
@@ -2335,6 +2340,7 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   if ( EnableXBGAS ) {
     Xbgas->clockTick( currentCycle, msgPerCycle );
   }
+
   // Clock the PAN network transport module
   if( EnablePAN ){
 
@@ -2372,6 +2378,10 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
     }
   }
 
+  if( EnableXBGAS ){
+    rtn = Xbgas->isFinished();
+  }
+
   // check to see if all the processors are completed
   for( unsigned i=0; i<Procs.size(); i++ ){
     if( Enabled[i] )
@@ -2388,6 +2398,112 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   }
 
   return rtn;
+}
+
+bool RevCPU::clockTickXBGASTest( SST::Cycle_t currentCycle ){
+  bool rtn = true;
+  output.verbose(CALL_INFO, 8, 0, "Cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
+
+  ExecXBGASTest();
+
+  // Clock the Xbgas module
+  Xbgas->clockTick( currentCycle, msgPerCycle);
+
+  if ( !Xbgas->isFinished() || (testStage < _MAX_XBGAS_TEST_))
+    rtn = false;
+  
+  // if its time to return, end the sim
+  if( rtn ){
+    primaryComponentOKToEndSim();
+    output.verbose(CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
+  }
+
+  return rtn;
+}
+
+void RevCPU::ExecXBGASTest(){
+  // wait for the previous test to finish
+  if( !Xbgas->TrackTags.empty() )
+    return;
+  
+  uint64_t Nmspace;
+  uint8_t Value;
+  uint16_t Value1;
+  uint32_t Value2;
+  uint64_t Value3;
+  uint8_t Tag;
+  uint64_t Addr, Addr1, Addr2, Addr3;
+  SST::Interfaces::SimpleNetwork::nid_t myPE;
+  myPE = address;
+  Addr = 0x20000000;
+
+  if( myPE == 0){
+    Nmspace = 0x2;
+  }
+  else if (myPE == 1){
+    Nmspace = 0x1;
+  } else {
+    return;
+  }
+
+  Addr = 0x20000000;
+  Addr1 = 0x20000008;
+  Addr2 = 0x20000010;
+  Addr3 = 0x20000020;
+
+  output.verbose(CALL_INFO, 5, 0, "--- Test Stage: %d ---\n", testStage);
+  switch( testStage ){
+  case 0:
+    Xbgas->WriteU8(Nmspace, Addr, uint8_t(myPE + 8));
+    testStage++;
+    break;
+  case 1:
+    Xbgas->WriteU16(Nmspace, Addr1, uint16_t(myPE + 16));
+    testStage++;
+    break;
+  case 2:
+    Xbgas->WriteU32(Nmspace, Addr2, uint32_t(myPE + 32));
+    testStage++;
+    break;
+  case 3:
+    Xbgas->WriteU64(Nmspace, Addr3, uint64_t(myPE + 64));
+    testStage++;
+    break;
+  case 4:
+    if ( !Xbgas->checkGetRequests(Nmspace, Addr, &Tag) ) {
+      Xbgas->ReadU8(Nmspace, Addr);
+    } else {
+      Xbgas->readGetResponses(Tag, (void *)(&Value));
+      testStage++;
+    }
+    break;
+  case 5:
+    if ( !Xbgas->checkGetRequests(Nmspace, Addr1, &Tag) ) {
+      Xbgas->ReadU16(Nmspace, Addr1);
+    } else{
+      Xbgas->readGetResponses(Tag, (void *)(&Value1));
+      testStage++;
+    }
+    break;
+  case 6:
+    if ( !Xbgas->checkGetRequests(Nmspace, Addr2, &Tag) ) {
+      Xbgas->ReadU32(Nmspace, Addr2);
+    } else {
+      Xbgas->readGetResponses(Tag, (void *)(&Value2));
+      testStage++;
+    }
+    break;
+  case 7:
+    if ( !Xbgas->checkGetRequests(Nmspace, Addr3, &Tag) ) {
+      Xbgas->ReadU64(Nmspace, Addr3);
+    } else {
+      Xbgas->readGetResponses(Tag, (void *)(&Value3));
+      testStage++;
+    }
+    break;
+  default:
+    break;
+  }
 }
 
 // EOF

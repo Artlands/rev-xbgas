@@ -11,7 +11,7 @@
 #ifndef _XBGASADDR_H_
 #define _XBGASADDR_H_
 
-#define _XBGAS_NAMESPACE_TABLE_ADDR_         0x40000000
+#define _XBGAS_NAMESPACE_TABLE_ADDR_         0x30000000
 #define _XBGAS_NAMESPACE_TABLE_MAX_ENTRIES_  1024
 
 typedef struct{

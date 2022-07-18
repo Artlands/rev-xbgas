@@ -15,7 +15,6 @@
 #include <map>
 #include "RevMem.h"
 #include "RevFeature.h"
-#include "RevXbgas.h"
 
 #ifndef _REV_NUM_REGS_
 #define _REV_NUM_REGS_ 32
@@ -215,10 +214,6 @@ namespace SST{
       uint64_t RV64[_REV_NUM_REGS_];    ///< RevRegFile: RV64I register file
       float SPF[_REV_NUM_REGS_];        ///< RevRegFile: RVxxF register file
       double DPF[_REV_NUM_REGS_];       ///< RevRegFile: RVxxD register file
-
-      // Extended register file
-      uint32_t ERV32[_REV_NUM_REGS_];   ///< RevRegFile: Extended register file
-      uint64_t ERV64[_REV_NUM_REGS_];   ///< RevRegFile: Extended register file
 
       uint32_t RV32_PC;                 ///< RevRegFile: RV32 PC
       uint64_t RV64_PC;                 ///< RevRegFile: RV64 PC

@@ -15,21 +15,41 @@ using namespace RevCPU;
 
 RevXbgas::RevXbgas( xbgasNicAPI *XNic, RevOpts *Opts, RevMem *Mem, SST::Output *Output )
   : xnic(XNic), opts(Opts), mem(Mem), output(Output) {
-  output->verbose(CALL_INFO, 6, 0,
-                  "Initializing the XBGAS object\n");
+  output->verbose(CALL_INFO, 5, 0,
+                  "Initializing the XBGAS object; set up the XBGAS message handler\n");
   // Set up the Xbgas message handler
   xnic->setMsgHandler(new Event::Handler<RevXbgas>(this, &RevXbgas::handleXbgasMessage));
 
+}
+
+void RevXbgas::initNLB( xbgasNicAPI *XNic ) {
   // Initialize the Namespace Lookaside Buffer
   std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts;
   SST::Interfaces::SimpleNetwork::nid_t myPE;
+
   xbgasHosts = xnic->getXbgasHosts();
   myPE = xnic->getAddress();
+
+  output->verbose(CALL_INFO, 4, 0, "--> MY_PE = %" PRId64 ", MY NLB is: \n", myPE);
 
   // Addr 0x00 is always reserved for the local access
   NLB.push_back(std::make_pair(0x0, myPE));
   for(SST::Interfaces::SimpleNetwork::nid_t i: xbgasHosts)
     NLB.push_back( std::make_pair( (uint64_t(i+1)), i ) );
+
+  int i = 0;
+  for ( auto it=NLB.begin(); it != NLB.end(); ++it ){
+    output->verbose(CALL_INFO, 4, 0, "Entry: %d | Namespace: 0x%" PRId64 " | Node ID: %" PRId64 "\n", i, std::get<0>(*it), std::get<1>(*it));
+    i++;
+  }
+}
+
+bool RevXbgas::isFinished() {
+  bool rtn = true;
+  if( !SendMB.empty() || !ReadQueue.empty() || !TrackTags.empty() || !GetResponses.empty() || !TrackGets.empty() || !TrackTags.empty() )
+    rtn = false;
+
+  return rtn;
 }
 
 void RevXbgas::handleXbgasMessage(Event *ev){
@@ -46,6 +66,7 @@ void RevXbgas::handleXbgasMessage(Event *ev){
     break;
   case xbgasNicEvent::Put:
     handlePut(event);
+    break;
   default:
     // xbgas devices should never receive these commands
     output->fatal(CALL_INFO, -1,
@@ -57,6 +78,7 @@ void RevXbgas::handleXbgasMessage(Event *ev){
 }
 
 void RevXbgas::handleSuccess(xbgasNicEvent *event){
+  output->verbose(CALL_INFO, 5, 0, "Handling XBGAS Success Confirmation from PE=%d, Size=%" PRIu32 "\n", event->getSrc(), event->getSize());
   // search for the tag in the tag list
   std::pair<uint8_t,int> Entry = std::make_pair(event->getTag(), event->getSrc());
   auto it = std::find(TrackTags.begin(), TrackTags.end(), Entry);
@@ -80,7 +102,14 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
       uint64_t *Data = new uint64_t [tmp_block];
 
       event->getData(Data);
+
+      output->verbose(CALL_INFO, 6, 0,
+                      "Push response of Tag=%d to GetResponses; Value=%" PRId64 "\n",
+                      event->getTag(),
+                      (uint64_t)(*Data));
+
       GetResponses.push_back(std::make_tuple(tmp_tag, Data, tmp_size));
+      break;
     }
   }
   // remove the entry
@@ -100,17 +129,12 @@ void RevXbgas::handleFailed(xbgasNicEvent *event){
     return ;  // should not reach this
   }
 
-  output->verbose(CALL_INFO, 8, 0,
-                 "FAILED RESPONSE: Found matching tag and source identifier for incoming message: tag=%d; src=%d\n",
-                 event->getTag(),
-                 event->getSrc());
-
   // remove the entry
   TrackTags.erase(it);
 }
 
 void RevXbgas::handleGet(xbgasNicEvent *event){
-  output->verbose(CALL_INFO, 5, 0, "Handling XBGAS Get Request\n");
+  output->verbose(CALL_INFO, 5, 0, "Handling XBGAS Get Request from PE=%d, Tag=%d\n", event->getSrc(), event->getTag());
   // push an event entry back onto the ReadQueue
   ReadQueue.push_back(std::make_tuple(event->getTag(),
                                       event->getSize(),
@@ -120,7 +144,7 @@ void RevXbgas::handleGet(xbgasNicEvent *event){
 }
 
 void RevXbgas::handlePut(xbgasNicEvent *event){
-  output->verbose(CALL_INFO, 5, 0, "Handling XBGAS Put Request\n");
+  output->verbose(CALL_INFO, 5, 0, "Handling XBGAS Put Request for PE=%d\n", event->getSrc());
   // retrieve the data
   uint32_t Size = event->getSize();
   uint64_t *Data = new uint64_t [event->getNumBlocks(Size)];
@@ -163,9 +187,7 @@ void RevXbgas::buildFailedResp(xbgasNicEvent *event){
   SendMB.push(std::make_pair(FEvent, event->getSrc()));
 }
 
-bool RevXbgas::clockTick(Cycle_t currentCycle, unsigned msgPerCycle){
-  bool rtn = true;
-
+void RevXbgas::clockTick(Cycle_t currentCycle, unsigned msgPerCycle){
   // process the read queue
   if( ! processXBGASMemRead() )
       output->fatal(CALL_INFO, -1, "Error: failed to process the XBGAS memory read queue\n" );
@@ -175,12 +197,6 @@ bool RevXbgas::clockTick(Cycle_t currentCycle, unsigned msgPerCycle){
     if( ! sendXBGASMessage() )
       output->fatal(CALL_INFO, -1, "Error: could not send XBGAS command message\n" );
   }
-
-  // check to see if the network has any outstanding messages
-  if( !SendMB.empty() || !TrackTags.empty() )
-    rtn = false;
-  
-  return rtn;
 }
 
 bool RevXbgas::processXBGASMemRead(){
@@ -268,9 +284,8 @@ bool RevXbgas::sendXBGASMessage(){
 
 bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, void *Data ){
   int Dest = findDest(Nmspace);
-#ifdef _REV_DEBUG_
-  std::cout << "Writing " << Len << " Bytes to PE" << Dest << " Starting at 0x" << std::hex << Addr << std::dec << std::endl;
-#endif
+  output->verbose(CALL_INFO, 6, 0,
+                  "Writing %" PRIu32 " Bytes to PE %d Starting at 0x%2x.\n", Len, Dest, Addr);
   xbgasNicEvent *PEvent = nullptr;
   uint8_t Tag  = createTag();
   uint32_t Size = (uint32_t)(Len * 8);
@@ -331,14 +346,14 @@ void RevXbgas::WriteDouble( uint64_t Nmspace, uint64_t Addr, double Value) {
 
 bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len){
   int Dest = findDest(Nmspace);
-#ifdef _REV_DEBUG_
-  std::cout << "Read " << Len << " Bytes from PE" << Dest << " Starting at 0x" << std::hex << Addr << std::dec << std::endl;
-#endif
   xbgasNicEvent *GEvent = nullptr;
   uint8_t Tag  = createTag();
   uint32_t Size = (uint32_t)(Len * 8);
   uint64_t Src = xnic->getAddress();
   bool recvd = false;
+
+  output->verbose(CALL_INFO, 6, 0,
+                  "Reading %" PRIu32 " Bytes from PE=%d Starting at 0x%2x, Tag=%u\n", Len, Dest, Addr, Tag);
 
   GEvent = new xbgasNicEvent(xnic->getName()); // new event to send
   GEvent->setSrc(Src);
@@ -416,16 +431,19 @@ bool RevXbgas::checkGetRequests( uint64_t Nmspace, uint64_t Addr, uint8_t *Tag )
   for( auto it=TrackGets.begin(); it != TrackGets.end(); ++it ){
     if( (std::get<1>(*it) == Dest) && (std::get<2>(*it) == Addr) ) {
       *Tag = std::get<0>(*it);
-      TrackGets.erase(it);
+      output->verbose(CALL_INFO, 6, 0,
+                      "Get request for PE=%d, Addr=0x%2x has been sent; Tag=%u\n", Dest, Addr, *Tag);
       return true;
     }
   }
+  output->verbose(CALL_INFO, 6, 0,
+                      "Get request for PE=%d, Addr=0x%2x has NOT been sent.\n", Dest, Addr);
   return false;
 }
 
 bool RevXbgas::readGetResponses( uint8_t Tag, void *Data ){
+  output->verbose(CALL_INFO, 6, 0, "Read Get Response for Tag=%u\n", Tag);
   char *DataMem = (char *)(Data);
-
   for( auto it=GetResponses.begin(); it != GetResponses.end(); ++it ) {
     if( std::get<0>(*it) == Tag ) {
       uint64_t *tmp_data = std::get<1>(*it);
@@ -434,7 +452,16 @@ bool RevXbgas::readGetResponses( uint8_t Tag, void *Data ){
         DataMem[i] = tmp_data[i];
       }
       delete[] tmp_data;
+
+      for( auto itt=TrackGets.begin(); itt != TrackGets.end(); ++it ){
+        if( std::get<0>(*itt) == Tag ) {
+          TrackGets.erase(itt);
+          break;
+        }
+      }
+
       GetResponses.erase(it);
+      output->verbose(CALL_INFO, 6, 0, "Response for Tag %u: Value=%" PRId64 "\n", Tag, (uint64_t)(*DataMem));
       return true;
     }
   }

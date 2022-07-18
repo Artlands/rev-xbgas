@@ -217,18 +217,31 @@ void XbgasNIC::setup(){
 
 bool XbgasNIC::msgNotify(int vn){
   SST::Interfaces::SimpleNetwork::Request* req = iFace->recv(0);
+
   if( req != nullptr ){
-    if( req != nullptr ){
-      xbgasNicEvent *ev = static_cast<xbgasNicEvent*>(req->takePayload());
-      (*msgHandler)(ev);
-      delete req;
+    xbgasNicEvent *ev = static_cast<xbgasNicEvent*>(req->takePayload());
+
+    if( !ev ){
+      output->fatal(CALL_INFO, -1, "%s, Error: xbgasNicEvent on XbgasNIC is null\n",
+                    getName().c_str());
     }
+
+    // output->verbose(CALL_INFO, 4, 0,
+    //                 "%s received message %s from %d\n",
+    //                 getName().c_str(), ev->getOpcodeStr().c_str(), ev->getSrc());
+
+    (*msgHandler)(ev);
+    delete req;
   }
+
   return true;
 }
 
 void XbgasNIC::send(xbgasNicEvent* event, int destination){
   SST::Interfaces::SimpleNetwork::Request *req = new SST::Interfaces::SimpleNetwork::Request();
+  // output->verbose(CALL_INFO, 4, 0,
+  //                 "%s sending message %s to %d\n",
+  //                 getName().c_str(), event->getOpcodeStr().c_str(), destination);
   req->dest = destination;
   req->src = iFace->getEndpointID();
   req->givePayload(event);

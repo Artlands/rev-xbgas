@@ -41,6 +41,7 @@
 #include "../common/include/PanAddr.h"
 
 #define _MAX_PAN_TEST_ 11
+#define _MAX_XBGAS_TEST_ 8
 
 namespace SST {
   namespace RevCPU {
@@ -67,6 +68,8 @@ namespace SST {
 
       /// RevCPU: test harness clock tick function
       bool clockTickPANTest( SST::Cycle_t currentCycle );
+
+      bool clockTickXBGASTest( SST::Cycle_t currentCycle );
 
       // -------------------------------------------------------
       // RevCPU Component Registration Data
@@ -218,6 +221,7 @@ namespace SST {
 
       bool EnableNIC;                     ///< RevCPU: Flag for enabling the NIC
       bool EnableXBGAS;                   ///< RevCPU: Flag for enabling the XBGAS
+      bool EnableXBGASTest;
       bool EnablePAN;                     ///< RevCPU: Flag for enabling the PAN operations
       bool EnablePANTest;                 ///< RevCPU: Flag for enabling the PAN test operations
       bool EnablePANStats;                ///< RevCPU: Flag for enabling PAN statistics
@@ -335,6 +339,8 @@ namespace SST {
 
       /// RevCPU: executes the PAN test harness
       void ExecPANTest();
+
+      void ExecXBGASTest();
 
       /// RevCPU: RevNIC message handler
       void handleMessage(SST::Event *ev);
