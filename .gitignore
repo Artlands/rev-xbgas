@@ -1,4 +1,5 @@
 *.o
 *.so
 *.exe
+*.csv
 tmp_xbgas/
