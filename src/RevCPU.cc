@@ -2434,7 +2434,6 @@ void RevCPU::ExecXBGASTest(){
   uint64_t Addr, Addr1, Addr2, Addr3;
   SST::Interfaces::SimpleNetwork::nid_t myPE;
   myPE = address;
-  Addr = 0x20000000;
 
   if( myPE == 0){
     Nmspace = 0x2;

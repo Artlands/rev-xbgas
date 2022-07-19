@@ -14,6 +14,8 @@
 #include "RevInstTable.h"
 #include "RevExt.h"
 
+extern RevXbgas *Xbgas
+
 using namespace SST::RevCPU;
 
 namespace SST{

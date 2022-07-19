@@ -104,9 +104,8 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
       event->getData(Data);
 
       output->verbose(CALL_INFO, 6, 0,
-                      "Push response of Tag=%d to GetResponses; Value=%" PRId64 "\n",
-                      event->getTag(),
-                      (uint64_t)(*Data));
+                      "Push response of Tag=%d to GetResponses.\n",
+                      event->getTag());
 
       GetResponses.push_back(std::make_tuple(tmp_tag, Data, tmp_size));
       break;
