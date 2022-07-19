@@ -254,7 +254,6 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     if(!XNic)
       output.fatal(CALL_INFO, -1, "Error: no NIC object loaded into RevCPU\n");
 
-    // XNic->setMsgHandler(new Event::Handler<RevXbgas>(this, &RevXbgas::handleXbgasMessage));
     Xbgas = new RevXbgas( XNic, Opts, Mem, &output );
 
     // record the number of injected messages per cycle

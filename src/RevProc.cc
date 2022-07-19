@@ -220,6 +220,11 @@ bool RevProc::SeedInstTable(){
     }
   }
 
+  // // XBGAS Extension
+  // if( feature->IsModeEnabled(RV_E) ){
+  //   EnableExt(static_cast<RevExt *>(new RV32E(feature,RegFile,mem,output)),false);
+  // }
+
   // PAN Extension
   if( feature->IsModeEnabled(RV_P) ){
     EnableExt(static_cast<RevExt *>(new RV64P(feature,RegFile,mem,output)),false);

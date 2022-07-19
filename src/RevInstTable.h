@@ -215,6 +215,10 @@ namespace SST{
       float SPF[_REV_NUM_REGS_];        ///< RevRegFile: RVxxF register file
       double DPF[_REV_NUM_REGS_];       ///< RevRegFile: RVxxD register file
 
+      // Extended register file
+      uint32_t ERV32[_REV_NUM_REGS_];   ///< RevRegFile: Extended register file
+      uint64_t ERV64[_REV_NUM_REGS_];   ///< RevRegFile: Extended register file
+      
       uint32_t RV32_PC;                 ///< RevRegFile: RV32 PC
       uint64_t RV64_PC;                 ///< RevRegFile: RV64 PC
       uint64_t FCSR;                    ///< RevRegFile: FCSR

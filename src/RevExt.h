@@ -22,6 +22,7 @@
 // -- RevCPU Headers
 #include "RevInstTable.h"
 #include "RevMem.h"
+#include "RevXbgas.h"
 #include "RevFeature.h"
 
 namespace SST::RevCPU{
@@ -65,12 +66,13 @@ namespace SST{
 
       /// RevExt: retrieves the extension's optional instruction table
       std::vector<RevInstEntry> GetOInstTable() { return otable; }
-
+    
     protected:
       RevFeature *feature;  ///< RevExt: feature object
       RevRegFile* regFile;  ///< RevExt: register file object
       RevMem *mem;          ///< RevExt: memory object
-
+      // RevXbgas *Xbgas;      ///< RevExt: Xbgas object
+      
     private:
       std::string name;                 ///< RevExt: extension name
       SST::Output *output;              ///< RevExt: output handler
