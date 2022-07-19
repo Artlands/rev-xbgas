@@ -14,6 +14,7 @@
 #include <bitset>
 #include <map>
 #include "RevMem.h"
+#include "RevXbgas.h"
 #include "RevFeature.h"
 
 #ifndef _REV_NUM_REGS_
@@ -385,7 +386,7 @@ namespace SST{
         RevInstF format;      ///< RevInstEntry: instruction format
 
         /// RevInstEntry: Instruction implementation function
-        bool (*func)(RevFeature *, RevRegFile *, RevMem *, RevInst);
+        bool (*func)(RevFeature *, RevRegFile *, RevMem *, RevXbgas *, RevInst);
 
         bool compressed;      ///< RevInstEntry: compressed instruction
       } RevInstEntry;
@@ -443,6 +444,7 @@ namespace SST{
       RevInstEntryBuilder& SetImplFunc(bool (*func)(RevFeature *,
                                                     RevRegFile *,
                                                     RevMem *,
+                                                    RevXbgas *,
                                                     RevInst)){
         InstEntry.func = func; return *this;};
 

@@ -14,15 +14,13 @@
 #include "RevInstTable.h"
 #include "RevExt.h"
 
-extern RevXbgas *Xbgas
-
 using namespace SST::RevCPU;
 
 namespace SST{
   namespace RevCPU{
     class RV32E : public RevExt {
 
-      static bool elw(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool elw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint8_t Tag = 0;
 
         // Search in TrackGets, if found, the request has been sent;
@@ -56,7 +54,7 @@ namespace SST{
         return true;
       }
 
-      static bool elh(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool elh(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint8_t Tag = 0;
 
         // Search in TrackGets, if found, the request has been sent;
@@ -90,7 +88,7 @@ namespace SST{
         return true;
       }
 
-      static bool elhu(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool elhu(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint8_t Tag = 0;
 
         // Search in TrackGets, if found, the request has been sent;
@@ -124,7 +122,7 @@ namespace SST{
         return true;
       }
 
-      static bool elb(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool elb(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint8_t Tag = 0;
 
         // Search in TrackGets, if found, the request has been sent;
@@ -158,7 +156,7 @@ namespace SST{
         return true;
       }
 
-      static bool elbu(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool elbu(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint8_t Tag = 0;
 
         // Search in TrackGets, if found, the request has been sent;
@@ -192,7 +190,7 @@ namespace SST{
         return true;
       }
 
-      static bool esw(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool esw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           uint64_t EXT1 = (uint64_t)(R->ERV32[Inst.rs1]);
           uint64_t Addr = (uint64_t)(R->RV32[Inst.rs1] + Inst.imm);
@@ -207,7 +205,7 @@ namespace SST{
         return true;
       }
 
-      static bool esh(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool esh(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           uint64_t EXT1 = (uint64_t)(R->ERV32[Inst.rs1]);
           uint64_t Addr = (uint64_t)(R->RV32[Inst.rs1] + Inst.imm);
@@ -222,7 +220,7 @@ namespace SST{
         return true;
       }
 
-      static bool esb(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool esb(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           uint64_t EXT1 = (uint64_t)(R->ERV32[Inst.rs1]);
           uint64_t Addr = (uint64_t)(R->RV32[Inst.rs1] + Inst.imm);
@@ -237,7 +235,7 @@ namespace SST{
         return true;
       }
 
-      static bool erlw(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool erlw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint8_t Tag = 0;
 
         // Search in TrackGets, if found, the request has been sent;
@@ -271,7 +269,7 @@ namespace SST{
         return true;
       }
 
-      static bool erlh(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool erlh(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint8_t Tag = 0;
 
         // Search in TrackGets, if found, the request has been sent;
@@ -305,7 +303,7 @@ namespace SST{
         return true;
       }
 
-      static bool erlhu(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool erlhu(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint8_t Tag = 0;
 
         // Search in TrackGets, if found, the request has been sent;
@@ -339,7 +337,7 @@ namespace SST{
         return true;
       }
 
-      static bool erlb(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool erlb(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint8_t Tag = 0;
 
         // Search in TrackGets, if found, the request has been sent;
@@ -373,7 +371,7 @@ namespace SST{
         return true;
       }
 
-      static bool erlbu(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool erlbu(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint8_t Tag = 0;
 
         // Search in TrackGets, if found, the request has been sent;
@@ -407,7 +405,7 @@ namespace SST{
         return true;
       }
 
-      static bool ersw(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool ersw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           uint64_t EXT3 = (uint64_t)(R->ERV32[Inst.rd]);
           uint64_t Addr = (uint64_t)(R->RV32[Inst.rs2]);
@@ -422,7 +420,7 @@ namespace SST{
         return true;
       }
 
-      static bool ersh(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool ersh(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           uint64_t EXT3 = (uint64_t)(R->ERV32[Inst.rd]);
           uint64_t Addr = (uint64_t)(R->RV32[Inst.rs2]);
@@ -437,7 +435,7 @@ namespace SST{
         return true;
       }
 
-      static bool ersb(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool ersb(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           uint64_t EXT3 = (uint64_t)(R->ERV32[Inst.rd]);
           uint64_t Addr = (uint64_t)(R->RV32[Inst.rs2]);
@@ -452,7 +450,7 @@ namespace SST{
         return true;
       }
 
-      static bool eaddi(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool eaddi(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = R->ERV32[Inst.rs1] + Inst.imm;
           R->RV32_PC += Inst.instSize;
@@ -463,7 +461,7 @@ namespace SST{
         return true;
       }
 
-      static bool eaddie(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool eaddie(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->ERV32[Inst.rd] = R->RV32[Inst.rs1] + Inst.imm;
           R->RV32_PC += Inst.instSize;
@@ -474,7 +472,7 @@ namespace SST{
         return true;
       }
 
-      static bool eaddix(RevFeature *F, RevRegFile *R, RevMem *M,RevInst Inst) {
+      static bool eaddix(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->ERV32[Inst.rd] = R->ERV32[Inst.rs1] + Inst.imm;
           R->RV32_PC += Inst.instSize;
@@ -529,8 +527,9 @@ namespace SST{
       RV32E( RevFeature *Feature,
              RevRegFile *RegFile,
              RevMem *RevMem,
+             RevXbgas *RevXbgas,
              SST::Output *Output )
-        : RevExt( "RV32E", Feature, RegFile, RevMem, Output) {
+        : RevExt( "RV32E", Feature, RegFile, RevMem, RevXbgas, Output) {
           this->SetTable(RV32ETable);
         }
 

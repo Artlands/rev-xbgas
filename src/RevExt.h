@@ -37,7 +37,7 @@ namespace SST{
     public:
       /// RevExt: standard constructor
       RevExt( std::string Name, RevFeature *Feature,
-              RevRegFile *RegFile, RevMem *RevMem,
+              RevRegFile *RegFile, RevMem *RevMem, RevXbgas *RevXbgas,
               SST::Output *Output );
 
       /// RevExt: standard destructor
@@ -71,7 +71,7 @@ namespace SST{
       RevFeature *feature;  ///< RevExt: feature object
       RevRegFile* regFile;  ///< RevExt: register file object
       RevMem *mem;          ///< RevExt: memory object
-      // RevXbgas *Xbgas;      ///< RevExt: Xbgas object
+      RevXbgas *xbgas;      ///< RevExt: Xbgas object
       
     private:
       std::string name;                 ///< RevExt: extension name

@@ -52,7 +52,7 @@ namespace SST{
         return negate ? ~res + (A * B == 0 ) : res;
       }
 
-      static bool mul(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool mul(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = dt_u32(td_u32(R->RV32[Inst.rs1],32) * td_u32(R->RV32[Inst.rs2],32),32);
           R->RV32_PC += Inst.instSize;
@@ -63,7 +63,7 @@ namespace SST{
         return true;
       }
 
-      static bool mulh(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool mulh(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = dt_u32(mulh_impl(td_u32(R->RV32[Inst.rs1],32),td_u32(R->RV32[Inst.rs2],32))>>32,32);
           R->RV32_PC += Inst.instSize;
@@ -74,7 +74,7 @@ namespace SST{
         return true;
       }
 
-      static bool mulhsu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool mulhsu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = dt_u32((td_u32(R->RV32[Inst.rs1],32)*td_u32(R->RV32[Inst.rs2],32))>>32,32);
           R->RV32_PC += Inst.instSize;
@@ -85,7 +85,7 @@ namespace SST{
         return true;
       }
 
-      static bool mulhu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool mulhu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = dt_u32((td_u32(R->RV32[Inst.rs1],32)*td_u32(R->RV32[Inst.rs2],32))>>32,32);
           R->RV32_PC += Inst.instSize;
@@ -96,7 +96,7 @@ namespace SST{
         return true;
       }
 
-      static bool div(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool div(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           uint32_t lhs = td_u32(R->RV32[Inst.rs1],32);
           uint32_t rhs = td_u32(R->RV32[Inst.rs2],32);
@@ -127,7 +127,7 @@ namespace SST{
         return true;
       }
 
-      static bool divu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool divu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           uint32_t lhs = R->RV32[Inst.rs1];
           uint32_t rhs = R->RV32[Inst.rs2];
@@ -154,7 +154,7 @@ namespace SST{
         return true;
       }
 
-      static bool rem(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool rem(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           uint32_t lhs = td_u32(R->RV32[Inst.rs1],32);
           uint32_t rhs = td_u32(R->RV32[Inst.rs2],32);
@@ -187,7 +187,7 @@ namespace SST{
         return true;
       }
 
-      static bool remu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool remu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           uint32_t lhs = R->RV32[Inst.rs1];
           uint32_t rhs = R->RV32[Inst.rs2];
@@ -243,8 +243,9 @@ namespace SST{
       RV32M( RevFeature *Feature,
              RevRegFile *RegFile,
              RevMem *RevMem,
+             RevXbgas *RevXbgas,
              SST::Output *Output )
-        : RevExt( "RV32M", Feature, RegFile, RevMem, Output) {
+        : RevExt( "RV32M", Feature, RegFile, RevMem, RevXbgas, Output) {
           this->SetTable(RV32MTable);
         }
 

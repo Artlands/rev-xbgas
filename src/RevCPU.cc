@@ -223,7 +223,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
   // Create the processor objects
   Procs.reserve(Procs.size() + numCores);
   for( unsigned i=0; i<numCores; i++ ){
-    Procs.push_back( new RevProc( i, Opts, Mem, Loader, &output ) );
+    Procs.push_back( new RevProc( i, Opts, Mem, Xbgas, Loader, &output ) );
   }
 
   // setup the PAN execution contexts

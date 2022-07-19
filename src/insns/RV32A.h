@@ -20,7 +20,7 @@ namespace SST{
   namespace RevCPU{
     class RV32A : public RevExt {
 
-      static bool lrw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool lrw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],M->ReadU32( (uint64_t)(R->RV32[Inst.rs1])), 32 );
           if( !M->LR(F->GetHart(), (uint64_t)(R->RV32[Inst.rs1])) )
@@ -37,7 +37,7 @@ namespace SST{
         return true;
       }
 
-      static bool scw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool scw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           if( M->SC(F->GetHart(), (uint64_t)(R->RV32[Inst.rs1])) ){
             // successfully cleared the reservation
@@ -63,7 +63,7 @@ namespace SST{
         }
       }
 
-      static bool amoswapw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amoswapw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],M->ReadU32( (uint64_t)(R->RV32[Inst.rs1])), 32 );
           M->WriteU32((uint64_t)(R->RV32[Inst.rs1]), (uint32_t)(R->RV32[Inst.rs2]));
@@ -78,7 +78,7 @@ namespace SST{
         return true;
       }
 
-      static bool amoaddw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amoaddw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           M->WriteU32((uint64_t)(R->RV32[Inst.rs1]),
                       dt_u32((int32_t)(td_u32(R->RV32[Inst.rd],32))+
@@ -95,7 +95,7 @@ namespace SST{
         return true;
       }
 
-      static bool amoxorw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amoxorw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           M->WriteU32((uint64_t)(R->RV32[Inst.rs1]),
                       dt_u32((int32_t)(td_u32(R->RV32[Inst.rd],32))^
@@ -112,7 +112,7 @@ namespace SST{
         return true;
       }
 
-      static bool amoandw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amoandw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           M->WriteU32((uint64_t)(R->RV32[Inst.rs1]),
                       dt_u32((int32_t)(td_u32(R->RV32[Inst.rd],32))&
@@ -129,7 +129,7 @@ namespace SST{
         return true;
       }
 
-      static bool amoorw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amoorw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           M->WriteU32((uint64_t)(R->RV32[Inst.rs1]),
                       dt_u32((int32_t)(td_u32(R->RV32[Inst.rd],32))|
@@ -146,7 +146,7 @@ namespace SST{
         return true;
       }
 
-      static bool amominw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amominw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],M->ReadU32( (uint64_t)(R->RV32[Inst.rs1])), 32 );
           if( (int32_t)(td_u32(R->RV32[Inst.rd],32)) < (int32_t)(td_u32(R->RV32[Inst.rs2],32)) ){
@@ -173,7 +173,7 @@ namespace SST{
         return true;
       }
 
-      static bool amomaxw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amomaxw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],M->ReadU32( (uint64_t)(R->RV32[Inst.rs1])), 32 );
           if( (int32_t)(td_u32(R->RV32[Inst.rd],32)) > (int32_t)(td_u32(R->RV32[Inst.rs2],32)) ){
@@ -200,7 +200,7 @@ namespace SST{
         return true;
       }
 
-      static bool amominuw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amominuw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],M->ReadU32( (uint64_t)(R->RV32[Inst.rs1])), 32 );
           if( (uint32_t)(R->RV32[Inst.rd]) < (uint32_t)(R->RV32[Inst.rs2]) ){
@@ -227,7 +227,7 @@ namespace SST{
         return true;
       }
 
-      static bool amomaxuw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amomaxuw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],M->ReadU32( (uint64_t)(R->RV32[Inst.rs1])), 32 );
           if( (uint32_t)(R->RV32[Inst.rd]) > (uint32_t)(R->RV32[Inst.rs2]) ){
@@ -282,8 +282,9 @@ namespace SST{
       RV32A( RevFeature *Feature,
              RevRegFile *RegFile,
              RevMem *RevMem,
+             RevXbgas *RevXbgas,
              SST::Output *Output )
-        : RevExt( "RV32A", Feature, RegFile, RevMem, Output) {
+        : RevExt( "RV32A", Feature, RegFile, RevMem, RevXbgas, Output) {
           this->SetTable(RV32ATable);
         }
 

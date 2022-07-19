@@ -14,11 +14,12 @@
 RevProc::RevProc( unsigned Id,
                   RevOpts *Opts,
                   RevMem *Mem,
+                  RevXbgas *Xbgas,
                   RevLoader *Loader,
                   SST::Output *Output )
   : Halted(false), SingleStep(false),
     CrackFault(false), ALUFault(false), fault_width(0),
-    id(Id), opts(Opts), mem(Mem), loader(Loader), output(Output), threadToDecode(0),
+    id(Id), opts(Opts), mem(Mem), xbgas(Xbgas), loader(Loader), output(Output), threadToDecode(0),
     threadToExec(0), Retired(0x00ull) {
 
   // initialize the machine model for the target core
@@ -174,60 +175,60 @@ bool RevProc::SeedInstTable(){
   if( feature->IsModeEnabled(RV_I) ){
     if( feature->GetXlen() == 64 ){
       // load RV32I & RV64; no optional compressed
-      EnableExt(static_cast<RevExt *>(new RV32I(feature,RegFile,mem,output)),false);
-      EnableExt(static_cast<RevExt *>(new RV64I(feature,RegFile,mem,output)),false);
+      EnableExt(static_cast<RevExt *>(new RV32I(feature,RegFile,mem,xbgas,output)),false);
+      EnableExt(static_cast<RevExt *>(new RV64I(feature,RegFile,mem,xbgas,output)),false);
     }else{
       // load RV32I w/ optional compressed
-      EnableExt(static_cast<RevExt *>(new RV32I(feature,RegFile,mem,output)),true);
+      EnableExt(static_cast<RevExt *>(new RV32I(feature,RegFile,mem,xbgas,output)),true);
     }
   }
 
   // M-Extension
   if( feature->IsModeEnabled(RV_M) ){
-    EnableExt(static_cast<RevExt *>(new RV32M(feature,RegFile,mem,output)),false);
+    EnableExt(static_cast<RevExt *>(new RV32M(feature,RegFile,mem,xbgas,output)),false);
     if( feature->GetXlen() == 64 ){
-      EnableExt(static_cast<RevExt *>(new RV64M(feature,RegFile,mem,output)),false);
+      EnableExt(static_cast<RevExt *>(new RV64M(feature,RegFile,mem,xbgas,output)),false);
     }
   }
 
   // A-Extension
   if( feature->IsModeEnabled(RV_A) ){
-    EnableExt(static_cast<RevExt *>(new RV32A(feature,RegFile,mem,output)),false);
+    EnableExt(static_cast<RevExt *>(new RV32A(feature,RegFile,mem,xbgas,output)),false);
     if( feature->GetXlen() == 64 ){
-      EnableExt(static_cast<RevExt *>(new RV64A(feature,RegFile,mem,output)),false);
+      EnableExt(static_cast<RevExt *>(new RV64A(feature,RegFile,mem,xbgas,output)),false);
     }
   }
 
   // F-Extension
   if( feature->IsModeEnabled(RV_F) ){
     if( (!feature->IsModeEnabled(RV_D)) && (feature->GetXlen() == 32) ){
-      EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,output)),true);
+      EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,xbgas,output)),true);
     }else{
-      EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,output)),false);
+      EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,xbgas,output)),false);
     }
 #if 0
     if( feature->GetXlen() == 64 ){
-      EnableExt(static_cast<RevExt *>(new RV64D(feature,RegFile,mem,output)));
+      EnableExt(static_cast<RevExt *>(new RV64D(feature,RegFile,mem,xbgas,output)));
     }
 #endif
   }
 
   // D-Extension
   if( feature->IsModeEnabled(RV_D) ){
-    EnableExt(static_cast<RevExt *>(new RV32D(feature,RegFile,mem,output)),false);
+    EnableExt(static_cast<RevExt *>(new RV32D(feature,RegFile,mem,xbgas,output)),false);
     if( feature->GetXlen() == 64 ){
-      EnableExt(static_cast<RevExt *>(new RV64D(feature,RegFile,mem,output)),false);
+      EnableExt(static_cast<RevExt *>(new RV64D(feature,RegFile,mem,xbgas,output)),false);
     }
   }
 
   // XBGAS Extension
   if( feature->IsModeEnabled(RV_E) ){
-    // EnableExt(static_cast<RevExt *>(new RV32E(feature,RegFile,mem,output)),false);
+    EnableExt(static_cast<RevExt *>(new RV32E(feature,RegFile,mem,xbgas,output)),false);
   }
 
   // PAN Extension
   if( feature->IsModeEnabled(RV_P) ){
-    EnableExt(static_cast<RevExt *>(new RV64P(feature,RegFile,mem,output)),false);
+    EnableExt(static_cast<RevExt *>(new RV64P(feature,RegFile,mem,xbgas,output)),false);
   }
 
   return true;

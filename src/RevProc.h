@@ -29,6 +29,7 @@
 // -- RevCPU Headers
 #include "RevOpts.h"
 #include "RevMem.h"
+#include "RevXbgas.h"
 #include "RevFeature.h"
 #include "RevLoader.h"
 #include "RevInstTable.h"
@@ -49,7 +50,7 @@ namespace SST{
     class RevProc{
     public:
       /// RevProc: standard constructor
-      RevProc( unsigned Id, RevOpts *Opts, RevMem *Mem, RevLoader *Loader,
+      RevProc( unsigned Id, RevOpts *Opts, RevMem *Mem, RevXbgas *Xbgas, RevLoader *Loader,
                SST::Output *Output );
 
       /// RevProc: standard desctructor
@@ -118,6 +119,7 @@ namespace SST{
       uint8_t threadToExec;     ///< RevProc: Thread to dispatch instruction
       RevOpts *opts;            ///< RevProc: options object
       RevMem *mem;              ///< RevProc: memory object
+      RevXbgas *xbgas;
       RevLoader *loader;        ///< RevProc: loader object
       SST::Output *output;      ///< RevProc: output handler
       uint64_t Retired;         ///< RevProc: number of retired instructions

@@ -20,7 +20,7 @@ namespace SST{
   namespace RevCPU{
     class RV64A : public RevExt {
 
-      static bool lrd(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool lrd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         SEXT(R->RV64[Inst.rd],M->ReadU64( (uint64_t)(R->RV64[Inst.rs1])), 64 );
         if( !M->LR(F->GetHart(), (uint64_t)(R->RV64[Inst.rs1])) )
           return false;
@@ -28,7 +28,7 @@ namespace SST{
         return true;
       }
 
-      static bool scd(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool scd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( M->SC(F->GetHart(), (uint64_t)(R->RV64[Inst.rs1])) ){
           // successfully cleared the reservation
           M->WriteU64( (uint64_t)(R->RV64[Inst.rs1]), (uint64_t)(R->RV64[Inst.rs2]) );
@@ -41,7 +41,7 @@ namespace SST{
         }
       }
 
-      static bool amoswapd(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amoswapd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1])), 64 );
         M->WriteU64((uint64_t)(R->RV64[Inst.rs1]), (uint64_t)(R->RV64[Inst.rs2]));
         R->RV64_PC += Inst.instSize;
@@ -50,7 +50,7 @@ namespace SST{
         return true;
       }
 
-      static bool amoaddd(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amoaddd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1])), 64 );
         M->WriteU64((uint64_t)(R->RV64[Inst.rs1]),
                     dt_u64((int64_t)(td_u64(R->RV64[Inst.rd],64))+
@@ -61,7 +61,7 @@ namespace SST{
         return true;
       }
 
-      static bool amoxord(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amoxord(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1])), 64 );
         M->WriteU64((uint64_t)(R->RV64[Inst.rs1]),
                     dt_u64((int64_t)(td_u64(R->RV64[Inst.rd],64))^
@@ -72,7 +72,7 @@ namespace SST{
         return true;
       }
 
-      static bool amoandd(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amoandd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1])), 64 );
         M->WriteU64((uint64_t)(R->RV64[Inst.rs1]),
                     dt_u64((int64_t)(td_u64(R->RV64[Inst.rd],64))&
@@ -83,7 +83,7 @@ namespace SST{
         return true;
       }
 
-      static bool amoord(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amoord(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1])), 64 );
         M->WriteU64((uint64_t)(R->RV64[Inst.rs1]),
                     dt_u64((int64_t)(td_u64(R->RV64[Inst.rd],64))|
@@ -94,7 +94,7 @@ namespace SST{
         return true;
       }
 
-      static bool amomind(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amomind(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1])), 64 );
         if( (int64_t)(td_u64(R->RV64[Inst.rd],64)) <
             (int64_t)(td_u64(R->RV64[Inst.rs2],64)) ){
@@ -110,7 +110,7 @@ namespace SST{
         return true;
       }
 
-      static bool amomaxd(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amomaxd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1])), 64 );
         if( (int64_t)(td_u64(R->RV64[Inst.rd],64)) >
             (int64_t)(td_u64(R->RV64[Inst.rs2],64)) ){
@@ -126,7 +126,7 @@ namespace SST{
         return true;
       }
 
-      static bool amominud(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amominud(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1])), 64 );
         if( (uint64_t)(R->RV64[Inst.rd]) < (uint64_t)(R->RV64[Inst.rs2]) ){
           M->WriteU64((uint64_t)(R->RV64[Inst.rs1]),
@@ -141,7 +141,7 @@ namespace SST{
         return true;
       }
 
-      static bool amomaxud(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool amomaxud(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1])), 64 );
         if( (uint64_t)(R->RV64[Inst.rd]) > (uint64_t)(R->RV64[Inst.rs2]) ){
           M->WriteU64((uint64_t)(R->RV64[Inst.rs1]),
@@ -190,8 +190,9 @@ namespace SST{
       RV64A( RevFeature *Feature,
              RevRegFile *RegFile,
              RevMem *RevMem,
+             RevXbgas *RevXbgas,
              SST::Output *Output )
-        : RevExt( "RV64A", Feature, RegFile, RevMem, Output) {
+        : RevExt( "RV64A", Feature, RegFile, RevMem, RevXbgas, Output) {
           this->SetTable(RV64ATable);
         }
 

@@ -20,92 +20,85 @@ namespace SST{
     class RV64I : public RevExt {
 
       // Compressed instructions
-      static bool cldsp(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool cldsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.lwsp rd, $imm = lw rd, x2, $imm
         Inst.rs1  = 2;
 
-        return ld(F,R,M,Inst);
+        return ld(F,R,M,Xbgas,Inst);
       }
 
-      static bool csdsp(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool csdsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.swsp rs2, $imm = sw rs2, x2, $imm
         Inst.rs1  = 2;
         Inst.imm = ((Inst.imm&0b11111)*8);
 
-        return sd(F,R,M,Inst);
+        return sd(F,R,M,Xbgas,Inst);
       }
 
-      static bool cld(RevFeature *F, RevRegFile *R,
-                      RevMem *M, RevInst Inst) {
+      static bool cld(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.ld %rd, %rs1, $imm = ld %rd, %rs1, $imm
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
         Inst.imm = ((Inst.imm&0b11111)*8);
 
-        return ld(F,R,M,Inst);
+        return ld(F,R,M,Xbgas,Inst);
       }
 
-      static bool csd(RevFeature *F, RevRegFile *R,
-                      RevMem *M, RevInst Inst) {
+      static bool csd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.sd rs2, rs1, $imm = sd rs2, $imm(rs1)
         Inst.rs2 = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
         Inst.imm = ((Inst.imm&0b11111)*8);
 
-        return sd(F,R,M,Inst);
+        return sd(F,R,M,Xbgas,Inst);
       }
 
-      static bool caddiw(RevFeature *F, RevRegFile *R,
-                         RevMem *M, RevInst Inst) {
+      static bool caddiw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.addiw %rd, $imm = addiw %rd, %rd, $imm
         Inst.rs1 = Inst.rd;
 
-        return addiw(F,R,M,Inst);
+        return addiw(F,R,M,Xbgas,Inst);
       }
 
-      static bool caddw(RevFeature *F, RevRegFile *R,
-                       RevMem *M, RevInst Inst) {
+      static bool caddw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.addw %rd, %rs2 = addw %rd, %rd, %rs2
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = Inst.rd;
         Inst.rs2  = CRegMap[Inst.rs2];
-        return addw(F,R,M,Inst);
+        return addw(F,R,M,Xbgas,Inst);
       }
 
-      static bool csubw(RevFeature *F, RevRegFile *R,
-                       RevMem *M, RevInst Inst) {
+      static bool csubw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.subw %rd, %rs2 = subw %rd, %rd, %rs2
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = Inst.rd;
         Inst.rs2  = CRegMap[Inst.rs2];
-        return subw(F,R,M,Inst);
+        return subw(F,R,M,Xbgas,Inst);
       }
 
       // Standard instructions
-      static bool lwu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst){
+      static bool lwu(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst){
         ZEXT(R->RV64[Inst.rd],M->ReadU64( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
         R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool ld(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool ld(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         R->RV64[Inst.rd] = M->ReadU64( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
         R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool sd(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sd(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         int64_t tmp = td_u64(Inst.imm,12);
         M->WriteU64((uint64_t)(R->RV64[Inst.rs1]+tmp), (uint64_t)(R->RV64[Inst.rs2]));
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool addiw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool addiw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         R->RV64[Inst.rd] = dt_u64((int32_t)(td_u64(R->RV64[Inst.rs1],64)) + (int32_t)(td_u32(Inst.imm,12)),64);
         R->RV64[Inst.rd] &= MASK32;
         SEXTI( R->RV64[Inst.rd], 64 );
@@ -113,21 +106,21 @@ namespace SST{
         return true;
       }
 
-      static bool slliw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool slliw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         //SEXT(R->RV64[Inst.rd],(R->RV64[Inst.rs1] << (Inst.imm&0b111111))&MASK32,64);
         R->RV64[Inst.rd] |= ((R->RV64[Inst.rs1]<< Inst.imm)&0xffffffff);
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool srliw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool srliw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         ZEXT(R->RV64[Inst.rd],(R->RV64[Inst.rs1] >> (Inst.imm&0b111111))&MASK32,64);
         SEXTI(R->RV64[Inst.rd],64);
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool sraiw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sraiw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         uint64_t tmp = R->RV64[Inst.rs1] | (1<<31);
         SEXT(R->RV64[Inst.rd],((R->RV64[Inst.rs1] >> (Inst.imm&0b1111111))&MASK32)|tmp,64);
         SEXTI(R->RV64[Inst.rd],64);
@@ -135,32 +128,32 @@ namespace SST{
         return true;
       }
 
-      static bool addw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool addw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         R->RV64[Inst.rd] = dt_u64(td_u64(R->RV64[Inst.rs1],64) + td_u64(R->RV64[Inst.rs2],64),64);
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool subw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool subw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         R->RV64[Inst.rd] = dt_u64(td_u64(R->RV64[Inst.rs1],64) - td_u64(R->RV64[Inst.rs2],64),64);
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool sllw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sllw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         SEXT(R->RV64[Inst.rd],(R->RV64[Inst.rs1] << (R->RV64[Inst.rs2]&0b111111))&MASK32,64);
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool srlw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool srlw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         ZEXT(R->RV64[Inst.rd],(R->RV64[Inst.rs1] >> (R->RV64[Inst.rs2]&0b111111))&MASK32,64);
         SEXTI(R->RV64[Inst.rd],64);
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool sraw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sraw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         uint64_t tmp = R->RV64[Inst.rs1] | (1<<31);
         SEXT(R->RV64[Inst.rd],((R->RV64[Inst.rs1] >> (R->RV64[Inst.rs2]&0b111111))&MASK32)|tmp,64);
         SEXTI(R->RV64[Inst.rd],64);
@@ -206,8 +199,9 @@ namespace SST{
       RV64I( RevFeature *Feature,
              RevRegFile *RegFile,
              RevMem *RevMem,
+             RevXbgas *RevXbgas,
              SST::Output *Output )
-        : RevExt( "RV64I", Feature, RegFile, RevMem, Output ) {
+        : RevExt( "RV64I", Feature, RegFile, RevMem, RevXbgas, Output ) {
           this->SetTable(RV64ITable);
           this->SetCTable(RV64ICTable);
         }

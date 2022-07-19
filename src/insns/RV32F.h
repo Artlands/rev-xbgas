@@ -21,42 +21,38 @@ namespace SST{
     class RV32F : public RevExt {
 
       // Compressed instructions
-      static bool cflwsp(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool cflwsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.flwsp rd, $imm = lw rd, x2, $imm
         Inst.rs1  = 2;
 
-        return flw(F,R,M,Inst);
+        return flw(F,R,M,Xbgas,Inst);
       }
 
-      static bool cfswsp(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool cfswsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.swsp rs2, $imm = sw rs2, x2, $imm
         Inst.rs1  = 2;
 
-        return fsw(F,R,M,Inst);
+        return fsw(F,R,M,Xbgas,Inst);
       }
 
-      static bool cflw(RevFeature *F, RevRegFile *R,
-                       RevMem *M, RevInst Inst) {
+      static bool cflw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.flw %rd, %rs1, $imm = flw %rd, %rs1, $imm
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
 
-        return flw(F,R,M,Inst);
+        return flw(F,R,M,Xbgas,Inst);
       }
 
-      static bool cfsw(RevFeature *F, RevRegFile *R,
-                      RevMem *M, RevInst Inst) {
+      static bool cfsw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.fsw rs2, rs1, $imm = fsw rs2, $imm(rs1)
         Inst.rs2 = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
 
-        return fsw(F,R,M,Inst);
+        return fsw(F,R,M,Xbgas,Inst);
       }
 
       // Standard instructions
-      static bool flw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool flw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
             R->DPF[Inst.rd] = M->ReadFloat((uint64_t)(R->RV32[Inst.rs1]+Inst.imm));
@@ -78,7 +74,7 @@ namespace SST{
         return true;
       }
 
-      static bool fsw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fsw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
             M->WriteFloat((uint64_t)(R->RV32[Inst.rs1]+Inst.imm), (float)(R->DPF[Inst.rs2]));
@@ -99,7 +95,7 @@ namespace SST{
         return true;
       }
 
-      static bool fmadds(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fmadds(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           R->DPF[Inst.rd] = (float)((float)(R->DPF[Inst.rs1]) *
                                    (float)(R->DPF[Inst.rs2]) +
@@ -120,7 +116,7 @@ namespace SST{
         return true;
       }
 
-      static bool fmsubs(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fmsubs(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           R->DPF[Inst.rd] = (float)((float)(R->DPF[Inst.rs1]) *
                                     (float)(R->DPF[Inst.rs2]) -
@@ -141,7 +137,7 @@ namespace SST{
         return true;
       }
 
-      static bool fnmsubs(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fnmsubs(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           R->DPF[Inst.rd] = (float)((-(float)(R->DPF[Inst.rs1])) *
                                     (float)(R->DPF[Inst.rs2]) -
@@ -162,7 +158,7 @@ namespace SST{
         return true;
       }
 
-      static bool fnmadds(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fnmadds(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           R->DPF[Inst.rd] = (float)((-(float)(R->DPF[Inst.rs1])) *
                                     (float)(R->DPF[Inst.rs2]) +
@@ -183,7 +179,7 @@ namespace SST{
         return true;
       }
 
-      static bool fadds(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fadds(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           R->DPF[Inst.rd] = (float)((float)(R->DPF[Inst.rs1]) +
                                     (float)(R->DPF[Inst.rs2]));
@@ -203,7 +199,7 @@ namespace SST{
         return true;
       }
 
-      static bool fsubs(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fsubs(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           R->DPF[Inst.rd] = (float)((float)(R->DPF[Inst.rs1]) -
                                     (float)(R->DPF[Inst.rs2]));
@@ -223,7 +219,7 @@ namespace SST{
         return true;
       }
 
-      static bool fmuls(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fmuls(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           R->DPF[Inst.rd] = (float)((float)(R->DPF[Inst.rs1]) *
                                     (float)(R->DPF[Inst.rs2]));
@@ -243,7 +239,7 @@ namespace SST{
         return true;
       }
 
-      static bool fdivs(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fdivs(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           R->DPF[Inst.rd] = (float)((float)(R->DPF[Inst.rs1]) /
                                     (float)(R->DPF[Inst.rs2]));
@@ -263,7 +259,7 @@ namespace SST{
         return true;
       }
 
-      static bool fsqrts(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fsqrts(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           R->DPF[Inst.rd] = (float)(sqrt((float)(R->DPF[Inst.rs1])));
           if( F->IsRV32() ){
@@ -282,7 +278,7 @@ namespace SST{
         return true;
       }
 
-      static bool fsgnjs(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fsgnjs(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t tmp = 0;
         uint32_t tmp2 = 0;
         if( F->IsRV32D() ){
@@ -321,7 +317,7 @@ namespace SST{
         return true;
       }
 
-      static bool fsgnjns(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fsgnjns(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t tmp = 0;
         uint32_t tmp2 = 0;
         if( F->IsRV32D() ){
@@ -364,7 +360,7 @@ namespace SST{
         return true;
       }
 
-      static bool fsgnjxs(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fsgnjxs(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t tmp = 0;
         uint32_t tmp2 = 0;
         if( F->IsRV32D() ){
@@ -403,7 +399,7 @@ namespace SST{
         return true;
       }
 
-      static bool fmins(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fmins(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         float tmp1;
         float tmp2;
         if( F->IsRV32D() ){
@@ -436,7 +432,7 @@ namespace SST{
         return true;
       }
 
-      static bool fmaxs(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fmaxs(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         float tmp1;
         float tmp2;
         if( F->IsRV32D() ){
@@ -469,7 +465,7 @@ namespace SST{
         return true;
       }
 
-      static bool fcvtws(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtws(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
             R->RV32[Inst.rd] = (int32_t)((float)(R->DPF[Inst.rs1]));
@@ -490,7 +486,7 @@ namespace SST{
         return true;
       }
 
-      static bool fcvtwus(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtwus(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
             R->RV32[Inst.rd] = (uint32_t)((float)(R->DPF[Inst.rs1]));
@@ -511,7 +507,7 @@ namespace SST{
         return true;
       }
 
-      static bool fmvxw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fmvxw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
             std::memcpy(&R->RV32[Inst.rd],&R->DPF[Inst.rs1],sizeof(float));
@@ -534,7 +530,7 @@ namespace SST{
         return true;
       }
 
-      static bool feqs(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool feqs(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
             if( R->DPF[Inst.rs1] == R->DPF[Inst.rs1] ){
@@ -571,7 +567,7 @@ namespace SST{
         return true;
       }
 
-      static bool flts(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool flts(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
             if( R->DPF[Inst.rs1] < R->DPF[Inst.rs1] ){
@@ -608,7 +604,7 @@ namespace SST{
         return true;
       }
 
-      static bool fles(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fles(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
             if( R->DPF[Inst.rs1] <= R->DPF[Inst.rs1] ){
@@ -645,7 +641,7 @@ namespace SST{
         return true;
       }
 
-      static bool fclasss(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fclasss(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // see: https://github.com/riscv/riscv-isa-sim/blob/master/softfloat/f32_classify.c
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
@@ -663,7 +659,7 @@ namespace SST{
         return true;
       }
 
-      static bool fcvtsw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtsw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
             R->DPF[Inst.rd] = (float)((int32_t)(R->RV32[Inst.rs1]));
@@ -684,7 +680,7 @@ namespace SST{
         return true;
       }
 
-      static bool fcvtswu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtswu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
             R->DPF[Inst.rd] = (float)((uint32_t)(R->RV32[Inst.rs1]));
@@ -705,7 +701,7 @@ namespace SST{
         return true;
       }
 
-      static bool fmvwx(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fmvwx(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32D() ){
           if( F->IsRV32() ){
             std::memcpy(&R->RV32[Inst.rd],&R->DPF[Inst.rs1],sizeof(float));
@@ -786,8 +782,9 @@ namespace SST{
       RV32F( RevFeature *Feature,
              RevRegFile *RegFile,
              RevMem *RevMem,
+             RevXbgas *RevXbgas,
              SST::Output *Output )
-        : RevExt( "RV32F", Feature, RegFile, RevMem, Output) {
+        : RevExt( "RV32F", Feature, RegFile, RevMem, RevXbgas, Output) {
           this->SetTable(RV32FTable);
           this->SetOTable(RV32FCOTable);
         }

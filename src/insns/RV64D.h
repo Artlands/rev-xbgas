@@ -20,44 +20,44 @@ namespace SST{
   namespace RevCPU{
     class RV64D : public RevExt {
 
-      static bool fcvtld(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtld(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         R->RV64[Inst.rd] = (int64_t)((double)(R->DPF[Inst.rs1]));
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool fcvtwd(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtwd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         R->RV64[Inst.rd] = (int64_t)((double)(R->DPF[Inst.rs1]));
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
 
-      static bool fcvtlud(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtlud(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         R->RV64[Inst.rd] = (uint64_t)((double)(R->DPF[Inst.rs1]));
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool fcvtdl(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtdl(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         R->DPF[Inst.rd] = (double)((int64_t)(R->RV64[Inst.rs1]));
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool fcvtdlu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtdlu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         R->DPF[Inst.rd] = (double)((uint64_t)(R->RV64[Inst.rs1]));
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool fmvxd(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fmvxd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         std::memcpy(&R->RV64[Inst.rd],&R->DPF[Inst.rs1],sizeof(double));
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-      static bool fmvdx(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fmvdx(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         std::memcpy(&R->RV64[Inst.rd],&R->DPF[Inst.rs1],sizeof(double));
         R->RV64_PC += Inst.instSize;
         return true;
@@ -94,8 +94,9 @@ namespace SST{
       RV64D( RevFeature *Feature,
              RevRegFile *RegFile,
              RevMem *RevMem,
+             RevXbgas *RevXbgas,
              SST::Output *Output )
-        : RevExt( "RV64D", Feature, RegFile, RevMem, Output) {
+        : RevExt( "RV64D", Feature, RegFile, RevMem, RevXbgas, Output) {
           this->SetTable(RV64DTable);
         }
 

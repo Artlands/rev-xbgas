@@ -20,7 +20,7 @@ namespace SST{
   namespace RevCPU{
     class RV64F : public RevExt {
 
-      static bool fcvtls(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtls(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV64D() ){
           R->RV64[Inst.rd] = (int64_t)((float)(R->DPF[Inst.rs1]));
         }else{
@@ -30,7 +30,7 @@ namespace SST{
         return true;
       }
 
-      static bool fcvtlus(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtlus(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV64D() ){
           R->RV64[Inst.rd] = (uint64_t)((float)(R->DPF[Inst.rs1]));
         }else{
@@ -40,7 +40,7 @@ namespace SST{
         return true;
       }
 
-      static bool fcvtsl(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtsl(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV64D() ){
           R->DPF[Inst.rd] = (float)((int64_t)(R->RV64[Inst.rs1]));
         }else{
@@ -50,7 +50,7 @@ namespace SST{
         return true;
       }
 
-      static bool fcvtslu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fcvtslu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV64D() ){
           R->DPF[Inst.rd] = (float)((uint64_t)(R->RV64[Inst.rs1]));
         }else{
@@ -90,8 +90,9 @@ namespace SST{
       RV64F( RevFeature *Feature,
              RevRegFile *RegFile,
              RevMem *RevMem,
+             RevXbgas *RevXbgas,
              SST::Output *Output )
-        : RevExt( "RV64F", Feature, RegFile, RevMem, Output) {
+        : RevExt( "RV64F", Feature, RegFile, RevMem, RevXbgas, Output) {
           this->SetTable(RV64FTable);
         }
 

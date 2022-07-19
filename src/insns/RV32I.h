@@ -21,227 +21,201 @@ namespace SST{
     class RV32I : public RevExt {
 
       // Compressed instructions
-      static bool caddi4spn(RevFeature *F, RevRegFile *R,
-                            RevMem *M, RevInst Inst) {
+      static bool caddi4spn(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.addi4spn rd, $imm == addi rd, x2, $imm
         Inst.rs1  = 2;
         Inst.rd   = CRegMap[Inst.rd];
         if( Inst.imm == 0x00 )
           return false;
 
-        return addi(F,R,M,Inst);
+        return addi(F,R,M,Xbgas,Inst);
       }
 
-      static bool clwsp(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool clwsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.lwsp rd, $imm = lw rd, x2, $imm
         Inst.rs1  = 2;
 
-        return lw(F,R,M,Inst);
+        return lw(F,R,M,Xbgas,Inst);
       }
 
-      static bool cswsp(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool cswsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.swsp rs2, $imm = sw rs2, x2, $imm
         Inst.rs1  = 2;
 
-        return sw(F,R,M,Inst);
+        return sw(F,R,M,Xbgas,Inst);
       }
 
-      static bool clw(RevFeature *F, RevRegFile *R,
-                      RevMem *M, RevInst Inst) {
+      static bool clw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.lw rd, rs1, $imm = lw rd, $imm(rs1)
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
 
-        return lw(F,R,M,Inst);
+        return lw(F,R,M,Xbgas,Inst);
       }
 
-      static bool csw(RevFeature *F, RevRegFile *R,
-                      RevMem *M, RevInst Inst) {
+      static bool csw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.sw rs2, rs1, $imm = sw rs2, $imm(rs1)
         Inst.rs2 = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
 
-        return sw(F,R,M,Inst);
+        return sw(F,R,M,Xbgas,Inst);
       }
 
-      static bool cj(RevFeature *F, RevRegFile *R,
-                     RevMem *M, RevInst Inst) {
+      static bool cj(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.j $imm = jal x0, $imm
         Inst.rd = 0; // x0
         Inst.imm = Inst.jumpTarget;
 
-        return jal(F,R,M,Inst);
+        return jal(F,R,M,Xbgas,Inst);
       }
 
-      static bool cjal(RevFeature *F, RevRegFile *R,
-                       RevMem *M, RevInst Inst) {
+      static bool cjal(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.jal $imm = jal x0, $imm
         Inst.rd = 1; // x1
         Inst.imm = Inst.jumpTarget;
 
-        return jal(F,R,M,Inst);
+        return jal(F,R,M,Xbgas,Inst);
       }
 
-      static bool CRFUNC_1000(RevFeature *F, RevRegFile *R,
-                              RevMem *M, RevInst Inst){
+      static bool CRFUNC_1000(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst){
         if( Inst.rs2 != 0 )
-          return cmv(F,R,M,Inst);
-        return cjr(F,R,M,Inst);
+          return cmv(F,R,M,Xbgas,Inst);
+        return cjr(F,R,M,Xbgas,Inst);
       }
 
-      static bool CRFUNC_1001(RevFeature *F, RevRegFile *R,
-                              RevMem *M, RevInst Inst){
+      static bool CRFUNC_1001(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst){
         if( (Inst.rs1 == 0) && (Inst.rd == 0) ){
-          return ebreak(F,R,M,Inst);
+          return ebreak(F,R,M,Xbgas,Inst);
         }else if( (Inst.rs1 == 0) && (Inst.rd != 0) ){
-          return jalr(F,R,M,Inst);
+          return jalr(F,R,M,Xbgas,Inst);
         }else{
-          return add(F,R,M,Inst);
+          return add(F,R,M,Xbgas,Inst);
         }
       }
 
-      static bool cjr(RevFeature *F, RevRegFile *R,
-                      RevMem *M, RevInst Inst) {
+      static bool cjr(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.jr %rs1 = jalr x0, 0(%rs1)
         Inst.rs2 = 0;
-        return jalr(F,R,M,Inst);
+        return jalr(F,R,M,Xbgas,Inst);
       }
 
-      static bool cmv(RevFeature *F, RevRegFile *R,
-                      RevMem *M, RevInst Inst) {
-        return add(F,R,M,Inst);
+      static bool cmv(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
+        return add(F,R,M,Xbgas,Inst);
       }
 
-      static bool cadd(RevFeature *F, RevRegFile *R,
-                       RevMem *M, RevInst Inst) {
+      static bool cadd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         Inst.rs1 = Inst.rd;
-        return add(F,R,M,Inst);
+        return add(F,R,M,Xbgas,Inst);
       }
 
-      static bool cjalr(RevFeature *F, RevRegFile *R,
-                      RevMem *M, RevInst Inst) {
+      static bool cjalr(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.jalr %rs1 = jalr x1, 0(%rs1)
         Inst.rs2 = 1;
 
-        return jalr(F,R,M,Inst);
+        return jalr(F,R,M,Xbgas,Inst);
       }
 
-      static bool cbeqz(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool cbeqz(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.beqz %rs1, $imm = beq %rs1, x0, $imm
         Inst.rs2 = 0;
         Inst.rs1 = CRegMap[Inst.rs1];
         Inst.imm = Inst.offset;
 
-        return beq(F,R,M,Inst);
+        return beq(F,R,M,Xbgas,Inst);
       }
 
-      static bool cbnez(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool cbnez(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.bnez %rs1, $imm = bne %rs1, x0, $imm
         Inst.rs2 = 0;
         Inst.rs1 = CRegMap[Inst.rs1];
         Inst.imm = Inst.offset;
 
-        return bne(F,R,M,Inst);
+        return bne(F,R,M,Xbgas,Inst);
       }
 
-      static bool cli(RevFeature *F, RevRegFile *R,
-                      RevMem *M, RevInst Inst) {
+      static bool cli(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.li %rd, $imm = addi %rd, x0, $imm
         Inst.rs1 = 0;
-        return addi(F,R,M,Inst);
+        return addi(F,R,M,Xbgas,Inst);
       }
 
-      static bool CIFUNC(RevFeature *F, RevRegFile *R,
-                       RevMem *M, RevInst Inst) {
+      static bool CIFUNC(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( Inst.rd == 2 ){
           // c.addi16sp
-          return addi(F,R,M,Inst);
+          return addi(F,R,M,Xbgas,Inst);
         }else{
           // c.lui %rd, $imm = addi %rd, x0, $imm
-          return lui(F,R,M,Inst);
+          return lui(F,R,M,Xbgas,Inst);
         }
       }
 
-      static bool caddi(RevFeature *F, RevRegFile *R,
-                       RevMem *M, RevInst Inst) {
+      static bool caddi(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.addi %rd, $imm = addi %rd, %rd, $imm
         Inst.rs1 = Inst.rd;
-        return addi(F,R,M,Inst);
+        return addi(F,R,M,Xbgas,Inst);
       }
 
-      static bool cslli(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool cslli(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.slli %rd, $imm = slli %rd, %rd, $imm
         Inst.rs1 = Inst.rd;
-        return slli(F,R,M,Inst);
+        return slli(F,R,M,Xbgas,Inst);
       }
 
-      static bool csrli(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool csrli(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.srli %rd, $imm = srli %rd, %rd, $imm
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = Inst.rd;
-        return srli(F,R,M,Inst);
+        return srli(F,R,M,Xbgas,Inst);
       }
 
-      static bool csrai(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool csrai(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.srai %rd, $imm = srai %rd, %rd, $imm
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = Inst.rd;
-        return srai(F,R,M,Inst);
+        return srai(F,R,M,Xbgas,Inst);
       }
 
-      static bool candi(RevFeature *F, RevRegFile *R,
-                        RevMem *M, RevInst Inst) {
+      static bool candi(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.andi %rd, $imm = sandi %rd, %rd, $imm
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = Inst.rd;
-        return andi(F,R,M,Inst);
+        return andi(F,R,M,Xbgas,Inst);
       }
 
-      static bool cand(RevFeature *F, RevRegFile *R,
-                       RevMem *M, RevInst Inst) {
+      static bool cand(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.and %rd, %rs2 = and %rd, %rd, %rs2
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = Inst.rd;
         Inst.rs2  = CRegMap[Inst.rs2];
-        return f_and(F,R,M,Inst);
+        return f_and(F,R,M,Xbgas,Inst);
       }
 
-      static bool cor(RevFeature *F, RevRegFile *R,
-                      RevMem *M, RevInst Inst) {
+      static bool cor(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.or %rd, %rs2 = or %rd, %rd, %rs2
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = Inst.rd;
         Inst.rs2  = CRegMap[Inst.rs2];
-        return f_or(F,R,M,Inst);
+        return f_or(F,R,M,Xbgas,Inst);
       }
 
-      static bool cxor(RevFeature *F, RevRegFile *R,
-                       RevMem *M, RevInst Inst) {
+      static bool cxor(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.xor %rd, %rs2 = xor %rd, %rd, %rs2
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = Inst.rd;
         Inst.rs2  = CRegMap[Inst.rs2];
-        return f_xor(F,R,M,Inst);
+        return f_xor(F,R,M,Xbgas,Inst);
       }
 
-      static bool csub(RevFeature *F, RevRegFile *R,
-                       RevMem *M, RevInst Inst) {
+      static bool csub(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.sub %rd, %rs2 = sub %rd, %rd, %rs2
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = Inst.rd;
         Inst.rs2  = CRegMap[Inst.rs2];
-        return sub(F,R,M,Inst);
+        return sub(F,R,M,Xbgas,Inst);
       }
 
       // Standard instructions
-      static bool lui(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool lui(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = 0x00;
           R->RV32[Inst.rd] = (Inst.imm << 12);
@@ -254,7 +228,7 @@ namespace SST{
         return true;
       }
 
-      static bool auipc(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool auipc(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = 0x00;
           R->RV32[Inst.rd] = (Inst.imm << 12) + dt_u32(R->RV32_PC,32);
@@ -267,7 +241,7 @@ namespace SST{
         return true;
       }
 
-      static bool jal(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool jal(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         int64_t tmp;
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = R->RV32_PC + Inst.instSize;  // PC following return
@@ -282,7 +256,7 @@ namespace SST{
         return true;
       }
 
-      static bool jalr(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool jalr(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t TMP32PC = 0x00;
         uint64_t TMP64PC = 0x00ull;
         if( F->IsRV32() ){
@@ -299,7 +273,7 @@ namespace SST{
         return true;
       }
 
-      static bool beq(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool beq(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           if( R->RV32[Inst.rs1] == R->RV32[Inst.rs2] ){
             R->RV32_PC = R->RV32_PC + (int32_t)(td_u32(Inst.imm,12));
@@ -316,7 +290,7 @@ namespace SST{
         return true;
       }
 
-      static bool bne(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool bne(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
 	int64_t tmp;
         if( F->IsRV32() ){
           if( R->RV32[Inst.rs1] != R->RV32[Inst.rs2] ){
@@ -335,7 +309,7 @@ namespace SST{
         return true;
       }
 
-      static bool blt(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool blt(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           if( (int32_t)(R->RV32[Inst.rs1]) < (int32_t)(R->RV32[Inst.rs2]) ){
             R->RV32_PC = R->RV32_PC + (int32_t)(td_u32(Inst.imm,12));
@@ -352,7 +326,7 @@ namespace SST{
         return true;
       }
 
-      static bool bge(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool bge(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           if( (int32_t)(R->RV32[Inst.rs1]) > (int32_t)(R->RV32[Inst.rs2]) ){
             R->RV32_PC = R->RV32_PC + (int32_t)(td_u32(Inst.imm,12));
@@ -369,7 +343,7 @@ namespace SST{
         return true;
       }
 
-      static bool bltu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool bltu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           if( R->RV32[Inst.rs1] < R->RV32[Inst.rs2] ){
             R->RV32_PC = R->RV32_PC + (int32_t)(td_u32(Inst.imm,12));
@@ -386,7 +360,7 @@ namespace SST{
         return true;
       }
 
-      static bool bgeu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool bgeu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           if( R->RV32[Inst.rs1] >= R->RV32[Inst.rs2] ){
             R->RV32_PC = R->RV32_PC + (int32_t)(td_u32(Inst.imm,12));
@@ -403,7 +377,7 @@ namespace SST{
         return true;
       }
 
-      static bool lb(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool lb(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],M->ReadU8( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),32);
           R->RV32_PC += Inst.instSize;
@@ -416,7 +390,7 @@ namespace SST{
         return true;
       }
 
-      static bool lh(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool lh(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],M->ReadU16( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),32);
           R->RV32_PC += Inst.instSize;
@@ -429,7 +403,7 @@ namespace SST{
         return true;
       }
 
-      static bool lw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool lw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],M->ReadU32( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),32);
           R->RV32_PC += Inst.instSize;
@@ -442,7 +416,7 @@ namespace SST{
         return true;
       }
 
-      static bool lbu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool lbu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           //ZEXT(R->RV32[Inst.rd],M->ReadU8( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),32);
           R->RV32[Inst.rd] = M->ReadU8( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
@@ -457,7 +431,7 @@ namespace SST{
         return true;
       }
 
-      static bool lhu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool lhu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           //ZEXT(R->RV32[Inst.rd],M->ReadU16( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),32);
           R->RV32[Inst.rd] = M->ReadU16( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
@@ -472,7 +446,7 @@ namespace SST{
         return true;
       }
 
-      static bool sb(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sb(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           M->WriteU8((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))), (uint8_t)(R->RV32[Inst.rs2]));
           R->RV32_PC += Inst.instSize;
@@ -483,7 +457,7 @@ namespace SST{
         return true;
       }
 
-      static bool sh(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sh(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           M->WriteU16((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))), (uint16_t)(R->RV32[Inst.rs2]));
           R->RV32_PC += Inst.instSize;
@@ -494,7 +468,7 @@ namespace SST{
         return true;
       }
 
-      static bool sw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           M->WriteU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))), (uint32_t)(R->RV32[Inst.rs2]));
           R->RV32_PC += Inst.instSize;
@@ -505,7 +479,7 @@ namespace SST{
         return true;
       }
 
-      static bool addi(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool addi(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = dt_u32((int32_t)(td_u32(R->RV32[Inst.rs1],32)) + (int32_t)(td_u32(Inst.imm,12)),32);
           R->RV32_PC += Inst.instSize;
@@ -516,7 +490,7 @@ namespace SST{
         return true;
       }
 
-      static bool slti(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool slti(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           if( (int32_t)(td_u32(R->RV32[Inst.rs1],32)) < (int32_t)(td_u32(Inst.imm,12)) ){
             R->RV32[Inst.rd] = 1;
@@ -535,7 +509,7 @@ namespace SST{
         return true;
       }
 
-      static bool sltiu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sltiu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t tmp = 0x00;
         SEXT(tmp,Inst.imm,12);
         if( F->IsRV32() ){
@@ -556,7 +530,7 @@ namespace SST{
         return true;
       }
 
-      static bool xori(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool xori(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = R->RV32[Inst.rs1] ^ Inst.imm;
           R->RV32_PC += Inst.instSize;
@@ -567,7 +541,7 @@ namespace SST{
         return true;
       }
 
-      static bool ori(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool ori(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = R->RV32[Inst.rs1] | Inst.imm;
           R->RV32_PC += Inst.instSize;
@@ -578,7 +552,7 @@ namespace SST{
         return true;
       }
 
-      static bool andi(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool andi(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = R->RV32[Inst.rs1] & Inst.imm;
           R->RV32_PC += Inst.instSize;
@@ -589,7 +563,7 @@ namespace SST{
         return true;
       }
 
-      static bool slli(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool slli(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],(R->RV32[Inst.rs1] << (Inst.imm&0x3F)),32);
           R->RV32[Inst.rd] = R->RV32[Inst.rs1] << (Inst.imm&0x3F);
@@ -601,7 +575,7 @@ namespace SST{
         return true;
       }
 
-      static bool srli(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool srli(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           //ZEXT(R->RV32[Inst.rd],(R->RV32[Inst.rs1] >> (Inst.imm&0x3F)),32);
           //SEXTI(R->RV32[Inst.rd],32);
@@ -614,7 +588,7 @@ namespace SST{
         return true;
       }
 
-      static bool srai(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool srai(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t tmp = R->RV32[Inst.rs1] | (1<<31);
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],((R->RV32[Inst.rs1] >> (Inst.imm&0b111111))|tmp),32);
@@ -628,7 +602,7 @@ namespace SST{
         return true;
       }
 
-      static bool add(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool add(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = dt_u32(td_u32(R->RV32[Inst.rs1],32) + td_u32(R->RV32[Inst.rs2],32),32);
           R->RV32_PC += Inst.instSize;
@@ -639,7 +613,7 @@ namespace SST{
         return true;
       }
 
-      static bool sub(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sub(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = dt_u32(td_u32(R->RV32[Inst.rs1],32) - td_u32(R->RV32[Inst.rs2],32),32);
           R->RV32_PC += Inst.instSize;
@@ -650,7 +624,7 @@ namespace SST{
         return true;
       }
 
-      static bool sll(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sll(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           //SEXT(R->RV32[Inst.rd],(R->RV32[Inst.rs1] << (R->RV32[Inst.rs2]&0b11111)),32);
           R->RV32[Inst.rd] = (R->RV32[Inst.rs1] << (R->RV32[Inst.rs2]&0b11111));
@@ -663,7 +637,7 @@ namespace SST{
         return true;
       }
 
-      static bool slt(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool slt(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           if( (int32_t)(td_u32(R->RV32[Inst.rs1],32)) < (int32_t)(td_u32(R->RV32[Inst.rs2],32)) ){
             R->RV32[Inst.rd] = 1;
@@ -682,7 +656,7 @@ namespace SST{
         return true;
       }
 
-      static bool sltu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sltu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           if( R->RV32[Inst.rs1] < R->RV32[Inst.rs2] ){
             R->RV32[Inst.rd] = 1;
@@ -701,7 +675,7 @@ namespace SST{
         return true;
       }
 
-      static bool f_xor(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool f_xor(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],(R->RV32[Inst.rs1] ^ R->RV32[Inst.rs2]), 32);
           R->RV32_PC += Inst.instSize;
@@ -712,7 +686,7 @@ namespace SST{
         return true;
       }
 
-      static bool srl(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool srl(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           ZEXT(R->RV32[Inst.rd],(R->RV32[Inst.rs1] >> (R->RV32[Inst.rs2]&0b11111)),32);
           SEXTI(R->RV32[Inst.rd],32);
@@ -725,7 +699,7 @@ namespace SST{
         return true;
       }
 
-      static bool sra(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sra(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t tmp = R->RV32[Inst.rs1] | (1<<31);
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],((R->RV32[Inst.rs1] >> (R->RV32[Inst.rs2]&0b11111))|tmp),32);
@@ -739,7 +713,7 @@ namespace SST{
         return true;
       }
 
-      static bool f_or(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool f_or(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = R->RV32[Inst.rs1] | R->RV32[Inst.rs2];
           R->RV32_PC += Inst.instSize;
@@ -750,7 +724,7 @@ namespace SST{
         return true;
       }
 
-      static bool f_and(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool f_and(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           SEXT(R->RV32[Inst.rd],(R->RV32[Inst.rs1] & R->RV32[Inst.rs2]), 32);
           R->RV32_PC += Inst.instSize;
@@ -761,7 +735,7 @@ namespace SST{
         return true;
       }
 
-      static bool fence(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fence(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -770,7 +744,7 @@ namespace SST{
         return true;  // temporarily disabled
       }
 
-      static bool fencei(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool fencei(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -779,7 +753,7 @@ namespace SST{
         return true;  // temporarily disabled
       }
 
-      static bool ecall(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool ecall(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -788,7 +762,7 @@ namespace SST{
         return true;
       }
 
-      static bool ebreak(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool ebreak(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -797,7 +771,7 @@ namespace SST{
         return true;
       }
 
-      static bool csrrw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool csrrw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -806,7 +780,7 @@ namespace SST{
         return true;
       }
 
-      static bool csrrs(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool csrrs(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -815,7 +789,7 @@ namespace SST{
         return true;
       }
 
-      static bool csrrc(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool csrrc(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -824,7 +798,7 @@ namespace SST{
         return true;
       }
 
-      static bool csrrwi(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool csrrwi(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -833,7 +807,7 @@ namespace SST{
         return true;
       }
 
-      static bool csrrsi(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool csrrsi(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -842,7 +816,7 @@ namespace SST{
         return true;
       }
 
-      static bool csrrci(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool csrrci(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -954,8 +928,9 @@ namespace SST{
       RV32I( RevFeature *Feature,
              RevRegFile *RegFile,
              RevMem *RevMem,
+             RevXbgas *RevXbgas,
              SST::Output *Output )
-        : RevExt( "RV32I", Feature, RegFile, RevMem, Output ) {
+        : RevExt( "RV32I", Feature, RegFile, RevMem, RevXbgas, Output ) {
           this->SetTable(RV32ITable);
           this->SetCTable(RV32ICTable);
           this->SetOTable(RV32ICOTable);

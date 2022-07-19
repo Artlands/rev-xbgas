@@ -19,7 +19,7 @@ namespace SST{
   namespace RevCPU{
     class RV64P : public RevExt {
 
-      static bool future(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool future(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( M->SetFuture(( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))))) )
           R->RV64[Inst.rd] = 0x01ll;
         else
@@ -27,7 +27,7 @@ namespace SST{
         return true;
       }
 
-      static bool rfuture(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool rfuture(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( M->RevokeFuture(( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))))) )
           R->RV64[Inst.rd] = 0x01ll;
         else
@@ -35,7 +35,7 @@ namespace SST{
         return true;
       }
 
-      static bool sfuture(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+      static bool sfuture(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( M->StatusFuture(( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))))) )
           R->RV64[Inst.rd] = 0x01ll;
         else
@@ -69,8 +69,9 @@ namespace SST{
       RV64P( RevFeature *Feature,
              RevRegFile *RegFile,
              RevMem *RevMem,
+             RevXbgas *RevXbgas,
              SST::Output *Output )
-        : RevExt( "RV64P", Feature, RegFile, RevMem, Output ) {
+        : RevExt( "RV64P", Feature, RegFile, RevMem, RevXbgas, Output ) {
           this->SetTable(RV64PTable);
         }
 
