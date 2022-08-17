@@ -13,6 +13,26 @@
 using namespace SST;
 using namespace RevCPU;
 
+// Ref: https://stackoverflow.com/questions/11656241/how-to-print-uint128-t-number-using-gcc
+
+static int print_u128_u(uint128_t u128)
+{
+    int rc;
+    if (u128 > UINT64_MAX)
+    {
+        uint128_t leading  = u128 / P10_UINT64;
+        uint64_t  trailing = u128 % P10_UINT64;
+        rc = print_u128_u(leading);
+        rc += printf("%." TO_STRING(E10_UINT64) PRIu64, trailing);
+    }
+    else
+    {
+        uint64_t u64 = u128;
+        rc = printf("%" PRIu64, u64);
+    }
+    return rc;
+}
+
 RevXbgas::RevXbgas( xbgasNicAPI *XNic, RevOpts *Opts, RevMem *Mem, SST::Output *Output )
   : xnic(XNic), opts(Opts), mem(Mem), output(Output) {
   output->verbose(CALL_INFO, 5, 0,
@@ -22,26 +42,52 @@ RevXbgas::RevXbgas( xbgasNicAPI *XNic, RevOpts *Opts, RevMem *Mem, SST::Output *
 
 }
 
-void RevXbgas::initNLB( xbgasNicAPI *XNic ) {
+void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
+  output->verbose(CALL_INFO, 1, 0, "Initializing Xbgas firmware memory.\n");
+
+  // init all the entries to -1
+  uint64_t ptr = (uint64_t)(_XBGAS_NAMESPACE_TABLE_ADDR_);
+  uint64_t nmspace = 0x0;
+  int64_t id = -1;
+  unsigned numPEs = 0;
+  for( unsigned i=0; i<_XBGAS_NAMESPACE_TABLE_MAX_ENTRIES_; i++ ){
+    mem->WriteU64(ptr, (uint64_t)(nmspace));
+    mem->WriteU64(ptr+8, (uint64_t)(id));
+    ptr += sizeof(NamespaceTbEntry);
+  }
+
+  // The first entry in the namespace table is always [0, myPE], refering to local memory
+  id = (int64_t)(xnic->getAddress());
+  ptr = (uint64_t)(_XBGAS_NAMESPACE_TABLE_ADDR_);
+  mem->WriteU64(ptr+8, (uint64_t)(id));
+
+  // Initialize the Xbgas firmware memory for recording the info of PE ID and the total number of PEs
+  ptr = (uint64_t)(_XBGAS_MY_PE_ADDR_);
+  mem->WriteU64(ptr, (uint64_t)(id));
+
+  numPEs = (unsigned)(xnic->getNumPEs());
+  ptr = (uint64_t)(_XBGAS_TOTAL_PE_ADDR_);
+  mem->WriteU64(ptr, (uint64_t)(numPEs));
+
   // Initialize the Namespace Lookaside Buffer
-  std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts;
-  SST::Interfaces::SimpleNetwork::nid_t myPE;
-
-  xbgasHosts = xnic->getXbgasHosts();
-  myPE = xnic->getAddress();
-
-  output->verbose(CALL_INFO, 4, 0, "--> MY_PE = %" PRId64 ", MY NLB is: \n", myPE);
-
   // Addr 0x00 is always reserved for the local access
-  NLB.push_back(std::make_pair(0x0, myPE));
-  for(SST::Interfaces::SimpleNetwork::nid_t i: xbgasHosts)
-    NLB.push_back( std::make_pair( (uint64_t(i+1)), i ) );
+  std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts;
+  xbgasHosts = xnic->getXbgasHosts();
 
+  NLB.push_back(std::make_pair(0x0, id));
+  for(SST::Interfaces::SimpleNetwork::nid_t i: xbgasHosts){
+    if ( (int64_t)i != id)
+      NLB.push_back( std::make_pair( (uint64_t(i+1)), i ) );
+  }
+
+  output->verbose(CALL_INFO, 4, 0, "--> MY NLB is: \n");
   int i = 0;
   for ( auto it=NLB.begin(); it != NLB.end(); ++it ){
-    output->verbose(CALL_INFO, 4, 0, "Entry: %d | Namespace: 0x%" PRId64 " | Node ID: %" PRId64 "\n", i, std::get<0>(*it), std::get<1>(*it));
+    output->verbose(CALL_INFO, 4, 0, "--> Entry: %d | Namespace: 0x%" PRId64 " | Node ID: %" PRId64 "\n", i, std::get<0>(*it), std::get<1>(*it));
     i++;
   }
+
+  output->verbose(CALL_INFO, 1, 0, "Initialization of Xbgas firmware memory complete.\n");
 }
 
 bool RevXbgas::isFinished() {
@@ -103,7 +149,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
 
       event->getData(Data);
 
-      output->verbose(CALL_INFO, 6, 0,
+      output->verbose(CALL_INFO, 5, 0,
                       "Push response of Tag=%d to GetResponses.\n",
                       event->getTag());
 
@@ -237,6 +283,10 @@ bool RevXbgas::processXBGASMemRead(){
         SCmd->setData(Data, tmp_size);
         SCmd->setSrc(xnic->getAddress());
         SendMB.push(std::make_pair(SCmd, tmp_src));
+
+        output->verbose(CALL_INFO, 5, 0,
+                 "Process XBGAS Mem Read request from %d: Tag=%u, Size=%" PRIu32 ", Addr=0x%2x, Value=%" PRId64 "\n",
+                 tmp_src, tmp_tag, tmp_size, tmp_addr, (uint64_t)(*Data));
       }
       delete[] Data;
     }
@@ -261,7 +311,7 @@ bool RevXbgas::sendXBGASMessage(){
   if( SendMB.empty() )
     return true;
 
-  output->verbose(CALL_INFO, 4, 0,
+  output->verbose(CALL_INFO, 5, 0,
                  "Sending XBGAS message from %d to %d; Opc=%s; Tag=%u; Size=%" PRIu32 "\n",
                  int(xnic->getAddress()), SendMB.front().second,
                  SendMB.front().first->getOpcodeStr().c_str(),
@@ -283,7 +333,7 @@ bool RevXbgas::sendXBGASMessage(){
 
 bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, void *Data ){
   int Dest = findDest(Nmspace);
-  output->verbose(CALL_INFO, 6, 0,
+  output->verbose(CALL_INFO, 5, 0,
                   "Writing %" PRIu32 " Bytes to PE %d Starting at 0x%2x.\n", Len, Dest, Addr);
   xbgasNicEvent *PEvent = nullptr;
   uint8_t Tag  = createTag();
@@ -328,6 +378,12 @@ void RevXbgas::WriteU64( uint64_t Nmspace, uint64_t Addr, uint64_t Value) {
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U64)");
 }
 
+void RevXbgas::WriteU128( uint64_t Nmspace, uint64_t Addr, uint128_t Value) {
+  uint128_t Tmp = Value;
+  if( !WriteMem( Nmspace, Addr, 16, (void *)(&Tmp) ) )
+    output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U128)");
+}
+
 void RevXbgas::WriteFloat( uint64_t Nmspace, uint64_t Addr, float Value) {
   uint32_t Tmp = 0x00;
   std::memcpy(&Tmp,&Value,sizeof(float));
@@ -351,7 +407,7 @@ bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len){
   uint64_t Src = xnic->getAddress();
   bool recvd = false;
 
-  output->verbose(CALL_INFO, 6, 0,
+  output->verbose(CALL_INFO, 5, 0,
                   "Reading %" PRIu32 " Bytes from PE=%d Starting at 0x%2x, Tag=%u\n", Len, Dest, Addr, Tag);
 
   GEvent = new xbgasNicEvent(xnic->getName()); // new event to send
@@ -393,6 +449,11 @@ void RevXbgas::ReadU64( uint64_t Nmspace, uint64_t Addr ) {
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U64)");
 }
 
+void RevXbgas::ReadU128( uint64_t Nmspace, uint64_t Addr ) {
+  if( !ReadMem( Nmspace, Addr, 16 ) )
+    output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U128)");
+}
+
 void RevXbgas::ReadFloat( uint64_t Nmspace, uint64_t Addr ) {
   if( !ReadMem( Nmspace, Addr, 4 ) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (FLOAT)");
@@ -417,6 +478,7 @@ uint8_t RevXbgas::createTag(){
 }
 
 int RevXbgas::findDest(uint64_t nmspace){
+  // return nmspace;
   for( auto it=NLB.begin(); it != NLB.end(); ++it ) {
     if( std::get<0>(*it) == nmspace ) {
       return std::get<1>(*it);
@@ -435,6 +497,7 @@ bool RevXbgas::checkGetRequests( uint64_t Nmspace, uint64_t Addr, uint8_t *Tag )
       return true;
     }
   }
+
   output->verbose(CALL_INFO, 6, 0,
                       "Get request for PE=%d, Addr=0x%2x has NOT been sent.\n", Dest, Addr);
   return false;
@@ -460,7 +523,9 @@ bool RevXbgas::readGetResponses( uint8_t Tag, void *Data ){
       }
 
       GetResponses.erase(it);
-      output->verbose(CALL_INFO, 6, 0, "Response for Tag %u: Value=%" PRId64 "\n", Tag, (uint64_t)(*DataMem));
+      // print_u128_u((uint128_t)(*DataMem));
+      // output->verbose(CALL_INFO, 5, 0, "Response for Tag %u: Value=%d\n", Tag, ndigits);
+      output->verbose(CALL_INFO, 5, 0, "Response for Tag %u: Value=%" PRId64 "\n", Tag, (uint64_t)(*DataMem));
       return true;
     }
   }

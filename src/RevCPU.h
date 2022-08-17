@@ -39,9 +39,10 @@
 
 // -- PAN Common Headers
 #include "../common/include/PanAddr.h"
+#include "../common/include/XbgasAddr.h"
 
 #define _MAX_PAN_TEST_ 11
-#define _MAX_XBGAS_TEST_ 8
+#define _MAX_XBGAS_TEST_ 10
 
 namespace SST {
   namespace RevCPU {

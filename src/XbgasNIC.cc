@@ -193,6 +193,7 @@ void XbgasNIC::init(unsigned int phase){
       req->src = iFace->getEndpointID();
       req->givePayload(ev);
       iFace->sendInitData(req);
+      xbgasHosts.push_back(iFace->getEndpointID());
     }
   }
 

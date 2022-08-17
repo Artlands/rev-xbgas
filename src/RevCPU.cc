@@ -220,6 +220,25 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     output.fatal(CALL_INFO, -1, "Error: failed to initialize the RISC-V loader\n" );
   }
 
+    // Create the xbgas object
+  {
+    // See if we should load the XBGAS network interface controller
+    // EnableXBGAS = params.find<bool>("enable_xbgas", 0);
+    
+    // Look up the network component
+    XNic = loadUserSubComponent<xbgasNicAPI>("xbgas_nic");
+    // check to see if the nic was loaded.  if not, DO NOT load an anonymous endpoint
+    if(!XNic)
+      output.fatal(CALL_INFO, -1, "Error: no NIC object loaded into RevCPU\n");
+
+    Xbgas = new RevXbgas( XNic, Opts, Mem, &output );
+
+    if( !Xbgas )
+      output.fatal(CALL_INFO, -1, "Error: failed to initialize the xbgas object\n" );
+    // record the number of injected messages per cycle
+    msgPerCycle = params.find<unsigned>("msgPerCycle", 1);
+  }
+
   // Create the processor objects
   Procs.reserve(Procs.size() + numCores);
   for( unsigned i=0; i<numCores; i++ ){
@@ -243,23 +262,6 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     Enabled[i] = true;
   }
 
-  // See if we should load the XBGAS network interface controller
-  EnableXBGAS = params.find<bool>("enable_xbgas", 0);
-
-  if( EnableXBGAS ){
-    // Look up the network component
-    XNic = loadUserSubComponent<xbgasNicAPI>("xbgas_nic");
-
-    // check to see if the nic was loaded.  if not, DO NOT load an anonymous endpoint
-    if(!XNic)
-      output.fatal(CALL_INFO, -1, "Error: no NIC object loaded into RevCPU\n");
-
-    Xbgas = new RevXbgas( XNic, Opts, Mem, &output );
-
-    // record the number of injected messages per cycle
-    msgPerCycle = params.find<unsigned>("msgPerCycle", 1);
-  }
-
   {
     const unsigned Splash = params.find<bool>("splash",0);
 
@@ -270,7 +272,6 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
         output.verbose(CALL_INFO,1,0,splash_msg);
     }
   }
-
   // Done with initialization
   if( EnablePANTest )
     output.verbose(CALL_INFO, 1, 0, "Initialization of PANTest harness complete.\n");
@@ -450,11 +451,18 @@ void RevCPU::setup(){
     Nic->setup();
     address = Nic->getAddress();
   }
-  if( EnableXBGAS ){
-    XNic->setup();
-    address = XNic->getAddress();
-    Xbgas->initNLB(XNic);
-  }
+  // if( EnableXBGAS ){
+  int64_t id = -1;
+  unsigned numPEs = 0;
+
+  XNic->setup();
+  address = XNic->getAddress();
+  Xbgas->initXbgasMem(XNic);
+  
+  id = (int64_t)(Mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+  numPEs = (unsigned)(Mem->ReadU64(_XBGAS_TOTAL_PE_ADDR_));
+  output.verbose(CALL_INFO, 1, 0, "--> MY_PE = %" PRId64 ", Total Number of PEs = %u\n", id, numPEs);
+  // }
   if( EnablePAN ){
     PNic->setup();
     address = PNic->getAddress();
@@ -466,10 +474,10 @@ void RevCPU::finish(){
 }
 
 void RevCPU::init( unsigned int phase ){
+  // if( EnableXBGAS )
+  XNic->init(phase);
   if( EnableNIC )
     Nic->init(phase);
-  if( EnableXBGAS )
-    XNic->init(phase);
   if( EnablePAN )
     PNic->init(phase);
 }
@@ -2322,6 +2330,7 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   bool rtn = true;
 
   output.verbose(CALL_INFO, 8, 0, "Cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
+  
 
   // Execute each enabled core
   for( unsigned i=0; i<Procs.size(); i++ ){
@@ -2335,10 +2344,12 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
     }
   }
 
-  // Clock the Xbgas module
-  if ( EnableXBGAS ) {
-    Xbgas->clockTick( currentCycle, msgPerCycle );
-  }
+  // // Clock the Xbgas module
+  // if ( EnableXBGAS ) {
+  //   Xbgas->clockTick( currentCycle, msgPerCycle );
+  // }
+
+  Xbgas->clockTick( currentCycle, msgPerCycle );
 
   // Clock the PAN network transport module
   if( EnablePAN ){
@@ -2377,9 +2388,9 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
     }
   }
 
-  if( EnableXBGAS ){
-    rtn = Xbgas->isFinished();
-  }
+  // if( EnableXBGAS ){
+  rtn = Xbgas->isFinished();
+  // }
 
   // check to see if all the processors are completed
   for( unsigned i=0; i<Procs.size(); i++ ){
@@ -2430,24 +2441,26 @@ void RevCPU::ExecXBGASTest(){
   uint16_t Value1;
   uint32_t Value2;
   uint64_t Value3;
+  uint128_t Value4;
   uint8_t Tag;
-  uint64_t Addr, Addr1, Addr2, Addr3;
+  uint64_t Addr, Addr1, Addr2, Addr3, Addr4;
   SST::Interfaces::SimpleNetwork::nid_t myPE;
   myPE = address;
 
   if( myPE == 0){
-    Nmspace = 0x2;
+    Nmspace = 0x1;
   }
   else if (myPE == 1){
-    Nmspace = 0x1;
+    Nmspace = 0x0;
   } else {
     return;
   }
 
-  Addr = 0x20000000;
-  Addr1 = 0x20000008;
-  Addr2 = 0x20000010;
-  Addr3 = 0x20000020;
+  Addr = 0x20000000;  // 8 bits
+  Addr1 = 0x20000008; // 16 bits
+  Addr2 = 0x20000010; // 32 bits
+  Addr3 = 0x20000020; // 64 bits
+  Addr4 = 0x20000040; // 128 bits
 
   output.verbose(CALL_INFO, 5, 0, "--- Test Stage: %d ---\n", testStage);
   switch( testStage ){
@@ -2468,6 +2481,10 @@ void RevCPU::ExecXBGASTest(){
     testStage++;
     break;
   case 4:
+    Xbgas->WriteU128(Nmspace, Addr4, uint64_t(myPE + 128));
+    testStage++;
+    break;
+  case 5:
     if ( !Xbgas->checkGetRequests(Nmspace, Addr, &Tag) ) {
       Xbgas->ReadU8(Nmspace, Addr);
     } else {
@@ -2475,7 +2492,7 @@ void RevCPU::ExecXBGASTest(){
       testStage++;
     }
     break;
-  case 5:
+  case 6:
     if ( !Xbgas->checkGetRequests(Nmspace, Addr1, &Tag) ) {
       Xbgas->ReadU16(Nmspace, Addr1);
     } else{
@@ -2483,7 +2500,7 @@ void RevCPU::ExecXBGASTest(){
       testStage++;
     }
     break;
-  case 6:
+  case 7:
     if ( !Xbgas->checkGetRequests(Nmspace, Addr2, &Tag) ) {
       Xbgas->ReadU32(Nmspace, Addr2);
     } else {
@@ -2491,11 +2508,19 @@ void RevCPU::ExecXBGASTest(){
       testStage++;
     }
     break;
-  case 7:
+  case 8:
     if ( !Xbgas->checkGetRequests(Nmspace, Addr3, &Tag) ) {
       Xbgas->ReadU64(Nmspace, Addr3);
     } else {
       Xbgas->readGetResponses(Tag, (void *)(&Value3));
+      testStage++;
+    }
+    break;
+  case 9:
+    if ( !Xbgas->checkGetRequests(Nmspace, Addr4, &Tag) ) {
+      Xbgas->ReadU128(Nmspace, Addr4);
+    } else {
+      Xbgas->readGetResponses(Tag, (void *)(&Value4));
       testStage++;
     }
     break;

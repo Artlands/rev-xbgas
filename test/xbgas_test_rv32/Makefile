@@ -13,13 +13,12 @@
 .PHONY: src
 
 EXAMPLE=xbgas_test
-CC=riscv64-unknown-elf-gcc
-ARCH=rv32i
-ABI=ilp32
+CC=riscv32-unknown-linux-gnu-gcc
+ARCH=rv32imafd
 
 all: $(EXAMPLE).exe
 $(EXAMPLE).exe: $(EXAMPLE).c
-	$(CC) -march=$(ARCH) -mabi=$(ABI) -o $(EXAMPLE).exe $(EXAMPLE).c
+	$(CC) -march=$(ARCH) -o $(EXAMPLE).exe $(EXAMPLE).c
 clean:
 	rm -Rf $(EXAMPLE).exe
 

@@ -222,8 +222,12 @@ bool RevProc::SeedInstTable(){
   }
 
   // XBGAS Extension
-  if( feature->IsModeEnabled(RV_E) ){
-    EnableExt(static_cast<RevExt *>(new RV32E(feature,RegFile,mem,xbgas,output)),false);
+  if( feature->IsModeEnabled(RV_X) ){
+    EnableExt(static_cast<RevExt *>(new RV32X(feature,RegFile,mem,xbgas,output)),false);
+    if( feature->GetXlen() == 64 ){
+    // TODO
+    // EnableExt(static_cast<RevExt *>(new RV64X(feature,RegFile,mem,xbgas,output)),false);
+    }
   }
 
   // PAN Extension
@@ -379,6 +383,11 @@ bool RevProc::Reset(){
     for( unsigned i=0; i<_REV_NUM_REGS_; i++ ){
       RegFile[t].RV32[i] = 0x00l;
       RegFile[t].RV64[i] = 0x00ull;
+
+      // Extended registers
+      RegFile[t].ERV32[i] = 0x00l;
+      RegFile[t].ERV64[i] = 0x00ull;
+
       RegFile[t].SPF[i]  = 0.f;
       RegFile[t].DPF[i]  = 0.f;
     }

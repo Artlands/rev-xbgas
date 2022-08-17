@@ -36,11 +36,11 @@ max_addr_gb = 1
 # Define the simulation components
 xbgas_cpu0 = sst.Component("cpu0", "revcpu.RevCPU")
 xbgas_cpu0.addParams({
-          "verbose" : 7,                                # Verbosity
+          "verbose" : 5,                                # Verbosity
           "numCores" : 1,                               # Number of cores
           "clock" : "1.0GHz",                           # Clock
           "memSize" : 1024*1024*1024,                   # Memory size in bytes
-          "machine" : "[0:RV32IMDFAPX]",                      # Core:Config; RV32I for core 0
+          "machine" : "[0:RV64IMDFAPX]",                      # Core:Config; RV32I for core 0
           "startAddr" : "[0:0x00000000]",               # Starting address for core 0
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
           "xbgas_nic" : "revcpu.XbgasNIC",
@@ -52,11 +52,11 @@ xbgas_cpu0.addParams({
 
 xbgas_cpu1 = sst.Component("cpu1", "revcpu.RevCPU")
 xbgas_cpu1.addParams({
-          "verbose" : 7,                                # Verbosity
+          "verbose" : 0,                                # Verbosity
           "numCores" : 1,                               # Number of cores
           "clock" : "1.0GHz",                           # Clock
           "memSize" : 1024*1024*1024,                   # Memory size in bytes
-          "machine" : "[0:RV32IMDFAPX]",                      # Core:Config; RV32I for core 0
+          "machine" : "[0:RV64IMDFAPX]",                      # Core:Config; RV32I for core 0
           "startAddr" : "[0:0x00000000]",               # Starting address for core 0
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
           "xbgas_nic" : "revcpu.XbgasNIC",

@@ -20,6 +20,19 @@
 #include "RevMem.h"
 #include "XbgasNIC.h"
 
+#include "../common/include/XbgasAddr.h"
+
+
+typedef unsigned __int128 uint128_t;
+
+// Ref: https://stackoverflow.com/questions/11656241/how-to-print-uint128-t-number-using-gcc
+/*      UINT64_MAX 18446744073709551615ULL */
+#define P10_UINT64 10000000000000000000ULL   /* 19 zeroes */
+#define E10_UINT64 19
+
+#define STRINGIZER(x)   # x
+#define TO_STRING(x)    STRINGIZER(x)
+
 namespace SST::RevCPU {
   class RevXbgas;
 }
@@ -40,7 +53,7 @@ namespace SST {
       void handleXbgasMessage(SST::Event *ev);
 
       /// RevXbgas: NLB initialization
-      void initNLB(xbgasNicAPI *XNic);
+      void initXbgasMem(xbgasNicAPI *XNic);
       
       /// RevXbgas: check finish status
       bool isFinished();
@@ -62,6 +75,7 @@ namespace SST {
       void WriteU16( uint64_t Nmspace, uint64_t Addr, uint16_t Value);
       void WriteU32( uint64_t Nmspace, uint64_t Addr, uint32_t Value);
       void WriteU64( uint64_t Nmspace, uint64_t Addr, uint64_t Value);
+      void WriteU128( uint64_t Nmspace, uint64_t Addr, uint128_t Value);
       void WriteFloat( uint64_t Nmspace, uint64_t Addr, float Value);
       void WriteDouble( uint64_t Nmspace, uint64_t Addr, double Value);
 
@@ -69,6 +83,7 @@ namespace SST {
       void ReadU16( uint64_t Nmspace, uint64_t Addr );
       void ReadU32( uint64_t Nmspace, uint64_t Addr );
       void ReadU64( uint64_t Nmspace, uint64_t Addr );
+      void ReadU128( uint64_t Nmspace, uint64_t Addr );
       void ReadFloat( uint64_t Nmspace, uint64_t Addr );
       void ReadDouble( uint64_t Nmspace, uint64_t Addr );
     
