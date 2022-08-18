@@ -32,9 +32,6 @@
 #include "insns/RV64P.h"
 
 // xBGAS extension
-#include "insns/RV32X.h"
-
-// Fix RV64E implementation
-// #include "insns/RV64E.h"
+#include "insns/RV64X.h"
 
 #endif

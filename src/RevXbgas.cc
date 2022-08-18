@@ -9,6 +9,10 @@
 //
 
 #include "RevXbgas.h"
+#include "../common/include/XbgasAddr.h"
+
+// #define DEBUG
+#undef DEBUG
 
 using namespace SST;
 using namespace RevCPU;
@@ -35,7 +39,7 @@ static int print_u128_u(uint128_t u128)
 
 RevXbgas::RevXbgas( xbgasNicAPI *XNic, RevOpts *Opts, RevMem *Mem, SST::Output *Output )
   : xnic(XNic), opts(Opts), mem(Mem), output(Output) {
-  output->verbose(CALL_INFO, 5, 0,
+  output->verbose(CALL_INFO, 6, 0,
                   "Initializing the XBGAS object; set up the XBGAS message handler\n");
   // Set up the Xbgas message handler
   xnic->setMsgHandler(new Event::Handler<RevXbgas>(this, &RevXbgas::handleXbgasMessage));
@@ -124,7 +128,7 @@ void RevXbgas::handleXbgasMessage(Event *ev){
 }
 
 void RevXbgas::handleSuccess(xbgasNicEvent *event){
-  output->verbose(CALL_INFO, 5, 0, "Handling XBGAS Success Confirmation from PE=%d, Size=%" PRIu32 "\n", event->getSrc(), event->getSize());
+  output->verbose(CALL_INFO, 6, 0, "Handling XBGAS Success Confirmation from PE=%d, Size=%" PRIu32 "\n", event->getSrc(), event->getSize());
   // search for the tag in the tag list
   std::pair<uint8_t,int> Entry = std::make_pair(event->getTag(), event->getSrc());
   auto it = std::find(TrackTags.begin(), TrackTags.end(), Entry);
@@ -149,7 +153,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
 
       event->getData(Data);
 
-      output->verbose(CALL_INFO, 5, 0,
+      output->verbose(CALL_INFO, 6, 0,
                       "Push response of Tag=%d to GetResponses.\n",
                       event->getTag());
 
@@ -179,7 +183,7 @@ void RevXbgas::handleFailed(xbgasNicEvent *event){
 }
 
 void RevXbgas::handleGet(xbgasNicEvent *event){
-  output->verbose(CALL_INFO, 5, 0, "Handling XBGAS Get Request from PE=%d, Tag=%d\n", event->getSrc(), event->getTag());
+  output->verbose(CALL_INFO, 6, 0, "Handling XBGAS Get Request from PE=%d, Tag=%d\n", event->getSrc(), event->getTag());
   // push an event entry back onto the ReadQueue
   ReadQueue.push_back(std::make_tuple(event->getTag(),
                                       event->getSize(),
@@ -189,7 +193,7 @@ void RevXbgas::handleGet(xbgasNicEvent *event){
 }
 
 void RevXbgas::handlePut(xbgasNicEvent *event){
-  output->verbose(CALL_INFO, 5, 0, "Handling XBGAS Put Request for PE=%d\n", event->getSrc());
+  output->verbose(CALL_INFO, 6, 0, "Handling XBGAS Put Request for PE=%d\n", event->getSrc());
   // retrieve the data
   uint32_t Size = event->getSize();
   uint64_t *Data = new uint64_t [event->getNumBlocks(Size)];
@@ -209,7 +213,7 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
 }
 
 void RevXbgas::buildSuccessResp(xbgasNicEvent *event){
-  output->verbose(CALL_INFO, 5, 0, "Building success return packet\n");
+  output->verbose(CALL_INFO, 6, 0, "Building success return packet\n");
   xbgasNicEvent *SEvent = new xbgasNicEvent();
   SEvent->setSrc(xnic->getAddress());
   if( !SEvent->buildSuccess(event->getTag()) ){
@@ -221,7 +225,7 @@ void RevXbgas::buildSuccessResp(xbgasNicEvent *event){
 }
 
 void RevXbgas::buildFailedResp(xbgasNicEvent *event){
-  output->verbose(CALL_INFO, 5, 0, "Building failed return packet\n");
+  output->verbose(CALL_INFO, 6, 0, "Building failed return packet\n");
   xbgasNicEvent *FEvent = new xbgasNicEvent();
   FEvent->setSrc(xnic->getAddress());
   if( !FEvent->buildFailed(event->getTag()) ){
@@ -284,7 +288,7 @@ bool RevXbgas::processXBGASMemRead(){
         SCmd->setSrc(xnic->getAddress());
         SendMB.push(std::make_pair(SCmd, tmp_src));
 
-        output->verbose(CALL_INFO, 5, 0,
+        output->verbose(CALL_INFO, 6, 0,
                  "Process XBGAS Mem Read request from %d: Tag=%u, Size=%" PRIu32 ", Addr=0x%2x, Value=%" PRId64 "\n",
                  tmp_src, tmp_tag, tmp_size, tmp_addr, (uint64_t)(*Data));
       }
@@ -311,7 +315,7 @@ bool RevXbgas::sendXBGASMessage(){
   if( SendMB.empty() )
     return true;
 
-  output->verbose(CALL_INFO, 5, 0,
+  output->verbose(CALL_INFO, 6, 0,
                  "Sending XBGAS message from %d to %d; Opc=%s; Tag=%u; Size=%" PRIu32 "\n",
                  int(xnic->getAddress()), SendMB.front().second,
                  SendMB.front().first->getOpcodeStr().c_str(),
@@ -333,7 +337,7 @@ bool RevXbgas::sendXBGASMessage(){
 
 bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, void *Data ){
   int Dest = findDest(Nmspace);
-  output->verbose(CALL_INFO, 5, 0,
+  output->verbose(CALL_INFO, 6, 0,
                   "Writing %" PRIu32 " Bytes to PE %d Starting at 0x%2x.\n", Len, Dest, Addr);
   xbgasNicEvent *PEvent = nullptr;
   uint8_t Tag  = createTag();
@@ -407,7 +411,7 @@ bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len){
   uint64_t Src = xnic->getAddress();
   bool recvd = false;
 
-  output->verbose(CALL_INFO, 5, 0,
+  output->verbose(CALL_INFO, 6, 0,
                   "Reading %" PRIu32 " Bytes from PE=%d Starting at 0x%2x, Tag=%u\n", Len, Dest, Addr, Tag);
 
   GEvent = new xbgasNicEvent(xnic->getName()); // new event to send
@@ -524,8 +528,18 @@ bool RevXbgas::readGetResponses( uint8_t Tag, void *Data ){
 
       GetResponses.erase(it);
       // print_u128_u((uint128_t)(*DataMem));
-      // output->verbose(CALL_INFO, 5, 0, "Response for Tag %u: Value=%d\n", Tag, ndigits);
-      output->verbose(CALL_INFO, 5, 0, "Response for Tag %u: Value=%" PRId64 "\n", Tag, (uint64_t)(*DataMem));
+      // output->verbose(CALL_INFO, 6, 0, "Response for Tag %u: Value=%d\n", Tag, ndigits);
+      output->verbose(CALL_INFO, 6, 0, "Response for Tag %u: Value=%" PRId64 "\n", Tag, (uint64_t)(*DataMem));
+#ifdef DEBUG
+      int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+      if (id == 0) {
+        std::cout << "CPU" << id
+                  << ": Tag: " << std::dec << +Tag
+                  << ", Len: " << std::dec << +Len
+                  << ", DataMem: " << std::dec << (uint64_t)(*DataMem)
+                  << ", DataMem Address: " << std::hex << (uint64_t)(DataMem)<< std::endl;
+      }
+#endif
       return true;
     }
   }

@@ -31,22 +31,20 @@ sst.setProgramOption("stopAtCycle", "0s")
 # Tell SST what statistics handling we want
 sst.setStatisticLoadLevel(4)
 
-max_addr_gb = 1
-
 # Define the simulation components
 xbgas_cpu0 = sst.Component("cpu0", "revcpu.RevCPU")
 xbgas_cpu0.addParams({
-          "verbose" : 5,                                # Verbosity
+          "verbose" : 4,                                # Verbosity
           "numCores" : 1,                               # Number of cores
           "clock" : "1.0GHz",                           # Clock
           "memSize" : 1024*1024*1024,                   # Memory size in bytes
-          "machine" : "[0:RV64IMDFAPX]",                      # Core:Config; RV32I for core 0
+          "machine" : "[0:RV64IMAFDX]",                      # Core:Config; RV32I for core 0
           "startAddr" : "[0:0x00000000]",               # Starting address for core 0
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
           "xbgas_nic" : "revcpu.XbgasNIC",
           "enable_xbgas" : 1,
           "enable_xbgas_test" : 0,                            # Enable the XBGAS test harness
-          "program" : os.getenv("REV_EXE", "xbgas_test.exe"),  # Target executable
+          "program" : os.getenv("REV_EXE", "xbgas_test_0.exe"),  # Target executable
           "splash" : 1                                  # Display the splash message
 })
 
@@ -56,13 +54,13 @@ xbgas_cpu1.addParams({
           "numCores" : 1,                               # Number of cores
           "clock" : "1.0GHz",                           # Clock
           "memSize" : 1024*1024*1024,                   # Memory size in bytes
-          "machine" : "[0:RV64IMDFAPX]",                      # Core:Config; RV32I for core 0
+          "machine" : "[0:RV64IMAFDX]",                      # Core:Config; RV32I for core 0
           "startAddr" : "[0:0x00000000]",               # Starting address for core 0
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
           "xbgas_nic" : "revcpu.XbgasNIC",
           "enable_xbgas" : 1,
           "enable_xbgas_test" : 0,                            # Enable the XBGAS test harness
-          "program" : os.getenv("REV_EXE", "xbgas_test.exe"),  # Target executable
+          "program" : os.getenv("REV_EXE", "xbgas_test_1.exe"),  # Target executable
           "splash" : 1                                  # Display the splash message
 })
 

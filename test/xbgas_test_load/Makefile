@@ -12,14 +12,16 @@
 
 .PHONY: src
 
-EXAMPLE=xbgas_test
-CC=riscv32-unknown-linux-gnu-gcc
-ARCH=rv32imafd
+SRCS = $(wildcard *.c)
+EXEC = $(SRCS:.c=.exe)
 
-all: $(EXAMPLE).exe
-$(EXAMPLE).exe: $(EXAMPLE).c
-	$(CC) -march=$(ARCH) -o $(EXAMPLE).exe $(EXAMPLE).c
+CC=riscv64-unknown-linux-gnu-gcc
+ARCH=rv64imafd
+
+all: $(EXEC)
+%.exe: %.c
+	$(CC) -march=$(ARCH) -o $@ $<;
 clean:
-	rm -Rf $(EXAMPLE).exe
+	rm -Rf *.exe
 
 #-- EOF
