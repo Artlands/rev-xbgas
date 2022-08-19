@@ -15,8 +15,8 @@
 #include "RevExt.h"
 #include "../common/include/XbgasAddr.h"
 
-// #define _XBGAS_DEBUG_
-#undef _XBGAS_DEBUG_
+#define _XBGAS_DEBUG_
+// #undef _XBGAS_DEBUG_
 
 using namespace SST::RevCPU;
 
@@ -65,12 +65,12 @@ namespace SST{
           } else {
             uint32_t Value;
             if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-              SEXT(R->RV64[Inst.rd], Value, 64);
+              SEXT(R->RV64[Inst.rd], Value, 32);
               R->RV64_PC += Inst.instSize;
             }
           }
         } else {
-          SEXT(R->RV64[Inst.rd], M->ReadU32(Addr), 64);
+          SEXT(R->RV64[Inst.rd], M->ReadU32(Addr), 32);
           R->RV64_PC += Inst.instSize;
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
@@ -87,12 +87,12 @@ namespace SST{
           } else {
             uint16_t Value;
             if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-              SEXT(R->RV64[Inst.rd], Value, 64);
+              SEXT(R->RV64[Inst.rd], Value, 16);
               R->RV64_PC += Inst.instSize;
             }
           }
         } else {
-          SEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 64);
+          SEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 16);
           R->RV64_PC += Inst.instSize;
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
@@ -109,12 +109,12 @@ namespace SST{
           } else {
             uint16_t Value;
             if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-              ZEXT(R->RV64[Inst.rd], Value, 64);
+              R->RV64[Inst.rd] = Value;
               R->RV64_PC += Inst.instSize;
             }
           }
         } else {
-          ZEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 64);
+          R->RV64[Inst.rd] = M->ReadU16(Addr);
           R->RV64_PC += Inst.instSize;
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
@@ -131,12 +131,12 @@ namespace SST{
           } else {
             uint8_t Value;
             if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-              SEXT(R->RV64[Inst.rd], Value, 64);
+              SEXT(R->RV64[Inst.rd], Value, 8);
               R->RV64_PC += Inst.instSize;
             }
           }
         } else {
-          SEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 64);
+          SEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 8);
           R->RV64_PC += Inst.instSize;
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
@@ -153,12 +153,12 @@ namespace SST{
           } else {
             uint8_t Value;
             if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-              ZEXT(R->RV64[Inst.rd], Value, 64);
+              R->RV64[Inst.rd] = Value;
               R->RV64_PC += Inst.instSize;
             }
           }
         } else {
-          ZEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 64);
+          R->RV64[Inst.rd] = M->ReadU8(Addr);
           R->RV64_PC += Inst.instSize;
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
@@ -251,7 +251,7 @@ namespace SST{
         } else {
           uint64_t Value;
           if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-            SEXT(R->RV64[Inst.rd], Value, 64);
+            R->RV64[Inst.rd] = Value;
             R->RV64_PC += Inst.instSize;
 
 #ifdef _XBGAS_DEBUG_
@@ -280,7 +280,7 @@ namespace SST{
         } else {
           uint32_t Value;
           if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-            SEXT(R->RV64[Inst.rd], Value, 64);
+            SEXT(R->RV64[Inst.rd], Value, 32);
             R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
@@ -308,7 +308,7 @@ namespace SST{
         } else {
           uint16_t Value;
           if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-            SEXT(R->RV64[Inst.rd], Value, 64);
+            SEXT(R->RV64[Inst.rd], Value, 16);
             R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
@@ -364,7 +364,7 @@ namespace SST{
         } else {
           uint8_t Value;
           if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-            SEXT(R->RV64[Inst.rd], Value, 64);
+            SEXT(R->RV64[Inst.rd], Value, 8);
             R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
@@ -420,7 +420,7 @@ namespace SST{
         } else {
           uint64_t Value;
           if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-            SEXT(R->ERV64[Inst.rd], Value, 64);
+            R->ERV64[Inst.rd] = Value;
             R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
@@ -431,7 +431,7 @@ namespace SST{
                             << ") = ERV64[" << std::dec << +Inst.rs2
                             << "] (0x" << std::hex << EXT2
                             << ") @ Addr (0x" << std::hex << Addr
-                            << "), Value = " << std::dec << (uint64_t)(Value) << std::endl;
+                            << ")" << std::endl;
                 }
 #endif
           }
