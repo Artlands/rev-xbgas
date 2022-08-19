@@ -42,7 +42,6 @@ xbgas_cpu0.addParams({
           "startAddr" : "[0:0x00000000]",               # Starting address for core 0
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
           "xbgas_nic" : "revcpu.XbgasNIC",
-          "enable_xbgas" : 1,
           "enable_xbgas_test" : 1,                            # Enable the XBGAS test harness
           "program" : os.getenv("REV_EXE", "xbgas_test.exe"),  # Target executable
           "splash" : 1                                  # Display the splash message
@@ -58,9 +57,8 @@ xbgas_cpu1.addParams({
           "startAddr" : "[0:0x00000000]",               # Starting address for core 0
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
           "xbgas_nic" : "revcpu.XbgasNIC",
-          "enable_xbgas" : 1,
           "enable_xbgas_test" : 1,                            # Enable the XBGAS test harness
-          "program" : os.getenv("REV_EXE", "xbgas_test_1.exe"),  # Target executable
+          "program" : os.getenv("REV_EXE", "xbgas_test.exe"),  # Target executable
           "splash" : 1                                  # Display the splash message
 })
 

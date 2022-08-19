@@ -220,11 +220,8 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     output.fatal(CALL_INFO, -1, "Error: failed to initialize the RISC-V loader\n" );
   }
 
-    // Create the xbgas object
-  {
-    // See if we should load the XBGAS network interface controller
-    // EnableXBGAS = params.find<bool>("enable_xbgas", 0);
-    
+  // Create the xbgas object
+  {    
     // Look up the network component
     XNic = loadUserSubComponent<xbgasNicAPI>("xbgas_nic");
     // check to see if the nic was loaded.  if not, DO NOT load an anonymous endpoint
@@ -463,6 +460,7 @@ void RevCPU::setup(){
   numPEs = (unsigned)(Mem->ReadU64(_XBGAS_TOTAL_PE_ADDR_));
   output.verbose(CALL_INFO, 1, 0, "--> MY_PE = %" PRId64 ", Total Number of PEs = %u\n", id, numPEs);
   // }
+
   if( EnablePAN ){
     PNic->setup();
     address = PNic->getAddress();
@@ -2441,17 +2439,17 @@ void RevCPU::ExecXBGASTest(){
   uint16_t Value1;
   uint32_t Value2;
   uint64_t Value3;
-  uint128_t Value4;
+  uint64_t Value4;
   uint8_t Tag;
   uint64_t Addr, Addr1, Addr2, Addr3, Addr4;
   SST::Interfaces::SimpleNetwork::nid_t myPE;
   myPE = address;
 
   if( myPE == 0){
-    Nmspace = 0x1;
+    Nmspace = 0x2;
   }
   else if (myPE == 1){
-    Nmspace = 0x0;
+    Nmspace = 0x1;
   } else {
     return;
   }
@@ -2460,7 +2458,7 @@ void RevCPU::ExecXBGASTest(){
   Addr1 = 0x20000008; // 16 bits
   Addr2 = 0x20000010; // 32 bits
   Addr3 = 0x20000020; // 64 bits
-  Addr4 = 0x20000040; // 128 bits
+  Addr4 = 0x20000040; // 64 bits
 
   output.verbose(CALL_INFO, 5, 0, "--- Test Stage: %d ---\n", testStage);
   switch( testStage ){
@@ -2481,7 +2479,7 @@ void RevCPU::ExecXBGASTest(){
     testStage++;
     break;
   case 4:
-    Xbgas->WriteU128(Nmspace, Addr4, uint64_t(myPE + 128));
+    Xbgas->WriteU64(Nmspace, Addr4, uint64_t(myPE + 1024));
     testStage++;
     break;
   case 5:
@@ -2489,6 +2487,7 @@ void RevCPU::ExecXBGASTest(){
       Xbgas->ReadU8(Nmspace, Addr);
     } else {
       Xbgas->readGetResponses(Tag, (void *)(&Value));
+      output.verbose(CALL_INFO, 5, 0, "Value=%" PRId8 "\n", (uint8_t)(Value));
       testStage++;
     }
     break;
@@ -2497,6 +2496,7 @@ void RevCPU::ExecXBGASTest(){
       Xbgas->ReadU16(Nmspace, Addr1);
     } else{
       Xbgas->readGetResponses(Tag, (void *)(&Value1));
+      output.verbose(CALL_INFO, 5, 0, "Value=%" PRId16 "\n", (uint16_t)(Value1));
       testStage++;
     }
     break;
@@ -2505,6 +2505,7 @@ void RevCPU::ExecXBGASTest(){
       Xbgas->ReadU32(Nmspace, Addr2);
     } else {
       Xbgas->readGetResponses(Tag, (void *)(&Value2));
+      output.verbose(CALL_INFO, 5, 0, "Value=%" PRId32 "\n", (uint32_t)(Value2));
       testStage++;
     }
     break;
@@ -2513,14 +2514,16 @@ void RevCPU::ExecXBGASTest(){
       Xbgas->ReadU64(Nmspace, Addr3);
     } else {
       Xbgas->readGetResponses(Tag, (void *)(&Value3));
+      output.verbose(CALL_INFO, 5, 0, "Value=%" PRId64 "\n", (uint64_t)(Value3));
       testStage++;
     }
     break;
   case 9:
     if ( !Xbgas->checkGetRequests(Nmspace, Addr4, &Tag) ) {
-      Xbgas->ReadU128(Nmspace, Addr4);
+      Xbgas->ReadU64(Nmspace, Addr4);
     } else {
       Xbgas->readGetResponses(Tag, (void *)(&Value4));
+      output.verbose(CALL_INFO, 5, 0, "Value=%" PRId64 "\n", (uint64_t)(Value4));
       testStage++;
     }
     break;

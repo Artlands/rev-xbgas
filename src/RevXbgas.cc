@@ -11,31 +11,11 @@
 #include "RevXbgas.h"
 #include "../common/include/XbgasAddr.h"
 
-// #define DEBUG
-#undef DEBUG
+// #define _XBGAS_DEBUG_
+// #undef _XBGAS_DEBUG_
 
 using namespace SST;
 using namespace RevCPU;
-
-// Ref: https://stackoverflow.com/questions/11656241/how-to-print-uint128-t-number-using-gcc
-
-static int print_u128_u(uint128_t u128)
-{
-    int rc;
-    if (u128 > UINT64_MAX)
-    {
-        uint128_t leading  = u128 / P10_UINT64;
-        uint64_t  trailing = u128 % P10_UINT64;
-        rc = print_u128_u(leading);
-        rc += printf("%." TO_STRING(E10_UINT64) PRIu64, trailing);
-    }
-    else
-    {
-        uint64_t u64 = u128;
-        rc = printf("%" PRIu64, u64);
-    }
-    return rc;
-}
 
 RevXbgas::RevXbgas( xbgasNicAPI *XNic, RevOpts *Opts, RevMem *Mem, SST::Output *Output )
   : xnic(XNic), opts(Opts), mem(Mem), output(Output) {
@@ -196,16 +176,46 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
   output->verbose(CALL_INFO, 6, 0, "Handling XBGAS Put Request for PE=%d\n", event->getSrc());
   // retrieve the data
   uint32_t Size = event->getSize();
-  uint64_t *Data = new uint64_t [event->getNumBlocks(Size)];
+  unsigned Len = event->getNumBlocks(Size);
+  uint64_t *Data = new uint64_t [Len];
   event->getData(Data);
 
-  if( !mem->WriteMem(event->getAddr(), Size, (void *)(Data)) ){
+  // Buf 
+  char *Buf = new char[Len];
+  for ( unsigned i=0; i<Len; i++) {
+    Buf[i] = (char)(Data[i]);
+  }
+
+  if( !mem->WriteMem(event->getAddr(), Len, (void *)(Buf)) ){
+    delete[] Buf;
     delete[] Data;
     // build failed response
     buildFailedResp(event);
     return ;
   }
 
+// #ifdef _XBGAS_DEBUG_
+//     uint64_t Addr = event->getAddr();
+//     std::cout << "--- RevXbgas::handleGet Check Mem ---" << std::endl;
+//     if (Len == 1) {
+//       std::cout << "Value = " << std::dec << mem->ReadU8( Addr ) 
+//                 << ", @ Addr("<< std::hex << Addr << ")" << std::endl;
+//     }
+//     if (Len == 2) {
+//       std::cout << "Value = " << std::dec << mem->ReadU16( Addr )
+//                 << ", @ Addr("<< std::hex << Addr << ")" << std::endl;
+//     }
+//     if (Len == 4) {
+//       std::cout << "Value = " << std::dec << mem->ReadU32( Addr )
+//                 << ", @ Addr("<< std::hex << Addr << ")" << std::endl;
+//     }
+//     if (Len == 8) {
+//       std::cout << "Value = " << std::dec << mem->ReadU64( Addr )
+//                 << ", @ Addr("<< std::hex << Addr << ")" << std::endl;
+//     }
+// #endif
+
+  delete[] Buf;
   delete[] Data;
   // build success response
   buildSuccessResp(event);
@@ -272,27 +282,55 @@ bool RevXbgas::processXBGASMemRead(){
 
       // -- setup the response
       xbgasNicEvent *SCmd = new xbgasNicEvent();
-      uint64_t *Data = new uint64_t [SCmd->getNumBlocks(tmp_size)];
+      unsigned Len = SCmd->getNumBlocks(tmp_size);
+
+      // Data for storing the memory readings
+      // Buf for transfering the data
+      char *Data = new char[Len];
+      uint64_t *Buf = new uint64_t[Len];
+
+      // uint64_t Value;
       if( !mem->ReadMem( tmp_addr,
-                         (size_t)(tmp_size),
+                         (size_t)(Len),
                          (void *)(Data)) ){
         // build a failed response
         SCmd->buildFailed(tmp_tag);
         SCmd->setSrc(xnic->getAddress());
         SendMB.push(std::make_pair(SCmd, tmp_src));
       }else{
+        // Copy data to buffer
+        for ( unsigned i=0; i<Len; i++) {
+          Buf[i] = (uint64_t)(Data[i]);
+        }
+
         // build a successful response
         SCmd->buildSuccess(tmp_tag);
         SCmd->setSize(tmp_size);
-        SCmd->setData(Data, tmp_size);
+        SCmd->setData(Buf, tmp_size);
         SCmd->setSrc(xnic->getAddress());
         SendMB.push(std::make_pair(SCmd, tmp_src));
 
+// #ifdef _XBGAS_DEBUG_
+//       int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+//       if (id == 0) { //
+//         std::cout << "_XBGAS_DEBUG_ CPU" << id
+//                   << ": Tag: " << std::dec << +tmp_tag
+//                   << ": Size: "<< std::dec << +tmp_size
+//                   << ", Len: " << std::dec << +Len << std::endl;
+//         for (unsigned i=0; i< Len; i++) {
+//           std::cout << "_XBGAS_DEBUG_ CPU" << id
+//                     << ": Data [" << +i
+//                     << "] = " << std::hex << Data[i] << std::endl;
+//         }
+//       }
+// #endif
+
         output->verbose(CALL_INFO, 6, 0,
                  "Process XBGAS Mem Read request from %d: Tag=%u, Size=%" PRIu32 ", Addr=0x%2x, Value=%" PRId64 "\n",
-                 tmp_src, tmp_tag, tmp_size, tmp_addr, (uint64_t)(*Data));
+                 tmp_src, tmp_tag, tmp_size, tmp_addr, (uint64_t)(*Buf));
       }
       delete[] Data;
+      delete[] Buf;
     }
   }
 
@@ -343,18 +381,39 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, void *Data
   uint8_t Tag  = createTag();
   uint32_t Size = (uint32_t)(Len * 8);
   uint64_t Src = xnic->getAddress();
-  
+  uint64_t *Buf = nullptr;
+  char *DataMem = (char *)(Data);
+
+  // Buffer
+  Buf = new uint64_t[Len];
+
+// #ifdef _XBGAS_DEBUG_
+//     std::cout << "--- RevXbgas::WriteMem Data Buf ---" << std::endl;
+// #endif
+
+  // copy data to buffer
+  for( unsigned i=0; i<Len; i++ ){
+    Buf[i] = (uint64_t)(DataMem[i]);
+
+// #ifdef _XBGAS_DEBUG_
+//     std::cout << "Buf[" << +i
+//               << "] = " << std::hex << Buf[i] << std::endl;
+// #endif
+
+  }
+
   PEvent = new xbgasNicEvent(xnic->getName()); // new event to send
   PEvent->setSrc(Src);
 
   // populate it
-  if( !PEvent->buildPut(Tag, Addr, Size, (uint64_t *)Data) ){
+  if( !PEvent->buildPut(Tag, Addr, Size, Buf ) ){
     output->fatal(CALL_INFO, -1,
                   "%s, Error: could not create XBGAS PUT command\n",
                   xnic->getName().c_str());
   }
   
   SendMB.push(std::make_pair(PEvent, Dest));
+  delete[] Buf;
   return true;
 }
 
@@ -380,12 +439,6 @@ void RevXbgas::WriteU64( uint64_t Nmspace, uint64_t Addr, uint64_t Value) {
   uint64_t Tmp = Value;
   if( !WriteMem( Nmspace, Addr, 8, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U64)");
-}
-
-void RevXbgas::WriteU128( uint64_t Nmspace, uint64_t Addr, uint128_t Value) {
-  uint128_t Tmp = Value;
-  if( !WriteMem( Nmspace, Addr, 16, (void *)(&Tmp) ) )
-    output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U128)");
 }
 
 void RevXbgas::WriteFloat( uint64_t Nmspace, uint64_t Addr, float Value) {
@@ -453,11 +506,6 @@ void RevXbgas::ReadU64( uint64_t Nmspace, uint64_t Addr ) {
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U64)");
 }
 
-void RevXbgas::ReadU128( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 16 ) )
-    output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U128)");
-}
-
 void RevXbgas::ReadFloat( uint64_t Nmspace, uint64_t Addr ) {
   if( !ReadMem( Nmspace, Addr, 4 ) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (FLOAT)");
@@ -515,7 +563,7 @@ bool RevXbgas::readGetResponses( uint8_t Tag, void *Data ){
       uint64_t *tmp_data = std::get<1>(*it);
       unsigned Len = getNumBlocks(std::get<2>(*it));
       for( unsigned i=0; i < Len; i++ ){
-        DataMem[i] = tmp_data[i];
+        DataMem[i] = (char)(tmp_data[i]);
       }
       delete[] tmp_data;
 
@@ -530,16 +578,16 @@ bool RevXbgas::readGetResponses( uint8_t Tag, void *Data ){
       // print_u128_u((uint128_t)(*DataMem));
       // output->verbose(CALL_INFO, 6, 0, "Response for Tag %u: Value=%d\n", Tag, ndigits);
       output->verbose(CALL_INFO, 6, 0, "Response for Tag %u: Value=%" PRId64 "\n", Tag, (uint64_t)(*DataMem));
-#ifdef DEBUG
-      int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-      if (id == 0) {
-        std::cout << "CPU" << id
-                  << ": Tag: " << std::dec << +Tag
-                  << ", Len: " << std::dec << +Len
-                  << ", DataMem: " << std::dec << (uint64_t)(*DataMem)
-                  << ", DataMem Address: " << std::hex << (uint64_t)(DataMem)<< std::endl;
-      }
-#endif
+// #ifdef _XBGAS_DEBUG_
+//       int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+//       if (id == 0) { //
+//         std::cout << "_XBGAS_DEBUG_ CPU" << id
+//                   << ": Tag: " << std::dec << +Tag
+//                   << ", Len: " << std::dec << +Len
+//                   << ", DataMem hex: 0x" << std::hex << (uint64_t)(*DataMem)
+//                   << ", DataMem Address: " << std::hex << (uint64_t)(DataMem) << std::endl;
+//       }
+// #endif
       return true;
     }
   }

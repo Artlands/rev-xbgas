@@ -16,33 +16,25 @@ int main(int argc, char **argv ){
   uint64_t S_U64 = 65;
   uint32_t S_U32 = 33;
   uint16_t S_U16 = 17;
-  int16_t  S_16  = -15;
   uint8_t  S_U8  = 9;
-  int8_t   S_8   = -7;
 
   /* pointers to source data */
   uint64_t *PS_U64 = &S_U64;
   uint32_t *PS_U32 = &S_U32;
   uint16_t *PS_U16 = &S_U16;
-  int16_t  *PS_16  = &S_16;
   uint8_t  *PS_U8  = &S_U8;
-  int8_t   *PS_8   = &S_8;
 
   /* destination data */
-  uint64_t D_U64 = 65;
-  uint32_t D_U32 = 33;
-  uint16_t D_U16 = 17;
-  int16_t  D_S16 = -15;
-  uint8_t  D_U8  = 9;
-  int8_t   D_S8  = -7;
+  uint64_t D_U64 = -8;
+  uint32_t D_U32 = -17;
+  uint16_t D_U16 = -32;
+  uint8_t  D_U8  = -65;
 
   /* pointers to destination data */
   uint64_t *PD_U64 = &D_U64;
   uint32_t *PD_U32 = &D_U32;
   uint16_t *PD_U16 = &D_U16;
-  int16_t  *PD_16  = &D_S16;
   uint8_t  *PD_U8  = &D_U8;
-  int8_t   *PD_8   = &D_S8;
 
   /* Namespace*/
 	uint64_t NMSPACE = 0x1;
@@ -83,8 +75,8 @@ int main(int argc, char **argv ){
   asm volatile
   (
     " erlhu x10, %[x], e10 \n\t"
-    : [z] "=r" (S_16)
-    : [x] "r"  (PD_16)
+    : [z] "=r" (S_U16)
+    : [x] "r"  (PD_U16)
   );
 
   /* ERLB */
@@ -99,8 +91,8 @@ int main(int argc, char **argv ){
   asm volatile
   (
     " erlbu x10, %[x], e10 \n\t"
-    : [z] "=r" (S_8)
-    : [x] "r"  (PD_8)
+    : [z] "=r" (S_U8)
+    : [x] "r"  (PD_U8)
   );
 
   return 0;

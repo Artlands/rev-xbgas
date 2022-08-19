@@ -26,10 +26,10 @@ int main(int argc, char **argv ){
   uint8_t *P_U8   = &S_U8;
 
   /* destination data */
-  uint64_t U64 = 64;
-  uint32_t U32 = 32;
-  uint16_t U16 = 16;
-  uint8_t  U8  = 8;
+  uint64_t U64 = -64;
+  uint32_t U32 = -32;
+  uint16_t U16 = -16;
+  uint8_t  U8  = -8;
 
 	/* Remote Node ID*/
   /* Namespace*/
