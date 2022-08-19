@@ -427,7 +427,7 @@ namespace SST{
             if (id == 0) {
                   std::cout << "_XBGAS_DEBUG_ CPU" << id
                             << ": [erle] ERV64[" << std::dec << +Inst.rd
-                            << "] (" << std::dec << R->ERV64[Inst.rd]
+                            << "] (0x" << std::hex << R->ERV64[Inst.rd]
                             << ") = ERV64[" << std::dec << +Inst.rs2
                             << "] (0x" << std::hex << EXT2
                             << ") @ Addr (0x" << std::hex << Addr

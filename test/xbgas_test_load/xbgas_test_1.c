@@ -51,48 +51,56 @@ int main(int argc, char **argv ){
   asm volatile
   (
     " erld x10, %[x], e10 \n\t"
-    : [z] "=r" (S_U64)
+    :
     : [x] "r"  (PD_U64)
   );
 
     /* ERLW */
   asm volatile
   (
-    " erlw x10, %[x], e10 \n\t"
-    : [z] "=r" (S_U32)
+    " erlw x11, %[x], e10 \n\t"
+    :
     : [x] "r"  (PD_U32)
   );
 
   /* ERLH */
   asm volatile
   (
-    " erlh x10, %[x], e10 \n\t"
-    : [z] "=r" (S_U16)
+    " erlh x12, %[x], e10 \n\t"
+    :
     : [x] "r"  (PD_U16)
   );
 
   /* ERLHU */
   asm volatile
   (
-    " erlhu x10, %[x], e10 \n\t"
-    : [z] "=r" (S_U16)
+    " erlhu x13, %[x], e10 \n\t"
+    :
     : [x] "r"  (PD_U16)
   );
 
   /* ERLB */
   asm volatile
   (
-    " erlb x10, %[x], e10 \n\t"
-    : [z] "=r" (S_U8)
+    " erlb x14, %[x], e10 \n\t"
+    :
     : [x] "r"  (PD_U8)
   );
 
   /* ERLBU */
   asm volatile
   (
-    " erlbu x10, %[x], e10 \n\t"
-    : [z] "=r" (S_U8)
+    " erlbu x15, %[x], e10 \n\t"
+    :
     : [x] "r"  (PD_U8)
+  );
+
+    /* ERLE */
+  asm volatile
+  (
+    " erle e11, %[x], e10 \n\t"
+    :
+    : [x] "r"  (PD_U64)
   );
 
   return 0;
