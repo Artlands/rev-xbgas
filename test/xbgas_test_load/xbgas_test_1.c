@@ -13,10 +13,10 @@
 
 int main(int argc, char **argv ){
   /* source data */
-  uint64_t S_U64 = 65;
-  uint32_t S_U32 = 33;
-  uint16_t S_U16 = 17;
-  uint8_t  S_U8  = 9;
+  uint64_t S_U64 = -64;
+  uint32_t S_U32 = 32;
+  uint16_t S_U16 = -16;
+  uint8_t  S_U8  = 8;
 
   /* pointers to source data */
   uint64_t *PS_U64 = &S_U64;
@@ -25,10 +25,10 @@ int main(int argc, char **argv ){
   uint8_t  *PS_U8  = &S_U8;
 
   /* destination data */
-  uint64_t D_U64 = -8;
-  uint32_t D_U32 = -17;
-  uint16_t D_U16 = -32;
-  uint8_t  D_U8  = -65;
+  uint64_t D_U64 = -64;
+  uint32_t D_U32 = 32;
+  uint16_t D_U16 = -16;
+  uint8_t  D_U8  = 8;
 
   /* pointers to destination data */
   uint64_t *PD_U64 = &D_U64;

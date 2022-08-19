@@ -96,10 +96,5 @@ int main(int argc, char **argv ){
     : [x] "r"  (PD_U8)
   );
 
-  SEXT(r,x,b)
-  do {
-  (r) = ( (x) ^ ((1UL) << ((b) - 1)) ) - ((1UL) << ((b) - 1));
-  }while(0)
-
   return 0;
 }
