@@ -28,7 +28,7 @@ REV_OBJS := $(patsubst %.cc,%.o,$(wildcard *.cc))
 
 all: librevcpu.so
 
-debug: CXXFLAGS += -DDEBUG -g
+debug: CXXFLAGS += -DDEBUG -D_XBGAS_DEBUG_ -g
 debug: librevcpu.so 
 
 librevcpu.so: $(REV_OBJS)

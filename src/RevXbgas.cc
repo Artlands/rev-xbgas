@@ -64,10 +64,10 @@ void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
       NLB.push_back( std::make_pair( (uint64_t(i+1)), i ) );
   }
 
-  output->verbose(CALL_INFO, 4, 0, "--> MY NLB is: \n");
+  output->verbose(CALL_INFO, 6, 0, "--> MY NLB is: \n");
   int i = 0;
   for ( auto it=NLB.begin(); it != NLB.end(); ++it ){
-    output->verbose(CALL_INFO, 4, 0, "--> Entry: %d | Namespace: 0x%" PRId64 " | Node ID: %" PRId64 "\n", i, std::get<0>(*it), std::get<1>(*it));
+    output->verbose(CALL_INFO, 6, 0, "--> Entry: %d | Namespace: 0x%" PRId64 " | Node ID: %" PRId64 "\n", i, std::get<0>(*it), std::get<1>(*it));
     i++;
   }
 
@@ -76,7 +76,7 @@ void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
 
 bool RevXbgas::isFinished() {
   bool rtn = true;
-  if( !SendMB.empty() || !ReadQueue.empty() || !TrackTags.empty() || !GetResponses.empty() || !TrackGets.empty() || !TrackTags.empty() )
+  if( !SendMB.empty() || !ReadQueue.empty() || !TrackTags.empty() || !GetResponses.empty() || !TrackGets.empty() )
     rtn = false;
 
   return rtn;
@@ -194,27 +194,6 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
     return ;
   }
 
-// #ifdef _XBGAS_DEBUG_
-//     uint64_t Addr = event->getAddr();
-//     std::cout << "--- RevXbgas::handleGet Check Mem ---" << std::endl;
-//     if (Len == 1) {
-//       std::cout << "Value = " << std::dec << mem->ReadU8( Addr ) 
-//                 << ", @ Addr("<< std::hex << Addr << ")" << std::endl;
-//     }
-//     if (Len == 2) {
-//       std::cout << "Value = " << std::dec << mem->ReadU16( Addr )
-//                 << ", @ Addr("<< std::hex << Addr << ")" << std::endl;
-//     }
-//     if (Len == 4) {
-//       std::cout << "Value = " << std::dec << mem->ReadU32( Addr )
-//                 << ", @ Addr("<< std::hex << Addr << ")" << std::endl;
-//     }
-//     if (Len == 8) {
-//       std::cout << "Value = " << std::dec << mem->ReadU64( Addr )
-//                 << ", @ Addr("<< std::hex << Addr << ")" << std::endl;
-//     }
-// #endif
-
   delete[] Buf;
   delete[] Data;
   // build success response
@@ -310,21 +289,6 @@ bool RevXbgas::processXBGASMemRead(){
         SCmd->setSrc(xnic->getAddress());
         SendMB.push(std::make_pair(SCmd, tmp_src));
 
-// #ifdef _XBGAS_DEBUG_
-//       int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-//       if (id == 0) { //
-//         std::cout << "_XBGAS_DEBUG_ CPU" << id
-//                   << ": Tag: " << std::dec << +tmp_tag
-//                   << ": Size: "<< std::dec << +tmp_size
-//                   << ", Len: " << std::dec << +Len << std::endl;
-//         for (unsigned i=0; i< Len; i++) {
-//           std::cout << "_XBGAS_DEBUG_ CPU" << id
-//                     << ": Data [" << +i
-//                     << "] = " << std::hex << Data[i] << std::endl;
-//         }
-//       }
-// #endif
-
         output->verbose(CALL_INFO, 6, 0,
                  "Process XBGAS Mem Read request from %d: Tag=%u, Size=%" PRIu32 ", Addr=0x%2x, Value=%" PRId64 "\n",
                  tmp_src, tmp_tag, tmp_size, tmp_addr, (uint64_t)(*Buf));
@@ -387,19 +351,9 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, void *Data
   // Buffer
   Buf = new uint64_t[Len];
 
-// #ifdef _XBGAS_DEBUG_
-//     std::cout << "--- RevXbgas::WriteMem Data Buf ---" << std::endl;
-// #endif
-
   // copy data to buffer
   for( unsigned i=0; i<Len; i++ ){
     Buf[i] = (uint64_t)(DataMem[i]);
-
-// #ifdef _XBGAS_DEBUG_
-//     std::cout << "Buf[" << +i
-//               << "] = " << std::hex << Buf[i] << std::endl;
-// #endif
-
   }
 
   PEvent = new xbgasNicEvent(xnic->getName()); // new event to send
@@ -454,7 +408,6 @@ void RevXbgas::WriteDouble( uint64_t Nmspace, uint64_t Addr, double Value) {
   if( !WriteMem( Nmspace, Addr, 8, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (DOUBLE)");
 }
-
 
 bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len){
   int Dest = findDest(Nmspace);
