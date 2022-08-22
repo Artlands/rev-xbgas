@@ -10,98 +10,120 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include "../../common/include/XbgasAddr.h"
 
 int main(int argc, char **argv ){
+  /* Read my PE and determine namespace for testing*/
+  int *P_MYPE = (uint64_t)(_XBGAS_MY_PE_ADDR_);
+  int MYPE = *P_MYPE;
+  uint64_t NMSPACE;
 
-  /* source data */
-  uint64_t S_U64 = 64;
-  uint32_t S_U32 = 32;
-  uint16_t S_U16 = 16;
-  uint8_t  S_U8  = 8;
-
-  /* pointers to source data */
-  uint64_t *PS_U64 = &S_U64;
-  uint32_t *PS_U32 = &S_U32;
-  uint16_t *PS_U16 = &S_U16;
-  uint8_t  *PS_U8  = &S_U8;
-
+  if (MYPE == 0)
+    NMSPACE = 0x2;
+  if (MYPE == 1)
+    NMSPACE = 0x1;
+   
   /* destination data */
-  uint64_t D_U64 = 64;
-  uint32_t D_U32 = 32;
-  uint16_t D_U16 = 16;
-  uint8_t  D_U8  = 8;
+  uint64_t U64 = -8;
+  uint32_t U32 = -16;
+  uint16_t U16 = -32;
+  uint8_t  U8  = -64;
 
   /* pointers to destination data */
-  uint64_t *PD_U64 = &D_U64;
-  uint32_t *PD_U32 = &D_U32;
-  uint16_t *PD_U16 = &D_U16;
-  uint8_t  *PD_U8  = &D_U8;
+  uint64_t *P_U64 = &U64;
+  uint32_t *P_U32 = &U32;
+  uint16_t *P_U16 = &U16;
+  uint8_t *P_U8   = &U8;
 
-  /* Namespace*/
-	uint64_t NMSPACE = 0x2;
+  /* pointers to pointers*/
+  uint64_t **AP_U64 = &P_U64;
+  uint32_t **AP_U32 = &P_U32;
+  uint16_t **AP_U16 = &P_U16;
+  uint8_t **AP_U8 = &P_U8;
 
   /* EADDIE */
   asm volatile // Set the remote node id
 	(
 		" eaddie e10, %[x], 0 \n\t"
 		:
-		: [x] 	"r" 	(NMSPACE)
+		: [x] 	"r"  (NMSPACE)
 	);
 
-  /* ERLD */
-  asm volatile
+  /* ELD */
+  asm volatile // set destination address
   (
-    " erld x10, %[x], e10 \n\t"
+    "ld x10, 0(%[z]) \n\t"
     :
-    : [x] "r"  (PD_U64)
+    : [z] "r" (AP_U64)
   );
 
-    /* ERLW */
   asm volatile
   (
-    " erlw x11, %[x], e10 \n\t"
-    :
-    : [x] "r"  (PD_U32)
+    " eld x11, 0(x10) "
   );
 
-  /* ERLH */
-  asm volatile
+  /* ELW */
+  asm volatile // set destination address
   (
-    " erlh x12, %[x], e10 \n\t"
+    "ld x10, 0(%[z]) \n\t"
     :
-    : [x] "r"  (PD_U16)
+    : [z] "r" (AP_U32)
   );
 
-  /* ERLHU */
   asm volatile
   (
-    " erlhu x13, %[x], e10 \n\t"
-    :
-    : [x] "r"  (PD_U16)
+    " elw x11, 0(x10) "
   );
 
-  /* ERLB */
-  asm volatile
+  /* ELH */
+  asm volatile // set destination address
   (
-    " erlb x14, %[x], e10 \n\t"
+    "ld x10, 0(%[z]) \n\t"
     :
-    : [x] "r"  (PD_U8)
+    : [z] "r" (AP_U16)
   );
 
-  /* ERLBU */
   asm volatile
   (
-    " erlbu x15, %[x], e10 \n\t"
-    :
-    : [x] "r"  (PD_U8)
+    " elh x11, 0(x10) "
   );
 
-    /* ERLE */
+  /* ELHU */
   asm volatile
   (
-    " erle e11, %[x], e10 \n\t"
+    " elhu x11, 0(x10) "
+  );
+
+  /* ELB */
+  asm volatile // set destination address
+  (
+    "ld x10, 0(%[z]) \n\t"
     :
-    : [x] "r"  (PD_U64)
+    : [z] "r" (AP_U8)
+  );
+
+  asm volatile
+  (
+    " elb x11, 0(x10) "
+  );
+
+  /* ELBU */
+  asm volatile
+  (
+    " elbu x11, 0(x10) "
+  );
+
+  /* ELE */
+  asm volatile // set destination address
+  (
+    "ld x10, 0(%[z]) \n\t"
+    :
+    : [z] "r" (AP_U64)
+  );
+
+  asm volatile
+  (
+    " ele e12, 0(x10) "
   );
 
   return 0;
