@@ -23,11 +23,29 @@ int main(int argc, char **argv ){
   if (MYPE == 1)
     NMSPACE = 0x1;
    
+  /* source data */
+  uint64_t S_U64 = -64;
+  uint32_t S_U32 = -32;
+  uint16_t S_U16 = -16;
+  uint8_t S_U8   = -8;
+
+  /* pointers to source data */
+  uint64_t *PS_U64 = &S_U64;
+  uint32_t *PS_U32 = &S_U32;
+  uint16_t *PS_U16 = &S_U16;
+  uint8_t *PS_U8   = &S_U8;
+
+  /* pointers to pointers*/
+  uint64_t **APS_U64 = &PS_U64;
+  uint32_t **APS_U32 = &PS_U32;
+  uint16_t **APS_U16 = &PS_U16;
+  uint8_t **APS_U8 = &PS_U8;
+   
   /* destination data */
-  uint64_t U64 = 64;
-  uint32_t U32 = 32;
-  uint16_t U16 = 16;
-  uint8_t  U8  = 8;
+  uint64_t U64 = 8;
+  uint32_t U32 = 16;
+  uint16_t U16 = 32;
+  uint8_t  U8  = 64;
 
   /* pointers to destination data */
   uint64_t *P_U64 = &U64;
@@ -49,7 +67,7 @@ int main(int argc, char **argv ){
 		: [x] 	"r"  (NMSPACE)
 	);
 
-  /* ELD */
+  /* ESD */
   asm volatile // set destination address
   (
     "ld x10, 0(%[z]) \n\t"
@@ -57,63 +75,86 @@ int main(int argc, char **argv ){
     : [z] "r" (AP_U64)
   );
 
-  asm volatile
+  asm volatile // set source data
   (
-    " eld x11, 0(x10) "
+    "ld x11, 0(%[z]) \n\t"
+    :
+    : [z] "r" (PS_U64)
   );
 
-  /* ELW */
+  asm volatile
+  (
+    " esd x11, 0(x10) \n\t"
+  );
+
+  /* ESW */
   asm volatile // set destination address
   (
-    "lw x10, 0(%[z]) \n\t"
+    "ld x10, 0(%[z]) \n\t"
     :
     : [z] "r" (AP_U32)
   );
 
-  asm volatile
+  asm volatile // set source data
   (
-    " elw x11, 0(x10) "
+    "lw x11, 0(%[z]) \n\t"
+    :
+    : [z] "r" (PS_U32)
   );
 
-  /* ELH */
+  asm volatile
+  (
+    " esw x11, 0(x10) \n\t"
+  );
+
+  /* ESH */
   asm volatile // set destination address
   (
-    "lhu x10, 0(%[z]) \n\t"
+    "ld x10, 0(%[z]) \n\t"
     :
     : [z] "r" (AP_U16)
   );
 
-  asm volatile
+  asm volatile // set source data
   (
-    " elh x11, 0(x10) "
+    "lh x11, 0(%[z]) \n\t"
+    :
+    : [z] "r" (PS_U16)
   );
 
-  /* ELHU */
   asm volatile
   (
-    " elhu x11, 0(x10) "
+    " esh x11, 0(x10) "
   );
 
-  /* ELB */
+  /* ESB */
   asm volatile // set destination address
   (
-    "lbu x10, 0(%[z]) \n\t"
+    "ld x10, 0(%[z]) \n\t"
     :
     : [z] "r" (AP_U8)
   );
 
-  asm volatile
+  asm volatile // set source data
   (
-    " elb x11, 0(x10) "
+    "lb x11, 0(%[z]) \n\t"
+    :
+    : [z] "r" (PS_U8)
   );
 
-  /* ELBU */
   asm volatile
   (
-    " elbu x11, 0(x10) "
+    " esb x11, 0(x10) \n\t"
   );
 
-  /* ELE */
+  /* ESE */
+  asm volatile // Set the value in extended register
+	(
+		" eaddie e12, %[x], 0 \n\t"
+		:
+		: [x] 	"r"  (S_U64)
+	);
+
   asm volatile // set destination address
   (
     "ld x10, 0(%[z]) \n\t"
@@ -123,7 +164,7 @@ int main(int argc, char **argv ){
 
   asm volatile
   (
-    " ele e12, 0(x10) "
+    " ese e12, 0(x10) "
   );
 
   return 0;

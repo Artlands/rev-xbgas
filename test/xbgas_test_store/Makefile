@@ -12,17 +12,16 @@
 
 .PHONY: src
 
-PE0=xbgas_test
-PE1=xbgas_test_1
+SRCS = $(wildcard *.c)
+EXEC = $(SRCS:.c=.exe)
+
 CC=riscv64-unknown-linux-gnu-gcc
 ARCH=rv64imafd
 
-all: $(PE0).exe $(PE1).exe
-$(PE0).exe: $(PE0).c
-	$(CC) -march=$(ARCH) -o $(PE0).exe $(PE0).c
-$(PE1).exe: $(PE1).c
-	$(CC) -march=$(ARCH) -o $(PE1).exe $(PE1).c
+all: $(EXEC)
+%.exe: %.c
+	$(CC) -march=$(ARCH) -o $@ $<;
 clean:
-	rm -Rf *.exe
+	rm -Rf *.exe *.asm *.s
 
 #-- EOF

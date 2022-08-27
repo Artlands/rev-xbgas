@@ -16,6 +16,7 @@
 #include "RevMem.h"
 #include "RevXbgas.h"
 #include "RevFeature.h"
+#include "../common/include/XbgasAddr.h"
 
 #ifndef _REV_NUM_REGS_
 #define _REV_NUM_REGS_ 32

@@ -10,10 +10,18 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include "../../common/include/XbgasAddr.h"
 
 int main(int argc, char **argv ){
-  /* Namespace*/
-	uint64_t NMSPACE = 0x2;
+  /* Read my PE and determine namespace for testing*/
+  int *P_MYPE = (uint64_t)(_XBGAS_MY_PE_ADDR_);
+  int MYPE = *P_MYPE;
+  uint64_t NMSPACE;
+
+  if (MYPE == 0)
+    NMSPACE = 0x2;
+  if (MYPE == 1)
+    NMSPACE = 0x1;
 
   /* source data */
   uint64_t S_U64 = -64;

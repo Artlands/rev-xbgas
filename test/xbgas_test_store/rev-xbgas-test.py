@@ -43,14 +43,15 @@ xbgas_cpu0.addParams({
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
           "xbgas_nic" : "revcpu.XbgasNIC",
           "enable_xbgas" : 1,
-          "enable_xbgas_test" : 1,                            # Enable the XBGAS test harness
+          "enable_xbgas_test" : 0,                            # Enable the XBGAS test harness
+          "msgPerCycle": 10,
           "program" : os.getenv("REV_EXE", "xbgas_test.exe"),  # Target executable
           "splash" : 1                                  # Display the splash message
 })
 
 xbgas_cpu1 = sst.Component("cpu1", "revcpu.RevCPU")
 xbgas_cpu1.addParams({
-          "verbose" : 5,                                # Verbosity
+          "verbose" : 0,                                # Verbosity
           "numCores" : 1,                               # Number of cores
           "clock" : "1.0GHz",                           # Clock
           "memSize" : 1024*1024*1024,                   # Memory size in bytes
@@ -59,8 +60,9 @@ xbgas_cpu1.addParams({
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
           "xbgas_nic" : "revcpu.XbgasNIC",
           "enable_xbgas" : 1,
-          "enable_xbgas_test" : 1,                            # Enable the XBGAS test harness
-          "program" : os.getenv("REV_EXE", "xbgas_test_1.exe"),  # Target executable
+          "enable_xbgas_test" : 0,                            # Enable the XBGAS test harness
+          "msgPerCycle": 10,
+          "program" : os.getenv("REV_EXE", "xbgas_test.exe"),  # Target executable
           "splash" : 1                                  # Display the splash message
 })
 

@@ -14,7 +14,6 @@
 #include <bitset>
 
 #include "RevInstTable.h"
-#include "../common/include/XbgasAddr.h"
 
 using namespace SST::RevCPU;
 
@@ -253,7 +252,7 @@ namespace SST{
             { 
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [ele]\tERV64[" << std::dec << +Inst.rd
-                        << "](0x" << std::hex << R->RV64[Inst.rd]
+                        << "](0x" << std::hex << R->ERV64[Inst.rd]
                         << ") = @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl;
               
@@ -269,90 +268,146 @@ namespace SST{
       }
 
       static bool esd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        uint64_t EXT2 = R->ERV64[Inst.rs2];
-        uint64_t Addr = (uint64_t)(R->RV32[Inst.rs2]+(int32_t)(td_u32(Inst.imm,12)));
+        
+        /* The following implementation is based on xBGAS 0.0.6*/
+        // esd rs1, imm(rs2)
+        // uint64_t EXT2 = R->ERV64[Inst.rs2];
+        // uint64_t Addr = (uint64_t)(R->RV32[Inst.rs2]+(int32_t)(td_u32(Inst.imm,12)));
+
+        // if (EXT2 != 0x0) {
+        //   Xbgas->WriteU64( EXT2, Addr, R->RV64[Inst.rs1] );
+        // } else {
+        //   M->WriteU64( Addr, R->RV64[Inst.rs1]);
+        // }
+        // R->RV64_PC += Inst.instSize;
+
+        /* The following implementation is based on xbgas-tool (branch: test)*/
+        // esd rs2, imm(rs1)
+
+        uint64_t EXT2 = R->ERV64[Inst.rs1];
+        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
         if (EXT2 != 0x0) {
-          Xbgas->WriteU64( EXT2, Addr, R->RV64[Inst.rs1] );
+          Xbgas->WriteU64( EXT2, Addr, R->RV64[Inst.rs2] );
         } else {
-          M->WriteU64( Addr, R->RV64[Inst.rs1]);
+          M->WriteU64( Addr, R->RV64[Inst.rs2]);
         }
+        R->RV64_PC += Inst.instSize;
+
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-          // if(id == 0) 
+          if(id == 0) 
           {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [esd]\tNamespace(0x" << EXT2
                       << ") @ Addr(0x" << std::hex << Addr
-                      << ") = RV64[" << std::dec << +Inst.rs1
-                      << "](0x" << std::hex << R->RV64[Inst.rs1]
+                      << ") = RV64[" << std::dec << +Inst.rs2
+                      << "](0x" << std::hex << R->RV64[Inst.rs2]
                       << ")" << std::endl;
           }
 #endif
 
-        R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool esw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        uint64_t EXT2 = R->ERV64[Inst.rs2];
-        uint64_t Addr = (uint64_t)(R->RV32[Inst.rs2]+(int32_t)(td_u32(Inst.imm,12)));
+        // uint64_t EXT2 = R->ERV64[Inst.rs2];
+        // uint64_t Addr = (uint64_t)(R->RV64[Inst.rs2]+(int64_t)(td_u64(Inst.imm,12)));
+
+        // if (EXT2 != 0x0) {
+        //   Xbgas->WriteU32( EXT2, Addr, (uint32_t)(R->RV64[Inst.rs1]) );
+        // } else {
+        //   M->WriteU32( Addr, (uint32_t)(R->RV64[Inst.rs1]) );
+        // }
+        // R->RV64_PC += Inst.instSize;
+
+        /* The following implementation is based on xbgas-tool (branch: test)*/
+        // esw rs2, imm(rs1)
+        uint64_t EXT2 = R->ERV64[Inst.rs1];
+        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
         if (EXT2 != 0x0) {
-          Xbgas->WriteU32( EXT2, Addr, (uint32_t)(R->RV64[Inst.rs1]) );
+          Xbgas->WriteU32( EXT2, Addr, (uint32_t)(R->RV64[Inst.rs2]) );
         } else {
-          M->WriteU32( Addr, (uint32_t)(R->RV64[Inst.rs1]) );
+          M->WriteU32( Addr, (uint32_t)(R->RV64[Inst.rs2]));
         }
+        R->RV64_PC += Inst.instSize;
+
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
           if(id == 0) {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [esw]\tNamespace(0x" << EXT2
                       << ") @ Addr(0x" << std::hex << Addr
-                      << ") = RV64[" << std::dec << +Inst.rs1
-                      << "](0x" << std::hex << R->RV64[Inst.rs1]
+                      << ") = RV64[" << std::dec << +Inst.rs2
+                      << "](0x" << std::hex << R->RV64[Inst.rs2]
                       << ")" << std::endl;
           }
 #endif
 
-        R->RV64_PC += Inst.instSize;
+        
         return true;
       }
 
       static bool esh(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        uint64_t EXT2 = R->ERV64[Inst.rs2];
-        uint64_t Addr = (uint64_t)(R->RV32[Inst.rs2]+(int32_t)(td_u32(Inst.imm,12)));
+        // uint64_t EXT2 = R->ERV64[Inst.rs2];
+        // uint64_t Addr = (uint64_t)(R->RV32[Inst.rs2]+(int32_t)(td_u32(Inst.imm,12)));
+
+        // if (EXT2 != 0x0) {
+        //   Xbgas->WriteU16( EXT2, Addr, (uint16_t)(R->RV64[Inst.rs1]) );
+        // } else {
+        //   M->WriteU16( Addr, (uint16_t)(R->RV64[Inst.rs1]) );
+        // }
+        // R->RV64_PC += Inst.instSize;
+
+        /* The following implementation is based on xbgas-tool (branch: test)*/
+        // esh rs2, imm(rs1)
+        uint64_t EXT2 = R->ERV64[Inst.rs1];
+        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
         if (EXT2 != 0x0) {
-          Xbgas->WriteU16( EXT2, Addr, (uint16_t)(R->RV64[Inst.rs1]) );
+          Xbgas->WriteU16( EXT2, Addr, (uint16_t)(R->RV64[Inst.rs2]) );
         } else {
-          M->WriteU16( Addr, (uint16_t)(R->RV64[Inst.rs1]) );
+          M->WriteU16( Addr, (uint16_t)(R->RV64[Inst.rs2]));
         }
+        R->RV64_PC += Inst.instSize;
+
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
           if(id == 0) {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [esh]\tNamespace(0x" << EXT2
                       << ") @ Addr(0x" << std::hex << Addr
-                      << ") = RV64[" << std::dec << +Inst.rs1
-                      << "](0x" << std::hex << R->RV64[Inst.rs1]
+                      << ") = RV64[" << std::dec << +Inst.rs2
+                      << "](0x" << std::hex << R->RV64[Inst.rs2]
                       << ")" << std::endl;
           }
-#endif
-
-        R->RV64_PC += Inst.instSize;
+#endif  
         return true;
       }
 
       static bool esb(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        uint64_t EXT2 = R->ERV64[Inst.rs2];
-        uint64_t Addr = (uint64_t)(R->RV32[Inst.rs2]+(int32_t)(td_u32(Inst.imm,12)));
+        // uint64_t EXT2 = R->ERV64[Inst.rs2];
+        // uint64_t Addr = (uint64_t)(R->RV32[Inst.rs2]+(int32_t)(td_u32(Inst.imm,12)));
+
+        // if (EXT2 != 0x0) {
+        //   Xbgas->WriteU8( EXT2, Addr, (uint8_t)(R->RV64[Inst.rs1]) );
+        // } else {
+        //   M->WriteU8( Addr, (uint8_t)(R->RV64[Inst.rs1]) );
+        // }
+        // R->RV64_PC += Inst.instSize;
+
+        /* The following implementation is based on xbgas-tool (branch: test)*/
+        // esb rs2, imm(rs1)
+        uint64_t EXT2 = R->ERV64[Inst.rs1];
+        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
         if (EXT2 != 0x0) {
-          Xbgas->WriteU8( EXT2, Addr, (uint8_t)(R->RV64[Inst.rs1]) );
+          Xbgas->WriteU8( EXT2, Addr, (uint8_t)(R->RV64[Inst.rs2]) );
         } else {
-          M->WriteU8( Addr, (uint8_t)(R->RV64[Inst.rs1]) );
+          M->WriteU8( Addr, (uint8_t)(R->RV64[Inst.rs2]));
         }
+        R->RV64_PC += Inst.instSize;
 
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
@@ -360,19 +415,25 @@ namespace SST{
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [esb]\tNamespace(0x" << EXT2
                       << ") @ Addr(0x" << std::hex << Addr
-                      << ") = RV64[" << std::dec << +Inst.rs1
-                      << "](0x" << std::hex << R->RV64[Inst.rs1]
+                      << ") = RV64[" << std::dec << +Inst.rs2
+                      << "](0x" << std::hex << R->RV64[Inst.rs2]
                       << ")" << std::endl;
           }
 #endif
-
-        R->RV64_PC += Inst.instSize;
+        
         return true;
       }
       
       static bool ese(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        uint64_t EXT1 = R->ERV64[Inst.rs1];
-        uint64_t Addr = (uint64_t)(R->RV32[Inst.rs2]+(int32_t)(td_u32(Inst.imm,12)));
+        // uint64_t EXT1 = R->ERV64[Inst.rs1];
+        // uint64_t Addr = (uint64_t)(R->RV64[Inst.rs2]+(int64_t)(td_u64(Inst.imm,12)));
+        // M->WriteU64(Addr, EXT1);
+        // R->RV64_PC += Inst.instSize;
+
+        /* The following implementation is based on xbgas-tool (branch: test)*/
+        // ese ext1, imm(rs1)
+        uint64_t EXT1 = R->ERV64[Inst.rs2];
+        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
         M->WriteU64(Addr, EXT1);
         R->RV64_PC += Inst.instSize;
 
@@ -381,7 +442,7 @@ namespace SST{
           if(id == 0) {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [ese]\tAddr(0x" << std::hex << Addr
-                      << ") = ERV64[" << std::dec << +Inst.rs1
+                      << ") = ERV64[" << std::dec << +Inst.rs2
                       << "](0x" << std::hex << EXT1
                       << ")" << std::endl;        
           }
@@ -811,7 +872,7 @@ namespace SST{
         R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-          // if(id == 0) 
+          if(id == 0) 
           {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [eaddie]\tERV64[" << std::dec << +Inst.rd
@@ -866,7 +927,7 @@ namespace SST{
 
       // Store instructions are encoded in the S-type format
       {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esq %rs1, $imm(%rs2)").SetCost(         1).SetOpcode(0b1111011).SetFunct3(0b100).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esq).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esd %rs1, $imm(%rs2)").SetCost(         1).SetOpcode(0b1111011).SetFunct3(0b010).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esd).InstEntry},
+      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esd %rs1, $imm(%rs2)").SetCost(         1).SetOpcode(0b1111011).SetFunct3(0b011).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esd).InstEntry},
       {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esw %rs1, $imm(%rs2)").SetCost(         1).SetOpcode(0b1111011).SetFunct3(0b010).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esw).InstEntry},
       {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esh %rs1, $imm(%rs2)").SetCost(         1).SetOpcode(0b1111011).SetFunct3(0b001).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esh).InstEntry},
       {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esb %rs1, $imm(%rs2)").SetCost(         1).SetOpcode(0b1111011).SetFunct3(0b000).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esb).InstEntry},

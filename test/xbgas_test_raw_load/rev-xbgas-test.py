@@ -45,7 +45,7 @@ xbgas_cpu0.addParams({
           "enable_xbgas" : 1,
           "enable_xbgas_test" : 0,                            # Enable the XBGAS test harness
           "msgPerCycle": 10,
-          "program" : os.getenv("REV_EXE", "xbgas_test_0.exe"),  # Target executable
+          "program" : os.getenv("REV_EXE", "xbgas_test.exe"),  # Target executable
           "splash" : 1                                  # Display the splash message
 })
 
@@ -62,7 +62,7 @@ xbgas_cpu1.addParams({
           "enable_xbgas" : 1,
           "enable_xbgas_test" : 0,                            # Enable the XBGAS test harness
           "msgPerCycle": 10,
-          "program" : os.getenv("REV_EXE", "xbgas_test_1.exe"),  # Target executable
+          "program" : os.getenv("REV_EXE", "xbgas_test.exe"),  # Target executable
           "splash" : 1                                  # Display the splash message
 })
 
