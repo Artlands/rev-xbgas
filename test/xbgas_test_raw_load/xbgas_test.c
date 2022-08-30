@@ -14,8 +14,7 @@
 
 int main(int argc, char **argv ){
   /* Read my PE and determine namespace for testing*/
-  int *P_MYPE = (uint64_t)(_XBGAS_MY_PE_ADDR_);
-  int MYPE = *P_MYPE;
+  int MYPE = (int)(*(uint64_t *)(_XBGAS_MY_PE_ADDR_));
   uint64_t NMSPACE;
 
   if (MYPE == 0)

@@ -27,9 +27,13 @@ REV_HEADERS := $(wildcard *.h)
 REV_OBJS := $(patsubst %.cc,%.o,$(wildcard *.cc))
 
 all: librevcpu.so
+# xbrtime.so
 
 debug: CXXFLAGS += -DDEBUG -D_XBGAS_DEBUG_ -g
-debug: librevcpu.so 
+debug: librevcpu.so
+
+# xbrtime.so:
+# 	(cd xbgas-runtime; make)
 
 librevcpu.so: $(REV_OBJS)
 	$(CXX) $(OPTIMIZE_FLAGS) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ *.o

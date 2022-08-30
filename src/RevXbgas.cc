@@ -50,8 +50,17 @@ void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
   mem->WriteU64(ptr, (uint64_t)(id));
 
   numPEs = (unsigned)(xnic->getNumPEs());
-  ptr = (uint64_t)(_XBGAS_TOTAL_PE_ADDR_);
+  ptr = (uint64_t)(_XBGAS_TOTAL_NPE_ADDR_);
   mem->WriteU64(ptr, (uint64_t)(numPEs));
+
+#ifdef _XBGAS_DEBUG_
+  if (id == 0) {
+    std::cout << "_XBGAS_DEBUG_ CPU" << id
+              << ": xBGAS shared memory start addr: 0x" << std::hex << _XBGAS_START_ADDR_
+              << ", xBGAS shared memory size: " << std::dec << _XBGAS_MEM_SIZE_
+              << " bytes."<< std::endl;
+  }
+#endif
 
   // Initialize the Namespace Lookaside Buffer
   // Addr 0x00 is always reserved for the local access
