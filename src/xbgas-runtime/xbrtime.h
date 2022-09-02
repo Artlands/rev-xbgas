@@ -16,7 +16,8 @@ extern "C" {
 #endif
 
 #include <stdlib.h>
-#include <stdint.h>
+#include <inttypes.h>
+#include <stdio.h>
 
 #include "../../common/include/XbgasAddr.h"
 
@@ -24,6 +25,8 @@ extern int xbrtime_init();
 extern void xbrtime_close();
 extern void *xbrtime_malloc( size_t sz );
 extern void xbrtime_free( void *ptr );
+extern void *revmalloc( size_t sz );
+extern void revfree( void *ptr );
 extern int xbrtime_mype();
 extern int xbrtime_num_pes();
 extern void xbrtime_barrier();

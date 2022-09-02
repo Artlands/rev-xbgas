@@ -29,20 +29,22 @@ RevXbgas::RevXbgas( xbgasNicAPI *XNic, RevOpts *Opts, RevMem *Mem, SST::Output *
 void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
   output->verbose(CALL_INFO, 1, 0, "Initializing Xbgas firmware memory.\n");
 
-  // init all the entries to -1
-  uint64_t ptr = (uint64_t)(_XBGAS_NAMESPACE_TABLE_ADDR_);
-  uint64_t nmspace = 0x0;
+  // // init all the entries to -1
+  // uint64_t ptr = (uint64_t)(_XBRTIME_PE_MAP_ADDR_);
+  // uint64_t nmspace = 0x0;
+  uint64_t ptr;
   int64_t id = -1;
   unsigned numPEs = 0;
-  for( unsigned i=0; i<_XBGAS_NAMESPACE_TABLE_MAX_ENTRIES_; i++ ){
-    mem->WriteU64(ptr, (uint64_t)(nmspace));
-    mem->WriteU64(ptr+8, (uint64_t)(id));
-    ptr += sizeof(NamespaceTbEntry);
-  }
+
+  // for( unsigned i=0; i<_XBRTIME_PE_MAP_MAX_ENTRIES_; i++ ){
+  //   mem->WriteU64(ptr, (uint64_t)(nmspace));
+  //   mem->WriteU64(ptr+8, (uint64_t)(id));
+  //   ptr += sizeof(NamespaceTbEntry);
+  // }
 
   // The first entry in the namespace table is always [0, myPE], refering to local memory
   id = (int64_t)(xnic->getAddress());
-  ptr = (uint64_t)(_XBGAS_NAMESPACE_TABLE_ADDR_);
+  ptr = (uint64_t)(_XBRTIME_PE_MAP_ADDR_);
   mem->WriteU64(ptr+8, (uint64_t)(id));
 
   // Initialize the Xbgas firmware memory for recording the info of PE ID and the total number of PEs
@@ -55,10 +57,13 @@ void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
 
 #ifdef _XBGAS_DEBUG_
   if (id == 0) {
-    std::cout << "_XBGAS_DEBUG_ CPU" << id
-              << ": xBGAS shared memory start addr: 0x" << std::hex << _XBGAS_START_ADDR_
-              << ", xBGAS shared memory size: " << std::dec << _XBGAS_MEM_SIZE_
-              << " bytes."<< std::endl;
+    std::cout << "_XBGAS_MY_PE_ADDR_: 0x" << std::hex << _XBGAS_MY_PE_ADDR_ << std::endl;
+    std::cout << "_XBGAS_TOTAL_NPE_ADDR_: 0x" << std::hex << _XBGAS_TOTAL_NPE_ADDR_ << std::endl;
+    std::cout << "_XBRTIME_PE_MAP_ADDR_: 0x" << std::hex << _XBRTIME_PE_MAP_ADDR_ << std::endl;
+    std::cout << "_XBRTIME_MEM_T_ADDR_: 0x" << std::hex << _XBRTIME_MEM_T_ADDR_ << std::endl;
+    std::cout << "_REV_HEAP_START_: 0x" << std::hex << _REV_HEAP_START_ << std::endl;
+    std::cout << "_REV_HEAP_END_: 0x" << std::hex << _REV_HEAP_END_ << std::endl;
+    std::cout << "_REV_HEAP_SIZE_: " << std::hex << _REV_HEAP_SIZE_ << std::endl;
   }
 #endif
 
@@ -244,6 +249,8 @@ void RevXbgas::clockTick(Cycle_t currentCycle, unsigned msgPerCycle){
     if( ! sendXBGASMessage() )
       output->fatal(CALL_INFO, -1, "Error: could not send XBGAS command message\n" );
   }
+
+  // print xbgas memory heap
 }
 
 bool RevXbgas::processXBGASMemRead(){

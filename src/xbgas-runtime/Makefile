@@ -26,7 +26,7 @@ XBRTIME_OBJS := $(patsubst %.c,%.o,$(wildcard *.c))
 
 all: libxbrtime.a
 
-debug: CXXFLAGS += -DDEBUG -D_XBGAS_DEBUG_ -g
+debug: C_FLAGS += -D_XBGAS_DEBUG_ -g
 debug: libxbrtime.a
 
 libxbrtime.a: $(XBRTIME_OBJS)
@@ -34,6 +34,6 @@ libxbrtime.a: $(XBRTIME_OBJS)
 %.o:%.c
 	$(CXX) -march=$(ARCH) $(OPTIMIZE_FLAGS) $(C_FLAGS) $(XBRTIME_HEADERS) $(XBRTIME_ASM) -c $<
 clean:
-	rm -Rf *.o libxbrtime.a
+	rm -Rf *.o libxbrtime.a *.h.gch
 
 #-- EOF

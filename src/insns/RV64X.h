@@ -52,8 +52,7 @@ namespace SST{
                         << "](0x" << std::hex << R->RV64[Inst.rd]
                         << ") = Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
-                        << ")" << std::endl;
-              
+                        << ")" << std::endl;              
             }
 #endif
             }

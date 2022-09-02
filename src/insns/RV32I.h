@@ -13,6 +13,9 @@
 
 #include "RevInstTable.h"
 #include "RevExt.h"
+#include "../syscalls/SysCalls.h"
+#include <unordered_map>
+#include <cassert>
 
 using namespace SST::RevCPU;
 
@@ -766,6 +769,45 @@ namespace SST{
         }
         return true;
       }
+
+      // static bool ecall(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
+      //   if( F->IsRV32() ){
+      //     using SystemCallsType = SystemCalls<Riscv32>;
+      //     using SystemCallInterfaceType = SystemCallInterface<Riscv32>;
+      //     using JumpTableIterator = std::unordered_map< SystemCallsType::Codes, SystemCallInterfaceType >::iterator;
+
+      //     const uint32_t ecall_code = R->RV32[10];
+      //     auto code = static_cast<SystemCallsType::Codes>(ecall_code);
+
+      //     SystemCallsType sc{};
+      //     const JumpTableIterator end = sc.jump_table.end();
+      //     const JumpTableIterator fn = sc.jump_table.find(code);
+          
+      //     assert( (fn != end) );
+      //     fn->second((*R), (*M));
+
+      //     R->RV32_PC += Inst.instSize;
+
+      //   }else{
+      //     using SystemCallsType = SystemCalls<Riscv64>;
+      //     using SystemCallInterfaceType = SystemCallInterface<Riscv64>;
+      //     using JumpTableIterator = std::unordered_map< SystemCallsType::Codes, SystemCallInterfaceType >::iterator;
+
+      //     const uint64_t ecall_code = R->RV64[10];
+      //     auto code = static_cast<SystemCallsType::Codes>(ecall_code);
+
+      //     SystemCallsType sc{};
+      //     const JumpTableIterator end = sc.jump_table.end();
+      //     const JumpTableIterator fn = sc.jump_table.find(code);
+
+      //     assert( (fn != end) );
+      //     fn->second((*R), (*M));
+
+      //     R->RV64_PC += Inst.instSize;
+      //   }
+      //   return true;
+      // }
+
 
       static bool ebreak(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){

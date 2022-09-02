@@ -51,7 +51,7 @@ extern void xbrtime_close(){
     uint64_t _STARTADDR_ADDR_ = _XBRTIME_MEM_T_ADDR_ + i * 16;
     uint64_t _SIZE_ADDR = _STARTADDR_ADDR_ + 8;
     if( *((uint64_t *)_SIZE_ADDR) != 0 ){
-      xbrtime_free( (void*)((uint64_t *)_STARTADDR_ADDR_) );
+      xbrtime_free( (void *)(*((uint64_t *)_STARTADDR_ADDR_)) );
     }
   }
 }
