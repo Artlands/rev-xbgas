@@ -17,8 +17,8 @@ EXEC = $(SRCS:.c=.exe)
 
 CC=riscv64-unknown-linux-gnu-gcc
 ARCH=rv64imafd
-XBRTIME_INCLUDE=-I../../src/xbgas-runtime
-XBRTIME_LIB=-L../../src/xbgas-runtime -lxbrtime
+XBRTIME_INCLUDE=-I../../src/xbgas_runtime
+XBRTIME_LIB=-L../../src/xbgas_runtime -lxbrtime
 
 all: $(EXEC)
 

@@ -1,3 +1,4 @@
+*.a
 *.o
 *.so
 *.exe
@@ -5,4 +6,5 @@
 *.h.gch
 *.csv
 tmp_xbgas/
+tmp_runtime/
 syscalls/

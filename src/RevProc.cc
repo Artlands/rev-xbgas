@@ -371,6 +371,39 @@ bool RevProc::LoadInstructionTable(){
   return true;
 }
 
+bool RevProc::InitExtReg(){
+  for (int t=0;  t < _REV_THREAD_COUNT_; t++){
+    // Initialize extended registers for PE ID and # of PEs
+    // e10 = contains the physical PE id
+    // e11 = contains the number of PEs
+    // e12 = contains the size of the shared memory region
+    // e13 = contains the starting address of the physical shared memory region
+    
+    RegFile[t].ERV32[10] = (uint32_t)(mem->ReadU32(_XBGAS_MY_PE_ADDR_));
+    RegFile[t].ERV64[10] = (uint64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+
+    RegFile[t].ERV32[11] = (uint32_t)(mem->ReadU32(_XBGAS_TOTAL_NPE_ADDR_));
+    RegFile[t].ERV64[11] = (uint64_t)(mem->ReadU64(_XBGAS_TOTAL_NPE_ADDR_));
+
+    RegFile[t].ERV32[12] = (uint32_t)(0u);
+    RegFile[t].ERV64[12] = (uint64_t)(0u);
+
+    RegFile[t].ERV32[13] = (uint32_t)(0u);
+    RegFile[t].ERV64[13] = (uint64_t)(0u);
+
+#ifdef _XBGAS_DEBUG_
+  {
+    std::cout << "Init extended registers of thread " << std::dec << t <<std::endl;
+    std::cout << "e10 = " << std::dec << RegFile[t].ERV64[10] << std::endl;
+    std::cout << "e11 = " << std::dec << RegFile[t].ERV64[11] << std::endl;
+    std::cout << "e12 = " << std::dec << RegFile[t].ERV64[12] << std::endl;
+    std::cout << "e13 = " << std::dec << RegFile[t].ERV64[13] << std::endl;
+  }
+#endif
+  }
+  return true;
+}
+
 bool RevProc::Reset(){
   // reset the register file
   for (int t=0;  t < _REV_THREAD_COUNT_; t++){

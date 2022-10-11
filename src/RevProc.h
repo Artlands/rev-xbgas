@@ -36,6 +36,9 @@
 #include "RevInstTables.h"
 #include "PanExec.h"
 
+// -- xBGAS address
+#include "../common/include/XbgasAddr.h"
+
 #define _PAN_FWARE_JUMP_            0x0000000000010000
 
 namespace SST::RevCPU {
@@ -82,6 +85,9 @@ namespace SST{
 
       /// RevProc: Set the PAN execution context
       void SetExecCtx(PanExec *P) { PExec = P; }
+
+      /// RevProc: Initialize extended registers
+      bool InitExtReg();
 
       /// RevProc: Retrieve a random memory cost value
       unsigned RandCost() { return mem->RandCost(feature->GetMinCost(),feature->GetMaxCost()); }

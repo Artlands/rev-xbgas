@@ -18,13 +18,10 @@ int main( int argc, char **argv ){
   void *ptr = NULL;
 
   // printf( "Initializing xBGAS Runtime\n" );
-  // rtn = xbrtime_init();
+  rtn = xbrtime_init();
 
-  ptr = revmalloc(10);
-
-  revfree( ptr );
   // printf( "xBGAS is Initialized; Closing xBGAS\n" );
-  // xbrtime_close();
+  xbrtime_close();
   // printf( "xBGAS is Closed\n" );
 
   return rtn;
