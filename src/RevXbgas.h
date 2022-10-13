@@ -64,6 +64,7 @@ namespace SST {
       void WriteU64( uint64_t Nmspace, uint64_t Addr, uint64_t Value);
       void WriteFloat( uint64_t Nmspace, uint64_t Addr, float Value);
       void WriteDouble( uint64_t Nmspace, uint64_t Addr, double Value);
+      // void WriteBulk( uint64_t, uint64_t Addr, size_t Len, uint32_t Stride, void *Data);
 
       void ReadU8( uint64_t Nmspace, uint64_t Addr );
       void ReadU16( uint64_t Nmspace, uint64_t Addr );
@@ -71,6 +72,7 @@ namespace SST {
       void ReadU64( uint64_t Nmspace, uint64_t Addr );
       void ReadFloat( uint64_t Nmspace, uint64_t Addr );
       void ReadDouble( uint64_t Nmspace, uint64_t Addr );
+      // void ReadBulk( uint64_t Nmspace, uint64_t Addr, size_t Len, uint32_t Stride);
     
     public:
       std::list<std::pair<uint8_t,int>> TrackTags;    ///< RevXbgas: tracks the outgoing remote memory request; pair<Tag,Dest>
@@ -80,7 +82,7 @@ namespace SST {
       RevOpts *opts;                                  ///< RevXbgas: options object
       RevMem *mem;                                    ///< RevXbgas: memory object
       SST::Output *output;                            ///< RevXbgas: output handler
-      // unsigned testStage;                             ///< RevXbgas: controls the XBGAS Test harness staging
+      // unsigned testStage;                          ///< RevXbgas: controls the XBGAS Test harness staging
       uint8_t PrivTag;                                ///< RevXbgas: private tag locator
       std::vector<std::pair<uint64_t, 
                             SST::Interfaces::SimpleNetwork::nid_t>> NLB;      ///< RevXbgas: namespace lookaside buffer; pair<Namespace, Dest>
@@ -95,13 +97,17 @@ namespace SST {
                              uint32_t>> GetResponses; ///< RevXbgas: tracks the get responses; tuple<Tag,*Data,Sz>
       
       std::vector<std::tuple<uint8_t,
-                             uint32_t,
                              unsigned,
+                             uint32_t,
+                             uint32_t,
+                             uint32_t,
                              int,
                              uint64_t>> ReadQueue;    ///< RevXbgas: xbgas remote memory requests queue
                                                       ///<        - Tag
-                                                      ///<        - Size
                                                       ///<        - Cost
+                                                      ///<        - Size
+                                                      ///<        - Nelem
+                                                      ///<        - Stride
                                                       ///<        - Src
                                                       ///<        - Addr
 
@@ -129,8 +135,10 @@ namespace SST {
       bool processXBGASMemRead();
       bool sendXBGASMessage();
 
-      bool WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, void *Data );
-      bool ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len );
+      bool WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, 
+                     uint32_t Nelem, uint32_t Stride, void *Data );
+      bool ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len, 
+                    uint32_t Nelem, uint32_t Stride);
 
       // /// RevXbgas: execute tests
       // void execReadTest();

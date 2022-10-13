@@ -77,6 +77,16 @@ bool xbgasNicEvent::setAddr(uint64_t A) {
   return true; 
 }
 
+bool xbgasNicEvent::setNelem(uint32_t Ne) {
+  Nelem = Ne; 
+  return true; 
+}
+
+bool xbgasNicEvent::setStride(uint32_t Sd) {
+  Stride = Sd;
+  return true;
+}
+
 bool xbgasNicEvent::setData(uint64_t *In, uint32_t Sz){
   unsigned blocks = 0;
 
@@ -91,7 +101,8 @@ bool xbgasNicEvent::setData(uint64_t *In, uint32_t Sz){
   return true;
 }
 
-bool xbgasNicEvent::buildGet(uint8_t Tag, uint64_t Addr, uint32_t Size){
+bool xbgasNicEvent::buildGet(uint8_t Tag, uint64_t Addr, uint32_t Size, 
+                             uint32_t Nelem, uint32_t Stride){
   Opcode = xbgasNicEvent::Get;
   if( !setTag(Tag) )
     return false;
@@ -99,11 +110,15 @@ bool xbgasNicEvent::buildGet(uint8_t Tag, uint64_t Addr, uint32_t Size){
     return false;
   if( !setSize(Size) )
     return false;
-  
+  if( !setNelem(Nelem) )
+    return false;
+  if( !setStride(Stride) )
+    return false;
   return true;
 }
 
-bool xbgasNicEvent::buildPut(uint8_t Tag, uint64_t Addr, uint32_t Size, uint64_t *Data){
+bool xbgasNicEvent::buildPut(uint8_t Tag, uint64_t Addr, uint32_t Size, 
+                             uint32_t Nelem, uint32_t Stride, uint64_t *Data){
   Opcode = xbgasNicEvent::Put;
   if (Data == nullptr )
     return false;
@@ -112,6 +127,10 @@ bool xbgasNicEvent::buildPut(uint8_t Tag, uint64_t Addr, uint32_t Size, uint64_t
   if( !setAddr(Addr) )
     return false;
   if( !setSize(Size) )
+    return false;
+  if( !setNelem(Nelem) )
+    return false;
+  if( !setStride(Stride) )
     return false;
   if( !setData(Data, Size) )
     return false;

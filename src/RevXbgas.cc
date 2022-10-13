@@ -126,19 +126,24 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
   std::vector<std::tuple<uint8_t, int, uint64_t>>::iterator GetIter;
   for( GetIter = TrackGets.begin(); GetIter != TrackGets.end(); ++GetIter ){
     if( std::get<0>(*GetIter) = event->getTag() ){
-      // Found a valid entry; put returned data in the GetResponses list
+      // Found a valid entry; put returned data in the GetResponses list if 
+      // # of elements is 1
       uint8_t tmp_tag = event->getTag();
       uint32_t tmp_size = event->getSize();
-      unsigned tmp_block = event->getNumBlocks(tmp_size);
-      uint64_t *Data = new uint64_t [tmp_block];
-
+      uint32_t tmp_nelem = event->getNelem();
+      uint64_t *Data = new uint64_t [event->getNumBlocks(tmp_size)];
       event->getData(Data);
 
-      output->verbose(CALL_INFO, 6, 0,
+      if (tmp_nelem == 1) {
+        output->verbose(CALL_INFO, 6, 0,
                       "Push response of Tag=%d to GetResponses.\n",
                       event->getTag());
 
-      GetResponses.push_back(std::make_tuple(tmp_tag, Data, tmp_size));
+        GetResponses.push_back(std::make_tuple(tmp_tag, Data, tmp_size));
+      } else {
+        // Write to memory directly; destination addr, stride
+      }
+      
       break;
     }
   }
@@ -167,35 +172,39 @@ void RevXbgas::handleGet(xbgasNicEvent *event){
   output->verbose(CALL_INFO, 6, 0, "Handling XBGAS Get Request from PE=%d, Tag=%d\n", event->getSrc(), event->getTag());
   // push an event entry back onto the ReadQueue
   ReadQueue.push_back(std::make_tuple(event->getTag(),
-                                      event->getSize(),
                                       RandCost(), 
+                                      event->getSize(),
+                                      event->getNelem(),
+                                      event->getStride(),
                                       event->getSrc(),
                                       event->getAddr()));
 }
 
 void RevXbgas::handlePut(xbgasNicEvent *event){
+  uint64_t tmp_addr = 0x00ull;
   output->verbose(CALL_INFO, 6, 0, "Handling XBGAS Put Request for PE=%d\n", event->getSrc());
   // retrieve the data
   uint32_t Size = event->getSize();
-  unsigned Len = event->getNumBlocks(Size);
-  uint64_t *Data = new uint64_t [Len];
+  uint32_t Nelem = event->getNelem();
+  uint32_t Stride = event->getStride();
+  size_t Len = (size_t)(Size/Nelem);
+  uint64_t Addr = event->getAddr();
+  uint64_t *Data = new uint64_t [event->getNumBlocks(Size)];
   event->getData(Data);
 
-  // Buf 
-  char *Buf = new char[Len];
-  for ( unsigned i=0; i<Len; i++) {
-    Buf[i] = (char)(Data[i]);
+  char *DataElem = (char *)(Data);
+
+  // Write each element to the target address
+  for( unsigned i=0; i<Nelem; i++) {
+    tmp_addr = Addr + (uint64_t)(i * (1 + Stride) * Len);
+    if( !mem->WriteMem(tmp_addr, Len, (void *)(&DataElem[i*Len])) ){
+      delete[] Data;
+      // build failed response
+      buildFailedResp(event);
+      return ;
+    }
   }
 
-  if( !mem->WriteMem(event->getAddr(), Len, (void *)(Buf)) ){
-    delete[] Buf;
-    delete[] Data;
-    // build failed response
-    buildFailedResp(event);
-    return ;
-  }
-
-  delete[] Buf;
   delete[] Data;
   // build success response
   buildSuccessResp(event);
@@ -245,66 +254,81 @@ bool RevXbgas::processXBGASMemRead(){
   // if we have a counter decrement to '0', then process the read request
   // send responses as necessary
 
+  // ReadQueue
+  //       0 - Tag  
+  //       1 - Cost
+  //       2 - Size
+  //       3 - Nelem
+  //       4 - Stride
+  //       5 - Src
+  //       6 - Addr
+
   // decrement all the counts
   int i = 0;
   for( auto &it : ReadQueue ){
-    if( std::get<2>(it) != 0 )
-      std::get<2>(it)--;
+    if( std::get<1>(it) != 0 )
+      std::get<1>(it)--;
     i++;
   }
 
   // walk all the nodes and see which requests need to be flushed
   for( auto it=ReadQueue.begin(); it != ReadQueue.end(); ++it ){
-    if( std::get<2>(*it) == 0 ){
+    if( std::get<1>(*it) == 0 ){
+      uint64_t tmp_addr = 0x00ull;
       // process this read request
       uint8_t tmp_tag = std::get<0>(*it);
-      uint32_t tmp_size = std::get<1>(*it);
-      int tmp_src = std::get<3>(*it);
-      uint64_t tmp_addr = std::get<4>(*it);
+      uint32_t tmp_size = std::get<2>(*it);
+      uint32_t tmp_nelem = std::get<3>(*it);
+      uint32_t tmp_stride = std::get<4>(*it);
+      int tmp_src = std::get<5>(*it);
+      uint64_t tmp_base_addr = std::get<6>(*it);
 
       // -- setup the response
       xbgasNicEvent *SCmd = new xbgasNicEvent();
-      unsigned Len = SCmd->getNumBlocks(tmp_size);
+      size_t Len = (size_t)(tmp_size/tmp_nelem);
 
       // Data for storing the memory readings
-      // Buf for transfering the data
-      char *Data = new char[Len];
-      uint64_t *Buf = new uint64_t[Len];
+      uint64_t *Data = new uint64_t [SCmd->getNumBlocks(tmp_size)];
+      char *DataElem = (char *)(Data);
 
-      // uint64_t Value;
-      if( !mem->ReadMem( tmp_addr,
-                         (size_t)(Len),
-                         (void *)(Data)) ){
+      bool flag = 0;
+      // Try to read memory for each requested element
+      for( unsigned i=0; i<tmp_nelem; i++ ){
+        tmp_addr = tmp_base_addr + (uint64_t)(i * (1 + tmp_stride) * Len);
+        if( !mem->ReadMem( tmp_addr,
+                           Len,
+                           (void *)(&DataElem[i*Len])) ){
+          break;
+        }
+        // Success to read all elements
+        flag = 1;
+      }
+
+      if (flag == 0) {
         // build a failed response
         SCmd->buildFailed(tmp_tag);
         SCmd->setSrc(xnic->getAddress());
         SendMB.push(std::make_pair(SCmd, tmp_src));
       }else{
-        // Copy data to buffer
-        for ( unsigned i=0; i<Len; i++) {
-          Buf[i] = (uint64_t)(Data[i]);
-        }
-
         // build a successful response
         SCmd->buildSuccess(tmp_tag);
         SCmd->setSize(tmp_size);
-        SCmd->setData(Buf, tmp_size);
+        SCmd->setData(Data, tmp_size);
         SCmd->setSrc(xnic->getAddress());
         SendMB.push(std::make_pair(SCmd, tmp_src));
 
         output->verbose(CALL_INFO, 6, 0,
-                 "Process XBGAS Mem Read request from %d: Tag=%u, Size=%" PRIu32 ", Addr=0x%2x, Value=%" PRId64 "\n",
-                 tmp_src, tmp_tag, tmp_size, tmp_addr, (uint64_t)(*Buf));
+                 "Process XBGAS Mem Read request from %d: Tag=%u, Size=%" PRIu32 ", Addr=0x%2x\n",
+                 tmp_src, tmp_tag, tmp_size, tmp_addr);
       }
       delete[] Data;
-      delete[] Buf;
     }
   }
 
   // delete the completed nodes
   unsigned count = ReadQueue.size();
   for( unsigned i=0; i<count;){
-    if( std::get<2>(ReadQueue[i]) == 0 ){
+    if( std::get<1>(ReadQueue[i]) == 0 ){
       ReadQueue.erase(ReadQueue.begin()+i);
       --count;
     }else{
@@ -340,30 +364,35 @@ bool RevXbgas::sendXBGASMessage(){
   return true;
 }
 
-bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, void *Data ){
+bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, 
+                         uint32_t Nelem, uint32_t Stride, void *Data ){
+  uint32_t idx = 0;
   int Dest = findDest(Nmspace);
-  output->verbose(CALL_INFO, 6, 0,
-                  "Writing %" PRIu32 " Bytes to PE %d Starting at 0x%2x.\n", Len, Dest, Addr);
-  xbgasNicEvent *PEvent = nullptr;
+  output->verbose(CALL_INFO, 5, 0,
+                  "Writing %" PRIu32 " Bytes to PE %d Starting at 0x%2x; Stride = %" PRIu32 ", # of elements = %" PRIu32 "\n", 
+                  Len, Dest, Addr, Stride, Nelem);
   uint8_t Tag  = createTag();
-  uint32_t Size = (uint32_t)(Len * 8);
+  uint32_t Size = (uint32_t)(Len * Nelem);
   uint64_t Src = xnic->getAddress();
-  uint64_t *Buf = nullptr;
-  char *DataMem = (char *)(Data);
+  char *DataElem = (char *)(Data);
 
-  // Buffer
-  Buf = new uint64_t[Len];
-
-  // copy data to buffer
-  for( unsigned i=0; i<Len; i++ ){
-    Buf[i] = (uint64_t)(DataMem[i]);
-  }
-
-  PEvent = new xbgasNicEvent(xnic->getName()); // new event to send
+  xbgasNicEvent *PEvent = new xbgasNicEvent(xnic->getName()); // new event to send
   PEvent->setSrc(Src);
 
+  // Buffer
+  uint64_t *Buf = new uint64_t[PEvent->getNumBlocks(Size)];
+  char *BufElem = (char *)(Buf);
+
+  // copy data to buffer
+  for( unsigned i=0; i<Nelem; i++) {
+    for( unsigned j=0; j<Len; j++ ){
+      idx = (uint32_t)(i * (1 + Stride) * Len + j);
+      BufElem[i*Len + j] = DataElem[idx];
+    }
+  }
+
   // populate it
-  if( !PEvent->buildPut(Tag, Addr, Size, Buf ) ){
+  if( !PEvent->buildPut(Tag, Addr, Size, Nelem, Stride, Buf) ){
     output->fatal(CALL_INFO, -1,
                   "%s, Error: could not create XBGAS PUT command\n",
                   xnic->getName().c_str());
@@ -376,47 +405,53 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, void *Data
 
 void RevXbgas::WriteU8( uint64_t Nmspace, uint64_t Addr, uint8_t Value) {
   uint8_t Tmp = Value;
-  if( !WriteMem( Nmspace, Addr, 1, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 1, 1, 0, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U8)");
 }
 
 void RevXbgas::WriteU16( uint64_t Nmspace, uint64_t Addr, uint16_t Value) {
   uint16_t Tmp = Value;
-  if( !WriteMem( Nmspace, Addr, 2, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 2, 1, 0, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U16)");
 }
 
 void RevXbgas::WriteU32( uint64_t Nmspace, uint64_t Addr, uint32_t Value) {
   uint32_t Tmp = Value;
-  if( !WriteMem( Nmspace, Addr, 4, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 4, 1, 0, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U32)");
 }
 
 void RevXbgas::WriteU64( uint64_t Nmspace, uint64_t Addr, uint64_t Value) {
   uint64_t Tmp = Value;
-  if( !WriteMem( Nmspace, Addr, 8, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 8, 1, 0, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U64)");
 }
 
 void RevXbgas::WriteFloat( uint64_t Nmspace, uint64_t Addr, float Value) {
   uint32_t Tmp = 0x00;
   std::memcpy(&Tmp,&Value,sizeof(float));
-  if( !WriteMem( Nmspace, Addr, 4, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 4, 1, 0, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (FLOAT)");
 }
 
 void RevXbgas::WriteDouble( uint64_t Nmspace, uint64_t Addr, double Value) {
   uint64_t Tmp = 0x00;
   std::memcpy(&Tmp,&Value,sizeof(double));
-  if( !WriteMem( Nmspace, Addr, 8, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 8, 1, 0, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (DOUBLE)");
 }
 
-bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len){
+// void RevXbgas::WriteBulkU8( uint64_t Nmspace, uint64_t Addr, uint32_t Nelem, uint32_t Stride, void *Data) {
+//   if( !WriteMem( Nmspace, Addr, Len, Stride, Data ) )
+//     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (BULK)");
+// }
+
+bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len, 
+                        uint32_t Nelem, uint32_t Stride){
   int Dest = findDest(Nmspace);
   xbgasNicEvent *GEvent = nullptr;
   uint8_t Tag  = createTag();
-  uint32_t Size = (uint32_t)(Len * 8);
+  uint32_t Size = (uint32_t)(Len * Nelem);
   uint64_t Src = xnic->getAddress();
   bool recvd = false;
 
@@ -427,7 +462,7 @@ bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len){
   GEvent->setSrc(Src);
 
   // populate it
-  if( !GEvent->buildGet(Tag, Addr, Size) ){
+  if( !GEvent->buildGet(Tag, Addr, Size, Nelem, Stride) ){
     output->fatal(CALL_INFO, -1,
                   "%s, Error: could not create XBGAS Get command\n",
                   xnic->getName().c_str());
@@ -443,34 +478,39 @@ bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len){
 }
 
 void RevXbgas::ReadU8( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 1) )
+  if( !ReadMem( Nmspace, Addr, 1, 1, 0) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U8)");
 }
 
 void RevXbgas::ReadU16( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 2 ) )
+  if( !ReadMem( Nmspace, Addr, 2, 1, 0) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U16)");
 }
 
 void RevXbgas::ReadU32( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 4 ) )
+  if( !ReadMem( Nmspace, Addr, 4, 1, 0) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U32)");
 }
 
 void RevXbgas::ReadU64( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 8 ) )
+  if( !ReadMem( Nmspace, Addr, 8, 1, 0) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U64)");
 }
 
 void RevXbgas::ReadFloat( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 4 ) )
+  if( !ReadMem( Nmspace, Addr, 4, 1, 0) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (FLOAT)");
 }
 
 void RevXbgas::ReadDouble( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 8 ) )
+  if( !ReadMem( Nmspace, Addr, 8, 1, 0) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (DOUBLE)");
 }
+
+// void RevXbgas::ReadBulk( uint64_t Nmspace, uint64_t Addr, size_t Len, uint32_t Nelem, uint32_t Stride) {
+//   if( !ReadMem( Nmspace, Addr, Len, Nelem, Stride) )
+//     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (BULK)");
+// }
 
 uint8_t RevXbgas::createTag(){
   uint8_t rtn = 0;
@@ -513,13 +553,14 @@ bool RevXbgas::checkGetRequests( uint64_t Nmspace, uint64_t Addr, uint8_t *Tag )
 
 bool RevXbgas::readGetResponses( uint8_t Tag, void *Data ){
   output->verbose(CALL_INFO, 6, 0, "Read Get Response for Tag=%u\n", Tag);
-  char *DataMem = (char *)(Data);
+  char *DataElem = (char *)(Data);
   for( auto it=GetResponses.begin(); it != GetResponses.end(); ++it ) {
     if( std::get<0>(*it) == Tag ) {
       uint64_t *tmp_data = std::get<1>(*it);
-      unsigned Len = getNumBlocks(std::get<2>(*it));
+      char *tmp_data_elem = (char *)tmp_data;
+      size_t Len = (size_t)(std::get<2>(*it));  // Len = Size since Nelem is always 1 for the Responses queue.
       for( unsigned i=0; i < Len; i++ ){
-        DataMem[i] = (char)(tmp_data[i]);
+        DataElem[i] = tmp_data_elem[i];
       }
       delete[] tmp_data;
 
@@ -531,19 +572,6 @@ bool RevXbgas::readGetResponses( uint8_t Tag, void *Data ){
       }
 
       GetResponses.erase(it);
-      // print_u128_u((uint128_t)(*DataMem));
-      // output->verbose(CALL_INFO, 6, 0, "Response for Tag %u: Value=%d\n", Tag, ndigits);
-      output->verbose(CALL_INFO, 6, 0, "Response for Tag %u: Value=%" PRId64 "\n", Tag, (uint64_t)(*DataMem));
-// #ifdef _XBGAS_DEBUG_
-//       int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-//       if (id == 0) { //
-//         std::cout << "_XBGAS_DEBUG_ CPU" << id
-//                   << ": Tag: " << std::dec << +Tag
-//                   << ", Len: " << std::dec << +Len
-//                   << ", DataMem hex: 0x" << std::hex << (uint64_t)(*DataMem)
-//                   << ", DataMem Address: " << std::hex << (uint64_t)(DataMem) << std::endl;
-//       }
-// #endif
       return true;
     }
   }

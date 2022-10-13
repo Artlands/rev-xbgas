@@ -41,7 +41,7 @@ namespace SST {
       xbgasNicEvent(std::string name)
       : Event(), SrcName(name),
         Tag(0), Opcode(0),
-        Size(0), Addr(0){ }
+        Size(0), Addr(0), Stride(0){ }
       
       /// xbgasNicEvent: retrieve the source name;
       std::string getSource() { return SrcName; }
@@ -60,6 +60,12 @@ namespace SST {
 
       /// xbgasNicEvent: retrieve the packet size
       uint32_t getSize() { return Size; }
+
+      /// xbgasNicEvent: retrieve the # of elements value
+      uint32_t getNelem() { return Nelem; }
+
+      /// xbgasNicEvent: retrieve the stride value
+      uint32_t getStride() { return Stride; }
 
       /// xbgasNicEvent: retrieve the packet address
       uint64_t getAddr() { return Addr; }
@@ -82,6 +88,12 @@ namespace SST {
       /// xbgasNicEvent: set the address for the packet
       bool setAddr(uint64_t A);
 
+      /// xbgasNicEvent: set the # of elements in the packet
+      bool setNelem(uint32_t Ne);
+
+      /// xbgasNicEvent: set the stride in the packet
+      bool setStride(uint32_t Sd);
+
       /// xbgasNicEvent: set the packet data
       bool setData(uint64_t *In, uint32_t Sz);
 
@@ -90,10 +102,12 @@ namespace SST {
       // ------------------------------------------------
 
       /// xbgasNicEvent: build a get packet
-      bool buildGet(uint8_t Tag, uint64_t Addr, uint32_t Size);
+      bool buildGet(uint8_t Tag, uint64_t Addr, uint32_t Size, 
+                    uint32_t Nelem, uint32_t Stride);
 
       /// xbgasNicEvent: build a put packet
-      bool buildPut(uint8_t Tag, uint64_t Addr, uint32_t Size, uint64_t *Data);
+      bool buildPut(uint8_t Tag, uint64_t Addr, uint32_t Size, 
+                    uint32_t Nelem, uint32_t Stride, uint64_t *Data);
 
       /// xbgasNicEvent: build a success packet
       bool buildSuccess(uint8_t Tag);
@@ -119,6 +133,8 @@ namespace SST {
         ser & Opcode;
         ser & Size;
         ser & Addr;
+        ser & Nelem;
+        ser & Stride;
         ser & Data;
       }
 
@@ -131,7 +147,9 @@ namespace SST {
       uint8_t Tag;                          ///< xbgasNicEvent: Tag value of the packet
       int Opcode;                           ///< xbgasNicEvent: Operation code of the packet
       uint32_t Size;                        ///< xbgasNicEvent: Size value of the packet
-      uint64_t Addr;                        ///< xbgasNicEvent: address field
+      uint64_t Addr;                        ///< xbgasNicEvent: Address field
+      uint32_t Nelem;                       ///< xbgasNicEvent: Number of elements of the packet
+      uint32_t Stride;                      ///< xbgasNicEvent: Stride for bulk transfer
       std::vector<uint64_t> Data;           ///< xbgasNicEvent: Data field                  
 
     }; // end xbgasNicEvent
