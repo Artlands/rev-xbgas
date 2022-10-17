@@ -64,7 +64,20 @@ namespace SST {
       void WriteU64( uint64_t Nmspace, uint64_t Addr, uint64_t Value);
       void WriteFloat( uint64_t Nmspace, uint64_t Addr, float Value);
       void WriteDouble( uint64_t Nmspace, uint64_t Addr, double Value);
-      // void WriteBulk( uint64_t, uint64_t Addr, size_t Len, uint32_t Stride, void *Data);
+
+      // Bulk write
+      void WriteBulkU8( uint64_t Nmspace, uint64_t DestAddr, 
+                        uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr);
+      void WriteBulkU16( uint64_t Nmspace, uint64_t DestAddr, 
+                         uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr);
+      void WriteBulkU32( uint64_t Nmspace, uint64_t DestAddr, 
+                         uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr);
+      void WriteBulkU64( uint64_t Nmspace, uint64_t DestAddr, 
+                         uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr);
+      void WriteBulkFloat( uint64_t Nmspace, uint64_t DestAddr, 
+                           uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr);
+      void WriteBulkDouble( uint64_t Nmspace, uint64_t DestAddr, 
+                            uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr);
 
       void ReadU8( uint64_t Nmspace, uint64_t Addr );
       void ReadU16( uint64_t Nmspace, uint64_t Addr );
@@ -72,7 +85,21 @@ namespace SST {
       void ReadU64( uint64_t Nmspace, uint64_t Addr );
       void ReadFloat( uint64_t Nmspace, uint64_t Addr );
       void ReadDouble( uint64_t Nmspace, uint64_t Addr );
-      // void ReadBulk( uint64_t Nmspace, uint64_t Addr, size_t Len, uint32_t Stride);
+
+      // Bulk read
+      void ReadBulkU8( uint64_t Nmspace, uint64_t SrcAddr, 
+                       uint32_t Nelem, uint32_t Stride, uint64_t DestAddr);
+      void ReadBulkU16( uint64_t Nmspace, uint64_t SrcAddr, 
+                       uint32_t Nelem, uint32_t Stride, uint64_t DestAddr);
+      void ReadBulkU32( uint64_t Nmspace, uint64_t SrcAddr, 
+                        uint32_t Nelem, uint32_t Stride, uint64_t DestAddr);
+      void ReadBulkU64( uint64_t Nmspace, uint64_t SrcAddr, 
+                        uint32_t Nelem, uint32_t Stride, uint64_t DestAddr);
+      void ReadBulkFloat( uint64_t Nmspace, uint64_t SrcAddr, 
+                          uint32_t Nelem, uint32_t Stride, uint64_t DestAddr);
+      void ReadBulkDouble( uint64_t Nmspace, uint64_t SrcAddr, 
+                           uint32_t Nelem, uint32_t Stride, uint64_t DestAddr);
+
     
     public:
       std::list<std::pair<uint8_t,int>> TrackTags;    ///< RevXbgas: tracks the outgoing remote memory request; pair<Tag,Dest>
@@ -102,6 +129,8 @@ namespace SST {
                              uint32_t,
                              uint32_t,
                              int,
+                             uint64_t,
+                             bool,
                              uint64_t>> ReadQueue;    ///< RevXbgas: xbgas remote memory requests queue
                                                       ///<        - Tag
                                                       ///<        - Cost
@@ -110,6 +139,8 @@ namespace SST {
                                                       ///<        - Stride
                                                       ///<        - Src
                                                       ///<        - Addr
+                                                      ///<        - DmaFlag
+                                                      ///<        - DmaDestAddr
 
       std::queue<std::pair<xbgasNicEvent *, int>> SendMB;///< RevXbgas: xbgas outgoing command mailbox; pair<Cmd,Dest>
       
@@ -136,9 +167,10 @@ namespace SST {
       bool sendXBGASMessage();
 
       bool WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, 
-                     uint32_t Nelem, uint32_t Stride, void *Data );
+                     uint32_t Nelem, uint32_t Stride, void *Data);
       bool ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len, 
-                    uint32_t Nelem, uint32_t Stride);
+                    uint32_t Nelem, uint32_t Stride, 
+                    bool Dma, uint64_t DmaDestAddr);
 
       // /// RevXbgas: execute tests
       // void execReadTest();

@@ -393,11 +393,14 @@ bool RevProc::InitExtReg(){
 
 #ifdef _XBGAS_DEBUG_
   {
-    std::cout << "Init extended registers of thread " << std::dec << t <<std::endl;
-    std::cout << "e10 = " << std::dec << RegFile[t].ERV64[10] << std::endl;
-    std::cout << "e11 = " << std::dec << RegFile[t].ERV64[11] << std::endl;
-    std::cout << "e12 = " << std::dec << RegFile[t].ERV64[12] << std::endl;
-    std::cout << "e13 = " << std::dec << RegFile[t].ERV64[13] << std::endl;
+    int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+    if(id == 0){
+      std::cout << "Init extended registers of thread " << std::dec << t <<std::endl;
+      std::cout << "e10 = " << std::dec << RegFile[t].ERV64[10] << std::endl;
+      std::cout << "e11 = " << std::dec << RegFile[t].ERV64[11] << std::endl;
+      std::cout << "e12 = " << std::dec << RegFile[t].ERV64[12] << std::endl;
+      std::cout << "e13 = " << std::dec << RegFile[t].ERV64[13] << std::endl;
+    }
   }
 #endif
   }
@@ -1419,6 +1422,19 @@ RevInst RevProc::DecodeInst(){
   Enc |= (Funct7<<11);
   Enc |= (Imm12<<18);
 
+//   if (PC == 0x104ac) {
+// #ifdef _XBGAS_DEBUG_
+//           int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+//           if(id == 0) 
+//           {
+//             std::cout << "eag instruciton: " << std::bitset<32>(Inst)
+//             << ", Opcode: " << std::bitset<7>(Opcode) 
+//             << ", funct7: " << std::bitset<7>(Funct7)
+//             << ", funct3: " << std::bitset<3>(Funct3) << std::endl;
+//           }
+// #endif
+//   }
+
   // Stage 7: Look up the value in the table
   std::map<uint32_t,unsigned>::iterator it;
   it = EncToEntry.find(Enc);
@@ -1637,7 +1653,8 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
     // If the next instruction is our special bounce address
     // DO NOT decode it.  It will decode to a bogus instruction.
     // We do not want to retire this instruction until we're ready
-    if( GetPC() != _PAN_FWARE_JUMP_ ){
+    // GetPC() != 0x00ull is added to ensure the program is not end until xBGAS remote operations finish
+    if( (GetPC() != _PAN_FWARE_JUMP_) && (GetPC() != 0x00ull) ){
       Inst = DecodeInst();
     }
     rtn = true;
@@ -1749,7 +1766,7 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
   }
 
   // Check for completion states and new tasks
-  if( (GetPC() == _PAN_FWARE_JUMP_) || (GetPC() == 0x00ull) ){
+  if( (GetPC() == _PAN_FWARE_JUMP_) || (GetPC() == 0x00ull) && (xbgas->isFinished()) ){
     // look for more work on the execution queue
     // if no work is found, don't update the PC
     // just wait and spin
@@ -1782,8 +1799,10 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
           break;
         }
       }
-    }else if( GetPC() == 0x00ull ) {
+    }else if( (GetPC() == 0x00ull) && (xbgas->isFinished()) ) {
       // PAN execution contexts not enabled, this is our last PC
+      // Queue in xBGAS network is cleared
+
       done = true;
     }
 
@@ -1792,7 +1811,7 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
       output->verbose(CALL_INFO,2,0,"Program execution complete\n");
       Stats.percentEff = float(Stats.cyclesBusy)/Stats.totalCycles;
       output->verbose(CALL_INFO,2,0,"Program Stats: Total Cycles: %d Busy Cycles: %d Idle Cycles: %d Eff: %f\n", Stats.totalCycles, Stats.cyclesBusy, Stats.cyclesIdle, Stats.percentEff);
-      output->verbose(CALL_INFO,2,0,"\t Bytes Read: %d Bytes Written: %d Floats Read: %d Doubles Read %d  Floats Exec: %d Inst Retired: %" PRIu64 "\n", \
+      output->verbose(CALL_INFO,2,0,"Bytes Read: %d Bytes Written: %d Floats Read: %d Doubles Read %d  Floats Exec: %d Inst Retired: %" PRIu64 "\n", \
                                       mem->memStats.bytesRead, \
                                       mem->memStats.bytesWritten, \
                                       mem->memStats.floatsRead, \

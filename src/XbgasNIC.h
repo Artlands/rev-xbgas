@@ -52,6 +52,9 @@ namespace SST {
       /// xbgasNicEvent: retrieve the packet Tag
       uint8_t getTag() { return Tag; }
 
+      /// xbgasNicEvent: retrieve the packet DMA flag
+      bool getDMA() {return DmaFlag; }
+
       /// xbgasNicEvent: retrieve the packet operation code
       int getOpcode() { return Opcode; }
 
@@ -69,6 +72,9 @@ namespace SST {
 
       /// xbgasNicEvent: retrieve the packet address
       uint64_t getAddr() { return Addr; }
+
+      /// xbgasNicEvent: retrieve DMA destination address
+      uint64_t getDestAddr() { return DestAddr ;}
 
       /// xbgasNicEvent: retrieve the packet data
       void getData(uint64_t *Out);
@@ -94,6 +100,12 @@ namespace SST {
       /// xbgasNicEvent: set the stride in the packet
       bool setStride(uint32_t Sd);
 
+      /// xbgasNicEvent: set the DMA flag for the packet
+      bool setDMA(bool Dma);
+
+      /// xbgasNicEvent: set the DMA destination address
+      bool setDestAddr( uint64_t DAddr );
+
       /// xbgasNicEvent: set the packet data
       bool setData(uint64_t *In, uint32_t Sz);
 
@@ -102,12 +114,14 @@ namespace SST {
       // ------------------------------------------------
 
       /// xbgasNicEvent: build a get packet
-      bool buildGet(uint8_t Tag, uint64_t Addr, uint32_t Size, 
-                    uint32_t Nelem, uint32_t Stride);
+      bool buildGet(uint8_t Tag, uint64_t SrcAddr, uint32_t Size, 
+                    uint32_t Nelem, uint32_t Stride, 
+                    bool Dma, uint64_t DmaDestAddr);
 
       /// xbgasNicEvent: build a put packet
-      bool buildPut(uint8_t Tag, uint64_t Addr, uint32_t Size, 
-                    uint32_t Nelem, uint32_t Stride, uint64_t *Data);
+      bool buildPut(uint8_t Tag, uint64_t DestAddr, uint32_t Size, 
+                    uint32_t Nelem, uint32_t Stride, 
+                    uint64_t *Data);
 
       /// xbgasNicEvent: build a success packet
       bool buildSuccess(uint8_t Tag);
@@ -130,11 +144,13 @@ namespace SST {
         ser & SrcName;
         ser & Src;
         ser & Tag;
+        ser & DmaFlag;
         ser & Opcode;
         ser & Size;
         ser & Addr;
         ser & Nelem;
         ser & Stride;
+        ser & DestAddr;
         ser & Data;
       }
 
@@ -145,11 +161,13 @@ namespace SST {
       std::string SrcName;                  ///< xbgasNicEvent: Name of the sending device
       int Src;                              ///< xbgasNicEvent: Source ID
       uint8_t Tag;                          ///< xbgasNicEvent: Tag value of the packet
+      bool DmaFlag;                         ///< xbgasNicEvent: if the event is a DMA operation
       int Opcode;                           ///< xbgasNicEvent: Operation code of the packet
       uint32_t Size;                        ///< xbgasNicEvent: Size value of the packet
       uint64_t Addr;                        ///< xbgasNicEvent: Address field
       uint32_t Nelem;                       ///< xbgasNicEvent: Number of elements of the packet
       uint32_t Stride;                      ///< xbgasNicEvent: Stride for bulk transfer
+      uint64_t DestAddr;                    ///< xbgasNicEvent: Destination address for DMA
       std::vector<uint64_t> Data;           ///< xbgasNicEvent: Data field                  
 
     }; // end xbgasNicEvent

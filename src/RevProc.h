@@ -125,7 +125,7 @@ namespace SST{
       uint8_t threadToExec;     ///< RevProc: Thread to dispatch instruction
       RevOpts *opts;            ///< RevProc: options object
       RevMem *mem;              ///< RevProc: memory object
-      RevXbgas *xbgas;
+      RevXbgas *xbgas;          ///< RevProc: xbgas object
       RevLoader *loader;        ///< RevProc: loader object
       SST::Output *output;      ///< RevProc: output handler
       uint64_t Retired;         ///< RevProc: number of retired instructions

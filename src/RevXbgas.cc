@@ -127,23 +127,64 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
   for( GetIter = TrackGets.begin(); GetIter != TrackGets.end(); ++GetIter ){
     if( std::get<0>(*GetIter) = event->getTag() ){
       // Found a valid entry; put returned data in the GetResponses list if 
-      // # of elements is 1
+      // it is not a DMA event
+      uint64_t tmp_addr = 0x00ull;
       uint8_t tmp_tag = event->getTag();
       uint32_t tmp_size = event->getSize();
       uint32_t tmp_nelem = event->getNelem();
+      uint32_t tmp_stride = event->getStride();
+      size_t tmp_len = (size_t)(tmp_size/tmp_nelem);
+      uint64_t tmp_dest_addr = event->getDestAddr();
+      bool tmp_dma = event->getDMA();
       uint64_t *Data = new uint64_t [event->getNumBlocks(tmp_size)];
+      char *DataElem = (char *)(Data);
       event->getData(Data);
 
-      if (tmp_nelem == 1) {
+      if ( !tmp_dma ) {
         output->verbose(CALL_INFO, 6, 0,
                       "Push response of Tag=%d to GetResponses.\n",
                       event->getTag());
 
         GetResponses.push_back(std::make_tuple(tmp_tag, Data, tmp_size));
       } else {
-        // Write to memory directly; destination addr, stride
+        // DMA operation; write to memory directly; destination addr, stride
+
+#ifdef _XBGAS_DEBUG_
+          int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+          if (id == 0) 
+          { 
+            std::cout << "_XBGAS_DEBUG_ CPU" << id
+                      << ": BULK TRANSFER:" << std::endl;
+          }
+#endif
+
+        for( unsigned i=0; i<tmp_nelem; i++ ){
+          tmp_addr = tmp_dest_addr + (uint64_t)(i * (1 + tmp_stride) * tmp_len);
+
+#ifdef _XBGAS_DEBUG_
+          if (id == 0) 
+          { 
+            std::cout << "\tUpdate value @" << std::hex << tmp_addr
+                      << " " << std:: dec << (int)(mem->ReadU32(tmp_addr));
+          }
+#endif
+
+          if( !mem->WriteMem(tmp_addr, tmp_len, (void *)(&DataElem[i*tmp_len])) ){
+            output->fatal(CALL_INFO, -1, "Error: DMA failure\n" );
+            break;
+          }
+
+#ifdef _XBGAS_DEBUG_
+          if (id == 0) 
+          { 
+            std::cout << " --> " << std::dec << (int)(mem->ReadU32(tmp_addr)) << std::endl;
+          }
+#endif
+        }
+        // Success to write all elements;
+        // erase TrackGets
+        TrackGets.erase(GetIter);
       }
-      
       break;
     }
   }
@@ -177,7 +218,9 @@ void RevXbgas::handleGet(xbgasNicEvent *event){
                                       event->getNelem(),
                                       event->getStride(),
                                       event->getSrc(),
-                                      event->getAddr()));
+                                      event->getAddr(),
+                                      event->getDMA(),
+                                      event->getDestAddr()));
 }
 
 void RevXbgas::handlePut(xbgasNicEvent *event){
@@ -262,6 +305,8 @@ bool RevXbgas::processXBGASMemRead(){
   //       4 - Stride
   //       5 - Src
   //       6 - Addr
+  //       7 - DmaFlag
+  //       8 - DmaDestAddr
 
   // decrement all the counts
   int i = 0;
@@ -282,40 +327,56 @@ bool RevXbgas::processXBGASMemRead(){
       uint32_t tmp_stride = std::get<4>(*it);
       int tmp_src = std::get<5>(*it);
       uint64_t tmp_base_addr = std::get<6>(*it);
+      bool tmp_dma = std::get<7>(*it);
+      uint64_t tmp_dest_addr = std::get<8>(*it);
 
       // -- setup the response
-      xbgasNicEvent *SCmd = new xbgasNicEvent();
+      xbgasNicEvent *OPEvent = new xbgasNicEvent();
       size_t Len = (size_t)(tmp_size/tmp_nelem);
 
       // Data for storing the memory readings
-      uint64_t *Data = new uint64_t [SCmd->getNumBlocks(tmp_size)];
+      uint64_t *Data = new uint64_t [OPEvent->getNumBlocks(tmp_size)];
       char *DataElem = (char *)(Data);
 
       bool flag = 0;
       // Try to read memory for each requested element
       for( unsigned i=0; i<tmp_nelem; i++ ){
         tmp_addr = tmp_base_addr + (uint64_t)(i * (1 + tmp_stride) * Len);
+
         if( !mem->ReadMem( tmp_addr,
                            Len,
                            (void *)(&DataElem[i*Len])) ){
           break;
         }
+
+// #ifdef _XBGAS_DEBUG_
+//       int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+//       if (id == 1) 
+//       { 
+//         std::cout << "_XBGAS_DEBUG_ CPU" << id
+//                   << ": Read value @" << std::hex << tmp_addr
+//                   << " " << std::dec << (int)(DataElem[i*Len]) << std::endl;
+//       }
+// #endif
+
         // Success to read all elements
         flag = 1;
       }
 
       if (flag == 0) {
         // build a failed response
-        SCmd->buildFailed(tmp_tag);
-        SCmd->setSrc(xnic->getAddress());
-        SendMB.push(std::make_pair(SCmd, tmp_src));
+        OPEvent->buildFailed(tmp_tag);
+        OPEvent->setSrc(xnic->getAddress());
+        SendMB.push(std::make_pair(OPEvent, tmp_src));
       }else{
         // build a successful response
-        SCmd->buildSuccess(tmp_tag);
-        SCmd->setSize(tmp_size);
-        SCmd->setData(Data, tmp_size);
-        SCmd->setSrc(xnic->getAddress());
-        SendMB.push(std::make_pair(SCmd, tmp_src));
+        OPEvent->buildSuccess(tmp_tag);
+        OPEvent->setSize(tmp_size);
+        OPEvent->setData(Data, tmp_size);
+        OPEvent->setSrc(xnic->getAddress());
+        OPEvent->setDMA(tmp_dma);
+        OPEvent->setDestAddr(tmp_dest_addr);
+        SendMB.push(std::make_pair(OPEvent, tmp_src));
 
         output->verbose(CALL_INFO, 6, 0,
                  "Process XBGAS Mem Read request from %d: Tag=%u, Size=%" PRIu32 ", Addr=0x%2x\n",
@@ -441,13 +502,45 @@ void RevXbgas::WriteDouble( uint64_t Nmspace, uint64_t Addr, double Value) {
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (DOUBLE)");
 }
 
-// void RevXbgas::WriteBulkU8( uint64_t Nmspace, uint64_t Addr, uint32_t Nelem, uint32_t Stride, void *Data) {
-//   if( !WriteMem( Nmspace, Addr, Len, Stride, Data ) )
-//     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (BULK)");
-// }
+void RevXbgas::WriteBulkU8( uint64_t Nmspace, uint64_t DestAddr, 
+                            uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
+  if ( !WriteMem( Nmspace, DestAddr, 1, Nelem, Stride, (void *)(SrcAddr)) )
+    output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U8 BULK)");
+}
+
+void RevXbgas::WriteBulkU16( uint64_t Nmspace, uint64_t DestAddr, 
+                            uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
+  if ( !WriteMem( Nmspace, DestAddr, 2, Nelem, Stride, (void *)(SrcAddr)) )
+    output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U16 BULK)");
+}
+
+void RevXbgas::WriteBulkU32( uint64_t Nmspace, uint64_t DestAddr, 
+                            uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
+  if ( !WriteMem( Nmspace, DestAddr, 4, Nelem, Stride, (void *)(SrcAddr)) )
+    output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U32 BULK)");
+}
+
+void RevXbgas::WriteBulkU64( uint64_t Nmspace, uint64_t DestAddr, 
+                            uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
+  if ( !WriteMem( Nmspace, DestAddr, 8, Nelem, Stride, (void *)(SrcAddr)) )
+    output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U64 BULK)");
+}
+
+void RevXbgas::WriteBulkFloat( uint64_t Nmspace, uint64_t DestAddr, 
+                            uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
+  if ( !WriteMem( Nmspace, DestAddr, 4, Nelem, Stride, (void *)(SrcAddr)) )
+    output->fatal(CALL_INFO, -1, "Error: could not write remote memory (FLOAT BULK)");
+}
+
+void RevXbgas::WriteBulkDouble( uint64_t Nmspace, uint64_t DestAddr, 
+                                uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
+  if ( !WriteMem( Nmspace, DestAddr, 8, Nelem, Stride, (void *)(SrcAddr)) )
+    output->fatal(CALL_INFO, -1, "Error: could not write remote memory (DOUBLE BULK)");
+}
 
 bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len, 
-                        uint32_t Nelem, uint32_t Stride){
+                        uint32_t Nelem, uint32_t Stride, 
+                        bool Dma, uint64_t DmaDestAddr ){
   int Dest = findDest(Nmspace);
   xbgasNicEvent *GEvent = nullptr;
   uint8_t Tag  = createTag();
@@ -460,15 +553,15 @@ bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
 
   GEvent = new xbgasNicEvent(xnic->getName()); // new event to send
   GEvent->setSrc(Src);
+  GEvent->setDMA(Dma);
 
   // populate it
-  if( !GEvent->buildGet(Tag, Addr, Size, Nelem, Stride) ){
+  if( !GEvent->buildGet(Tag, Addr, Size, Nelem, Stride, Dma, DmaDestAddr) ){
     output->fatal(CALL_INFO, -1,
                   "%s, Error: could not create XBGAS Get command\n",
                   xnic->getName().c_str());
   }
   
-  // Populate it
   SendMB.push(std::make_pair(GEvent, Dest));
 
   // Remember the get request
@@ -478,39 +571,77 @@ bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
 }
 
 void RevXbgas::ReadU8( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 1, 1, 0) )
+  if( !ReadMem( Nmspace, Addr, 1, 1, 0, false, 0x00ull) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U8)");
 }
 
 void RevXbgas::ReadU16( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 2, 1, 0) )
+  if( !ReadMem( Nmspace, Addr, 2, 1, 0, false, 0x00ull) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U16)");
 }
 
 void RevXbgas::ReadU32( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 4, 1, 0) )
+  if( !ReadMem( Nmspace, Addr, 4, 1, 0, false, 0x00ull) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U32)");
 }
 
 void RevXbgas::ReadU64( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 8, 1, 0) )
+  if( !ReadMem( Nmspace, Addr, 8, 1, 0, false, 0x00ull) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U64)");
 }
 
 void RevXbgas::ReadFloat( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 4, 1, 0) )
+  if( !ReadMem( Nmspace, Addr, 4, 1, 0, false, 0x00ull) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (FLOAT)");
 }
 
 void RevXbgas::ReadDouble( uint64_t Nmspace, uint64_t Addr ) {
-  if( !ReadMem( Nmspace, Addr, 8, 1, 0) )
+  if( !ReadMem( Nmspace, Addr, 8, 1, 0, false, 0x00ull) )
     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (DOUBLE)");
 }
 
-// void RevXbgas::ReadBulk( uint64_t Nmspace, uint64_t Addr, size_t Len, uint32_t Nelem, uint32_t Stride) {
-//   if( !ReadMem( Nmspace, Addr, Len, Nelem, Stride) )
-//     output->fatal(CALL_INFO, -1, "Error: could not read remote memory (BULK)");
-// }
+void RevXbgas::ReadBulkU8( uint64_t Nmspace, uint64_t SrcAddr, 
+                           uint32_t Nelem, uint32_t Stride, 
+                           uint64_t DestAddr) {
+  
+  if( !ReadMem( Nmspace, SrcAddr, 1, Nelem, Stride, true, DestAddr) )
+    output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U8 BULK)");
+}
+
+void RevXbgas::ReadBulkU16( uint64_t Nmspace, uint64_t SrcAddr, 
+                           uint32_t Nelem, uint32_t Stride, uint64_t DestAddr) {
+  
+  if( !ReadMem( Nmspace, SrcAddr, 2, Nelem, Stride, true, DestAddr) )
+    output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U16 BULK)");
+}
+
+void RevXbgas::ReadBulkU32( uint64_t Nmspace, uint64_t SrcAddr, 
+                           uint32_t Nelem, uint32_t Stride, uint64_t DestAddr) {
+  
+  if( !ReadMem( Nmspace, SrcAddr, 4, Nelem, Stride, true, DestAddr) )
+    output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U32 BULK)");
+}
+
+void RevXbgas::ReadBulkU64( uint64_t Nmspace, uint64_t SrcAddr, 
+                            uint32_t Nelem, uint32_t Stride, uint64_t DestAddr) {
+  
+  if( !ReadMem( Nmspace, SrcAddr, 8, Nelem, Stride, true, DestAddr) )
+    output->fatal(CALL_INFO, -1, "Error: could not read remote memory (U64 BULK)");
+}
+
+void RevXbgas::ReadBulkFloat( uint64_t Nmspace, uint64_t SrcAddr, 
+                              uint32_t Nelem, uint32_t Stride, uint64_t DestAddr) {
+  
+  if( !ReadMem( Nmspace, SrcAddr, 4, Nelem, Stride, true, DestAddr) )
+    output->fatal(CALL_INFO, -1, "Error: could not read remote memory (FLOAT BULK)");
+}
+
+void RevXbgas::ReadBulkDouble( uint64_t Nmspace, uint64_t SrcAddr, 
+                               uint32_t Nelem, uint32_t Stride, uint64_t DestAddr) {
+  
+  if( !ReadMem( Nmspace, SrcAddr, 8, Nelem, Stride, true, DestAddr) )
+    output->fatal(CALL_INFO, -1, "Error: could not read remote memory (DOUBLE BULK)");
+}
 
 uint8_t RevXbgas::createTag(){
   uint8_t rtn = 0;

@@ -35,28 +35,58 @@ namespace SST{
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
         if (EXT1 != 0x0) {
-          if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
-            Xbgas->ReadU64(EXT1, Addr);
-          } else {
-            uint64_t Value;
-            if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-              R->RV64[Inst.rd] = Value;
-              R->RV64_PC += Inst.instSize;
+          if ( R->ERV64[0] == 0x00ull ) {
+            if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
+              Xbgas->ReadU64(EXT1, Addr);
+            } else {
+              uint64_t Value;
+              if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
+                R->RV64[Inst.rd] = Value;
+                R->RV64_PC += Inst.instSize;
 
-#ifdef _XBGAS_DEBUG_
+  #ifdef _XBGAS_DEBUG_
+              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+              if (id == 0) 
+              { 
+                std::cout << "_XBGAS_DEBUG_ CPU" << id
+                          << ": [eld]\tRV64[" << std::dec << +Inst.rd
+                          << "](0x" << std::hex << R->RV64[Inst.rd]
+                          << ") = Nmspace(0x"<< std::hex << EXT1
+                          << ") @ Addr(0x" << std::hex << Addr
+                          << ")" << std::endl;              
+              }
+  #endif
+
+              }
+            }
+          } else {
+            // DMA operation
+            uint8_t destReg   = DECODE_RD(R->ERV64[0]);
+            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
+            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
+            Xbgas -> ReadBulkU64( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                  (uint32_t)(R->RV64[strideReg]), 
+                                  (uint64_t)(R->RV64[destReg]));
+            // Reset ERV64[0]
+            R->ERV64[0] = 0x00ull;
+
+  #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
             if (id == 0) 
             { 
               std::cout << "_XBGAS_DEBUG_ CPU" << id
-                        << ": [eld]\tRV64[" << std::dec << +Inst.rd
-                        << "](0x" << std::hex << R->RV64[Inst.rd]
-                        << ") = Nmspace(0x"<< std::hex << EXT1
+                        << ": [eld] AGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg]
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
-                        << ")" << std::endl;              
+                        << ")\tTO: Addr(0x" << std::hex << R->RV64[destReg] << std::endl;
             }
-#endif
-            }
+  #endif
+            R->RV64_PC += Inst.instSize;
+            return true;
           }
+
         } else {
           R->RV64[Inst.rd] = M->ReadU64(Addr);
           R->RV64_PC += Inst.instSize;
@@ -71,27 +101,58 @@ namespace SST{
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
         if (EXT1 != 0x0) {
-          if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
-            Xbgas->ReadU32(EXT1, Addr);
+          if ( R->ERV64[0] == 0x00ull ) {
+            if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
+              Xbgas->ReadU32(EXT1, Addr);
+            } else {
+              uint32_t Value;
+              if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
+                SEXT(R->RV64[Inst.rd], Value, 32);
+                R->RV64_PC += Inst.instSize;
+  #ifdef _XBGAS_DEBUG_
+              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+              if (id == 0) 
+              {
+                std::cout << "_XBGAS_DEBUG_ CPU" << id
+                          << ": [elw]\tRV64[" << std::dec << +Inst.rd
+                          << "](0x" << std::hex << R->RV64[Inst.rd]
+                          << ") = Nmspace(0x"<< std::hex << EXT1
+                          << ") @ Addr(0x" << std::hex << Addr
+                          << ")" << std::endl;
+                
+              }
+  #endif
+              }
+            }
           } else {
-            uint32_t Value;
-            if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-              SEXT(R->RV64[Inst.rd], Value, 32);
-              R->RV64_PC += Inst.instSize;
-#ifdef _XBGAS_DEBUG_
+            // DMA operation
+            uint8_t destReg   = DECODE_RD(R->ERV64[0]);
+            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
+            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
+
+            Xbgas -> ReadBulkU32( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                  (uint32_t)(R->RV64[strideReg]), 
+                                  (uint64_t)(R->RV64[destReg]));
+            // Reset ERV64[0]
+            R->ERV64[0] = 0x00ull;
+
+  #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
             if (id == 0) 
-            {
+            { 
               std::cout << "_XBGAS_DEBUG_ CPU" << id
-                        << ": [elw]\tRV64[" << std::dec << +Inst.rd
-                        << "](0x" << std::hex << R->RV64[Inst.rd]
-                        << ") = Nmspace(0x"<< std::hex << EXT1
+                        << ": [elw]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
                         << ")" << std::endl;
-              
             }
-#endif
-            }
+  #endif
+            R->RV64_PC += Inst.instSize;
+            return true;
           }
         } else {
           SEXT(R->RV64[Inst.rd], M->ReadU32(Addr), 32);
@@ -847,6 +908,41 @@ namespace SST{
         return true;
       }
 
+      static bool eag(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
+        // the source address are encoded in the next extended instruction.
+        // PREVIOUS DESIGN rd: number of elements; rs1: stride; rs2: destination address; 
+        // CURRENT DESIGN rd: destination address; rs1: number of elements; rs2: stride
+        // eag rd, rs1, rs2
+        // 0x1000106b -> 0x46001033
+        // 0001000 0000000000 001 00000 1101011 -> 0100011 0000000000 001 00000 0110011
+        // 1111111 0000000000 111 00000 1111111
+        // 0100011 0000000000 001 00000 0110011
+        uint64_t encodedIns = 0x00ull;
+
+        uint32_t funct7 = (uint32_t)(Inst.funct7);
+        uint32_t rs2 = (uint32_t)(Inst.rs2);
+        uint32_t rs1 = (uint32_t)(Inst.rs1);
+        uint32_t funct3 = (uint32_t)(Inst.funct3);
+        uint32_t rd = (uint32_t)(Inst.rd);
+        uint32_t opcode = (uint32_t)(Inst.opcode);
+
+        encodedIns = (uint64_t)(funct7<<25 | rs2<<20 | rs1<<15 | funct3<<12 | rd<<7 | opcode);
+        
+        R->ERV64[0] = encodedIns;
+
+        R->RV64_PC += Inst.instSize;
+
+#ifdef _XBGAS_DEBUG_
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+          if(id == 0) 
+          {
+            std::cout << "_XBGAS_DEBUG_ CPU" << id
+                      << ": [eag]\tERV64[0] = " << std::bitset<32>( encodedIns ) << std::endl;
+          }
+#endif
+        return true;
+      }
+
       static bool eaddi(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         R->RV64[Inst.rd] = dt_u64((int64_t)(td_u64(R->ERV64[Inst.rs1], 64)) + (int64_t)(td_u64(Inst.imm, 12)), 64);
         R->RV64_PC += Inst.instSize;
@@ -947,6 +1043,9 @@ namespace SST{
       {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ersh %rs1, %rs2, %ext3").SetCost(       1).SetOpcode(0b0110011).SetFunct3(0b001).SetFunct7(0b0100010).SetFormat(RVTypeR).SetImplFunc( &ersh).InstEntry},
       {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ersb %rs1, %rs2, %ext3").SetCost(       1).SetOpcode(0b0110011).SetFunct3(0b000).SetFunct7(0b0100010).SetFormat(RVTypeR).SetImplFunc( &ersb).InstEntry},
       {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erse %ext1, %rs2, %ext3").SetCost(      1).SetOpcode(0b0110011).SetFunct3(0b011).SetFunct7(0b0100011).SetFormat(RVTypeR).SetImplFunc( &erse).InstEntry},
+
+      // Aggreagtion instruction is encoded in the R-type format. The Opcode in eag is not compatiable with REV 
+      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eag %rd, %rs1, %rs2").SetCost(          1).SetOpcode(0b0110011).SetFunct3(0b001).SetFunct7(0b0100011).SetFormat(RVTypeR).SetImplFunc( &eag).InstEntry},
 
       // Address Management Instructions are encoded in the I-type format
       {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eaddi %rd, %ext1, $imm").SetCost(      1).SetOpcode(0b1111011).SetFunct3(0b110).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &eaddi).InstEntry},
