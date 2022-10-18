@@ -26,7 +26,7 @@ int main(int argc, char **argv ){
   int stride = 1;
 
   /* source data */
-  int SRC32[10] = {10, 11, 12, 23, 24, 25, 36, 37, 38, 49};
+  int SRC32[10] = {10, 200, 3000, 40000, 50000, 600000, 7000000, 80000000, 900000000, 1000000000};
 
   uint64_t *PT_SRC32 = (uint64_t *)(SRC32);
   uint64_t **PPT_SRC32 = &PT_SRC32;
