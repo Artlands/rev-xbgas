@@ -22,7 +22,7 @@ int main(int argc, char **argv ){
   if (MYPE == 1)
     NMSPACE = 0x1;
   
-  int nelem = 5;
+  int nelem = 4;
   int stride = 1;
 
   /* source data */
@@ -58,26 +58,6 @@ int main(int argc, char **argv ){
     " eag %[d], %[n], %[s] "
     :
     : [d] "r" (DEST32), [n] "r" (nelem), [s] "r" (stride) 
-  );
-
-  asm volatile
-  (
-    " elw x11, 0(x10) "
-  );
-
-    /* ELD */
-  asm volatile // set source address
-  (
-    "ld x10, 0(%[z]) \n\t"
-    :
-    : [z] "r" (PPT_DEST32)
-  );
-
-  asm volatile
-  (
-    " eag %[d], %[n], %[s] "
-    :
-    : [d] "r" (SRC32), [n] "r" (nelem), [s] "r" (stride) 
   );
 
   asm volatile

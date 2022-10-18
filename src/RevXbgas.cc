@@ -151,10 +151,9 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
 
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-          if (id == 0) 
-          { 
-            std::cout << "_XBGAS_DEBUG_ CPU" << id
-                      << ": BULK TRANSFER:" << std::endl;
+          if (id == 0) { 
+            std::cout << "_XBGAS_DEBUG_ CPU " << id
+                      << ": PE0 BULK GET:" << std::endl;
           }
 #endif
 
@@ -162,8 +161,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
           tmp_addr = tmp_dest_addr + (uint64_t)(i * (1 + tmp_stride) * tmp_len);
 
 #ifdef _XBGAS_DEBUG_
-          if (id == 0) 
-          { 
+          if (id == 0) { 
             std::cout << "\tUpdate value @" << std::hex << tmp_addr
                       << " " << std:: dec << (int)(mem->ReadU32(tmp_addr));
           }
@@ -175,8 +173,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
           }
 
 #ifdef _XBGAS_DEBUG_
-          if (id == 0) 
-          { 
+          if (id == 0) { 
             std::cout << " --> " << std::dec << (int)(mem->ReadU32(tmp_addr)) << std::endl;
           }
 #endif
@@ -237,15 +234,38 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
 
   char *DataElem = (char *)(Data);
 
+#ifdef _XBGAS_DEBUG_
+  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+  if (id == 1) { 
+    std::cout << "_XBGAS_DEBUG_ CPU " << id
+              << ": PE0 BULK PUT:" << std::endl;
+  }
+#endif
+
   // Write each element to the target address
   for( unsigned i=0; i<Nelem; i++) {
     tmp_addr = Addr + (uint64_t)(i * (1 + Stride) * Len);
+
+#ifdef _XBGAS_DEBUG_
+    if (id == 1) { 
+      std::cout << "\tUpdate value @" << std::hex << tmp_addr
+                << " " << std:: dec << (int)(mem->ReadU32(tmp_addr));
+    }
+#endif
+
     if( !mem->WriteMem(tmp_addr, Len, (void *)(&DataElem[i*Len])) ){
       delete[] Data;
       // build failed response
       buildFailedResp(event);
       return ;
     }
+
+#ifdef _XBGAS_DEBUG_
+    if (id == 1) { 
+      std::cout << " --> " << std::dec << (int)(mem->ReadU32(tmp_addr)) << std::endl;
+    }
+#endif
+
   }
 
   delete[] Data;
@@ -343,9 +363,7 @@ bool RevXbgas::processXBGASMemRead(){
       for( unsigned i=0; i<tmp_nelem; i++ ){
         tmp_addr = tmp_base_addr + (uint64_t)(i * (1 + tmp_stride) * Len);
 
-        if( !mem->ReadMem( tmp_addr,
-                           Len,
-                           (void *)(&DataElem[i*Len])) ){
+        if( !mem->ReadMem( tmp_addr, Len, (void *)(&DataElem[i*Len])) ){
           break;
         }
 
@@ -428,8 +446,9 @@ bool RevXbgas::sendXBGASMessage(){
 bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, 
                          uint32_t Nelem, uint32_t Stride, void *Data ){
   uint32_t idx = 0;
+  uint64_t tmp_addr = 0x00ull;
   int Dest = findDest(Nmspace);
-  output->verbose(CALL_INFO, 5, 0,
+  output->verbose(CALL_INFO, 6, 0,
                   "Writing %" PRIu32 " Bytes to PE %d Starting at 0x%2x; Stride = %" PRIu32 ", # of elements = %" PRIu32 "\n", 
                   Len, Dest, Addr, Stride, Nelem);
   uint8_t Tag  = createTag();
@@ -444,22 +463,31 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
   uint64_t *Buf = new uint64_t[PEvent->getNumBlocks(Size)];
   char *BufElem = (char *)(Buf);
 
-  // copy data to buffer
-  for( unsigned i=0; i<Nelem; i++) {
-    for( unsigned j=0; j<Len; j++ ){
-      idx = (uint32_t)(i * (1 + Stride) * Len + j);
-      BufElem[i*Len + j] = DataElem[idx];
+  bool flag = 0;
+  // Read memory and save to buffer
+  for( unsigned i=0; i< Nelem; i++ ){
+    tmp_addr = (uint64_t)(DataElem) + (uint64_t)(i * (1 + Stride) * Len);
+    if( !mem->ReadMem( tmp_addr, Len, (void *)(&BufElem[i*Len])) ){
+      break;
     }
+    flag = 1;
   }
 
-  // populate it
-  if( !PEvent->buildPut(Tag, Addr, Size, Nelem, Stride, Buf) ){
+  if ( flag == 0 ){
     output->fatal(CALL_INFO, -1,
                   "%s, Error: could not create XBGAS PUT command\n",
                   xnic->getName().c_str());
+
+  } else {
+    // populate it
+    if( !PEvent->buildPut(Tag, Addr, Size, Nelem, Stride, Buf) ){
+      output->fatal(CALL_INFO, -1,
+                    "%s, Error: could not create XBGAS PUT command\n",
+                    xnic->getName().c_str());
+    }
+    SendMB.push(std::make_pair(PEvent, Dest));
   }
-  
-  SendMB.push(std::make_pair(PEvent, Dest));
+
   delete[] Buf;
   return true;
 }

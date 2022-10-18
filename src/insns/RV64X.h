@@ -43,20 +43,6 @@ namespace SST{
               if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
                 R->RV64[Inst.rd] = Value;
                 R->RV64_PC += Inst.instSize;
-
-  #ifdef _XBGAS_DEBUG_
-              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-              if (id == 0) 
-              { 
-                std::cout << "_XBGAS_DEBUG_ CPU" << id
-                          << ": [eld]\tRV64[" << std::dec << +Inst.rd
-                          << "](0x" << std::hex << R->RV64[Inst.rd]
-                          << ") = Nmspace(0x"<< std::hex << EXT1
-                          << ") @ Addr(0x" << std::hex << Addr
-                          << ")" << std::endl;              
-              }
-  #endif
-
               }
             }
           } else {
@@ -69,22 +55,7 @@ namespace SST{
                                   (uint64_t)(R->RV64[destReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
-
-  #ifdef _XBGAS_DEBUG_
-            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-            if (id == 0) 
-            { 
-              std::cout << "_XBGAS_DEBUG_ CPU" << id
-                        << ": [eld] AGGREGATION:\t" << std::endl
-                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg]
-                        << "\tFROM: Nmspace(0x"<< std::hex << EXT1
-                        << ") @ Addr(0x" << std::hex << Addr
-                        << ")\tTO: Addr(0x" << std::hex << R->RV64[destReg] << std::endl;
-            }
-  #endif
             R->RV64_PC += Inst.instSize;
-            return true;
           }
 
         } else {
@@ -152,7 +123,6 @@ namespace SST{
             }
   #endif
             R->RV64_PC += Inst.instSize;
-            return true;
           }
         } else {
           SEXT(R->RV64[Inst.rd], M->ReadU32(Addr), 32);
@@ -167,27 +137,39 @@ namespace SST{
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
         if (EXT1 != 0x0){
-          if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
-            Xbgas->ReadU16(EXT1, Addr);
-          } else {
-            uint16_t Value;
-            if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-              SEXT(R->RV64[Inst.rd], Value, 16);
-              R->RV64_PC += Inst.instSize;
+          if ( R->ERV64[0] == 0x00ull ) {
+            if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
+              Xbgas->ReadU16(EXT1, Addr);
+            } else {
+              uint16_t Value;
+              if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
+                SEXT(R->RV64[Inst.rd], Value, 16);
+                R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
-            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-            if (id == 0) 
-            {
-              std::cout << "_XBGAS_DEBUG_ CPU" << id
-                        << ": [elh]\tRV64[" << std::dec << +Inst.rd
-                        << "](0x" << std::hex << R->RV64[Inst.rd]
-                        << ") = Nmspace(0x"<< std::hex << EXT1
-                        << ") @ Addr(0x" << std::hex << Addr
-                        << ")" << std::endl;
-              
-            }
+              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+              if (id == 0) 
+              {
+                std::cout << "_XBGAS_DEBUG_ CPU" << id
+                          << ": [elh]\tRV64[" << std::dec << +Inst.rd
+                          << "](0x" << std::hex << R->RV64[Inst.rd]
+                          << ") = Nmspace(0x"<< std::hex << EXT1
+                          << ") @ Addr(0x" << std::hex << Addr
+                          << ")" << std::endl;
+              }
 #endif
+              }
             }
+          } else {
+            // DMA operation
+            uint8_t destReg   = DECODE_RD(R->ERV64[0]);
+            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
+            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
+            Xbgas -> ReadBulkU16( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                  (uint32_t)(R->RV64[strideReg]), 
+                                  (uint64_t)(R->RV64[destReg]));
+            // Reset ERV64[0]
+            R->ERV64[0] = 0x00ull;
+            R->RV64_PC += Inst.instSize;
           }
         } else {
           SEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 16);
@@ -223,7 +205,7 @@ namespace SST{
             }
 #endif
             }
-          }
+          } 
         } else {
           R->RV64[Inst.rd] = M->ReadU16(Addr);
           R->RV64_PC += Inst.instSize;
@@ -237,28 +219,42 @@ namespace SST{
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
         if (EXT1 != 0x0){
-          if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
-            Xbgas->ReadU8(EXT1, Addr);
-          } else {
-            uint8_t Value;
-            if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
-              SEXT(R->RV64[Inst.rd], Value, 8);
-              R->RV64_PC += Inst.instSize;
+          if ( R->ERV64[0] == 0x00ull ) {
+            if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
+              Xbgas->ReadU8(EXT1, Addr);
+            } else {
+              uint8_t Value;
+              if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
+                SEXT(R->RV64[Inst.rd], Value, 8);
+                R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
-            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-            if (id == 0) 
-            {
-              std::cout << "_XBGAS_DEBUG_ CPU" << id
-                        << ": [elb]\tRV64[" << std::dec << +Inst.rd
-                        << "](0x" << std::hex << R->RV64[Inst.rd]
-                        << ") = Nmspace(0x"<< std::hex << EXT1
-                        << ") @ Addr(0x" << std::hex << Addr
-                        << ")" << std::endl;
-              
-            }
+              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+              if (id == 0) 
+              {
+                std::cout << "_XBGAS_DEBUG_ CPU" << id
+                          << ": [elb]\tRV64[" << std::dec << +Inst.rd
+                          << "](0x" << std::hex << R->RV64[Inst.rd]
+                          << ") = Nmspace(0x"<< std::hex << EXT1
+                          << ") @ Addr(0x" << std::hex << Addr
+                          << ")" << std::endl;
+                
+              }
 #endif
+              }
             }
+          } else {
+            // DMA operation
+            uint8_t destReg   = DECODE_RD(R->ERV64[0]);
+            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
+            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
+            Xbgas -> ReadBulkU8( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                 (uint32_t)(R->RV64[strideReg]), 
+                                 (uint64_t)(R->RV64[destReg]));
+            // Reset ERV64[0]
+            R->ERV64[0] = 0x00ull;
+            R->RV64_PC += Inst.instSize;
           }
+          
         } else {
           SEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 8);
           R->RV64_PC += Inst.instSize;
@@ -348,11 +344,8 @@ namespace SST{
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
         if (EXT2 != 0x0) {
-          Xbgas->WriteU64( EXT2, Addr, R->RV64[Inst.rs2] );
-        } else {
-          M->WriteU64( Addr, R->RV64[Inst.rs2]);
-        }
-        R->RV64_PC += Inst.instSize;
+          if ( R->ERV64[0] == 0x00ull ) {
+            Xbgas->WriteU64( EXT2, Addr, R->RV64[Inst.rs2] );
 
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
@@ -367,6 +360,22 @@ namespace SST{
           }
 #endif
 
+          } else {
+            // DMA operation
+            uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
+            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
+            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
+            Xbgas -> WriteBulkU64( EXT2, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                  (uint32_t)(R->RV64[strideReg]), 
+                                  (uint64_t)(R->RV64[srcReg]));
+            // Reset ERV64[0]
+            R->ERV64[0] = 0x00ull;
+          }
+          
+        } else {
+          M->WriteU64( Addr, R->RV64[Inst.rs2]);
+        }
+        R->RV64_PC += Inst.instSize;
         return true;
       }
 
@@ -387,11 +396,8 @@ namespace SST{
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
         if (EXT2 != 0x0) {
-          Xbgas->WriteU32( EXT2, Addr, (uint32_t)(R->RV64[Inst.rs2]) );
-        } else {
-          M->WriteU32( Addr, (uint32_t)(R->RV64[Inst.rs2]));
-        }
-        R->RV64_PC += Inst.instSize;
+          if ( R->ERV64[0] == 0x00ull ) {
+            Xbgas->WriteU32( EXT2, Addr, (uint32_t)(R->RV64[Inst.rs2]) );
 
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
@@ -405,7 +411,22 @@ namespace SST{
           }
 #endif
 
-        
+          } else {
+            // DMA operation
+            uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
+            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
+            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
+            Xbgas -> WriteBulkU32( EXT2, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                  (uint32_t)(R->RV64[strideReg]), 
+                                  (uint64_t)(R->RV64[srcReg]));
+            // Reset ERV64[0]
+            R->ERV64[0] = 0x00ull;
+          }
+          
+        } else {
+          M->WriteU32( Addr, (uint32_t)(R->RV64[Inst.rs2]));
+        }
+        R->RV64_PC += Inst.instSize;
         return true;
       }
 
@@ -426,11 +447,8 @@ namespace SST{
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
         if (EXT2 != 0x0) {
-          Xbgas->WriteU16( EXT2, Addr, (uint16_t)(R->RV64[Inst.rs2]) );
-        } else {
-          M->WriteU16( Addr, (uint16_t)(R->RV64[Inst.rs2]));
-        }
-        R->RV64_PC += Inst.instSize;
+          if ( R->ERV64[0] == 0x00ull ) {
+            Xbgas->WriteU16( EXT2, Addr, (uint16_t)(R->RV64[Inst.rs2]) );
 
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
@@ -442,7 +460,24 @@ namespace SST{
                       << "](0x" << std::hex << R->RV64[Inst.rs2]
                       << ")" << std::endl;
           }
-#endif  
+#endif
+
+          } else {
+            // DMA operation
+            uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
+            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
+            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
+            Xbgas -> WriteBulkU16( EXT2, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                  (uint32_t)(R->RV64[strideReg]), 
+                                  (uint64_t)(R->RV64[srcReg]));
+            // Reset ERV64[0]
+            R->ERV64[0] = 0x00ull;
+          }
+          
+        } else {
+          M->WriteU16( Addr, (uint16_t)(R->RV64[Inst.rs2]));
+        }
+        R->RV64_PC += Inst.instSize;  
         return true;
       }
 
@@ -463,11 +498,8 @@ namespace SST{
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
         if (EXT2 != 0x0) {
-          Xbgas->WriteU8( EXT2, Addr, (uint8_t)(R->RV64[Inst.rs2]) );
-        } else {
-          M->WriteU8( Addr, (uint8_t)(R->RV64[Inst.rs2]));
-        }
-        R->RV64_PC += Inst.instSize;
+          if ( R->ERV64[0] == 0x00ull ) {
+            Xbgas->WriteU8( EXT2, Addr, (uint8_t)(R->RV64[Inst.rs2]) );
 
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
@@ -480,7 +512,22 @@ namespace SST{
                       << ")" << std::endl;
           }
 #endif
-        
+
+          } else {
+            // DMA operation
+            uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
+            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
+            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
+            Xbgas -> WriteBulkU8( EXT2, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                 (uint32_t)(R->RV64[strideReg]), 
+                                 (uint64_t)(R->RV64[srcReg]));
+            // Reset ERV64[0]
+            R->ERV64[0] = 0x00ull;
+          }
+        } else {
+          M->WriteU8( Addr, (uint8_t)(R->RV64[Inst.rs2]));
+        }
+        R->RV64_PC += Inst.instSize;     
         return true;
       }
       
