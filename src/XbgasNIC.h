@@ -40,7 +40,7 @@ namespace SST {
       /// xbgasNicEvent: standard constructor
       xbgasNicEvent(std::string name)
       : Event(), SrcName(name),
-        Tag(0), Opcode(0),
+        Tag(0), DmaFlag(false), Opcode(0),
         Size(0), Addr(0), Stride(0){ }
       
       /// xbgasNicEvent: retrieve the source name;

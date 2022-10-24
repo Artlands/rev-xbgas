@@ -236,12 +236,10 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
   char *DataElem = (char *)(Data);
 
 #ifdef _XBGAS_DEBUG_
-  // TODO: debug non-DMA operations
-  // std::cout << "Handle Put DMA Flag: " << std::boolalpha << DmaFlag << std::endl;
   int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-  if ( (id == 1) && DmaFlag ) { 
+  if ( (id == 1) ) { 
     std::cout << "_XBGAS_DEBUG_ CPU " << id
-              << ": PE0 BULK PUT:" << std::endl;
+              << ": PE0 PUT:" << std::endl;
   }
 #endif
 
@@ -250,7 +248,7 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
     tmp_addr = Addr + (uint64_t)(i * (1 + Stride) * Len);
 
 #ifdef _XBGAS_DEBUG_
-    if ( (id == 1) && DmaFlag ) { 
+    if ( (id == 1) ) { 
       std::cout << "\tUpdate value @" << std::hex << tmp_addr
                 << " " << std:: dec << (int)(mem->ReadU32(tmp_addr));
     }
@@ -264,7 +262,7 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
     }
 
 #ifdef _XBGAS_DEBUG_
-    if ( (id == 1) && DmaFlag ) { 
+    if ( (id == 1) ) { 
       std::cout << " --> " << std::dec << (int)(mem->ReadU32(tmp_addr)) << std::endl;
     }
 #endif
@@ -370,16 +368,6 @@ bool RevXbgas::processXBGASMemRead(){
           break;
         }
 
-// #ifdef _XBGAS_DEBUG_
-//       int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-//       if (id == 1) 
-//       { 
-//         std::cout << "_XBGAS_DEBUG_ CPU" << id
-//                   << ": Read value @" << std::hex << tmp_addr
-//                   << " " << std::dec << (int)(DataElem[i*Len]) << std::endl;
-//       }
-// #endif
-
         // Success to read all elements
         flag = 1;
       }
@@ -462,23 +450,55 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
 
   xbgasNicEvent *PEvent = new xbgasNicEvent(xnic->getName()); // new event to send
   PEvent->setSrc(Src);
-  PEvent->setDMA(Dma);
-
-#ifdef _XBGAS_DEBUG_
-  std::cout << "DMA Flag: " << std::boolalpha << Dma << std::endl; 
-#endif
 
   // Buffer
   uint64_t *Buf = new uint64_t[PEvent->getNumBlocks(Size)];
   char *BufElem = (char *)(Buf);
 
   bool flag = 0;
-  // Read memory and save to buffer
-  for( unsigned i=0; i< Nelem; i++ ){
-    tmp_addr = (uint64_t)(DataElem) + (uint64_t)(i * (1 + Stride) * Len);
-    if( !mem->ReadMem( tmp_addr, Len, (void *)(&BufElem[i*Len])) ){
-      break;
+
+  if ( Dma ) {
+    // Read memory and save to buffer
+
+  #ifdef _XBGAS_DEBUG_
+      int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+      if ( id == 0) { 
+        std::cout << "_XBGAS_DEBUG_ CPU" << id
+                  << ": [WriteMem] " << std::endl;
+      }
+  #endif
+
+    for( unsigned i=0; i< Nelem; i++ ){
+      tmp_addr = (uint64_t)(DataElem) + (uint64_t)(i * (1 + Stride) * Len);
+      if( !mem->ReadMem( tmp_addr, Len, (void *)(&BufElem[i*Len])) ){
+        break;
+      }
+
+  #ifdef _XBGAS_DEBUG_
+      if ( id == 0) { 
+        std::cout << "\tBuffer[" << std::dec << int(i) 
+                  << "] = 0x" << std::hex << (uint64_t)(Buf[i]) << std::endl;
+      }
+  #endif
+
+      flag = 1;
     }
+  } else {
+    // Copy data to buffer
+    for( unsigned i=0; i< Len; i++ ){
+      BufElem[i] = DataElem[i];
+    }
+
+#ifdef _XBGAS_DEBUG_
+      int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+      if ( id == 0) { 
+        std::cout << "_XBGAS_DEBUG_ CPU" << id
+                  << ": [WriteMem] "<< std::endl
+                  << "\tBuffer[0] = 0x" << std::hex
+                  << (uint64_t)(Buf[0]) << std::endl;
+      }
+#endif
+
     flag = 1;
   }
 

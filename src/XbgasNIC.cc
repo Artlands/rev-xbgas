@@ -140,7 +140,7 @@ bool xbgasNicEvent::buildPut(uint8_t Tag, uint64_t Addr, uint32_t Size,
     return false;
   if( !setTag(Tag) )
     return false;
-  if( !setDMA(true) )
+  if( !setDMA(Dma) )
     return false;
   if( !setAddr(Addr) )
     return false;
