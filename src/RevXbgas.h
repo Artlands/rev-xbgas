@@ -167,7 +167,8 @@ namespace SST {
       bool sendXBGASMessage();
 
       bool WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, 
-                     uint32_t Nelem, uint32_t Stride, void *Data);
+                     uint32_t Nelem, uint32_t Stride, 
+                     bool Dma, void *Data);
       bool ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len, 
                     uint32_t Nelem, uint32_t Stride, 
                     bool Dma, uint64_t DmaDestAddr);

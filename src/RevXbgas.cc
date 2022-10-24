@@ -151,7 +151,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
 
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-          if (id == 0) { 
+          if ( (id == 0) && tmp_dma ){ 
             std::cout << "_XBGAS_DEBUG_ CPU " << id
                       << ": PE0 BULK GET:" << std::endl;
           }
@@ -161,7 +161,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
           tmp_addr = tmp_dest_addr + (uint64_t)(i * (1 + tmp_stride) * tmp_len);
 
 #ifdef _XBGAS_DEBUG_
-          if (id == 0) { 
+          if ( (id == 0) && tmp_dma ) { 
             std::cout << "\tUpdate value @" << std::hex << tmp_addr
                       << " " << std:: dec << (int)(mem->ReadU32(tmp_addr));
           }
@@ -173,7 +173,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
           }
 
 #ifdef _XBGAS_DEBUG_
-          if (id == 0) { 
+          if ( (id == 0) && tmp_dma ) { 
             std::cout << " --> " << std::dec << (int)(mem->ReadU32(tmp_addr)) << std::endl;
           }
 #endif
@@ -225,6 +225,7 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
   output->verbose(CALL_INFO, 6, 0, "Handling XBGAS Put Request for PE=%d\n", event->getSrc());
   // retrieve the data
   uint32_t Size = event->getSize();
+  bool DmaFlag = event->getDMA();
   uint32_t Nelem = event->getNelem();
   uint32_t Stride = event->getStride();
   size_t Len = (size_t)(Size/Nelem);
@@ -235,8 +236,10 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
   char *DataElem = (char *)(Data);
 
 #ifdef _XBGAS_DEBUG_
+  // TODO: debug non-DMA operations
+  // std::cout << "Handle Put DMA Flag: " << std::boolalpha << DmaFlag << std::endl;
   int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-  if (id == 1) { 
+  if ( (id == 1) && DmaFlag ) { 
     std::cout << "_XBGAS_DEBUG_ CPU " << id
               << ": PE0 BULK PUT:" << std::endl;
   }
@@ -247,7 +250,7 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
     tmp_addr = Addr + (uint64_t)(i * (1 + Stride) * Len);
 
 #ifdef _XBGAS_DEBUG_
-    if (id == 1) { 
+    if ( (id == 1) && DmaFlag ) { 
       std::cout << "\tUpdate value @" << std::hex << tmp_addr
                 << " " << std:: dec << (int)(mem->ReadU32(tmp_addr));
     }
@@ -261,7 +264,7 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
     }
 
 #ifdef _XBGAS_DEBUG_
-    if (id == 1) { 
+    if ( (id == 1) && DmaFlag ) { 
       std::cout << " --> " << std::dec << (int)(mem->ReadU32(tmp_addr)) << std::endl;
     }
 #endif
@@ -444,7 +447,8 @@ bool RevXbgas::sendXBGASMessage(){
 }
 
 bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len, 
-                         uint32_t Nelem, uint32_t Stride, void *Data ){
+                         uint32_t Nelem, uint32_t Stride, 
+                         bool Dma, void *Data ){
   uint32_t idx = 0;
   uint64_t tmp_addr = 0x00ull;
   int Dest = findDest(Nmspace);
@@ -458,6 +462,11 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
 
   xbgasNicEvent *PEvent = new xbgasNicEvent(xnic->getName()); // new event to send
   PEvent->setSrc(Src);
+  PEvent->setDMA(Dma);
+
+#ifdef _XBGAS_DEBUG_
+  std::cout << "DMA Flag: " << std::boolalpha << Dma << std::endl; 
+#endif
 
   // Buffer
   uint64_t *Buf = new uint64_t[PEvent->getNumBlocks(Size)];
@@ -480,7 +489,7 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
 
   } else {
     // populate it
-    if( !PEvent->buildPut(Tag, Addr, Size, Nelem, Stride, Buf) ){
+    if( !PEvent->buildPut(Tag, Addr, Size, Nelem, Stride, Dma, Buf) ){
       output->fatal(CALL_INFO, -1,
                     "%s, Error: could not create XBGAS PUT command\n",
                     xnic->getName().c_str());
@@ -494,75 +503,75 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
 
 void RevXbgas::WriteU8( uint64_t Nmspace, uint64_t Addr, uint8_t Value) {
   uint8_t Tmp = Value;
-  if( !WriteMem( Nmspace, Addr, 1, 1, 0, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 1, 1, 0, false, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U8)");
 }
 
 void RevXbgas::WriteU16( uint64_t Nmspace, uint64_t Addr, uint16_t Value) {
   uint16_t Tmp = Value;
-  if( !WriteMem( Nmspace, Addr, 2, 1, 0, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 2, 1, 0, false, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U16)");
 }
 
 void RevXbgas::WriteU32( uint64_t Nmspace, uint64_t Addr, uint32_t Value) {
   uint32_t Tmp = Value;
-  if( !WriteMem( Nmspace, Addr, 4, 1, 0, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 4, 1, 0, false, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U32)");
 }
 
 void RevXbgas::WriteU64( uint64_t Nmspace, uint64_t Addr, uint64_t Value) {
   uint64_t Tmp = Value;
-  if( !WriteMem( Nmspace, Addr, 8, 1, 0, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 8, 1, 0, false, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U64)");
 }
 
 void RevXbgas::WriteFloat( uint64_t Nmspace, uint64_t Addr, float Value) {
   uint32_t Tmp = 0x00;
   std::memcpy(&Tmp,&Value,sizeof(float));
-  if( !WriteMem( Nmspace, Addr, 4, 1, 0, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 4, 1, 0, false, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (FLOAT)");
 }
 
 void RevXbgas::WriteDouble( uint64_t Nmspace, uint64_t Addr, double Value) {
   uint64_t Tmp = 0x00;
   std::memcpy(&Tmp,&Value,sizeof(double));
-  if( !WriteMem( Nmspace, Addr, 8, 1, 0, (void *)(&Tmp) ) )
+  if( !WriteMem( Nmspace, Addr, 8, 1, 0, false, (void *)(&Tmp) ) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (DOUBLE)");
 }
 
 void RevXbgas::WriteBulkU8( uint64_t Nmspace, uint64_t DestAddr, 
                             uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
-  if ( !WriteMem( Nmspace, DestAddr, 1, Nelem, Stride, (void *)(SrcAddr)) )
+  if ( !WriteMem( Nmspace, DestAddr, 1, Nelem, Stride, true, (void *)(SrcAddr)) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U8 BULK)");
 }
 
 void RevXbgas::WriteBulkU16( uint64_t Nmspace, uint64_t DestAddr, 
                             uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
-  if ( !WriteMem( Nmspace, DestAddr, 2, Nelem, Stride, (void *)(SrcAddr)) )
+  if ( !WriteMem( Nmspace, DestAddr, 2, Nelem, Stride, true, (void *)(SrcAddr)) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U16 BULK)");
 }
 
 void RevXbgas::WriteBulkU32( uint64_t Nmspace, uint64_t DestAddr, 
                             uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
-  if ( !WriteMem( Nmspace, DestAddr, 4, Nelem, Stride, (void *)(SrcAddr)) )
+  if ( !WriteMem( Nmspace, DestAddr, 4, Nelem, Stride, true, (void *)(SrcAddr)) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U32 BULK)");
 }
 
 void RevXbgas::WriteBulkU64( uint64_t Nmspace, uint64_t DestAddr, 
                             uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
-  if ( !WriteMem( Nmspace, DestAddr, 8, Nelem, Stride, (void *)(SrcAddr)) )
+  if ( !WriteMem( Nmspace, DestAddr, 8, Nelem, Stride, true, (void *)(SrcAddr)) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (U64 BULK)");
 }
 
 void RevXbgas::WriteBulkFloat( uint64_t Nmspace, uint64_t DestAddr, 
                             uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
-  if ( !WriteMem( Nmspace, DestAddr, 4, Nelem, Stride, (void *)(SrcAddr)) )
+  if ( !WriteMem( Nmspace, DestAddr, 4, Nelem, Stride, true, (void *)(SrcAddr)) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (FLOAT BULK)");
 }
 
 void RevXbgas::WriteBulkDouble( uint64_t Nmspace, uint64_t DestAddr, 
                                 uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr) {
-  if ( !WriteMem( Nmspace, DestAddr, 8, Nelem, Stride, (void *)(SrcAddr)) )
+  if ( !WriteMem( Nmspace, DestAddr, 8, Nelem, Stride, true, (void *)(SrcAddr)) )
     output->fatal(CALL_INFO, -1, "Error: could not write remote memory (DOUBLE BULK)");
 }
 

@@ -121,7 +121,7 @@ namespace SST {
       /// xbgasNicEvent: build a put packet
       bool buildPut(uint8_t Tag, uint64_t DestAddr, uint32_t Size, 
                     uint32_t Nelem, uint32_t Stride, 
-                    uint64_t *Data);
+                    bool Dma, uint64_t *Data);
 
       /// xbgasNicEvent: build a success packet
       bool buildSuccess(uint8_t Tag);

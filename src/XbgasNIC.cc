@@ -117,6 +117,8 @@ bool xbgasNicEvent::buildGet(uint8_t Tag, uint64_t SrcAddr, uint32_t Size,
   Opcode = xbgasNicEvent::Get;
   if( !setTag(Tag) )
     return false;
+  if( !setDMA(Dma) )
+    return false;
   if( !setAddr(SrcAddr) )
     return false;
   if( !setSize(Size) )
@@ -125,8 +127,6 @@ bool xbgasNicEvent::buildGet(uint8_t Tag, uint64_t SrcAddr, uint32_t Size,
     return false;
   if( !setStride(Stride) )
     return false;
-  if( !setDMA(Dma) )
-    return false;
   if( !setDestAddr(DmaDestAddr) )
     return false;
   return true;
@@ -134,7 +134,7 @@ bool xbgasNicEvent::buildGet(uint8_t Tag, uint64_t SrcAddr, uint32_t Size,
 
 bool xbgasNicEvent::buildPut(uint8_t Tag, uint64_t Addr, uint32_t Size, 
                              uint32_t Nelem, uint32_t Stride, 
-                             uint64_t *Data){
+                             bool Dma, uint64_t *Data){
   Opcode = xbgasNicEvent::Put;
   if (Data == nullptr )
     return false;

@@ -22,8 +22,8 @@ int main(int argc, char **argv ){
   if (MYPE == 1)
     NMSPACE = 0x1;
   
-  int nelem = 4;
-  int stride = 1;
+  int nelem = 2;
+  int stride = 2;
 
   /* source data */
   int SRC32[10] = {10, 200, 3000, 40000, 50000, 600000, 7000000, 80000000, 900000000, 1000000000};
@@ -46,13 +46,14 @@ int main(int argc, char **argv ){
 	);
 
   /* ELD */
-  asm volatile // set source address
+  asm volatile // set destination address
   (
     "ld x10, 0(%[z]) \n\t"
     :
     : [z] "r" (PPT_DEST32)
   );
 
+  /* EAG */
   asm volatile
   (
     " eag %[d], %[n], %[s] "
@@ -60,6 +61,7 @@ int main(int argc, char **argv ){
     : [d] "r" (SRC32), [n] "r" (nelem), [s] "r" (stride) 
   );
 
+  /* ESW */
   asm volatile
   (
     " esw x11, 0(x10) "
