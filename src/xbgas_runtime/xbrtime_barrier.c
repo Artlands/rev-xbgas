@@ -37,8 +37,8 @@ extern void xbrtime_barrier() {
   int64_t iter = (int64_t)(log(2)/log(2));
 
   // if (iter < log(num_pe)/log(2))
-  if (iter < log(2)/log(2))
-		iter++;
+  // if (iter < log(2)/log(2))
+	// 	iter++;
   
   iter = 1;
 
