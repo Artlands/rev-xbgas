@@ -1,0 +1,2327 @@
+WARNING: Building component "cpu" with no links assigned.
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__EH_FRAME_BEGIN__:0x11090]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__FRAME_END__:0x11090]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__TMC_END__:0x127f0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__atexit.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__bss_start:0x128a0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__call_atexit.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__call_exitprocs:0x108ec]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__do_global_dtors_aux:0x1016c]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__do_global_dtors_aux_fini_array_entry:0x120a0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__dso_handle:0x12880]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__errno:0x10620]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__fdlib_version:0x12888]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__fini_array_end:0x120a8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__fini_array_start:0x120a0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__frame_dummy_init_array_entry:0x12098]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__global_pointer$:0x12ff0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__ieee754_log:0x10380]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__init_array_end:0x120a0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__init_array_start:0x12098]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__internal_syscall:0x10aa4]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__libc_fini_array:0x10664]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__libc_init_array:0x106e0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__preinit_array_end:0x12094]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__preinit_array_start:0x12094]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__register_exitproc:0x10864]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__syscall_error:0x10a70]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_edata:0x128a0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_end:0x128f0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_exit:0x1104c]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_fini:0x10100]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_global_impure_ptr:0x12890]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_impure_ptr:0x12898]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_init:0x10100]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_start:0x100b0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [access:0x10ce0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [atexit:0x10608]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [atexit.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [chdir:0x10f94]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [chmod:0x10f8c]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [chown:0x10f84]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [close:0x10d44]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [completed.5184:0x128a8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [conv_stat:0x10a04]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [crtstuff.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [deregister_tm_clones:0x10104]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [e_log.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [errno.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [execve:0x10dd8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [exit:0x1062c]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [exit.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [faccessat:0x10d10]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [fini.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [fork:0x10e00]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [frame_dummy:0x101c0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [fstat:0x10b80]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [fstatat:0x10c84]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [ftime:0x10f6c]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [getcwd:0x10f9c]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [getpid:0x10e24]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [gettimeofday:0x10ea8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [heap_end.2611:0x128a0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [impure.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [impure_data:0x120a8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [init.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [isatty:0x10e78]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [kill:0x10e2c]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [link:0x10d74]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [log:0x1026c]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [lseek:0x10b30]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [lstat:0x10c30]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [main:0x101f4]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [math_log.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [matherr:0x105ec]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [memset:0x10788]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [nan:0x105f8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [object.5189:0x128b0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [open:0x10acc]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [openat:0x10b00]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [read:0x10b4c]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [register_tm_clones:0x10130]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [s_lib_ver.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [s_matherr.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [s_nan.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [sbrk:0x10fc0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [stat:0x10bd4]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [syscalls.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [sysconf:0x10fa4]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [t0.2574:0x128e0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [times:0x10edc]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [unlink:0x10da8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [utime:0x10f7c]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [w_log.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [wait:0x10e50]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [write:0x10b64]
+RevCPU[cpu:LoadProgramArgs:0]: Loading program argv[0] = math_log.exe
+RevCPU[cpu:RevXbgas:0]: Initializing the XBGAS object; set up the XBGAS message handler
+RevCPU[cpu:RevFeature:0]: Core 0 ; Initializing feature set from machine string=RV64IMAFD
+RevCPU[cpu:ParseMachineModel:0]: Core 0 ; Setting XLEN to 64
+RevCPU[cpu:ParseMachineModel:0]: Core 0 ; Architecture string=IMAFD
+RevCPU[cpu:RevCPU:0]: 
+*******                   
+/**////**                  
+/**   /**   *****  **    **
+/*******   **///**/**   /**
+/**///**  /*******//** /** 
+/**  //** /**////  //****  
+/**   //**//******  //**   
+//     //  //////    //    
+
+RevCPU[cpu:RevCPU:0]: Initialization of RevCPUs complete.
+CPU0-extended registers: 
+--->e10 (PE id)    = 0
+--->e11 (# of PEs) = 0
+COMPLETING INSTRUCTION: addi %rd, %rs1, $imm Next PC @ 0x101f8
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x12ff0
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: sd %rs2, $imm(%rs1) Next PC @ 0x101fc
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x12ff0
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: sd %rs2, $imm(%rs1) Next PC @ 0x10200
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x12ff0
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addi %rd, %rs1, $imm Next PC @ 0x10204
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addi %rd, %rs1, $imm Next PC @ 0x10208
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: sd %rs2, $imm(%rs1) Next PC @ 0x1020c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: sw %rs2, $imm(%rs1) Next PC @ 0x10210
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addi %rd, %rs1, $imm Next PC @ 0x10214
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: sw %rs2, $imm(%rs1) Next PC @ 0x10218
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: lw %rd, $imm(%rs1) Next PC @ 0x1021c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fcvt.d.w %rd, %rs1 Next PC @ 0x10220
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fsgnj.d %rd, %rs1, %rs2 Next PC @ 0x10224
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: jal %rd, $imm Next PC @ 0x1026c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addi %rd, %rs1, $imm Next PC @ 0x10270
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fsd %rs2, $imm(%rs1) Next PC @ 0x10274
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: sd %rs2, $imm(%rs1) Next PC @ 0x10278
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fsgnj.d %rd, %rs1, %rs2 Next PC @ 0x1027c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: jal %rd, $imm Next PC @ 0x10380
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fmv.x.d %rd, %rs1 Next PC @ 0x10384
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x0
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: lui %rd, $imm Next PC @ 0x10388
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x100000
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+SRAI: Inst.imm = 010000100000 Shamt = 32
+COMPLETING INSTRUCTION: srai %rd, %rs1, $imm Next PC @ 0x1038c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x100000
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addiw %rd, %rs1, $imm Next PC @ 0x10390
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x100000
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: bge %rs1, %rs2, $imm Next PC @ 0x10394
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0x100000
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: lui %rd, $imm Next PC @ 0x10398
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000000
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: xori %rd, %rs1, $imm Next PC @ 0x1039c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: and %rd, %rs1, %rs2 Next PC @ 0x103a0
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: or %rd, %rs1, %rs2 Next PC @ 0x103a4
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x4
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addiw %rd, %rs1, $imm Next PC @ 0x103a8
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x4
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: bne %rs1, %rs2, $imm Next PC @ 0x103c0
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x4
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: bge %rs1, %rs2, $imm Next PC @ 0x103c4
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 4| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x4
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fsub.d %rd, %rs1, %rs2 Next PC @ 0x103c8
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x4
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fmv.d.x %rd, %rs1 Next PC @ 0x103cc
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x4
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: jal %rd, $imm Next PC @ 0x103b8
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x4
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fdiv.d %rd, %rs1, %rs2 Next PC @ 0x103bc
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x4
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: jalr %rd, %rs1, $imm Next PC @ 0x10280
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x4
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: lw %rd, $imm(%rs1) Next PC @ 0x10284
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x4
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addi %rd, %rs1, $imm Next PC @ 0x10288
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0xffffffffffffffff
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: beq %rs1, %rs2, $imm Next PC @ 0x1028c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0xffffffffffffffff
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: feq.d %rd, %rs1, %rs2 Next PC @ 0x10290
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x1
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: beq %rs1, %rs2, $imm Next PC @ 0x10294
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 4| RV64[15]: 0x1
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fmv.d.x %rd, %rs1 Next PC @ 0x10298
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 1| RV64[15]: 0x1
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: flt.d %rd, %rs1, %rs2 Next PC @ 0x1029c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 1| RV64[15]: 0x1
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: bne %rs1, %rs2, $imm Next PC @ 0x1036c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10280
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 1| RV64[15]: 0x1
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: ld %rd, $imm(%rs1) Next PC @ 0x10370
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 4| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 1| RV64[15]: 0x1
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fld %rd, $imm(%rs1) Next PC @ 0x10374
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff03
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 1| RV64[15]: 0x1
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addi %rd, %rs1, $imm Next PC @ 0x10378
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 1| RV64[15]: 0x1
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: jalr %rd, %rs1, $imm Next PC @ 0x10228
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 1| RV64[15]: 0x1
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fsgnj.d %rd, %rs1, %rs2 Next PC @ 0x1022c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 1| RV64[15]: 0x1
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: lui %rd, $imm Next PC @ 0x10230
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 1| RV64[15]: 0x11000
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fld %rd, $imm(%rs1) Next PC @ 0x10234
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 0.6931471806| RV64[15]: 0x11000
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fdiv.d %rd, %rs1, %rs2 Next PC @ 0x10238
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x11000
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: fcvt.w.d %rd, %rs1 Next PC @ 0x1023c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: sw %rs2, $imm(%rs1) Next PC @ 0x10240
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: lw %rd, $imm(%rs1) Next PC @ 0x10244
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x1
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addiw %rd, %rs1, $imm Next PC @ 0x10248
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addi %rd, %rs1, $imm Next PC @ 0x1024c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x2
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: beq %rs1, %rs2, $imm Next PC @ 0x10250
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x2
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addi %rd, %rs1, $imm Next PC @ 0x10254
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addi %rd, %rs1, $imm Next PC @ 0x10258
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x10228
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: ld %rd, $imm(%rs1) Next PC @ 0x1025c
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x3fffff83
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: ld %rd, $imm(%rs1) Next PC @ 0x10260
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff53
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x12ff0
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: addi %rd, %rs1, $imm Next PC @ 0x10264
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff83
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x12ff0
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+COMPLETING INSTRUCTION: jalr %rd, %rs1, $imm Next PC @ 0x0
+|---- Register file -----|
+|SPF[0]: 0| DPF[0]: 0| RV64[0]: 0x0
+|SPF[1]: 0| DPF[1]: 0| RV64[1]: 0x0
+|SPF[2]: 0| DPF[2]: 0| RV64[2]: 0x3fffff83
+|SPF[3]: 0| DPF[3]: 0| RV64[3]: 0x12ff0
+|SPF[4]: 0| DPF[4]: 0| RV64[4]: 0x0
+|SPF[5]: 0| DPF[5]: 0| RV64[5]: 0x0
+|SPF[6]: 0| DPF[6]: 0| RV64[6]: 0x0
+|SPF[7]: 0| DPF[7]: 0| RV64[7]: 0x0
+|SPF[8]: 0| DPF[8]: 0| RV64[8]: 0x12ff0
+|SPF[9]: 0| DPF[9]: 0| RV64[9]: 0x0
+|SPF[10]: 0| DPF[10]: 0| RV64[10]: 0x0
+|SPF[11]: 0| DPF[11]: 0| RV64[11]: 0x0
+|SPF[12]: 0| DPF[12]: 0| RV64[12]: 0xffffffff80000fff
+|SPF[13]: 0| DPF[13]: 0| RV64[13]: 0x0
+|SPF[14]: 0| DPF[14]: 0| RV64[14]: 0x0
+|SPF[15]: 0| DPF[15]: 0| RV64[15]: 0x0
+|SPF[16]: 0| DPF[16]: 0| RV64[16]: 0x0
+|SPF[17]: 0| DPF[17]: 0| RV64[17]: 0x0
+|SPF[18]: 0| DPF[18]: 0| RV64[18]: 0x0
+|SPF[19]: 0| DPF[19]: 0| RV64[19]: 0x0
+|SPF[20]: 0| DPF[20]: 0| RV64[20]: 0x0
+|SPF[21]: 0| DPF[21]: 0| RV64[21]: 0x0
+|SPF[22]: 0| DPF[22]: 0| RV64[22]: 0x0
+|SPF[23]: 0| DPF[23]: 0| RV64[23]: 0x0
+|SPF[24]: 0| DPF[24]: 0| RV64[24]: 0x0
+|SPF[25]: 0| DPF[25]: 0| RV64[25]: 0x0
+|SPF[26]: 0| DPF[26]: 0| RV64[26]: 0x0
+|SPF[27]: 0| DPF[27]: 0| RV64[27]: 0x0
+|SPF[28]: 0| DPF[28]: 0| RV64[28]: 0x0
+|SPF[29]: 0| DPF[29]: 0| RV64[29]: 0x0
+|SPF[30]: 0| DPF[30]: 0| RV64[30]: 0x0
+|SPF[31]: 0| DPF[31]: 0| RV64[31]: 0x0
+|----- Register file -----|
+RevCPU[cpu:ClockTick:127000]: Program execution complete
+RevCPU[cpu:ClockTick:127000]: Program Stats: Total Cycles: 127 Busy Cycles: 63 Idle Cycles: 64 Eff: 0.496063
+RevCPU[cpu:ClockTick:127000]: Bytes Read: 336 Bytes Written: 6557 Floats Read: 0 Doubles Read 2  Floats Exec: 16 Inst Retired: 63
+RevCPU[cpu:clockTick:127000]: Closing Processor 0 at Cycle: 127
+RevCPU[cpu:clockTick:127000]: OK to end sim at cycle: 127
+Simulation is complete, simulated time: 127 ns

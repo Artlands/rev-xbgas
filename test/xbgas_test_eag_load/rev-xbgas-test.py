@@ -108,7 +108,7 @@ link0.connect( (iface0, "rtr_port", "2us"), (router, "port0", "2us") )
 link1 = sst.Link("link1")
 link1.connect( (iface1, "rtr_port", "2us"), (router, "port1", "2us") )
 
-sst.setStatisticOutput("sst.statOutputCSV")
-sst.enableAllStatisticsForAllComponents()
+# sst.setStatisticOutput("sst.statOutputCSV")
+# sst.enableAllStatisticsForAllComponents()
 
 # EOF

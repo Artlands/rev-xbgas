@@ -221,8 +221,9 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
   }
 
   // Create the xbgas object
-  {    
-    // Look up the network component
+  {  
+    EnableXBGAS = params.find<bool>("enable_xbgas", 0);
+    // No matter if xBGAS is enabled or not, always set up xBGAS NIC
     XNic = loadUserSubComponent<xbgasNicAPI>("xbgas_nic");
     // check to see if the nic was loaded.  if not, DO NOT load an anonymous endpoint
     if(!XNic)
@@ -448,24 +449,28 @@ void RevCPU::setup(){
     Nic->setup();
     address = Nic->getAddress();
   }
-  // if( EnableXBGAS ){
-  int64_t id = -1;
-  unsigned numPEs = 0;
 
-  XNic->setup();
-  address = XNic->getAddress();
-  Xbgas->initXbgasMem(XNic);
-  
-  id = (int64_t)(Mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-  numPEs = (unsigned)(Mem->ReadU64(_XBGAS_TOTAL_NPE_ADDR_));
-  output.verbose(CALL_INFO, 1, 0, "--> MY_PE = %" PRId64 ", Total Number of PEs = %u\n", id, numPEs);
-  
+  if ( EnableXBGAS ){
+    // int64_t id = -1;
+    unsigned numPEs = 0;
+    XNic->setup();
+    address = XNic->getAddress();
+    Xbgas->initXbgasMem(XNic);
+    
+    myPE = (int64_t)(Mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+    numPEs = (unsigned)(Mem->ReadU64(_XBGAS_TOTAL_NPE_ADDR_));
+    // output.verbose(CALL_INFO, 1, 0, "--> MY_PE = %" PRId64 ", Total Number of PEs = %u\n", myPE, numPEs);
+
+    // Initialize TrackEndSim
+    for( int i = 0; i < numPEs; i++ ){
+      TrackEndSim.push_back(std::make_pair(i, false));
+    }
+  }
+
   for( unsigned i=0; i<Procs.size(); i++ ){
     Procs[i]->InitExtReg();
   }
   
-  // }
-
   if( EnablePAN ){
     PNic->setup();
     address = PNic->getAddress();
@@ -477,8 +482,8 @@ void RevCPU::finish(){
 }
 
 void RevCPU::init( unsigned int phase ){
-  // if( EnableXBGAS )
-  XNic->init(phase);
+  if( EnableXBGAS )
+    XNic->init(phase);
   if( EnableNIC )
     Nic->init(phase);
   if( EnablePAN )
@@ -569,7 +574,7 @@ void RevCPU::PANHandleSuccess(panNicEvent *event){
   // search for the tag in the outstanding get list
   std::vector<std::tuple<uint8_t,uint64_t,uint32_t>>::iterator GetIter;
   for( GetIter = TrackGets.begin(); GetIter != TrackGets.end(); ++GetIter ){
-    if( std::get<0>(*GetIter) = event->getTag() ){
+    if( std::get<0>(*GetIter) == event->getTag() ){
       // found a valid entry; setup the memory write
       uint64_t *Data = new uint64_t [event->getNumBlocks(std::get<2>(*GetIter))];
       Mem->WriteMem(std::get<1>(*GetIter),
@@ -2347,12 +2352,10 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
     }
   }
 
-  // // Clock the Xbgas module
-  // if ( EnableXBGAS ) {
-  //   Xbgas->clockTick( currentCycle, msgPerCycle );
-  // }
-
-  Xbgas->clockTick( currentCycle, msgPerCycle );
+  // Clock the Xbgas module
+  if ( EnableXBGAS ) {
+    Xbgas->clockTick( currentCycle, msgPerCycle );
+  }
 
   // Clock the PAN network transport module
   if( EnablePAN ){
@@ -2391,9 +2394,9 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
     }
   }
 
-  // if( EnableXBGAS ){
-  rtn = Xbgas->isFinished();
-  // }
+  if( EnableXBGAS ){
+    rtn = Xbgas->isFinished();
+  }
 
   // check to see if all the processors are completed
   for( unsigned i=0; i<Procs.size(); i++ ){
@@ -2404,6 +2407,21 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   // check to see if the network has any outstanding messages: fixme
   if( !SendMB.empty() || !TrackTags.empty() || !ZeroRqst.empty() || !RevokeHasArrived )
     rtn = false;
+
+  // update PE status
+  if( rtn ){
+    // update my TrackEndSim
+    std::list<std::pair<unsigned, bool>>::iterator EndSimIter;
+    for( EndSimIter = TrackEndSim.begin(); EndSimIter != TrackEndSim.end(); ++EndSimIter ){
+      if( std::get<0>(*EndSimIter) == myPE ) {
+        std::get<1>(*EndSimIter) = true;
+        break;
+      }
+    }
+    // broadcast myPE status
+  }
+  // Check to see if all PEs are completed
+  // TrackEndSim
 
   if( rtn ){
     primaryComponentOKToEndSim();

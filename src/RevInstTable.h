@@ -160,7 +160,7 @@ static uint32_t dt_u32(int32_t binary, unsigned bits){
   return tmp;
 }
 
-/// td_u64: convert u64 in decimal to two's complement
+/// dt_u64: convert u64 in decimal to two's complement
 static uint64_t dt_u64(int64_t binary, unsigned bits){
   uint64_t tmp = binary;
   uint64_t i = 0;
@@ -218,7 +218,7 @@ namespace SST{
       double DPF[_REV_NUM_REGS_];       ///< RevRegFile: RVxxD register file
 
       // Extended register file
-      uint32_t ERV32[_REV_NUM_REGS_];   ///< RevRegFile: Extended register file
+      // uint32_t ERV32[_REV_NUM_REGS_];   ///< RevRegFile: Extended register file
       uint64_t ERV64[_REV_NUM_REGS_];   ///< RevRegFile: Extended register file
       
       uint32_t RV32_PC;                 ///< RevRegFile: RV32 PC
@@ -287,6 +287,7 @@ namespace SST{
       uint8_t rs2;          ///< RevInst: rs2 value
       uint8_t rs3;          ///< RevInst: rs3 value
       uint32_t imm;         ///< RevInst: immediate value
+      // int32_t imm;          ///< RevInst: immediate value
       uint8_t fmt;          ///< RevInst: floating point format
       uint8_t rm;           ///< RevInst: floating point rounding mode
       uint8_t aq;           ///< RevInst: aq field for atomic instructions
@@ -434,13 +435,13 @@ namespace SST{
       RevInstEntryBuilder& SetOffset(uint16_t off)      { InstEntry.offset = off;   return *this;};
       RevInstEntryBuilder& SetJumpTarget(uint16_t jt)   { InstEntry.jumpTarget = jt;return *this;};
       RevInstEntryBuilder& SetrdClass(RevRegClass rd)   { InstEntry.rdClass = rd;   return *this;};
-      RevInstEntryBuilder& Setrs1Class(RevRegClass rs1) {InstEntry.rs1Class = rs1;  return *this;};
-      RevInstEntryBuilder& Setrs2Class(RevRegClass rs2) {InstEntry.rs2Class = rs2;  return *this;};
-      RevInstEntryBuilder& Setrs3Class(RevRegClass rs3) {InstEntry.rs3Class = rs3;  return *this;};
-      RevInstEntryBuilder& Setimm12(uint16_t imm12)     {InstEntry.imm12 = imm12;   return *this;};
-      RevInstEntryBuilder& Setimm(RevImmFunc imm)       {InstEntry.imm = imm;       return *this;};
-      RevInstEntryBuilder& SetFormat(RevInstF format)   {InstEntry.format = format; return *this;};
-      RevInstEntryBuilder& SetCompressed(bool c)        {InstEntry.compressed = c; return *this;};
+      RevInstEntryBuilder& Setrs1Class(RevRegClass rs1) { InstEntry.rs1Class = rs1; return *this;};
+      RevInstEntryBuilder& Setrs2Class(RevRegClass rs2) { InstEntry.rs2Class = rs2; return *this;};
+      RevInstEntryBuilder& Setrs3Class(RevRegClass rs3) { InstEntry.rs3Class = rs3; return *this;};
+      RevInstEntryBuilder& Setimm12(uint16_t imm12)     { InstEntry.imm12 = imm12;  return *this;};
+      RevInstEntryBuilder& Setimm(RevImmFunc imm)       { InstEntry.imm = imm;      return *this;};
+      RevInstEntryBuilder& SetFormat(RevInstF format)   { InstEntry.format = format;return *this;};
+      RevInstEntryBuilder& SetCompressed(bool c)        { InstEntry.compressed = c; return *this;};
 
       RevInstEntryBuilder& SetImplFunc(bool (*func)(RevFeature *,
                                                     RevRegFile *,

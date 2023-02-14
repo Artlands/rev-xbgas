@@ -34,7 +34,8 @@ namespace SST{
         // Send remote memory request otherwise.
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
-        if (EXT1 != 0x0) {
+        // if (EXT1 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
               Xbgas->ReadU64(EXT1, Addr);
@@ -58,12 +59,26 @@ namespace SST{
             R->RV64_PC += Inst.instSize;
           }
 
-        } else {
-          R->RV64[Inst.rd] = M->ReadU64(Addr);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
-
+        } 
+        // else {
+        //   R->RV64[Inst.rd] = M->ReadU64(Addr);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
+        // For testing only
+        // R->RV64_PC += Inst.instSize;
+// #ifdef _XBGAS_DEBUG_
+//           std::cout << "_XBGAS_DEBUG_ ELD"  << std::endl;
+//           std::cout << "|---- Register file -----|" << std::endl;
+//           for(int i=0; i<32; i++) {
+//             std::cout << "|x" <<std::dec << +i
+//                       << ": 0x" << std::hex << R->RV64[i]
+//                       << "|e" <<std::dec << +i
+//                       << ": 0x" << std::hex << R->ERV64[i]
+//                       << std::endl;
+//           }
+//           std::cout << "|----- Register file -----|" << std::endl;
+// #endif
         return true;
       }
 
@@ -71,7 +86,8 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
-        if (EXT1 != 0x0) {
+        // if (EXT1 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
               Xbgas->ReadU32(EXT1, Addr);
@@ -124,11 +140,12 @@ namespace SST{
   #endif
             R->RV64_PC += Inst.instSize;
           }
-        } else {
-          SEXT(R->RV64[Inst.rd], M->ReadU32(Addr), 32);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
+        } 
+        // else {
+        //   SEXT(R->RV64[Inst.rd], M->ReadU32(Addr), 32);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
         return true;
       }
 
@@ -136,7 +153,8 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
-        if (EXT1 != 0x0){
+        // if (EXT1 != 0x0)
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
               Xbgas->ReadU16(EXT1, Addr);
@@ -171,11 +189,12 @@ namespace SST{
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
           }
-        } else {
-          SEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 16);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
+        } 
+        // else {
+        //   SEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 16);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
         return true;
       }
 
@@ -183,7 +202,8 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
-        if (EXT1 != 0x0){
+        // if (EXT1 != 0x0)
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
               Xbgas->ReadU16(EXT1, Addr);
@@ -220,11 +240,12 @@ namespace SST{
             R->RV64_PC += Inst.instSize;
           }
 
-        } else {
-          R->RV64[Inst.rd] = M->ReadU16(Addr);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
+        } 
+        // else {
+        //   R->RV64[Inst.rd] = M->ReadU16(Addr);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
         return true;
       }
 
@@ -232,7 +253,8 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
-        if (EXT1 != 0x0){
+        // if (EXT1 != 0x0)
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
               Xbgas->ReadU8(EXT1, Addr);
@@ -269,11 +291,12 @@ namespace SST{
             R->RV64_PC += Inst.instSize;
           }
           
-        } else {
-          SEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 8);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
+        } 
+        // else {
+        //   SEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 8);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
         return true;
       }
 
@@ -281,7 +304,8 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
-        if (EXT1 != 0x0){
+        // if (EXT1 != 0x0)
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
               Xbgas->ReadU8(EXT1, Addr);
@@ -317,11 +341,12 @@ namespace SST{
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
           }
-        } else {
-          R->RV64[Inst.rd] = M->ReadU8(Addr);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
+        } 
+        // else {
+        //   R->RV64[Inst.rd] = M->ReadU8(Addr);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
         return true;
       }
 
@@ -367,41 +392,41 @@ namespace SST{
         /* The following implementation is based on xbgas-tool (branch: test)*/
         // esd rs2, imm(rs1)
 
-        uint64_t EXT2 = R->ERV64[Inst.rs1];
+        uint64_t EXT1 = R->ERV64[Inst.rs1];
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
-        if (EXT2 != 0x0) {
+        // if (EXT1 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
-            Xbgas->WriteU64( EXT2, Addr, R->RV64[Inst.rs2] );
-
 #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-            if(id == 0) 
+            // if(id == 0) 
             {
               std::cout << "_XBGAS_DEBUG_ CPU" << id
-                        << ": [esd]\tNamespace(0x" << EXT2
+                        << ": [esd]\tNamespace(0x" << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ") = RV64[" << std::dec << +Inst.rs2
                         << "](0x" << std::hex << R->RV64[Inst.rs2]
                         << ")" << std::endl;
             }
 #endif
-
+            Xbgas->WriteU64( EXT1, Addr, R->RV64[Inst.rs2] );
           } else {
             // DMA operation
             uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
             uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
             uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
-            Xbgas -> WriteBulkU64( EXT2, Addr, (uint32_t)(R->RV64[nelemReg]),
+            Xbgas -> WriteBulkU64( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
                                   (uint32_t)(R->RV64[strideReg]), 
                                   (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
           }
           
-        } else {
-          M->WriteU64( Addr, R->RV64[Inst.rs2]);
-        }
+        } 
+        // else {
+        //   M->WriteU64( Addr, R->RV64[Inst.rs2]);
+        // }
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -419,18 +444,19 @@ namespace SST{
 
         /* The following implementation is based on xbgas-tool (branch: test)*/
         // esw rs2, imm(rs1)
-        uint64_t EXT2 = R->ERV64[Inst.rs1];
+        uint64_t EXT1 = R->ERV64[Inst.rs1];
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
-        if (EXT2 != 0x0) {
+        // if (EXT1 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
-            Xbgas->WriteU32( EXT2, Addr, (uint32_t)(R->RV64[Inst.rs2]) );
+            Xbgas->WriteU32( EXT1, Addr, (uint32_t)(R->RV64[Inst.rs2]) );
 
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
           if(id == 0) {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
-                      << ": [esw]\tNamespace(0x" << EXT2
+                      << ": [esw]\tNamespace(0x" << EXT1
                       << ") @ Addr(0x" << std::hex << Addr
                       << ") = RV64[" << std::dec << +Inst.rs2
                       << "](0x" << std::hex << R->RV64[Inst.rs2]
@@ -443,16 +469,17 @@ namespace SST{
             uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
             uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
             uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
-            Xbgas -> WriteBulkU32( EXT2, Addr, (uint32_t)(R->RV64[nelemReg]),
+            Xbgas -> WriteBulkU32( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
                                   (uint32_t)(R->RV64[strideReg]), 
                                   (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
           }
           
-        } else {
-          M->WriteU32( Addr, (uint32_t)(R->RV64[Inst.rs2]));
-        }
+        } 
+        // else {
+        //   M->WriteU32( Addr, (uint32_t)(R->RV64[Inst.rs2]));
+        // }
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -470,18 +497,19 @@ namespace SST{
 
         /* The following implementation is based on xbgas-tool (branch: test)*/
         // esh rs2, imm(rs1)
-        uint64_t EXT2 = R->ERV64[Inst.rs1];
+        uint64_t EXT1 = R->ERV64[Inst.rs1];
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
-        if (EXT2 != 0x0) {
+        // if (EXT1 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
-            Xbgas->WriteU16( EXT2, Addr, (uint16_t)(R->RV64[Inst.rs2]) );
+            Xbgas->WriteU16( EXT1, Addr, (uint16_t)(R->RV64[Inst.rs2]) );
 
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
           if(id == 0) {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
-                      << ": [esh]\tNamespace(0x" << EXT2
+                      << ": [esh]\tNamespace(0x" << EXT1
                       << ") @ Addr(0x" << std::hex << Addr
                       << ") = RV64[" << std::dec << +Inst.rs2
                       << "](0x" << std::hex << R->RV64[Inst.rs2]
@@ -494,16 +522,17 @@ namespace SST{
             uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
             uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
             uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
-            Xbgas -> WriteBulkU16( EXT2, Addr, (uint32_t)(R->RV64[nelemReg]),
+            Xbgas -> WriteBulkU16( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
                                   (uint32_t)(R->RV64[strideReg]), 
                                   (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
           }
           
-        } else {
-          M->WriteU16( Addr, (uint16_t)(R->RV64[Inst.rs2]));
-        }
+        } 
+        // else {
+        //   M->WriteU16( Addr, (uint16_t)(R->RV64[Inst.rs2]));
+        // }
         R->RV64_PC += Inst.instSize;  
         return true;
       }
@@ -521,18 +550,19 @@ namespace SST{
 
         /* The following implementation is based on xbgas-tool (branch: test)*/
         // esb rs2, imm(rs1)
-        uint64_t EXT2 = R->ERV64[Inst.rs1];
+        uint64_t EXT1 = R->ERV64[Inst.rs1];
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
 
-        if (EXT2 != 0x0) {
+        // if (EXT1 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
-            Xbgas->WriteU8( EXT2, Addr, (uint8_t)(R->RV64[Inst.rs2]) );
+            Xbgas->WriteU8( EXT1, Addr, (uint8_t)(R->RV64[Inst.rs2]) );
 
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
           if(id == 0) {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
-                      << ": [esb]\tNamespace(0x" << EXT2
+                      << ": [esb]\tNamespace(0x" << EXT1
                       << ") @ Addr(0x" << std::hex << Addr
                       << ") = RV64[" << std::dec << +Inst.rs2
                       << "](0x" << std::hex << R->RV64[Inst.rs2]
@@ -545,15 +575,16 @@ namespace SST{
             uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
             uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
             uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
-            Xbgas -> WriteBulkU8( EXT2, Addr, (uint32_t)(R->RV64[nelemReg]),
+            Xbgas -> WriteBulkU8( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
                                  (uint32_t)(R->RV64[strideReg]), 
                                  (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
           }
-        } else {
-          M->WriteU8( Addr, (uint8_t)(R->RV64[Inst.rs2]));
-        }
+        } 
+        // else {
+        //   M->WriteU8( Addr, (uint8_t)(R->RV64[Inst.rs2]));
+        // }
         R->RV64_PC += Inst.instSize;     
         return true;
       }
@@ -566,9 +597,9 @@ namespace SST{
 
         /* The following implementation is based on xbgas-tool (branch: test)*/
         // ese ext1, imm(rs1)
-        uint64_t EXT1 = R->ERV64[Inst.rs2];
+        uint64_t EXT2 = R->ERV64[Inst.rs2];
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
-        M->WriteU64(Addr, EXT1);
+        M->WriteU64(Addr, EXT2);
         R->RV64_PC += Inst.instSize;
 
 #ifdef _XBGAS_DEBUG_
@@ -577,7 +608,7 @@ namespace SST{
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [ese]\tAddr(0x" << std::hex << Addr
                       << ") = ERV64[" << std::dec << +Inst.rs2
-                      << "](0x" << std::hex << EXT1
+                      << "](0x" << std::hex << EXT2
                       << ")" << std::endl;        
           }
 #endif
@@ -589,7 +620,8 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        if (EXT2 != 0x0) {
+        // if (EXT2 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
               Xbgas->ReadU64(EXT2, Addr);
@@ -625,11 +657,12 @@ namespace SST{
             R->RV64_PC += Inst.instSize;
           }
           
-        } else {
-          R->RV64[Inst.rd] = M->ReadU64(Addr);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
+        } 
+        // else {
+        //   R->RV64[Inst.rd] = M->ReadU64(Addr);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
 
         return true;
       }
@@ -638,7 +671,8 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        if (EXT2 != 0x0) {
+        // if (EXT2 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
               Xbgas->ReadU32(EXT2, Addr);
@@ -673,11 +707,12 @@ namespace SST{
             R->RV64_PC += Inst.instSize;
           }
           
-        } else {
-          R->RV64[Inst.rd] = M->ReadU32(Addr);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
+        } 
+        // else {
+        //   R->RV64[Inst.rd] = M->ReadU32(Addr);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
 
         return true;
       }
@@ -686,7 +721,8 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        if (EXT2 != 0x0) {
+        // if (EXT2 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
               Xbgas->ReadU16(EXT2, Addr);
@@ -721,11 +757,12 @@ namespace SST{
             R->RV64_PC += Inst.instSize;
           }
           
-        } else {
-          SEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 16);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
+        } 
+        // else {
+        //   SEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 16);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
 
         return true;
       }
@@ -734,7 +771,8 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        if (EXT2 != 0x0) {
+        // if (EXT2 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
               Xbgas->ReadU16(EXT2, Addr);
@@ -769,11 +807,12 @@ namespace SST{
             R->RV64_PC += Inst.instSize;
           }
 
-        } else {
-          R->RV64[Inst.rd] = M->ReadU16(Addr);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
+        } 
+        // else {
+        //   R->RV64[Inst.rd] = M->ReadU16(Addr);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
         
         return true;
       }
@@ -782,7 +821,8 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        if (EXT2 != 0x0) {
+        // if (EXT2 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
               Xbgas->ReadU8(EXT2, Addr);
@@ -818,11 +858,12 @@ namespace SST{
             R->RV64_PC += Inst.instSize;
           }
           
-        } else {
-          SEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 8);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
+        } 
+        // else {
+        //   SEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 8);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
         
         return true;
       }
@@ -831,7 +872,8 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        if (EXT2 != 0x0) {
+        // if (EXT2 != 0x0) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
               Xbgas->ReadU8(EXT2, Addr);
@@ -867,11 +909,12 @@ namespace SST{
             R->RV64_PC += Inst.instSize;
           }
           
-        } else {
-          R->RV64[Inst.rd] = M->ReadU8(Addr);
-          R->RV64_PC += Inst.instSize;
-          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        }
+        } 
+        // else {
+        //   R->RV64[Inst.rd] = M->ReadU8(Addr);
+        //   R->RV64_PC += Inst.instSize;
+        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        // }
         
         return true;
       }
@@ -942,7 +985,8 @@ namespace SST{
         // ersd rd, rs1, rs2
         uint64_t EXT3 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        if( EXT3 != 0x0 ) {
+        // if( EXT3 != 0x0 ) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU64( EXT3, Addr, R->RV64[Inst.rd] );
 
@@ -970,9 +1014,10 @@ namespace SST{
             R->ERV64[0] = 0x00ull;
           }
           
-        } else {
-          M->WriteU64( Addr, R->RV64[Inst.rd] );
-        }
+        } 
+        // else {
+        //   M->WriteU64( Addr, R->RV64[Inst.rd] );
+        // }
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -991,7 +1036,8 @@ namespace SST{
         // ersw rd, rs1, rs2
         uint64_t EXT3 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        if( EXT3 != 0x0 ) {
+        // if( EXT3 != 0x0 ) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU32( EXT3, Addr, R->RV64[Inst.rd] );
 
@@ -1019,9 +1065,10 @@ namespace SST{
             R->ERV64[0] = 0x00ull;
           }
           
-        } else {
-          M->WriteU32( Addr, R->RV64[Inst.rd] );
-        }
+        } 
+        // else {
+        //   M->WriteU32( Addr, R->RV64[Inst.rd] );
+        // }
         R->RV64_PC += Inst.instSize;
 
         return true;
@@ -1041,7 +1088,8 @@ namespace SST{
         // ersh rd, rs1, rs2
         uint64_t EXT3 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        if( EXT3 != 0x0 ) {
+        // if( EXT3 != 0x0 ) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU16( EXT3, Addr, R->RV64[Inst.rd] );
 #ifdef _XBGAS_DEBUG_
@@ -1067,9 +1115,10 @@ namespace SST{
             R->ERV64[0] = 0x00ull;
           }
           
-        } else {
-          M->WriteU16( Addr, R->RV64[Inst.rd] );
-        }
+        } 
+        // else {
+        //   M->WriteU16( Addr, R->RV64[Inst.rd] );
+        // }
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -1088,7 +1137,8 @@ namespace SST{
         // ersb rd, rs1, rs2
         uint64_t EXT3 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        if( EXT3 != 0x0 ) {
+        // if( EXT3 != 0x0 ) 
+        {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU8( EXT3, Addr, R->RV64[Inst.rd] );
 
@@ -1114,9 +1164,10 @@ namespace SST{
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
           }
-        } else {
-          M->WriteU8( Addr, R->RV64[Inst.rd] );
-        }
+        } 
+        // else {
+        //   M->WriteU8( Addr, R->RV64[Inst.rd] );
+        // }
         R->RV64_PC += Inst.instSize;
 
         return true;
@@ -1136,11 +1187,13 @@ namespace SST{
         // erse rd, rs1, rs2
         uint64_t EXT3 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        if( EXT3 != 0x0 ) {
+        // if( EXT3 != 0x0 ) 
+        {
           Xbgas->WriteU64( EXT3, Addr, R->ERV64[Inst.rd] );
-        } else {
-          M->WriteU64( Addr, R->ERV64[Inst.rd] );
-        }
+        } 
+        // else {
+        //   M->WriteU64( Addr, R->ERV64[Inst.rd] );
+        // }
         R->RV64_PC += Inst.instSize;
 
 #ifdef _XBGAS_DEBUG_
@@ -1197,9 +1250,9 @@ namespace SST{
       static bool eaddi(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         R->RV64[Inst.rd] = dt_u64((int64_t)(td_u64(R->ERV64[Inst.rs1], 64)) + (int64_t)(td_u64(Inst.imm, 12)), 64);
         R->RV64_PC += Inst.instSize;
-#ifdef _XBGAS_DEBUG_
+#if 0 //def _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-          if(id == 0) 
+          // if(id == 0) 
           {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [eaddi]\tRV64[" << std::dec << +Inst.rd
@@ -1218,7 +1271,7 @@ namespace SST{
         R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-          if(id == 0) 
+          // if(id == 0) 
           {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [eaddie]\tERV64[" << std::dec << +Inst.rd
@@ -1227,6 +1280,22 @@ namespace SST{
                       << "] (0x" << std::hex << (int64_t)(td_u64(R->RV64[Inst.rs1], 64))
                       << ") + IMM (" << std::dec << (int64_t)(td_u64(Inst.imm, 12))
                       << ")" << std::endl;
+          }
+          if(id == 1) {
+            std::cout << "_XBGAS_DEBUG_ CPU" << id << std::endl;
+            std::cout << "|---- Register file -----|" << std::endl;
+            for(int i=0; i<32; i++) {
+              std::cout << "|SPF[" <<std::dec << +i
+                        << "]: " << std::setprecision(10) << R->SPF[i]
+                        << "| DPF[" <<std::dec << +i
+                        << "]: " << std::setprecision(10) << R->DPF[i]
+                        << "| ERV64[" <<std::dec << +i
+                        << "]: 0x" << std::hex << R->ERV64[i]
+                        << "| RV64[" <<std::dec << +i
+                        << "]: 0x" << std::hex << R->RV64[i]
+                        << std::endl;
+            }
+            std::cout << "|----- Register file -----|" << std::endl;
           }
 #endif
         return true;
@@ -1237,7 +1306,7 @@ namespace SST{
         R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-          if(id == 0) 
+          // if(id == 0) 
           {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [eaddix]\tERV64[" << std::dec << +Inst.rd
@@ -1261,47 +1330,47 @@ namespace SST{
       // ----------------------------------------------------------------------
 
       std::vector<RevInstEntry> RV64XTable = {
-      // Load instructions are encoded in the I-type format
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elq %rd, $imm(%rs1)").SetCost(          1).SetOpcode(0b1110111).SetFunct3(0b110).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elq).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eld %rd, $imm(%rs1)").SetCost(          1).SetOpcode(0b1110111).SetFunct3(0b011).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &eld).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elw %rd, $imm(%rs1)").SetCost(          1).SetOpcode(0b1110111).SetFunct3(0b010).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elw).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elh %rd, $imm(%rs1)").SetCost(          1).SetOpcode(0b1110111).SetFunct3(0b001).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elh).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elhu %rd, $imm(%rs1)").SetCost(         1).SetOpcode(0b1110111).SetFunct3(0b101).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elhu).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elb %rd, $imm(%rs1)").SetCost(          1).SetOpcode(0b1110111).SetFunct3(0b000).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elb).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elbu %rd, $imm(%rs1)").SetCost(         1).SetOpcode(0b1110111).SetFunct3(0b100).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elbu).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ele %extd, $imm(%rs1)").SetCost(        1).SetOpcode(0b1110111).SetFunct3(0b111).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &ele).InstEntry},
+        // Load instructions are encoded in the I-type format
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elq %rd, $imm(%rs1)"      ).SetCost(1).SetOpcode(0b1110111).SetFunct3(0b110).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elq ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eld %rd, $imm(%rs1)"      ).SetCost(1).SetOpcode(0b1110111).SetFunct3(0b011).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &eld ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elw %rd, $imm(%rs1)"      ).SetCost(1).SetOpcode(0b1110111).SetFunct3(0b010).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elw ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elh %rd, $imm(%rs1)"      ).SetCost(1).SetOpcode(0b1110111).SetFunct3(0b001).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elh ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elhu %rd, $imm(%rs1)"     ).SetCost(1).SetOpcode(0b1110111).SetFunct3(0b101).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elhu).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elb %rd, $imm(%rs1)"      ).SetCost(1).SetOpcode(0b1110111).SetFunct3(0b000).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elb ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("elbu %rd, $imm(%rs1)"     ).SetCost(1).SetOpcode(0b1110111).SetFunct3(0b100).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &elbu).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ele %extd, $imm(%rs1)"    ).SetCost(1).SetOpcode(0b1110111).SetFunct3(0b111).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &ele ).InstEntry},
 
-      // Store instructions are encoded in the S-type format
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esq %rs1, $imm(%rs2)").SetCost(         1).SetOpcode(0b1111011).SetFunct3(0b100).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esq).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esd %rs1, $imm(%rs2)").SetCost(         1).SetOpcode(0b1111011).SetFunct3(0b011).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esd).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esw %rs1, $imm(%rs2)").SetCost(         1).SetOpcode(0b1111011).SetFunct3(0b010).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esw).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esh %rs1, $imm(%rs2)").SetCost(         1).SetOpcode(0b1111011).SetFunct3(0b001).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esh).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esb %rs1, $imm(%rs2)").SetCost(         1).SetOpcode(0b1111011).SetFunct3(0b000).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esb).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ese %ext1, $imm(%rs2)").SetCost(        1).SetOpcode(0b1111011).SetFunct3(0b101).SetrdClass(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &ese).InstEntry},
-      
-      // Raw Load instructions are encoded in the R-type format
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erld %rd, %rs1, %ext2").SetCost(        1).SetOpcode(0b0110011).SetFunct3(0b011).SetFunct7(0b1010101).SetFormat(RVTypeR).SetImplFunc( &erld).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erlw %rd, %rs1, %ext2").SetCost(        1).SetOpcode(0b0110011).SetFunct3(0b010).SetFunct7(0b1010101).SetFormat(RVTypeR).SetImplFunc( &erlw).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erlh %rd, %rs1, %ext2").SetCost(        1).SetOpcode(0b0110011).SetFunct3(0b001).SetFunct7(0b1010101).SetFormat(RVTypeR).SetImplFunc( &erlh).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erlhu %rd, %rs1, %ext2").SetCost(       1).SetOpcode(0b0110011).SetFunct3(0b101).SetFunct7(0b1010101).SetFormat(RVTypeR).SetImplFunc( &erlhu).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erlb %rd, %rs1, %ext2").SetCost(        1).SetOpcode(0b0110011).SetFunct3(0b000).SetFunct7(0b1010101).SetFormat(RVTypeR).SetImplFunc( &erlb).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erlbu %rd, %rs1, %ext2").SetCost(       1).SetOpcode(0b0110011).SetFunct3(0b100).SetFunct7(0b1010101).SetFormat(RVTypeR).SetImplFunc( &erlbu).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erle %extd, %rs1, %ext2").SetCost(      1).SetOpcode(0b0110011).SetFunct3(0b100).SetFunct7(0b0100001).SetFormat(RVTypeR).SetImplFunc( &erle).InstEntry},
+        // Store instructions are encoded in the S-type format
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esq %rs1, $imm(%rs2)"     ).SetCost(1).SetOpcode(0b1111011).SetFunct3(0b100).SetFunct7(0b0      ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esq ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esd %rs1, $imm(%rs2)"     ).SetCost(1).SetOpcode(0b1111011).SetFunct3(0b011).SetFunct7(0b0      ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esd ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esw %rs1, $imm(%rs2)"     ).SetCost(1).SetOpcode(0b1111011).SetFunct3(0b010).SetFunct7(0b0      ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esw ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esh %rs1, $imm(%rs2)"     ).SetCost(1).SetOpcode(0b1111011).SetFunct3(0b001).SetFunct7(0b0      ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esh ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("esb %rs1, $imm(%rs2)"     ).SetCost(1).SetOpcode(0b1111011).SetFunct3(0b000).SetFunct7(0b0      ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &esb ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ese %ext1, $imm(%rs2)"    ).SetCost(1).SetOpcode(0b1111011).SetFunct3(0b101).SetFunct7(0b0      ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeS).SetImplFunc( &ese ).InstEntry},
+        
+        // Raw Load instructions are encoded in the R-type format
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erld %rd, %rs1, %ext2"    ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b011).SetFunct7(0b1010101).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &erld ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erlw %rd, %rs1, %ext2"    ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b010).SetFunct7(0b1010101).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &erlw ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erlh %rd, %rs1, %ext2"    ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b001).SetFunct7(0b1010101).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &erlh ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erlhu %rd, %rs1, %ext2"   ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b101).SetFunct7(0b1010101).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &erlhu).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erlb %rd, %rs1, %ext2"    ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b000).SetFunct7(0b1010101).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &erlb ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erlbu %rd, %rs1, %ext2"   ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b100).SetFunct7(0b1010101).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &erlbu).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erle %extd, %rs1, %ext2"  ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b100).SetFunct7(0b0100001).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &erle ).InstEntry},
 
-      // Raw Store instructions are encoded in the R-type format
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ersd %rs1, %rs2, %ext3").SetCost(       1).SetOpcode(0b0110011).SetFunct3(0b011).SetFunct7(0b0100010).SetFormat(RVTypeR).SetImplFunc( &ersd).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ersw %rs1, %rs2, %ext3").SetCost(       1).SetOpcode(0b0110011).SetFunct3(0b010).SetFunct7(0b0100010).SetFormat(RVTypeR).SetImplFunc( &ersw).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ersh %rs1, %rs2, %ext3").SetCost(       1).SetOpcode(0b0110011).SetFunct3(0b001).SetFunct7(0b0100010).SetFormat(RVTypeR).SetImplFunc( &ersh).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ersb %rs1, %rs2, %ext3").SetCost(       1).SetOpcode(0b0110011).SetFunct3(0b000).SetFunct7(0b0100010).SetFormat(RVTypeR).SetImplFunc( &ersb).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erse %ext1, %rs2, %ext3").SetCost(      1).SetOpcode(0b0110011).SetFunct3(0b011).SetFunct7(0b0100011).SetFormat(RVTypeR).SetImplFunc( &erse).InstEntry},
+        // Raw Store instructions are encoded in the R-type format
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ersd %rs1, %rs2, %ext3"   ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b011).SetFunct7(0b0100010).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &ersd ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ersw %rs1, %rs2, %ext3"   ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b010).SetFunct7(0b0100010).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &ersw ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ersh %rs1, %rs2, %ext3"   ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b001).SetFunct7(0b0100010).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &ersh ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ersb %rs1, %rs2, %ext3"   ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b000).SetFunct7(0b0100010).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &ersb ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("erse %ext1, %rs2, %ext3"  ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b011).SetFunct7(0b0100011).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &erse ).InstEntry},
 
-      // Aggreagtion instruction is encoded in the R-type format. The Opcode in eag is not compatiable with REV 
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eag %rd, %rs1, %rs2").SetCost(          1).SetOpcode(0b0110011).SetFunct3(0b001).SetFunct7(0b0100011).SetFormat(RVTypeR).SetImplFunc( &eag).InstEntry},
+        // Aggreagtion instruction is encoded in the R-type format.
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eag %rd, %rs1, %rs2"      ).SetCost(1).SetOpcode(0b0110011).SetFunct3(0b001).SetFunct7(0b0100011).SetrdClass(RegUNKNOWN).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &eag  ).InstEntry},
 
-      // Address Management Instructions are encoded in the I-type format
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eaddi %rd, %ext1, $imm").SetCost(      1).SetOpcode(0b1111011).SetFunct3(0b110).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &eaddi).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eaddie %extd, %rs1, $imm").SetCost(    1).SetOpcode(0b1111011).SetFunct3(0b111).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &eaddie).InstEntry},
-      {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eaddix %extd, %ext1, $imm").SetCost(   1).SetOpcode(0b0000011).SetFunct3(0b111).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &eaddix).InstEntry}
+        // Address Management Instructions are encoded in the I-type format
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eaddi %rd, %ext1, $imm"   ).SetCost(1).SetOpcode(0b1111011).SetFunct3(0b110).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &eaddi ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eaddie %extd, %rs1, $imm" ).SetCost(1).SetOpcode(0b1111011).SetFunct3(0b111).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &eaddie).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eaddix %extd, %ext1, $imm").SetCost(1).SetOpcode(0b0000011).SetFunct3(0b111).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &eaddix).InstEntry}
       
       };
 

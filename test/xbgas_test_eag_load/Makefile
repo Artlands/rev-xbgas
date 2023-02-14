@@ -15,7 +15,7 @@
 SRCS = $(wildcard *.c)
 EXEC = $(SRCS:.c=.exe)
 
-CC=riscv64-unknown-linux-gnu-gcc
+CC=riscv64-unknown-elf-gcc
 ARCH=rv64imafd
 
 all: $(EXEC)

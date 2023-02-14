@@ -14,11 +14,16 @@
 
 EXAMPLE=ex5
 CC=riscv64-unknown-elf-gcc
-ARCH=rv64imafdc
+OBJDUMP=riscv64-unknown-elf-objdump
+ARCH=rv64imafd
 
 all: $(EXAMPLE).exe
 $(EXAMPLE).exe: $(EXAMPLE).c
 	$(CC) -march=$(ARCH) -o $(EXAMPLE).exe $(EXAMPLE).c
+
+objdump:
+	$(OBJDUMP) -d $(EXAMPLE).exe > $(EXAMPLE).asm
+	
 clean:
 	rm -Rf $(EXAMPLE).exe
 

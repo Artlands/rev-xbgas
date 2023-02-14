@@ -26,15 +26,15 @@ namespace SST{
         return true;
       }
 
-      static bool fcvtwd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        R->RV64[Inst.rd] = (int64_t)((double)(R->DPF[Inst.rs1]));
+      static bool fcvtlud(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
+        R->RV64[Inst.rd] = (uint64_t)((double)(R->DPF[Inst.rs1]));
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
-
-      static bool fcvtlud(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        R->RV64[Inst.rd] = (uint64_t)((double)(R->DPF[Inst.rs1]));
+      static bool fmvxd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
+        // std::memcpy(&R->RV64[Inst.rd],&R->DPF[Inst.rs1],sizeof(double));
+        R->RV64[Inst.rd] = (int64_t)(R->DPF[Inst.rs1]);
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -51,14 +51,9 @@ namespace SST{
         return true;
       }
 
-      static bool fmvxd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        std::memcpy(&R->RV64[Inst.rd],&R->DPF[Inst.rs1],sizeof(double));
-        R->RV64_PC += Inst.instSize;
-        return true;
-      }
-
       static bool fmvdx(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        std::memcpy(&R->RV64[Inst.rd],&R->DPF[Inst.rs1],sizeof(double));
+        // std::memcpy(&R->DPF[Inst.rd],&R->RV64[Inst.rs1],sizeof(double));
+        R->DPF[Inst.rd] = (int64_t)(R->RV64[Inst.rd]);
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -77,15 +72,15 @@ namespace SST{
         RevRegClass rdClass = RegFLOAT;
         RevRegClass rs1Class = RegFLOAT;
         RevRegClass rs2Class = RegUNKNOWN;
+        RevRegClass rs3Class = RegUNKNOWN;
       };
       std::vector<RevInstEntry> RV64DTable = {
-      {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fcvt.l.d %rd, %rs1"  ).SetFunct7(0b1100001).SetImplFunc( &fcvtld ).InstEntry},
-      {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fcvt.lu.d %rd, %rs1" ).SetFunct7(0b1100001).SetImplFunc( &fcvtlud ).InstEntry},
-      {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fcvt.d.l %rd, %rs1"  ).SetFunct7(0b1101001).SetImplFunc( &fcvtdl ).InstEntry},
-      {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fcvt.d.lu %rd, %rs1" ).SetFunct7(0b1101001).SetImplFunc( &fcvtdlu ).InstEntry},
-      {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fmv.x.d %rd, %rs1"   ).SetFunct7(0b1110001).SetImplFunc( &fmvxd ).InstEntry},
-      {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fmv.d.x %rd, %rs1"   ).SetFunct7(0b1111001).SetImplFunc( &fmvdx ).InstEntry},
-      {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fcvt.w.d %rd, %rs1" ).SetFunct7(0b1100001).SetImplFunc( &fcvtwd ).InstEntry}
+        {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fcvt.l.d %rd, %rs1"  ).SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1100001 ).Setimm12(0b110000100010).Setimm(FEnc).SetImplFunc( &fcvtld  ).InstEntry},
+        {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fcvt.lu.d %rd, %rs1" ).SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1100001 ).Setimm12(0b110000100011).Setimm(FEnc).SetImplFunc( &fcvtlud ).InstEntry},
+        {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fmv.x.d %rd, %rs1"   ).SetCost(1).SetFunct3( 0b000 ).SetFunct7( 0b1110001 ).Setimm12(0b111000100000).Setimm(FEnc).SetImplFunc( &fmvxd   ).InstEntry},
+        {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fcvt.d.l %rd, %rs1"  ).SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1101001 ).Setimm12(0b110100100010).Setimm(FEnc).SetImplFunc( &fcvtdl  ).InstEntry},
+        {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fcvt.d.lu %rd, %rs1" ).SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1101001 ).Setimm12(0b110100100011).Setimm(FEnc).SetImplFunc( &fcvtdlu ).InstEntry},
+        {RevInstEntryBuilder<Rev64DInstDefaults>().SetMnemonic("fmv.d.x %rd, %rs1"   ).SetCost(1).SetFunct3( 0b000 ).SetFunct7( 0b1111001 ).Setimm12(0b111100100000).Setimm(FEnc).SetImplFunc( &fmvdx   ).InstEntry},
       };
 
 

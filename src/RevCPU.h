@@ -245,6 +245,8 @@ namespace SST {
       panNicAPI *PNic;                    ///< RevCPU: PAN network interface controller
       PanExec *PExec;                     ///< RevCPU: PAN execution context
 
+      std::list<std::pair<unsigned, bool>> TrackEndSim; ///< RevCPU: tracks end of simulation for each PE; pair<PE, end>
+      SST::Interfaces::SimpleNetwork::nid_t myPE;       ///< RevCPU; my PE id
 
       std::queue<std::pair<panNicEvent *,int>> SendMB;  ///< RevCPU: outgoing command mailbox; pair<Cmd,Dest>
       std::queue<std::pair<uint32_t,char *>> ZeroRqst;  ///< RevCPU: tracks incoming zero address put requests; pair<Size,Data>

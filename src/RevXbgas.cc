@@ -11,9 +11,6 @@
 #include "RevXbgas.h"
 #include "../common/include/XbgasAddr.h"
 
-// #define _XBGAS_DEBUG_
-// #undef _XBGAS_DEBUG_
-
 using namespace SST;
 using namespace RevCPU;
 
@@ -27,7 +24,7 @@ RevXbgas::RevXbgas( xbgasNicAPI *XNic, RevOpts *Opts, RevMem *Mem, SST::Output *
 }
 
 void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
-  output->verbose(CALL_INFO, 1, 0, "Initializing Xbgas firmware memory.\n");
+  // output->verbose(CALL_INFO, 1, 0, "Initializing Xbgas firmware memory.\n");
 
   uint64_t ptr;
   int64_t id = -1;
@@ -44,8 +41,9 @@ void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
   ptr = (uint64_t)(_XBGAS_TOTAL_NPE_ADDR_);
   mem->WriteU64(ptr, (uint64_t)(numPEs));
 
-#ifdef _XBGAS_DEBUG_
-  if (id == 0) {
+#if 0
+// #ifdef _XBGAS_DEBUG_
+  if (id == 1) {
     std::cout << "_XBGAS_MY_PE_ADDR_: 0x" << std::hex << _XBGAS_MY_PE_ADDR_ << ", Value = " << std::dec << id << std::endl;
     std::cout << "_XBGAS_TOTAL_NPE_ADDR_: 0x" << std::hex << _XBGAS_TOTAL_NPE_ADDR_ << ", Value = " << std::dec << numPEs << std::endl;
     std::cout << "_REV_HEAP_START_: 0x" << std::hex << _REV_HEAP_START_ << std::endl;
@@ -65,14 +63,14 @@ void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
       NLB.push_back( std::make_pair( (uint64_t(i+1)), i ) );
   }
 
-  output->verbose(CALL_INFO, 6, 0, "--> MY NLB is: \n");
-  int i = 0;
-  for ( auto it=NLB.begin(); it != NLB.end(); ++it ){
-    output->verbose(CALL_INFO, 6, 0, "--> Entry: %d | Namespace: 0x%" PRId64 " | Node ID: %" PRId64 "\n", i, std::get<0>(*it), std::get<1>(*it));
-    i++;
-  }
+  // output->verbose(CALL_INFO, 6, 0, "--> MY NLB is: \n");
+  // int i = 0;
+  // for ( auto it=NLB.begin(); it != NLB.end(); ++it ){
+  //   output->verbose(CALL_INFO, 6, 0, "--> Entry: %d | Namespace: 0x%" PRId64 " | Node ID: %" PRId64 "\n", i, std::get<0>(*it), std::get<1>(*it));
+  //   i++;
+  // }
 
-  output->verbose(CALL_INFO, 1, 0, "Initialization of Xbgas firmware memory complete.\n");
+  // output->verbose(CALL_INFO, 1, 0, "Initialization of Xbgas firmware memory complete.\n");
 }
 
 bool RevXbgas::isFinished() {
@@ -125,7 +123,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
   // search for the tag in the outstanding get list, tuple<Tag,Dest,Addr>
   std::vector<std::tuple<uint8_t, int, uint64_t>>::iterator GetIter;
   for( GetIter = TrackGets.begin(); GetIter != TrackGets.end(); ++GetIter ){
-    if( std::get<0>(*GetIter) = event->getTag() ){
+    if( std::get<0>(*GetIter) == event->getTag() ){
       // Found a valid entry; put returned data in the GetResponses list if 
       // it is not a DMA event
       uint64_t tmp_addr = 0x00ull;
@@ -149,7 +147,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
       } else {
         // DMA operation; write to memory directly; destination addr, stride
 
-#ifdef _XBGAS_DEBUG_
+#if 0 //def _XBGAS_DEBUG_
           int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
           if ( (id == 0) && tmp_dma ){ 
             std::cout << "_XBGAS_DEBUG_ CPU " << id
@@ -160,7 +158,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
         for( unsigned i=0; i<tmp_nelem; i++ ){
           tmp_addr = tmp_dest_addr + (uint64_t)(i * (1 + tmp_stride) * tmp_len);
 
-#ifdef _XBGAS_DEBUG_
+#if 0 //def _XBGAS_DEBUG_
           if ( (id == 0) && tmp_dma ) { 
             std::cout << "\tUpdate value @" << std::hex << tmp_addr
                       << " " << std:: dec << (int)(mem->ReadU32(tmp_addr));
@@ -172,7 +170,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
             break;
           }
 
-#ifdef _XBGAS_DEBUG_
+#if 0 //def _XBGAS_DEBUG_
           if ( (id == 0) && tmp_dma ) { 
             std::cout << " --> " << std::dec << (int)(mem->ReadU32(tmp_addr)) << std::endl;
           }
@@ -207,7 +205,7 @@ void RevXbgas::handleFailed(xbgasNicEvent *event){
 }
 
 void RevXbgas::handleGet(xbgasNicEvent *event){
-  output->verbose(CALL_INFO, 6, 0, "Handling XBGAS Get Request from PE=%d, Tag=%d\n", event->getSrc(), event->getTag());
+  output->verbose(CALL_INFO, 5, 0, "Handling XBGAS Get Request from PE=%d, Tag=%d\n", event->getSrc(), event->getTag());
   // push an event entry back onto the ReadQueue
   ReadQueue.push_back(std::make_tuple(event->getTag(),
                                       RandCost(), 
@@ -235,7 +233,7 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
 
   char *DataElem = (char *)(Data);
 
-#ifdef _XBGAS_DEBUG_
+#if 0 //def _XBGAS_DEBUG_
   int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
   if ( (id == 1) ) { 
     std::cout << "_XBGAS_DEBUG_ CPU " << id
@@ -247,7 +245,7 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
   for( unsigned i=0; i<Nelem; i++) {
     tmp_addr = Addr + (uint64_t)(i * (1 + Stride) * Len);
 
-#ifdef _XBGAS_DEBUG_
+#if 0 //def _XBGAS_DEBUG_
     if ( (id == 1) ) { 
       std::cout << "\tUpdate value @" << std::hex << tmp_addr
                 << " " << std:: dec << (int)(mem->ReadU32(tmp_addr));
@@ -261,7 +259,7 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
       return ;
     }
 
-#ifdef _XBGAS_DEBUG_
+#if 0 //def _XBGAS_DEBUG_
     if ( (id == 1) ) { 
       std::cout << " --> " << std::dec << (int)(mem->ReadU32(tmp_addr)) << std::endl;
     }
@@ -359,17 +357,15 @@ bool RevXbgas::processXBGASMemRead(){
       uint64_t *Data = new uint64_t [OPEvent->getNumBlocks(tmp_size)];
       char *DataElem = (char *)(Data);
 
-      bool flag = 0;
+      bool flag = 1;
       // Try to read memory for each requested element
       for( unsigned i=0; i<tmp_nelem; i++ ){
         tmp_addr = tmp_base_addr + (uint64_t)(i * (1 + tmp_stride) * Len);
 
         if( !mem->ReadMem( tmp_addr, Len, (void *)(&DataElem[i*Len])) ){
+          flag = 0;
           break;
         }
-
-        // Success to read all elements
-        flag = 1;
       }
 
       if (flag == 0) {
@@ -414,7 +410,7 @@ bool RevXbgas::sendXBGASMessage(){
   if( SendMB.empty() )
     return true;
 
-  output->verbose(CALL_INFO, 6, 0,
+  output->verbose(CALL_INFO, 5, 0,
                  "Sending XBGAS message from %d to %d; Opc=%s; Tag=%u; Size=%" PRIu32 "\n",
                  int(xnic->getAddress()), SendMB.front().second,
                  SendMB.front().first->getOpcodeStr().c_str(),
@@ -440,7 +436,7 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
   uint32_t idx = 0;
   uint64_t tmp_addr = 0x00ull;
   int Dest = findDest(Nmspace);
-  output->verbose(CALL_INFO, 6, 0,
+  output->verbose(CALL_INFO, 5, 0,
                   "Writing %" PRIu32 " Bytes to PE %d Starting at 0x%2x; Stride = %" PRIu32 ", # of elements = %" PRIu32 "\n", 
                   Len, Dest, Addr, Stride, Nelem);
   uint8_t Tag  = createTag();
@@ -460,7 +456,7 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
   if ( Dma ) {
     // Read memory and save to buffer
 
-  #ifdef _XBGAS_DEBUG_
+  #if 0 //def _XBGAS_DEBUG_
       int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
       if ( id == 0) { 
         std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -474,7 +470,7 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
         break;
       }
 
-  #ifdef _XBGAS_DEBUG_
+  #if 0 //def _XBGAS_DEBUG_
       if ( id == 0) { 
         std::cout << "\tBuffer[" << std::dec << int(i) 
                   << "] = 0x" << std::hex << (uint64_t)(Buf[i]) << std::endl;
@@ -489,7 +485,7 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
       BufElem[i] = DataElem[i];
     }
 
-#ifdef _XBGAS_DEBUG_
+#if 0 //def _XBGAS_DEBUG_
       int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
       if ( id == 0) { 
         std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -605,7 +601,7 @@ bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
   uint64_t Src = xnic->getAddress();
   bool recvd = false;
 
-  output->verbose(CALL_INFO, 6, 0,
+  output->verbose(CALL_INFO, 5, 0,
                   "Reading %" PRIu32 " Bytes from PE=%d Starting at 0x%2x, Tag=%u\n", Len, Dest, Addr, Tag);
 
   GEvent = new xbgasNicEvent(xnic->getName()); // new event to send
@@ -714,13 +710,13 @@ uint8_t RevXbgas::createTag(){
 }
 
 int RevXbgas::findDest(uint64_t nmspace){
-  // return nmspace;
-  for( auto it=NLB.begin(); it != NLB.end(); ++it ) {
-    if( std::get<0>(*it) == nmspace ) {
-      return std::get<1>(*it);
-    }
-  }
-  return -1;
+  return nmspace;
+  // for( auto it=NLB.begin(); it != NLB.end(); ++it ) {
+  //   if( std::get<0>(*it) == nmspace ) {
+  //     return std::get<1>(*it);
+  //   }
+  // }
+  // return -1;
 }
 
 bool RevXbgas::checkGetRequests( uint64_t Nmspace, uint64_t Addr, uint8_t *Tag ){

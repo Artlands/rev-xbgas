@@ -18,9 +18,9 @@ int main(int argc, char **argv ){
   
   uint64_t NMSPACE;
   if (MYPE == 0)
-    NMSPACE = 0x2;
-  if (MYPE == 1)
-    NMSPACE = 0x1;
+    NMSPACE = 1;
+  else if (MYPE == 1)
+    NMSPACE = 0;
    
   /* destination data */
   uint64_t U64 = -8;
@@ -58,72 +58,72 @@ int main(int argc, char **argv ){
 
   asm volatile
   (
-    " eld x11, 0(x10) "
+    " eld x10, 0(x10) "
   );
 
-  /* ELW */
-  asm volatile // set destination address
-  (
-    "ld x10, 0(%[z]) \n\t"
-    :
-    : [z] "r" (AP_U32)
-  );
+  // /* ELW */
+  // asm volatile // set destination address
+  // (
+  //   "ld x10, 0(%[z]) \n\t"
+  //   :
+  //   : [z] "r" (AP_U32)
+  // );
 
-  asm volatile
-  (
-    " elw x11, 0(x10) "
-  );
+  // asm volatile
+  // (
+  //   " elw x11, 0(x10) "
+  // );
 
-  /* ELH */
-  asm volatile // set destination address
-  (
-    "ld x10, 0(%[z]) \n\t"
-    :
-    : [z] "r" (AP_U16)
-  );
+  // /* ELH */
+  // asm volatile // set destination address
+  // (
+  //   "ld x10, 0(%[z]) \n\t"
+  //   :
+  //   : [z] "r" (AP_U16)
+  // );
 
-  asm volatile
-  (
-    " elh x11, 0(x10) "
-  );
+  // asm volatile
+  // (
+  //   " elh x11, 0(x10) "
+  // );
 
-  /* ELHU */
-  asm volatile
-  (
-    " elhu x11, 0(x10) "
-  );
+  // /* ELHU */
+  // asm volatile
+  // (
+  //   " elhu x11, 0(x10) "
+  // );
 
-  /* ELB */
-  asm volatile // set destination address
-  (
-    "ld x10, 0(%[z]) \n\t"
-    :
-    : [z] "r" (AP_U8)
-  );
+  // /* ELB */
+  // asm volatile // set destination address
+  // (
+  //   "ld x10, 0(%[z]) \n\t"
+  //   :
+  //   : [z] "r" (AP_U8)
+  // );
 
-  asm volatile
-  (
-    " elb x11, 0(x10) "
-  );
+  // asm volatile
+  // (
+  //   " elb x11, 0(x10) "
+  // );
 
-  /* ELBU */
-  asm volatile
-  (
-    " elbu x11, 0(x10) "
-  );
+  // /* ELBU */
+  // asm volatile
+  // (
+  //   " elbu x11, 0(x10) "
+  // );
 
-  /* ELE */
-  asm volatile // set destination address
-  (
-    "ld x10, 0(%[z]) \n\t"
-    :
-    : [z] "r" (AP_U64)
-  );
+  // /* ELE */
+  // asm volatile // set destination address
+  // (
+  //   "ld x10, 0(%[z]) \n\t"
+  //   :
+  //   : [z] "r" (AP_U64)
+  // );
 
-  asm volatile
-  (
-    " ele e12, 0(x10) "
-  );
+  // asm volatile
+  // (
+  //   " ele e12, 0(x10) "
+  // );
 
   return 0;
 }

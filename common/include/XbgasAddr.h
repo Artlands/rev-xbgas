@@ -11,15 +11,18 @@
 #ifndef _XBGASADDR_H_
 #define _XBGASADDR_H_
 
-#define _REV_PAGE_SIZE                       262144         //Page Size (in Bytes)
+#define _REV_PAGE_SIZE                       4096           //Page Size (in Bytes), i.e., 4KB
 #define _REV_MEM_SIZE                        0x100000000    //4GB
 
-#define _XBGAS_MEM_BASE_                     0x80000000     //2GB
-#define _XBGAS_MY_PE_ADDR_                   _XBGAS_MEM_BASE_
-#define _XBGAS_TOTAL_NPE_ADDR_               _XBGAS_MEM_BASE_ + 8
+#define _XBGAS_FIRMWARE_                     0x80000000     //2GB
+#define _XBGAS_MY_PE_ADDR_                   _XBGAS_FIRMWARE_
+#define _XBGAS_TOTAL_NPE_ADDR_               _XBGAS_FIRMWARE_ + 8
+#define _XBGAS_BARRIER_                      _XBGAS_FIRMWARE_ + 16
+#define _XBGAS_BARRIER_END_                  _XBGAS_BARRIER_ + 20 * 8  // MAX_PE_NUM = 1024, thus, MAX_Barrier buffer space = log2^1024 = 10
+#define _XBGAS_FIRMWARE_END_                 _XBGAS_FIRMWARE_ + _REV_PAGE_SIZE
 
 // Simulated memory heap
-#define _REV_HEAP_START_                     (uint64_t)((int64_t)((_XBGAS_MEM_BASE_ + 16 - 1)/_REV_PAGE_SIZE) * _REV_PAGE_SIZE + _REV_PAGE_SIZE)
+#define _REV_HEAP_START_                     (uint64_t)((int64_t)((_XBGAS_FIRMWARE_END_ - 1)/_REV_PAGE_SIZE) * _REV_PAGE_SIZE + _REV_PAGE_SIZE)
 #define _REV_HEAP_END_                       _REV_MEM_SIZE
 #define _REV_HEAP_SIZE_                      _REV_MEM_SIZE - _REV_HEAP_START_
 

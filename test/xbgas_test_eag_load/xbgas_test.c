@@ -22,7 +22,7 @@ int main(int argc, char **argv ){
   if (MYPE == 1)
     NMSPACE = 0x1;
   
-  int nelem = 4;
+  int nelem = 5;
   int stride = 1;
 
   /* source data */

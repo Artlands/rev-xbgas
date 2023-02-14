@@ -34,12 +34,13 @@ typedef struct{
   int       _ID;          /*! XBRTIME_DATA: Local node ID */
   int       _NPES;        /*! XBRTIME_DATA: Number of parallel elements */
   uint64_t  _START_ADDR;  /*! XBRTIME_DATA: Starting address of the shared memory region */
-  // uint64_t  _SENSE;       /*! XBRTIME_DATA: Sense of the barrier sync stage */
-  // volatile uint64_t*  _BARRIER;  /*! XBRTIME_DATA: Barrier value */
-  //uint64_t  _BARRIER[2];  /*! XBRTIME_DATA: Barrier value */
+  uint64_t  _SENSE;       /*! XBRTIME_DATA: Sense of the barrier sync stage */
+  uint64_t *_BARRIER;     /*! XBRTIME_DATA: Barrier value */
   XBRTIME_MEM_T *_MMAP;   /*! XBRTIME_DATA: Allocated memory map */
   XBRTIME_PE_MAP *_MAP;   /*! XBRTIME_DATA: PE Mappings */
 }XBRTIME_DATA;
+
+extern XBRTIME_DATA *__XBRTIME_CONFIG;
 
 #ifdef __cplusplus
 }

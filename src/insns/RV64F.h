@@ -78,10 +78,10 @@ namespace SST{
       };
 
       std::vector<RevInstEntry > RV64FTable = {
-      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.l.s  %rd, %rs1").SetFunct7( 0b1100000).SetImplFunc(&fcvtls ).InstEntry},
-      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.lu.s %rd, %rs1").SetFunct7( 0b1100000).SetImplFunc(&fcvtlus ).InstEntry},
-      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.s.l %rd, %rs1" ).SetFunct7( 0b1101000).SetImplFunc(&fcvtsl ).InstEntry},
-      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.s.lu %rd, %rs1").SetFunct7( 0b1101000).SetImplFunc(&fcvtslu ) .InstEntry}
+      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.l.s  %rd, %rs1").SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1100000 ).Setimm12(0b110000000010).Setimm(FEnc).SetImplFunc( &fcvtls  ).InstEntry},
+      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.lu.s %rd, %rs1").SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1100000 ).Setimm12(0b110000000011).Setimm(FEnc).SetImplFunc( &fcvtlus ).InstEntry},
+      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.s.l %rd, %rs1" ).SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1101000 ).Setimm12(0b110100000010).Setimm(FEnc).SetImplFunc( &fcvtsl  ).InstEntry},
+      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.s.lu %rd, %rs1").SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1101000 ).Setimm12(0b110100000011).Setimm(FEnc).SetImplFunc( &fcvtslu ) .InstEntry}
       };
 
 

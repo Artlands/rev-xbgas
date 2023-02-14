@@ -18,9 +18,9 @@ int main(int argc, char **argv ){
   uint64_t NMSPACE;
 
   if (MYPE == 0)
-    NMSPACE = 0x2;
+    NMSPACE = 1;
   if (MYPE == 1)
-    NMSPACE = 0x1;
+    NMSPACE = 2;
    
   /* source data */
   uint64_t S_U64 = 64;

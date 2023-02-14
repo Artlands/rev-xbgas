@@ -26,7 +26,8 @@ REV_HEADERS := $(wildcard *.h)
 
 REV_OBJS := $(patsubst %.cc,%.o,$(wildcard *.cc))
 
-all: syscalls.o librevcpu.so
+# all: syscalls.o librevcpu.so
+all: librevcpu.so
 
 debug: CXXFLAGS += -DDEBUG -D_XBGAS_DEBUG_ -g
 debug: librevcpu.so

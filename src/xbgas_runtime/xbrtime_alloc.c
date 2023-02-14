@@ -16,7 +16,8 @@ void *rev_heap_top = (void *)(_REV_HEAP_START_);
 extern XBRTIME_DATA *__XBRTIME_CONFIG;
 
 // /* ------------------------------------------------- FUNCTION PROTOTYPES */
-// uint64_t __xbrtime_get_remote_alloc( uint64_t slot, int pe );
+uint64_t __xbrtime_get_remote_alloc( uint64_t slot, int pe );
+int xbrtime_decode_pe( int pe );
 void __xbrtime_asm_quiet_fence();
 
 b_meta find_block(b_meta *last, size_t size){
@@ -147,45 +148,40 @@ extern void revfree( void *p ) {
   }
 }
 
-// void *__xbrtime_shared_malloc( size_t sz ){
-//   uint64_t _STARTADDR_ADDR_;
-//   uint64_t _SIZE_ADDR;
-//   void *ptr = NULL;
-//   int slot = -1;
-//   int i = 0;
-//   int done = 0;
+void *__xbrtime_shared_malloc( size_t sz ){
+  void *ptr = NULL;
+  int slot  = -1;
+  int i     = 0;
+  int done  = 0;
 
-//   /* find an open slot */
-//   while( (slot == -1) && (done != 1) ){
-//     _STARTADDR_ADDR_ = _XBRTIME_MEM_T_ADDR_ + i * 16;
-//     _SIZE_ADDR = _STARTADDR_ADDR_ + 8;
-//     uint64_t start_addr = *((uint64_t *)_STARTADDR_ADDR_);
-//     size_t size = (size_t)(*((uint64_t *)_SIZE_ADDR));
-//     if ( size == 0 ) {
-//       slot = i;
-//       done = 1;
-//     }
-//     i++;
-//     if (i == _XBRTIME_MEM_SLOTS_ ){
-//       done = 1;
-//     }
-//   }
+  /* find an open slot */
+  while( (slot == -1) && (done != 1) ){
+    if( __XBRTIME_CONFIG->_MMAP[i].size == 0 ){
+      slot = i;
+      done = 1;
+    }
+    i++;
+    if( i== _XBRTIME_MEM_SLOTS_ ){
+      done = 1;
+    }
+  }
 
-//   /* no open slots */
-//   if( slot == -1 ){
-//     return NULL;
-//   }
+  /* no open slots */
+  if( slot == -1 ) {
+    return NULL;
+  }
 
-//   /* attempt to create an allocation */
-//   ptr = revmalloc( sz );
-  
-//   _STARTADDR_ADDR_ = _XBRTIME_MEM_T_ADDR_ + slot * 16;
-//   _SIZE_ADDR = _STARTADDR_ADDR_ + 8;
-//   *((uint64_t *)_STARTADDR_ADDR_) = (uint64_t)(ptr);
-//   *((uint64_t *)_SIZE_ADDR) = sz;
+  /* attempt to create an allocation */
+  ptr = revmalloc( sz );
+  if( ptr == NULL ) {
+    return NULL;
+  }
 
-//   return ptr;
-// }
+  /* memory is good, register the block */
+  __XBRTIME_CONFIG->_MMAP[slot].size = sz;
+  __XBRTIME_CONFIG->_MMAP[slot].start_addr = (uint64_t)(ptr);
+  return ptr;
+}
 
 void __xbrtime_shared_free(void *ptr){
   uint64_t mem = (uint64_t)(ptr);
@@ -209,63 +205,65 @@ void __xbrtime_shared_free(void *ptr){
   }
 }
 
-// }
+extern void *xbrtime_malloc( size_t sz ){
+  void *ptr = NULL;
 
-// extern void *xbrtime_malloc( size_t sz ){
-//   void *ptr = NULL;
+  /* sanity check */
+  if( sz == 0 ){
+    return NULL;
+  }
 
-//   /* sanity check */
-//   if( sz == 0 ){
-//     return NULL;
-//   }
-
-//   ptr = __xbrtime_shared_malloc( sz );
-//   __xbrtime_asm_quiet_fence();
+  ptr = __xbrtime_shared_malloc( sz );
+  __xbrtime_asm_quiet_fence();
   
-//   return ptr;
-// }
+  return ptr;
+}
 
 extern void xbrtime_free( void *ptr ){
   if( ptr == NULL ) {
+    return;
+  } else if( __XBRTIME_CONFIG == NULL ){
+    return;
+  } else if(__XBRTIME_CONFIG->_MMAP == NULL ) {
     return;
   }
   __xbrtime_shared_free(ptr);
   __xbrtime_asm_quiet_fence();
 }
 
-// uint64_t __xbrtime_ltor(uint64_t remote, int pe){
-//   int i               = 0;
-//   uint64_t base_slot  = 0x00ull;
-//   uint64_t offset     = 0x00ull;
-//   uint64_t new_addr   = 0x00ull;
+uint64_t __xbrtime_ltor(uint64_t remote, int pe){
+  int i               = 0;
+  uint64_t base_slot  = 0x00ull;
+  uint64_t offset     = 0x00ull;
+  uint64_t new_addr   = 0x00ull;
 
-//   if( xbrtime_mype() == pe ){
-//     /* return the same address block */
-//     return remote;
-//   }else{
-//     /* perform the address translation */
-//     for( i=0; i<_XBRTIME_MEM_SLOTS_; i++ ){
-//       if( (remote >= __XBRTIME_CONFIG->_MMAP[i].start_addr) &&
-//           (remote < (__XBRTIME_CONFIG->_MMAP[i].start_addr+
-//                      __XBRTIME_CONFIG->_MMAP[i].size)) ){
-//         /* found our slot */
-//         base_slot = (uint64_t)(&__XBRTIME_CONFIG->_MMAP[i].start_addr);
+  if( xbrtime_mype() == pe ){
+    /* return the same address block */
+    return remote;
+  }else{
+    /* perform the address translation */
+    for( i=0; i<_XBRTIME_MEM_SLOTS_; i++ ){
+      if( (remote >= __XBRTIME_CONFIG->_MMAP[i].start_addr) &&
+          (remote < (__XBRTIME_CONFIG->_MMAP[i].start_addr+
+                     __XBRTIME_CONFIG->_MMAP[i].size)) ){
+        /* found our slot */
+        base_slot = (uint64_t)(&__XBRTIME_CONFIG->_MMAP[i].start_addr);
 
-//         /* calculate the local offset */
-//         offset = remote - __XBRTIME_CONFIG->_MMAP[i].start_addr;
+        /* calculate the local offset */
+        offset = remote - __XBRTIME_CONFIG->_MMAP[i].start_addr;
 
-//         new_addr = (__xbrtime_get_remote_alloc(base_slot,xbrtime_decode_pe(pe))
-//                                     +offset);
-//         return new_addr;
-//       }
-//     }
-//   }
-//   /*
-//    * if we reach this point, there is an error in translation
-//    * return 0x00ull will cause a user access violation on the
-//    * memory operation and raise a segmentation fault
-//    *
-//    */
-//   return 0x00ull;
-// }
+        new_addr = (__xbrtime_get_remote_alloc(base_slot, xbrtime_decode_pe(pe))
+                                              +offset);
+        return new_addr;
+      }
+    }
+  }
+  /*
+   * if we reach this point, there is an error in translation
+   * return 0x00ull will cause a user access violation on the
+   * memory operation and raise a segmentation fault
+   *
+   */
+  return 0x00ull;
+}
 
