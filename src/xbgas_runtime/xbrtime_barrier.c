@@ -34,28 +34,20 @@ extern void xbrtime_barrier() {
   int64_t mype = xbrtime_mype();
   // int64_t iter = (int64_t)(log(num_pe)/log(2));
   
-  int64_t iter = (int64_t)(log(2)/log(2));
+  // int64_t iter = (int64_t)(log(2)/log(2));
 
   // if (iter < log(num_pe)/log(2))
   // if (iter < log(2)/log(2))
 	// 	iter++;
   
-  iter = 1;
+  int64_t iter = 1;
 
   /* force a heavy fence */
   __xbrtime_asm_fence();
 
   while( i < iter ){
     /* derive the correct target pe */
-    // target = (mype + stride)%num_pe;
-
-    if (mype == 0) {
-      target = 1;
-    }
-    else {
-      target = 0;
-    }
-      
+    target = (mype + stride)%num_pe;
 
     target = (uint64_t)(xbrtime_decode_pe((int)(target)));
     addr   = (uint64_t)(&__XBRTIME_CONFIG->_BARRIER[sense*10 + i]);

@@ -34,7 +34,7 @@ sst.setStatisticLoadLevel(4)
 # Define the simulation components
 xbgas_cpu0 = sst.Component("cpu0", "revcpu.RevCPU")
 xbgas_cpu0.addParams({
-          "verbose" : 6,                                # Verbosity
+          "verbose" : 5,                                # Verbosity
           "numCores" : 1,                               # Number of cores
           "clock" : "1.0GHz",                           # Clock
           "memSize" : 4*1024*1024*1024,                   # Memory size in bytes
