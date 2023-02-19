@@ -24,18 +24,18 @@ REV_SOURCES := $(wildcard *.cc)
 
 REV_HEADERS := $(wildcard *.h)
 
-REV_OBJS := $(patsubst %.cc,%.o,$(wildcard *.cc))
+REV_OBJS := $(patsubst %.cc,%.o,$(wildcard *.cc)) ./softfp/softfp.o ./softfp/softfloat.o
 
-# all: syscalls.o librevcpu.so
-all: librevcpu.so
+all: softfp.o librevcpu.so
 
 debug: CXXFLAGS += -DDEBUG -D_XBGAS_DEBUG_ -g
 debug: librevcpu.so
 
-syscalls.o:
-	(cd syscalls; make)
+softfp.o:
+	(cd softfp; make)
+
 librevcpu.so: $(REV_OBJS)
-	$(CXX) $(OPTIMIZE_FLAGS) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ *.o
+	$(CXX) $(OPTIMIZE_FLAGS) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ *.o ./softfp/softfp.o ./softfp/softfloat.o
 %.o:%.cc $(REV_HEADERS)
 	$(CXX) $(OPTIMIZE_FLAGS) $(CXXFLAGS) $(CPPFLAGS) -c $<
 install: librevcpu.so

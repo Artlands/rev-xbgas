@@ -14,6 +14,9 @@
 #include "RevInstTable.h"
 #include "RevExt.h"
 
+#define F64_SIZE 64
+#define F64_HIGH ((uint64_t)-1 << 32)
+
 using namespace SST::RevCPU;
 
 namespace SST{
@@ -21,13 +24,17 @@ namespace SST{
     class RV64D : public RevExt {
 
       static bool fcvtld(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        R->RV64[Inst.rd] = (int64_t)((double)(R->DPF[Inst.rs1]));
+        RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
+        R->DPF[Inst.rd] = (int64_t)glue(glue(cvt_sf, F64_SIZE), _i64)(R->RV64[Inst.rs1], rm,
+                                                                     &R->fflags);
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool fcvtlud(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        R->RV64[Inst.rd] = (uint64_t)((double)(R->DPF[Inst.rs1]));
+        RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
+        R->DPF[Inst.rd] = (int64_t)glue(glue(cvt_sf, F64_SIZE), _u64)(R->RV64[Inst.rs1], rm,
+                                                                     &R->fflags);
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -40,13 +47,17 @@ namespace SST{
       }
 
       static bool fcvtdl(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        R->DPF[Inst.rd] = (double)((int64_t)(R->RV64[Inst.rs1]));
+        RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
+        R->DPF[Inst.rd] = glue(cvt_i64_sf, F64_SIZE)(R->RV64[Inst.rs1], rm,
+                                                    &R->fflags) | F64_HIGH;
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool fcvtdlu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        R->DPF[Inst.rd] = (double)((uint64_t)(R->RV64[Inst.rs1]));
+        RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
+        R->DPF[Inst.rd] = glue(cvt_u64_sf, F64_SIZE)(R->RV64[Inst.rs1], rm,
+                                                    &R->fflags) | F64_HIGH;
         R->RV64_PC += Inst.instSize;
         return true;
       }

@@ -30,7 +30,7 @@ all: $(EXEC)
 	$(CC) -march=$(ARCH) -mabi=lp64d $(XBRTIME_INCLUDE) -o $@ $< $(XBRTIME_LIB) -lm
 
 objdump:
-	$(OBJDUMP) -d -t -r $(EXEC) > $(ASM)
+	$(OBJDUMP) -d $(EXEC) > $(ASM)
 
 clean:
 	rm -Rf *.exe *.s *.o *.i *.csv *.asm

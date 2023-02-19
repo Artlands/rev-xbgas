@@ -16,6 +16,7 @@
 #include "RevMem.h"
 #include "RevXbgas.h"
 #include "RevFeature.h"
+#include "./softfp/softfp.h"
 #include "../common/include/XbgasAddr.h"
 
 #ifndef _REV_NUM_REGS_
@@ -63,12 +64,6 @@
 #define FCSR_DZ(x)  (((x)&(0b1000))>>3)     // FCSR: DZ field
 #define FCSR_NV(x)  (((x)&(0b10000))>>4)    // FCSR: NV field
 #define FCSR_FRM(x) (((x)&(0b11100000))>>5) // FCSR: FRM field
-
-#define FRM_RNE   0b000                     // Rounding mode: Round to Nearest, ties to Even
-#define FRM_RTZ   0b001                     // Rounding mode: Round towards Zero
-#define FRM_RDN   0b010                     // Rounding mode: Round Down (towards -INF)
-#define FRM_RUP   0b011                     // Rounding mode: Round Up (towards +INF)
-#define FRM_RMM   0b100                     // Rounding mode: Round to Nearest, ties to Max Magnitude
 
 // RV{32,64} Register Operation Macros
                     //(r) = ((r) & (~r));
@@ -218,12 +213,19 @@ namespace SST{
       double DPF[_REV_NUM_REGS_];       ///< RevRegFile: RVxxD register file
 
       // Extended register file
-      // uint32_t ERV32[_REV_NUM_REGS_];   ///< RevRegFile: Extended register file
       uint64_t ERV64[_REV_NUM_REGS_];   ///< RevRegFile: Extended register file
+
+      // Floating-point register file (updated implementation)
+      uint32_t SFP[_REV_NUM_REGS_];
+      uint64_t DFP[_REV_NUM_REGS_];
       
       uint32_t RV32_PC;                 ///< RevRegFile: RV32 PC
       uint64_t RV64_PC;                 ///< RevRegFile: RV64 PC
       uint64_t FCSR;                    ///< RevRegFile: FCSR
+
+      // For floating-point
+      uint32_t fflags;
+      uint8_t frm;
 
       uint32_t cost;                    ///< RevRegFile: Cost of the instruction
       bool trigger;                     ///< RevRegFile: Has the instruction been triggered?
@@ -287,7 +289,6 @@ namespace SST{
       uint8_t rs2;          ///< RevInst: rs2 value
       uint8_t rs3;          ///< RevInst: rs3 value
       uint32_t imm;         ///< RevInst: immediate value
-      // int32_t imm;          ///< RevInst: immediate value
       uint8_t fmt;          ///< RevInst: floating point format
       uint8_t rm;           ///< RevInst: floating point rounding mode
       uint8_t aq;           ///< RevInst: aq field for atomic instructions
@@ -392,6 +393,17 @@ namespace SST{
 
         bool compressed;      ///< RevInstEntry: compressed instruction
       } RevInstEntry;
+
+    /* return -1 if invalid roundind mode */
+    static int get_insn_rm(RevRegFile *R, unsigned int rm)
+    {
+        if (rm == 7)
+            return R->frm;
+        if (rm >= 5)
+            return -1;
+        else
+            return rm;
+    }
 
 
     template <typename RevInstDefaultsPolicy>

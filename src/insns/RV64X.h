@@ -1281,22 +1281,22 @@ namespace SST{
                       << ") + IMM (" << std::dec << (int64_t)(td_u64(Inst.imm, 12))
                       << ")" << std::endl;
           }
-          if(id == 1) {
-            std::cout << "_XBGAS_DEBUG_ CPU" << id << std::endl;
-            std::cout << "|---- Register file -----|" << std::endl;
-            for(int i=0; i<32; i++) {
-              std::cout << "|SPF[" <<std::dec << +i
-                        << "]: " << std::setprecision(10) << R->SPF[i]
-                        << "| DPF[" <<std::dec << +i
-                        << "]: " << std::setprecision(10) << R->DPF[i]
-                        << "| ERV64[" <<std::dec << +i
-                        << "]: 0x" << std::hex << R->ERV64[i]
-                        << "| RV64[" <<std::dec << +i
-                        << "]: 0x" << std::hex << R->RV64[i]
-                        << std::endl;
-            }
-            std::cout << "|----- Register file -----|" << std::endl;
-          }
+          // if(id == 1) {
+          //   std::cout << "_XBGAS_DEBUG_ CPU" << id << std::endl;
+          //   std::cout << "|---- Register file -----|" << std::endl;
+          //   for(int i=0; i<32; i++) {
+          //     std::cout << "|SPF[" <<std::dec << +i
+          //               << "]: " << std::setprecision(10) << R->SPF[i]
+          //               << "| DPF[" <<std::dec << +i
+          //               << "]: " << std::setprecision(10) << R->DPF[i]
+          //               << "| ERV64[" <<std::dec << +i
+          //               << "]: 0x" << std::hex << R->ERV64[i]
+          //               << "| RV64[" <<std::dec << +i
+          //               << "]: 0x" << std::hex << R->RV64[i]
+          //               << std::endl;
+          //   }
+          //   std::cout << "|----- Register file -----|" << std::endl;
+          // }
 #endif
         return true;
       }

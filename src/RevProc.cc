@@ -414,9 +414,16 @@ bool RevProc::Reset(){
       // Extended registers
       RegFile[t].ERV64[i] = 0x00ull;
 
+      // Floating-point register file (updated implementation)
+      RegFile[t].SFP[i] = 0x00l;
+      RegFile[t].DFP[i] = 0x00ull;
+
       RegFile[t].SPF[i]  = 0.f;
       RegFile[t].DPF[i]  = 0.f;
     }
+
+    RegFile[t].fflags = 0;
+    RegFile[t].frm    = 0;
 
     // initialize all the relevant program registers
 
@@ -990,138 +997,138 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
 }
 
 RevInst RevProc::DecodeRInst(uint32_t Inst, unsigned Entry){
-  RevInst DInst;
+  RevInst RInst;
 
   // cost
   RegFile[threadToDecode].cost  = InstTable[Entry].cost;
 
   // encodings
-  DInst.opcode  = InstTable[Entry].opcode;
-  DInst.funct3  = InstTable[Entry].funct3;
-  DInst.funct2  = 0x0;
-  DInst.funct7  = InstTable[Entry].funct7;
+  RInst.opcode  = InstTable[Entry].opcode;
+  RInst.funct3  = InstTable[Entry].funct3;
+  RInst.funct2  = 0x0;
+  RInst.funct7  = InstTable[Entry].funct7;
 
   // registers
-  DInst.rd      = 0x0;
-  DInst.rs1     = 0x0;
-  DInst.rs2     = 0x0;
-  DInst.rs3     = 0x0;
+  RInst.rd      = 0x0;
+  RInst.rs1     = 0x0;
+  RInst.rs2     = 0x0;
+  RInst.rs3     = 0x0;
 
   if( InstTable[Entry].rdClass != RegUNKNOWN ){
-    DInst.rd  = DECODE_RD(Inst);
+    RInst.rd  = DECODE_RD(Inst);
   }
   if( InstTable[Entry].rs1Class != RegUNKNOWN ){
-    DInst.rs1  = DECODE_RS1(Inst);
+    RInst.rs1  = DECODE_RS1(Inst);
   }
   if( InstTable[Entry].rs2Class != RegUNKNOWN ){
-    DInst.rs2  = DECODE_RS2(Inst);
+    RInst.rs2  = DECODE_RS2(Inst);
   }
 
   // imm
-  DInst.imm     = 0x0;
+  RInst.imm     = 0x0;
 
   // SP/DP Float
-  DInst.fmt     = 0;
-  DInst.rm      = 0;
+  RInst.fmt     = 0;
+  RInst.rm      = 0;
 
   // Size
-  DInst.instSize  = 4;
+  RInst.instSize  = 4;
 
   // Decode the atomic RL/AQ fields
-  if( DInst.opcode == 0b0101111 ){
-    DInst.rl = DECODE_RL(Inst);
-    DInst.aq = DECODE_AQ(Inst);
+  if( RInst.opcode == 0b0101111 ){
+    RInst.rl = DECODE_RL(Inst);
+    RInst.aq = DECODE_AQ(Inst);
   }
 
   // Decode any ancillary SP/DP float options
   if( IsFloat(Entry) ){
-    DInst.rm = DECODE_FUNCT3(Inst);
+    RInst.rm = DECODE_FUNCT3(Inst);
   }
 
-  DInst.compressed = false;
+  RInst.compressed = false;
 
-  return DInst;
+  return RInst;
 }
 
 RevInst RevProc::DecodeIInst(uint32_t Inst, unsigned Entry){
-  RevInst DInst;
+  RevInst IInst;
 
   // cost
   RegFile[threadToDecode].cost  = InstTable[Entry].cost;
 
   // encodings
-  DInst.opcode  = InstTable[Entry].opcode;
-  DInst.funct3  = InstTable[Entry].funct3;
-  DInst.funct2  = 0x0;
-  DInst.funct7  = 0x0;
+  IInst.opcode  = InstTable[Entry].opcode;
+  IInst.funct3  = InstTable[Entry].funct3;
+  IInst.funct2  = 0x0;
+  IInst.funct7  = 0x0;
 
   // registers
-  DInst.rd      = 0x0;
-  DInst.rs1     = 0x0;
-  DInst.rs2     = 0x0;
-  DInst.rs3     = 0x0;
+  IInst.rd      = 0x0;
+  IInst.rs1     = 0x0;
+  IInst.rs2     = 0x0;
+  IInst.rs3     = 0x0;
 
   if( InstTable[Entry].rdClass != RegUNKNOWN ){
-    DInst.rd  = DECODE_RD(Inst);
+    IInst.rd  = DECODE_RD(Inst);
   }
   if( InstTable[Entry].rs1Class != RegUNKNOWN ){
-    DInst.rs1  = DECODE_RS1(Inst);
+    IInst.rs1  = DECODE_RS1(Inst);
   }
 
   // imm
-  DInst.imm     = DECODE_IMM12(Inst);
+  IInst.imm     = DECODE_IMM12(Inst);
 
   // SP/DP Float
-  DInst.fmt     = 0;
-  DInst.rm      = 0;
+  IInst.fmt     = 0;
+  IInst.rm      = 0;
 
   // Size
-  DInst.instSize  = 4;
+  IInst.instSize  = 4;
 
   // rm does not exist in I instructions.
   // // Decode any ancillary SP/DP float options
   // if( IsFloat(Entry) ){
   //   DInst.rm = DECODE_FUNCT3(Inst);
   // }
-  DInst.compressed = false;
+  IInst.compressed = false;
 
-  return DInst;
+  return IInst;
 }
 
 RevInst RevProc::DecodeSInst(uint32_t Inst, unsigned Entry){
-  RevInst DInst;
+  RevInst SInst;
 
   // cost
   RegFile[threadToDecode].cost  = InstTable[Entry].cost;
 
   // encodings
-  DInst.opcode  = InstTable[Entry].opcode;
-  DInst.funct3  = InstTable[Entry].funct3;
-  DInst.funct2  = 0x0;
-  DInst.funct7  = 0x0;
+  SInst.opcode  = InstTable[Entry].opcode;
+  SInst.funct3  = InstTable[Entry].funct3;
+  SInst.funct2  = 0x0;
+  SInst.funct7  = 0x0;
 
   // registers
-  DInst.rd      = 0x0;
-  DInst.rs1     = 0x0;
-  DInst.rs2     = 0x0;
-  DInst.rs3     = 0x0;
+  SInst.rd      = 0x0;
+  SInst.rs1     = 0x0;
+  SInst.rs2     = 0x0;
+  SInst.rs3     = 0x0;
 
   if( InstTable[Entry].rs1Class != RegUNKNOWN ){
-    DInst.rs1  = DECODE_RS1(Inst);
+    SInst.rs1  = DECODE_RS1(Inst);
   }
   if( InstTable[Entry].rs2Class != RegUNKNOWN ){
-    DInst.rs2  = DECODE_RS2(Inst);
+    SInst.rs2  = DECODE_RS2(Inst);
   }
 
   // imm
-  DInst.imm     = ( DECODE_RD(Inst) | (DECODE_FUNCT7(Inst)<<5) );
+  SInst.imm     = ( DECODE_RD(Inst) | (DECODE_FUNCT7(Inst)<<5) );
 
   // SP/DP Float
-  DInst.fmt     = 0;
-  DInst.rm      = 0;
+  SInst.fmt     = 0;
+  SInst.rm      = 0;
 
   // Size
-  DInst.instSize  = 4;
+  SInst.instSize  = 4;
 
   // rm does not exist in S instructions.
   // // Decode any ancillary SP/DP float options
@@ -1129,8 +1136,8 @@ RevInst RevProc::DecodeSInst(uint32_t Inst, unsigned Entry){
   //   DInst.rm = DECODE_FUNCT3(Inst);
   // }
 
-  DInst.compressed = false;
-  return DInst;
+  SInst.compressed = false;
+  return SInst;
 }
 
 RevInst RevProc::DecodeUInst(uint32_t Inst, unsigned Entry){
