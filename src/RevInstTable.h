@@ -209,8 +209,8 @@ namespace SST{
     typedef struct{
       uint32_t RV32[_REV_NUM_REGS_];    ///< RevRegFile: RV32I register file
       uint64_t RV64[_REV_NUM_REGS_];    ///< RevRegFile: RV64I register file
-      float SPF[_REV_NUM_REGS_];        ///< RevRegFile: RVxxF register file
-      double DPF[_REV_NUM_REGS_];       ///< RevRegFile: RVxxD register file
+      // float SPF[_REV_NUM_REGS_];        ///< RevRegFile: RVxxF register file
+      // double DPF[_REV_NUM_REGS_];       ///< RevRegFile: RVxxD register file
 
       // Extended register file
       uint64_t ERV64[_REV_NUM_REGS_];   ///< RevRegFile: Extended register file

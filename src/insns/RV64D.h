@@ -25,30 +25,29 @@ namespace SST{
 
       static bool fcvtld(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->DPF[Inst.rd] = (int64_t)glue(glue(cvt_sf, F64_SIZE), _i64)(R->RV64[Inst.rs1], rm,
-                                                                     &R->fflags);
+        R->RV64[Inst.rd] = (int64_t)glue(glue(cvt_sf, F64_SIZE), _i64)(R->DFP[Inst.rs1], rm,
+                                                                      &R->fflags);
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool fcvtlud(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->DPF[Inst.rd] = (int64_t)glue(glue(cvt_sf, F64_SIZE), _u64)(R->RV64[Inst.rs1], rm,
-                                                                     &R->fflags);
+        R->RV64[Inst.rd] = (int64_t)glue(glue(cvt_sf, F64_SIZE), _u64)(R->DFP[Inst.rs1], rm,
+                                                                      &R->fflags);
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool fmvxd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        // std::memcpy(&R->RV64[Inst.rd],&R->DPF[Inst.rs1],sizeof(double));
-        R->RV64[Inst.rd] = (int64_t)(R->DPF[Inst.rs1]);
+        R->RV64[Inst.rd] = (int64_t)(R->DFP[Inst.rs1]);
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool fcvtdl(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->DPF[Inst.rd] = glue(cvt_i64_sf, F64_SIZE)(R->RV64[Inst.rs1], rm,
+        R->DFP[Inst.rd] = glue(cvt_i64_sf, F64_SIZE)(R->RV64[Inst.rs1], rm,
                                                     &R->fflags) | F64_HIGH;
         R->RV64_PC += Inst.instSize;
         return true;
@@ -56,15 +55,14 @@ namespace SST{
 
       static bool fcvtdlu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->DPF[Inst.rd] = glue(cvt_u64_sf, F64_SIZE)(R->RV64[Inst.rs1], rm,
+        R->DFP[Inst.rd] = glue(cvt_u64_sf, F64_SIZE)(R->RV64[Inst.rs1], rm,
                                                     &R->fflags) | F64_HIGH;
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool fmvdx(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        // std::memcpy(&R->DPF[Inst.rd],&R->RV64[Inst.rs1],sizeof(double));
-        R->DPF[Inst.rd] = (int64_t)(R->RV64[Inst.rd]);
+        R->DFP[Inst.rd] = (int64_t)(R->RV64[Inst.rs1]);
         R->RV64_PC += Inst.instSize;
         return true;
       }

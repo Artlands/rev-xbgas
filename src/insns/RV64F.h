@@ -25,7 +25,7 @@ namespace SST{
 
       static bool fcvtls(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->RV64[Inst.rd] = (int32_t)glue(glue(cvt_sf, F32_SIZE), _i64)(R->SFP[Inst.rs1], rm,
+        R->RV64[Inst.rd] = (int64_t)glue(glue(cvt_sf, F32_SIZE), _i64)(R->SFP[Inst.rs1], rm,
                                                                       &R->fflags);
         R->RV64_PC += Inst.instSize;
         return true;
@@ -33,7 +33,7 @@ namespace SST{
 
       static bool fcvtlus(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->RV64[Inst.rd] = (int32_t)glue(glue(cvt_sf, F32_SIZE), _u64)(R->SFP[Inst.rs1], rm,
+        R->RV64[Inst.rd] = (int64_t)glue(glue(cvt_sf, F32_SIZE), _u64)(R->SFP[Inst.rs1], rm,
                                                                       &R->fflags);
         R->RV64_PC += Inst.instSize;
         return true;
@@ -41,7 +41,7 @@ namespace SST{
 
       static bool fcvtsl(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->SPF[Inst.rd] = glue(cvt_i64_sf, F32_SIZE)(R->RV64[Inst.rs1], rm,
+        R->SFP[Inst.rd] = glue(cvt_i64_sf, F32_SIZE)(R->RV64[Inst.rs1], rm,
                                                     &R->fflags) | F32_HIGH;
         R->RV64_PC += Inst.instSize;
         return true;
@@ -49,7 +49,7 @@ namespace SST{
 
       static bool fcvtslu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->SPF[Inst.rd] = glue(cvt_u64_sf, F32_SIZE)(R->RV64[Inst.rs1], rm,
+        R->SFP[Inst.rd] = glue(cvt_u64_sf, F32_SIZE)(R->RV64[Inst.rs1], rm,
                                                     &R->fflags) | F32_HIGH;
         R->RV64_PC += Inst.instSize;
         return true;
