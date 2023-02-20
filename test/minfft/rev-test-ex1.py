@@ -34,6 +34,9 @@ comp_cpu.addParams({
         "machine" : "[0:RV64IMAFD]",                      # Core:Config; RV32I for core 0
         "startAddr" : "[0:0x000]",               # Starting address for core 0
         "memCost" : "[0:5:40]",                       # Memory loads required 1-10 cycles
+        "xbgas_nic" : "revcpu.XbgasNIC",
+        "enable_xbgas" : 0,
+        "enable_xbgas_test" : 0,
         "program" : os.getenv("REV_EXE", "ex1.exe"),  # Target executable
         "splash" : 1                                  # Display the splash message
 })
@@ -41,4 +44,5 @@ comp_cpu.addParams({
 sst.setStatisticOutput("sst.statOutputCSV")
 sst.enableAllStatisticsForAllComponents()
 
+nic0 = comp_cpu.setSubComponent("xbgas_nic", "revcpu.XbgasNIC")
 # EOF
