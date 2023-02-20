@@ -15,7 +15,7 @@
 #include "RevExt.h"
 
 #define F64_SIZE 64
-#define F64_HIGH ((uint64_t)-1 << 32)
+#define F64_HIGH 0
 
 using namespace SST::RevCPU;
 

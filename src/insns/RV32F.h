@@ -293,11 +293,11 @@ namespace SST{
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
         if( F->IsRV32() ){
           R->RV32[Inst.rd] = (int32_t)glue(glue(cvt_sf, F32_SIZE), _u32)(R->SFP[Inst.rs1], rm,
-                                                                      &R->fflags);
+                                                                        &R->fflags);
           R->RV32_PC += Inst.instSize;
         }else{
           R->RV64[Inst.rd] = (int32_t)glue(glue(cvt_sf, F32_SIZE), _u32)(R->SFP[Inst.rs1], rm,
-                                                                      &R->fflags);
+                                                                        &R->fflags);
           R->RV64_PC += Inst.instSize;
         }
         return true;
