@@ -13,14 +13,6 @@
 
 #include "RevInstTable.h"
 #include "RevExt.h"
-#include "../syscalls/SysCalls.h"
-#include <unordered_map>
-#include <cassert>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <bitset>
-
-using stat_t = struct stat;
 
 using namespace SST::RevCPU;
 
@@ -611,21 +603,6 @@ namespace SST{
           R->RV64_PC += Inst.instSize;
         }
 
-//  #ifdef _XBGAS_DEBUG_
-//           std::cout << "_XBGAS_DEBUG_ slli"  << std::endl;
-//           std::cout << "|---- Register file -----|" << std::endl;
-//           for(int i=0; i<32; i++) {
-//             std::cout << "|fs" <<std::dec << +i
-//                       << ": 0x" << std::hex << R->SFP[i]
-//                       << "|fd" <<std::dec << +i
-//                       << ": 0x" << std::hex << R->DFP[i]
-//                       << "|x" <<std::dec << +i
-//                       << ": 0x" << std::hex << R->RV64[i]
-//                       << std::endl;
-//           }
-//           std::cout << "|----- Register file -----|" << std::endl;
-// #endif
-
         return true;
       }
 
@@ -640,21 +617,6 @@ namespace SST{
             R->RV64[Inst.rd] = (int64_t)((uint64_t)R->RV64[Inst.rs1] >> (Inst.imm & 0b111111));
           R->RV64_PC += Inst.instSize;
         }
-
-//  #ifdef _XBGAS_DEBUG_
-//           std::cout << "_XBGAS_DEBUG_ srli"  << std::endl;
-//           std::cout << "|---- Register file -----|" << std::endl;
-//           for(int i=0; i<32; i++) {
-//             std::cout << "|fs" <<std::dec << +i
-//                       << ": 0x" << std::hex << R->SFP[i]
-//                       << "|fd" <<std::dec << +i
-//                       << ": 0x" << std::hex << R->DFP[i]
-//                       << "|x" <<std::dec << +i
-//                       << ": 0x" << std::hex << R->RV64[i]
-//                       << std::endl;
-//           }
-//           std::cout << "|----- Register file -----|" << std::endl;
-// #endif
 
         return true;
       }
@@ -840,77 +802,14 @@ namespace SST{
         return true;  // temporarily disabled
       }
 
-      // static bool ecall(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-      //   if( F->IsRV32() ){
-      //     R->RV32_PC += Inst.instSize;
-      //   }else{
-      //     R->RV64_PC += Inst.instSize;
-      //   }
-      //   return true;
-      // }
-
-      static bool ecall(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
+      static bool ecall(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
-
           R->RV32_PC += Inst.instSize;
-
         }else{
-
-//           const int ecall_code = int(R->RV64[17]);
-
-//           switch (ecall_code) {
-//             case 80: // SYS_fstat
-//               int fil;
-//               stat_t *buf;
-//               fil = (int)(R->RV64[10]);
-//               buf = (stat_t*)(R->RV64[11]);
-// #ifdef _XBGAS_DEBUG_
-//           std::cout << "_XBGAS_DEBUG_ SYS_fstat"  << std::endl;
-//           std::cout << "R->RV64[10] = 0x" << std::hex << R->RV64[10] << std::endl;
-//           std::cout << "R->RV64[11] = 0x" << std::hex << R->RV64[11] << std::endl;
-// #endif
-//               R->RV64[10] = fstat(fil, buf);
-//               break;
-//             default:
-//               break;
-//           }
-//           // system write
-//           if (ecall_code == 64) {
-// #ifdef _XBGAS_DEBUG_
-//           std::cout << "_XBGAS_DEBUG_ SYSTEM CALL"  << std::endl;
-//           std::cout << "ecall_code = 0x" << std::hex << ecall_code << std::endl;
-// #endif
-//             int fd = (int)(R->RV64[10]);
-//             uint64_t buf_st_addr = (uint64_t)(R->RV64[11]);
-//             size_t count = (size_t)(R->RV64[12]);
-//             char *buf = new char[count];
-
-//             uint64_t buf_addr;
-//             // Copy data in rev memory to buffer
-//             for( unsigned i=0; i< count; i++ ){
-//               buf_addr = (uint64_t)(dt_u64(td_u64(buf_st_addr, 64) + i, 64));
-//               buf[i] = (char)(M->ReadU8(buf_addr));
-//             }
-
-//             R->RV64[10] = (uint64_t)(write(fd, (void *)buf, count));
-//             delete[] buf;
-//           }
-
-#ifdef _XBGAS_DEBUG_
-          std::cout << "_XBGAS_DEBUG_ SYSTEM CALL"  << std::endl;
-          // std::cout << "|---- Register file -----|" << std::endl;
-          // for(int i=0; i<32; i++) {
-          //   std::cout << "|x" <<std::dec << +i
-          //             << ": 0x" << std::hex << R->RV64[i]
-          //             << std::endl;
-          // }
-          // std::cout << "|----- Register file -----|" << std::endl;
-#endif
           R->RV64_PC += Inst.instSize;
         }
         return true;
       }
-
 
       static bool ebreak(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){

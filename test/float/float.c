@@ -17,7 +17,6 @@ int main(int argc, char **argv){
 
   int m = (int)(i);
   int n = (int)(j);
-  // int j = (int)(i);
 
   while (m != n) {
   }

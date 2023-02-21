@@ -32,16 +32,11 @@ extern void xbrtime_barrier() {
 
   /* Get the total iterations */
   int64_t mype = xbrtime_mype();
-  // int64_t iter = (int64_t)(log(num_pe)/log(2));
+  int64_t iter = (int64_t)(log(num_pe)/log(2));
   
-  // int64_t iter = (int64_t)(log(2)/log(2));
-
-  // if (iter < log(num_pe)/log(2))
-  // if (iter < log(2)/log(2))
-	// 	iter++;
+  if (iter < log(num_pe)/log(2))
+		iter++;
   
-  int64_t iter = 1;
-
   /* force a heavy fence */
   __xbrtime_asm_fence();
 

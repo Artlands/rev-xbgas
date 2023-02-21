@@ -12,6 +12,7 @@
 #define _SST_REVCPU_RV64I_H_
 
 #include "RevInstTable.h"
+#include "RevExt.h"
 
 using namespace SST::RevCPU;
 
@@ -100,72 +101,34 @@ namespace SST{
       }
 
       static bool addiw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
-        // R->RV64[Inst.rd] = dt_u64((int32_t)(td_u64(R->RV64[Inst.rs1],64)) + (int32_t)(td_u32(Inst.imm,12)), 64);
-        // R->RV64[Inst.rd] &= MASK32;
-        // SEXTI( R->RV64[Inst.rd], 64 );
-
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)(R->RV64[Inst.rs1] + (int32_t)(td_u32(Inst.imm,12)));
         R->RV64_PC += Inst.instSize;
-
-
-//  #ifdef _XBGAS_DEBUG_
-//           std::cout << "_XBGAS_DEBUG_ addiw"  << std::endl;
-//           std::cout << "|---- Register file -----|" << std::endl;
-//           for(int i=0; i<32; i++) {
-//             std::cout << "|fs" <<std::dec << +i
-//                       << ": 0x" << std::hex << R->SFP[i]
-//                       << "|fd" <<std::dec << +i
-//                       << ": 0x" << std::hex << R->DFP[i]
-//                       << "|x" <<std::dec << +i
-//                       << ": 0x" << std::hex << R->RV64[i]
-//                       << std::endl;
-//           }
-//           std::cout << "|----- Register file -----|" << std::endl;
-// #endif
-
         return true;
       }
 
       static bool slliw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
-        //SEXT(R->RV64[Inst.rd],(R->RV64[Inst.rs1] << (Inst.imm&0b111111))&MASK32,64);
-        // R->RV64[Inst.rd] |= ((R->RV64[Inst.rs1]<< Inst.imm)&0xffffffff);
-        // R->RV64_PC += Inst.instSize;
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)(R->RV64[Inst.rs1] << (Inst.imm & 0b11111));
-
-        // (int32_t)(val << (imm & 31));
-
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool srliw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
-        // ZEXT(R->RV64[Inst.rd],(R->RV64[Inst.rs1] >> (Inst.imm&0b111111))&MASK32,64);
-        // SEXTI(R->RV64[Inst.rd],64);
-        
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)((uint32_t)(R->RV64[Inst.rs1]) >> (Inst.imm & 0b11111));
-        
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool sraiw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
-        // uint64_t tmp = R->RV64[Inst.rs1] | (1<<31);
-        // SEXT(R->RV64[Inst.rd],((R->RV64[Inst.rs1] >> (Inst.imm&0b1111111))&MASK32)|tmp,64);
-        // SEXTI(R->RV64[Inst.rd],64);
-
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)(R->RV64[Inst.rs1]) >> (Inst.imm & 0b11111);
-        
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool addw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
-        // R->RV64[Inst.rd] = dt_u64(td_u64(R->RV64[Inst.rs1],64) + td_u64(R->RV64[Inst.rs2],64),64);
-        
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)(R->RV64[Inst.rs1] + R->RV64[Inst.rs2]);
 
@@ -174,8 +137,6 @@ namespace SST{
       }
 
       static bool subw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
-        // R->RV64[Inst.rd] = dt_u64(td_u64(R->RV64[Inst.rs1],64) - td_u64(R->RV64[Inst.rs2],64),64);
-        
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)(R->RV64[Inst.rs1] - R->RV64[Inst.rs2]);
 
@@ -184,8 +145,6 @@ namespace SST{
       }
 
       static bool sllw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
-        // SEXT(R->RV64[Inst.rd],(R->RV64[Inst.rs1] << (R->RV64[Inst.rs2]&0b111111))&MASK32,64);
-
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)((uint32_t)(R->RV64[Inst.rs1]) << (R->RV64[Inst.rs2] & 0b11111));
 
@@ -194,24 +153,15 @@ namespace SST{
       }
 
       static bool srlw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
-        // ZEXT(R->RV64[Inst.rd],(R->RV64[Inst.rs1] >> (R->RV64[Inst.rs2]&0b111111))&MASK32,64);
-        // SEXTI(R->RV64[Inst.rd],64);
-
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)((uint32_t)(R->RV64[Inst.rs1]) >> (R->RV64[Inst.rs2] & 0b11111));
-        
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool sraw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
-        // uint64_t tmp = R->RV64[Inst.rs1] | (1<<31);
-        // SEXT(R->RV64[Inst.rd],((R->RV64[Inst.rs1] >> (R->RV64[Inst.rs2]&0b111111))&MASK32)|tmp,64);
-        // SEXTI(R->RV64[Inst.rd],64);
-
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)(R->RV64[Inst.rs1]) >> (R->RV64[Inst.rs2] & 0b11111);
-
         R->RV64_PC += Inst.instSize;
         return true;
       }

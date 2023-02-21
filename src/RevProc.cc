@@ -1475,13 +1475,6 @@ RevInst RevProc::DecodeInst(){
   Enc |= (Funct3<<7); // 3 bits
   Enc |= (Funct7<<10);// 7 bits
   Enc |= (Imm12<<17);
-
-#if 0
-  std::cout << "Imm12: "    << std::bitset<12>(Imm12) 
-            << "| Funct7: " << std::bitset<7>(Funct7)
-            << "| Funct3: " << std::bitset<3>(Funct3)
-            << "| Opcode: " << std::bitset<7>(Opcode) << std::endl;
-#endif
       
   // Stage 7: Look up the value in the table
   std::map<uint32_t,unsigned>::iterator it;
@@ -1504,10 +1497,6 @@ RevInst RevProc::DecodeInst(){
                   PC, Opcode, Funct3, Funct7, Imm12, Enc );
 
   }
-
-#if 1         //RevCPU[cpu:DecodeInst:69000]: Core 0 ; Thread 0; PC:InstPayload =
-  std::cout << "------------------------------------------------------> Mnemonic: " << InstTable[Entry].mnemonic << std::endl;
-#endif
 
   RegFile[threadToDecode].Entry = Entry;
 
