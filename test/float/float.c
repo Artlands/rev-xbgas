@@ -19,7 +19,7 @@ int main(int argc, char **argv){
   int n = (int)(j);
   // int j = (int)(i);
 
-  while (m == n) {
+  while (m != n) {
   }
 
   return 0;

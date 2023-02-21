@@ -14,6 +14,7 @@
 
 EXAMPLE=ex1
 CC=riscv64-unknown-elf-gcc
+OBJDUMP=riscv64-unknown-elf-objdump
 ARCH=rv64imfd
 #ARCH=rv32i
 #ABI=ilp32
@@ -22,6 +23,10 @@ all: $(EXAMPLE).exe
 $(EXAMPLE).exe: $(EXAMPLE).c
 	#$(CC) -O1 -mcmodel=medlow -march=$(ARCH) -mabi=lp64d -o $(EXAMPLE).exe minfft.c $(EXAMPLE).c -lm
 	$(CC) -O2 -mno-explicit-relocs -mno-save-restore -march=$(ARCH) -mabi=lp64d -o $(EXAMPLE).exe minfft.c $(EXAMPLE).c -lm
+
+objdump:
+	$(OBJDUMP) -d $(EXAMPLE).exe > $(EXAMPLE).asm
+	
 clean:
 	rm -Rf $(EXAMPLE).exe
 

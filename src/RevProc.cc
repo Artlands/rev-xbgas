@@ -1060,7 +1060,7 @@ RevInst RevProc::DecodeIInst(uint32_t Inst, unsigned Entry){
   IInst.opcode  = InstTable[Entry].opcode;
   IInst.funct3  = InstTable[Entry].funct3;
   IInst.funct2  = 0x0;
-  IInst.funct7  = 0x0;
+  IInst.funct7  = InstTable[Entry].funct7;
 
   // registers
   IInst.rd      = 0x0;
@@ -1414,7 +1414,7 @@ RevInst RevProc::DecodeInst(){
   const uint32_t inst4  = ((Opcode&0b10000) >> 4);
   const uint32_t inst42 = ((Opcode&0b11100) >> 2);
   const uint32_t inst65 = ((Opcode&0b1100000) >> 5);
-  const uint32_t inst29 = ((Inst >> 28) & 0b001);
+  const uint32_t inst29 = ((Inst >> 29) & 0b001);
 
   if( (Opcode == 0b0110111) || (Opcode == 0b0010111) || (Opcode == 0b1101111)){
     // LUI, AUIPC, JAL
@@ -1451,6 +1451,12 @@ RevInst RevProc::DecodeInst(){
     // In RV64, bit-25 is used to shamt[5], we intentionally set the first bit 
     // of Funct 7 to 0 to match the encoding of Funct7.
     Funct7 = ((Inst >> 25) & 0b1111110);
+  }else if (( inst65 == 0b00) && (inst42 == 0b110) && ((Funct3 == 0b001) || (Funct3 == 0b101))){
+    // SLLIW, SRLIW, SRAIW. I-Type encodings
+    Funct7 = ((Inst >> 25) & 0b1111111);
+  }else if ((inst65 == 0b10) && (inst4 == 0b0)){
+    // R4
+    Funct7 = ((Inst >> 25) & 0b0000011);
   }
 
   // Stage 5: Determine if we have an imm12 field
@@ -1480,26 +1486,13 @@ RevInst RevProc::DecodeInst(){
   // Stage 7: Look up the value in the table
   std::map<uint32_t,unsigned>::iterator it;
   it = EncToEntry.find(Enc);
-   if( it == EncToEntry.end() && (inst65 == 0b10) ){
-    // This is kind of a hack, but we may not have found the instruction becasue
-    // Funct3 is overloaded with rounding mode, so if this is a RV32F or RV64F
-    // set Funct3 to zero and check again
-    Funct3 = 0b000;
-    Enc = 0;
-    Enc |= Opcode;
-    Enc |= (Funct3<<7); // 3 bits
-    Enc |= (Funct7<<10);// 7 bits
-    Enc |= (Imm12<<17);
 
-    it = EncToEntry.find(Enc);
-    if( it == EncToEntry.end() ){
-      // failed to decode the instruction
-      output->fatal(CALL_INFO, -1,
-                  "Error: failed to decode instruction at PC=0x%" PRIx64 "; Enc=%d\n",
-                  PC,
-                  Enc );
-    }
-
+  if( it == EncToEntry.end() ){
+    // failed to decode the instruction
+    output->fatal(CALL_INFO, -1,
+                "Error: failed to decode instruction at PC=0x%" PRIx64 "; Enc=%d\n",
+                PC,
+                Enc );
   }
 
   unsigned Entry = it->second;
@@ -1511,6 +1504,10 @@ RevInst RevProc::DecodeInst(){
                   PC, Opcode, Funct3, Funct7, Imm12, Enc );
 
   }
+
+#if 1         //RevCPU[cpu:DecodeInst:69000]: Core 0 ; Thread 0; PC:InstPayload =
+  std::cout << "------------------------------------------------------> Mnemonic: " << InstTable[Entry].mnemonic << std::endl;
+#endif
 
   RegFile[threadToDecode].Entry = Entry;
 
@@ -1716,7 +1713,7 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
     RegFile[threadToExec].trigger = true;
 
     // pull the PC
-    output->verbose(CALL_INFO, 6, 0,
+    output->verbose(CALL_INFO, 7, 0,
                     "Core %d ; Thread %d; Executing PC= 0x%" PRIx64 "\n",
                     id, threadToExec, ExecPC);
 
@@ -1833,7 +1830,7 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
       if(RegFile[tID].cost > 0){
         RegFile[tID].cost = RegFile[tID].cost - 1;
         if( RegFile[tID].cost == 0 ){
-            output->verbose(CALL_INFO, 6, 0,
+            output->verbose(CALL_INFO, 7, 0,
                       "Core %d ; ThreadID %d; Retiring PC= 0x%" PRIx64 "\n",
                       id, tID, ExecPC);
             Retired++;
