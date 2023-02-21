@@ -27,12 +27,12 @@ max_addr_gb = 1
 # Define the simulation components
 comp_cpu = sst.Component("cpu", "revcpu.RevCPU")
 comp_cpu.addParams({
-	"verbose" : 4,                                # Verbosity
+	      "verbose" : 6,                                # Verbosity
         "numCores" : 1,                               # Number of cores
-	"clock" : "1.0GHz",                           # Clock
-        "memSize" : 1024*1024*1024*8,                   # Memory size in bytes
-        "machine" : "[0:RV64IMAFD]",                      # Core:Config; RV32I for core 0
-        "startAddr" : "[0:0x000]",               # Starting address for core 0
+	      "clock" : "1.0GHz",                           # Clock
+        "memSize" : 1024*1024*1024*8,                 # Memory size in bytes
+        "machine" : "[0:RV64IMAFD]",                  # Core:Config; RV32I for core 0
+        "startAddr" : "[0:0x000]",                    # Starting address for core 0
         "memCost" : "[0:5:40]",                       # Memory loads required 1-10 cycles
         "xbgas_nic" : "revcpu.XbgasNIC",
         "enable_xbgas" : 0,

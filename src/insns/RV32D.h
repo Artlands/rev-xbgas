@@ -11,10 +11,10 @@
 #ifndef _SST_REVCPU_RV32D_H_
 #define _SST_REVCPU_RV32D_H_
 
-#define F_SIZE 64
-#define F32_HIGH ((uint64_t)-1 << 32)
-#define F64_HIGH 0
-#define F_HIGH F64_HIGH
+#define F_SIZE_D 64
+#define F32_HIGH_D ((uint64_t)-1 << 32)
+#define F64_HIGH_D 0
+#define F_HIGH_D F64_HIGH_D
 
 #include "RevInstTable.h"
 #include "RevExt.h"
@@ -58,13 +58,15 @@ namespace SST{
 
       // Standard instructions
       static bool fld(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
+        uint64_t rval;
         if( F->IsRV32() ){
-          R->DFP[Inst.rd] = M->ReadU64((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
+          rval = M->ReadU64((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
           R->RV32_PC += Inst.instSize;
         }else{
-          R->DFP[Inst.rd] = M->ReadU64((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
+          rval = M->ReadU64((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
           R->RV64_PC += Inst.instSize;
         }
+        R->DFP[Inst.rd] = rval | F64_HIGH_D;
         R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         return true;
       }
@@ -85,7 +87,7 @@ namespace SST{
         R->DFP[Inst.rd] = fma_sf64(R->DFP[Inst.rs1], 
                                    R->DFP[Inst.rs2],
                                    R->DFP[Inst.rs3], 
-                                   rm, &R->fflags) | F64_HIGH;
+                                   rm, &R->fflags) | F64_HIGH_D;
 
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
@@ -100,7 +102,7 @@ namespace SST{
         R->DFP[Inst.rd] = fma_sf64(R->DFP[Inst.rs1], 
                                    R->DFP[Inst.rs2],
                                    R->DFP[Inst.rs3] ^ FSIGN_MASK64, 
-                                   rm, &R->fflags) | F64_HIGH;
+                                   rm, &R->fflags) | F64_HIGH_D;
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -115,7 +117,7 @@ namespace SST{
         R->DFP[Inst.rd] = fma_sf64(R->DFP[Inst.rs1] ^ FSIGN_MASK64, 
                                    R->DFP[Inst.rs2],
                                    R->DFP[Inst.rs3], 
-                                   rm, &R->fflags) | F64_HIGH;
+                                   rm, &R->fflags) | F64_HIGH_D;
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -129,7 +131,7 @@ namespace SST{
         R->DFP[Inst.rd] = fma_sf64(R->DFP[Inst.rs1] ^ FSIGN_MASK64, 
                                    R->DFP[Inst.rs2],
                                    R->DFP[Inst.rs3] ^ FSIGN_MASK64, 
-                                   rm, &R->fflags) | F64_HIGH;
+                                   rm, &R->fflags) | F64_HIGH_D;
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -140,9 +142,9 @@ namespace SST{
 
       static bool faddd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->DFP[Inst.rd] = glue(add_sf, F_SIZE)(R->DFP[Inst.rs1],
+        R->DFP[Inst.rd] = glue(add_sf, F_SIZE_D)(R->DFP[Inst.rs1],
                                                R->DFP[Inst.rs2],
-                                               rm, &R->fflags) | F_HIGH;
+                                               rm, &R->fflags) | F_HIGH_D;
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -153,9 +155,9 @@ namespace SST{
 
       static bool fsubd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->DFP[Inst.rd] = glue(sub_sf, F_SIZE)(R->DFP[Inst.rs1],
+        R->DFP[Inst.rd] = glue(sub_sf, F_SIZE_D)(R->DFP[Inst.rs1],
                                                R->DFP[Inst.rs2],
-                                               rm, &R->fflags) | F_HIGH;
+                                               rm, &R->fflags) | F_HIGH_D;
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -166,9 +168,9 @@ namespace SST{
 
       static bool fmuld(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->DFP[Inst.rd] = glue(mul_sf, F_SIZE)(R->DFP[Inst.rs1],
+        R->DFP[Inst.rd] = glue(mul_sf, F_SIZE_D)(R->DFP[Inst.rs1],
                                                R->DFP[Inst.rs2],
-                                               rm, &R->fflags) | F_HIGH;
+                                               rm, &R->fflags) | F_HIGH_D;
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -179,9 +181,9 @@ namespace SST{
 
       static bool fdivd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->DFP[Inst.rd] = glue(div_sf, F_SIZE)(R->DFP[Inst.rs1],
+        R->DFP[Inst.rd] = glue(div_sf, F_SIZE_D)(R->DFP[Inst.rs1],
                                                R->DFP[Inst.rs2],
-                                               rm, &R->fflags) | F_HIGH;
+                                               rm, &R->fflags) | F_HIGH_D;
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -192,8 +194,8 @@ namespace SST{
 
       static bool fsqrtd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->DFP[Inst.rd] = glue(sqrt_sf, F_SIZE)(R->DFP[Inst.rs1],
-                                                rm, &R->fflags) | F_HIGH;
+        R->DFP[Inst.rd] = glue(sqrt_sf, F_SIZE_D)(R->DFP[Inst.rs1],
+                                                rm, &R->fflags) | F_HIGH_D;
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -240,9 +242,9 @@ namespace SST{
       }
 
       static bool fmind(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        R->DFP[Inst.rd] = glue(min_sf, F_SIZE)(R->DFP[Inst.rs1],
+        R->DFP[Inst.rd] = glue(min_sf, F_SIZE_D)(R->DFP[Inst.rs1],
                                                R->DFP[Inst.rs2],
-                                              &R->fflags) | F_HIGH;
+                                              &R->fflags) | F_HIGH_D;
 
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
@@ -253,9 +255,9 @@ namespace SST{
       }
 
       static bool fmaxd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        R->DFP[Inst.rd] = glue(max_sf, F_SIZE)(R->DFP[Inst.rs1],
+        R->DFP[Inst.rd] = glue(max_sf, F_SIZE_D)(R->DFP[Inst.rs1],
                                                R->DFP[Inst.rs2],
-                                              &R->fflags) | F_HIGH;
+                                              &R->fflags) | F_HIGH_D;
 
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
@@ -267,7 +269,7 @@ namespace SST{
 
       static bool fcvtds(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->DFP[Inst.rd] = cvt_sf32_sf64(R->DFP[Inst.rs1], &R->fflags) | F64_HIGH;
+        R->DFP[Inst.rd] = cvt_sf32_sf64(R->DFP[Inst.rs1], &R->fflags) | F64_HIGH_D;
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -278,7 +280,7 @@ namespace SST{
 
       static bool fcvtsd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->DFP[Inst.rd] = cvt_sf64_sf32(R->DFP[Inst.rs1], rm, &R->fflags) | F32_HIGH;
+        R->DFP[Inst.rd] = cvt_sf64_sf32(R->DFP[Inst.rs1], rm, &R->fflags) | F32_HIGH_D;
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
@@ -289,7 +291,7 @@ namespace SST{
 
       static bool feqd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t val;
-        val = glue(eq_quiet_sf, F_SIZE)(R->DFP[Inst.rs1], R->DFP[Inst.rs2], &R->fflags);
+        val = glue(eq_quiet_sf, F_SIZE_D)(R->DFP[Inst.rs1], R->DFP[Inst.rs2], &R->fflags);
         
         if( F->IsRV32() ){
           if(Inst.rd != 0)
@@ -305,7 +307,7 @@ namespace SST{
 
       static bool fltd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t val;
-        val = glue(lt_sf, F_SIZE)(R->DFP[Inst.rs1], R->DFP[Inst.rs2], &R->fflags);
+        val = glue(lt_sf, F_SIZE_D)(R->DFP[Inst.rs1], R->DFP[Inst.rs2], &R->fflags);
         
         if( F->IsRV32() ){
           if(Inst.rd != 0)
@@ -321,7 +323,7 @@ namespace SST{
 
       static bool fled(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t val;
-        val = glue(le_sf, F_SIZE)(R->DFP[Inst.rs1], R->DFP[Inst.rs2], &R->fflags);
+        val = glue(le_sf, F_SIZE_D)(R->DFP[Inst.rs1], R->DFP[Inst.rs2], &R->fflags);
         
         if( F->IsRV32() ){
           if(Inst.rd != 0)
@@ -337,7 +339,7 @@ namespace SST{
 
       static bool fclassd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t val;
-        val = glue(fclass_sf, F_SIZE)(R->DFP[Inst.rs1]);
+        val = glue(fclass_sf, F_SIZE_D)(R->DFP[Inst.rs1]);
         
         if( F->IsRV32() ){
           if(Inst.rd != 0)
@@ -354,7 +356,7 @@ namespace SST{
       static bool fcvtwd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t val;
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        val = (int32_t)glue(glue(cvt_sf, F_SIZE), _i32)(R->DFP[Inst.rs1], rm, &R->fflags);
+        val = (int32_t)glue(glue(cvt_sf, F_SIZE_D), _i32)(R->DFP[Inst.rs1], rm, &R->fflags);
         
         if( F->IsRV32() ){
           if(Inst.rd != 0)
@@ -371,7 +373,7 @@ namespace SST{
       static bool fcvtwud(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint32_t val;
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        val = (int32_t)glue(glue(cvt_sf, F_SIZE), _u32)(R->DFP[Inst.rs1], rm, &R->fflags);
+        val = (int32_t)glue(glue(cvt_sf, F_SIZE_D), _u32)(R->DFP[Inst.rs1], rm, &R->fflags);
         
         if( F->IsRV32() ){
           if(Inst.rd != 0)
@@ -388,22 +390,38 @@ namespace SST{
       static bool fcvtdw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
         if( F->IsRV32() ){
-          R->DFP[Inst.rd] = glue(cvt_i32_sf, F_SIZE)(R->RV32[Inst.rs1], rm, &R->fflags);
+          R->DFP[Inst.rd] = glue(cvt_i32_sf, F_SIZE_D)(R->RV32[Inst.rs1], rm, &R->fflags);
           R->RV32_PC += Inst.instSize;
         }else{
-          R->DFP[Inst.rd] = glue(cvt_i32_sf, F_SIZE)(R->RV64[Inst.rs1], rm, &R->fflags);
+          R->DFP[Inst.rd] = glue(cvt_i32_sf, F_SIZE_D)(R->RV64[Inst.rs1], rm, &R->fflags);
           R->RV64_PC += Inst.instSize;
         }
+
+//  #ifdef _XBGAS_DEBUG_
+//           std::cout << "_XBGAS_DEBUG_ fcvt.d.w"  << std::endl;
+//           std::cout << "|---- Register file -----|" << std::endl;
+//           for(int i=0; i<32; i++) {
+//             std::cout << "|fs" <<std::dec << +i
+//                       << ": 0x" << std::hex << R->SFP[i]
+//                       << "|fd" <<std::dec << +i
+//                       << ": 0x" << std::hex << R->DFP[i]
+//                       << "|x" <<std::dec << +i
+//                       << ": 0x" << std::hex << R->RV64[i]
+//                       << std::endl;
+//           }
+//           std::cout << "|----- Register file -----|" << std::endl;
+// #endif
+
         return true;
       }
 
       static bool fcvtdwu(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
         if( F->IsRV32() ){
-          R->DFP[Inst.rd] = glue(cvt_u32_sf, F_SIZE)(R->RV32[Inst.rs1], rm, &R->fflags);
+          R->DFP[Inst.rd] = glue(cvt_u32_sf, F_SIZE_D)(R->RV32[Inst.rs1], rm, &R->fflags);
           R->RV32_PC += Inst.instSize;
         }else{
-          R->DFP[Inst.rd] = glue(cvt_u32_sf, F_SIZE)(R->RV64[Inst.rs1], rm, &R->fflags);
+          R->DFP[Inst.rd] = glue(cvt_u32_sf, F_SIZE_D)(R->RV64[Inst.rs1], rm, &R->fflags);
           R->RV64_PC += Inst.instSize;
         }
         return true;

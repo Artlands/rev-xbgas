@@ -1207,12 +1207,12 @@ RevInst RevProc::DecodeBInst(uint32_t Inst, unsigned Entry){
   //               (uint32_t)((Inst >> 20)&0b11111100000)|   // [10:5]
   //               (uint32_t)((Inst >> 20)&0b1000000000000);  // [12]
 
-  BInst.imm = ((Inst >> (31 - 12)) & (1 << 12)) |
-              ((Inst >> (25 - 5)) & 0x7e0) |
-              ((Inst >> (8 - 1)) & 0x1e) |
-              ((Inst << (11 - 7)) & (1 << 11));
+  BInst.imm = ((Inst >> (31 - 12)) & (1 << 12)) |         // imm[12]
+              ((Inst >> (25 - 5)) & 0x7e0) |              // imm[10:5]
+              ((Inst >> (8 - 1)) & 0x1e) |                // imm[4:1]
+              ((Inst << (11 - 7)) & (1 << 11));           // imm[11]
 
-  BInst.imm = (BInst.imm << 19) >> 19;
+  // BInst.imm = (BInst.imm << 19) >> 19;
 
   // SP/DP Float
   BInst.fmt     = 0;
@@ -1254,11 +1254,12 @@ RevInst RevProc::DecodeJInst(uint32_t Inst, unsigned Entry){
   //                   (uint32_t)((Inst >> 9) & 0b100000000000) |            // imm[11]
   //                   (uint32_t)((Inst >> 11) & 0b100000000000000000000) ); // imm[20]
 
-  JInst.imm = ((Inst >> (31 - 20)) & (1 << 20)) |
-              ((Inst >> (21 - 1)) & 0x7fe) |
-              ((Inst >> (20 - 11)) & (1 << 11)) |
-              (Inst & 0xff000);
-  JInst.imm = (JInst.imm << 11) >> 11;
+  JInst.imm = ((Inst >> (31 - 20)) & (1 << 20)) |   // imm[20]
+              ((Inst >> (21 - 1)) & 0x7fe) |        // imm[10:1]
+              ((Inst >> (20 - 11)) & (1 << 11)) |   // imm[1]
+              (Inst & 0xff000);                     // imm[19:12]
+
+  // JInst.imm = (JInst.imm << 11) >> 11;
 
   // SP/DP Float
   JInst.fmt     = 0;
