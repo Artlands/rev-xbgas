@@ -66,7 +66,7 @@ namespace SST{
           rval = M->ReadU64((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
           R->RV64_PC += Inst.instSize;
         }
-        R->DFP[Inst.rd] = rval | F64_HIGH_D;
+        R->DFP[Inst.rd] = rval;
         R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         return true;
       }

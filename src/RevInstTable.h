@@ -395,7 +395,7 @@ namespace SST{
       } RevInstEntry;
 
     /* return -1 if invalid roundind mode */
-    static int get_insn_rm(RevRegFile *R, unsigned int rm)
+    static int get_insn_rm(RevRegFile *R, uint8_t rm)
     {
         if (rm == 7)
             return R->frm;

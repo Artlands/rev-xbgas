@@ -1086,10 +1086,10 @@ RevInst RevProc::DecodeIInst(uint32_t Inst, unsigned Entry){
   IInst.instSize  = 4;
 
   // rm does not exist in I instructions.
-  // // Decode any ancillary SP/DP float options
-  // if( IsFloat(Entry) ){
-  //   DInst.rm = DECODE_FUNCT3(Inst);
-  // }
+  // Decode any ancillary SP/DP float options
+  if( IsFloat(Entry) ){
+    IInst.rm = DECODE_FUNCT3(Inst);
+  }
   IInst.compressed = false;
 
   return IInst;
@@ -1131,10 +1131,10 @@ RevInst RevProc::DecodeSInst(uint32_t Inst, unsigned Entry){
   SInst.instSize  = 4;
 
   // rm does not exist in S instructions.
-  // // Decode any ancillary SP/DP float options
-  // if( IsFloat(Entry) ){
-  //   DInst.rm = DECODE_FUNCT3(Inst);
-  // }
+  // Decode any ancillary SP/DP float options
+  if( IsFloat(Entry) ){
+    SInst.rm = DECODE_FUNCT3(Inst);
+  }
 
   SInst.compressed = false;
   return SInst;
@@ -1212,7 +1212,7 @@ RevInst RevProc::DecodeBInst(uint32_t Inst, unsigned Entry){
               ((Inst >> (8 - 1)) & 0x1e) |                // imm[4:1]
               ((Inst << (11 - 7)) & (1 << 11));           // imm[11]
 
-  // BInst.imm = (BInst.imm << 19) >> 19;
+  BInst.imm = (BInst.imm << 19) >> 19;
 
   // SP/DP Float
   BInst.fmt     = 0;
@@ -1259,7 +1259,7 @@ RevInst RevProc::DecodeJInst(uint32_t Inst, unsigned Entry){
               ((Inst >> (20 - 11)) & (1 << 11)) |   // imm[1]
               (Inst & 0xff000);                     // imm[19:12]
 
-  // JInst.imm = (JInst.imm << 11) >> 11;
+  JInst.imm = (JInst.imm << 11) >> 11;
 
   // SP/DP Float
   JInst.fmt     = 0;
@@ -1312,6 +1312,11 @@ RevInst RevProc::DecodeR4Inst(uint32_t Inst, unsigned Entry){
 
   // Size
   R4Inst.instSize  = 4;
+
+  // Decode any ancillary SP/DP float options
+  if( IsFloat(Entry) ){
+    R4Inst.rm = DECODE_FUNCT3(Inst);
+  }
 
   R4Inst.compressed = false;
   return R4Inst;
@@ -1406,17 +1411,19 @@ RevInst RevProc::DecodeInst(){
 
   // Stage 3: Determine if we have a funct3 field
   uint32_t Funct3 = 0x00ul;
+  const uint32_t inst4  = ((Opcode&0b10000) >> 4);
   const uint32_t inst42 = ((Opcode&0b11100) >> 2);
   const uint32_t inst65 = ((Opcode&0b1100000) >> 5);
+  const uint32_t inst29 = ((Inst >> 28) & 0b001);
 
-  if( (inst42 == 0b011) && (inst65 == 0b11) ){
-    // JAL
+  if( (Opcode == 0b0110111) || (Opcode == 0b0010111) || (Opcode == 0b1101111)){
+    // LUI, AUIPC, JAL
     Funct3 = 0x00ul;
-  }else if( (inst42 == 0b101) && (inst65 == 0b00) ){
-    // AUIPC
+  }else if ((inst65 == 0b10) && (inst4 == 0b0)){
+    // R4
     Funct3 = 0x00ul;
-  }else if( (inst42 == 0b101) && (inst65 == 0b01) ){
-    // LUI
+  }else if ( ((inst65 == 0b10) && (inst42 == 0b100) && (inst29 == 0b000)) ){
+    // Floating-Rtype, Funct3 is rm
     Funct3 = 0x00ul;
   }else{
     // Retrieve the field
@@ -1449,10 +1456,10 @@ RevInst RevProc::DecodeInst(){
   // Stage 5: Determine if we have an imm12 field
   uint32_t Imm12 = 0x00ul;
   const uint32_t inst30 = ((Funct7&0b0100000) >> 5);
-  if((inst65 == 0b11) && (inst42 == 0b100) && (Funct3 == 0)){
+  if((inst65 == 0b11) && (inst42 == 0b100) && (Funct3 == 0b000)){
     // ECAL, EBREAK
     Imm12 = Inst >> 20;
-  } else if ((inst65 == 0b10) && (inst42 == 0b100) && (inst30 == 1)) {
+  } else if ((inst65 == 0b10) && (inst42 == 0b100) && (inst30 == 0b01)) {
     // F, D
     Imm12 = Inst >> 20;
   }
