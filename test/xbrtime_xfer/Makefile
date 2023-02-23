@@ -33,6 +33,6 @@ objdump:
 	$(OBJDUMP) -d $(EXEC) > $(ASM)
 
 clean:
-	rm -Rf *.exe *.s *.o *.i *.csv *.asm
+	rm -Rf *.exe *.s *.o *.i *.csv *.asm *.txt
 
 #-- EOF
