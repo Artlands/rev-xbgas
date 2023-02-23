@@ -419,7 +419,6 @@ namespace SST{
         RevRegClass rdClass   = RegFLOAT;
         RevRegClass rs1Class  = RegFLOAT;
         RevRegClass rs2Class  = RegFLOAT;
-        RevRegClass rs3Class  = RegFLOAT;
       };
 
       std::vector<RevInstEntry>RV32FTable = {
@@ -455,14 +454,14 @@ namespace SST{
         
         {RevInstEntryBuilder<Rev32FInstDefaults>().SetMnemonic("fcvt.s.w %rd, %rs1"	           ).SetCost(1).SetOpcode( 0b1010011 ).SetFunct3( 0b0   ).SetFunct7( 0b1101000 ).SetrdClass(RegFLOAT  ).Setrs1Class(RegGPR  ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b110100000000).Setimm(FEnc).SetFormat(RVTypeR).SetImplFunc( &fcvtsw ).InstEntry},
         {RevInstEntryBuilder<Rev32FInstDefaults>().SetMnemonic("fcvt.s.wu %rd, %rs1"	         ).SetCost(1).SetOpcode( 0b1010011 ).SetFunct3( 0b0   ).SetFunct7( 0b1101000 ).SetrdClass(RegFLOAT  ).Setrs1Class(RegGPR  ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b110100000001).Setimm(FEnc).SetFormat(RVTypeR).SetImplFunc( &fcvtswu).InstEntry},
-        {RevInstEntryBuilder<Rev32FInstDefaults>().SetMnemonic("fmv.w.x %rd, %rs1"	           ).SetCost(1).SetOpcode( 0b1010011 ).SetFunct3( 0b000 ).SetFunct7( 0b1111000 ).SetrdClass(RegFLOAT  ).Setrs1Class(RegGPR  ).Setrs3Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b111100000000).Setimm(FEnc).SetFormat(RVTypeR).SetImplFunc( &fmvwx  ).InstEntry}
+        {RevInstEntryBuilder<Rev32FInstDefaults>().SetMnemonic("fmv.w.x %rd, %rs1"	           ).SetCost(1).SetOpcode( 0b1010011 ).SetFunct3( 0b000 ).SetFunct7( 0b1111000 ).SetrdClass(RegFLOAT  ).Setrs1Class(RegGPR  ).Setrs3Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b111100000000).Setimm(FEnc).SetFormat(RVTypeR).SetImplFunc( &fmvwx  ).InstEntry},
       };
 
       std::vector<RevInstEntry> RV32FCOTable = {
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.flwsp %rd, $imm"                ).SetCost(1).SetOpcode( 0b10      ).SetFunct3( 0b011 ).SetFunct7( 0b0      ).SetrdClass(RegFLOAT  ).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FVal).SetFormat(RVCTypeCSS).SetImplFunc( &cflwsp ).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.fswsp %rs2, $imm"               ).SetCost(1).SetOpcode( 0b10      ).SetFunct3( 0b111 ).SetFunct7( 0b0      ).SetrdClass(RegUNKNOWN).Setrs1Class(RegUNKNOWN).Setrs2Class(RegFLOAT  ).Setimm(FVal).SetFormat(RVCTypeCSS).SetImplFunc( &cfswsp ).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.flw %rd, %rs1, $imm"            ).SetCost(1).SetOpcode( 0b00      ).SetFunct3( 0b011 ).SetFunct7( 0b0      ).SetrdClass(RegFLOAT  ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc( &cflw   ).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.fsw %rs2, %rs1, $imm"           ).SetCost(1).SetOpcode( 0b00      ).SetFunct3( 0b111 ).SetFunct7( 0b0      ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegFLOAT  ).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc( &cfsw   ).SetCompressed(true).InstEntry}
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.flw %rd, %rs1, $imm"            ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b011).SetFunct2(0b0 ).SetrdClass(RegFLOAT  ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc( &cflw   ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.fsw %rs2, %rs1, $imm"           ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b111).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegFLOAT  ).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc( &cfsw   ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.flwsp %rd, $imm"                ).SetCost(1).SetOpcode(0b10).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b011).SetFunct2(0b0 ).SetrdClass(RegFLOAT  ).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCSS).SetImplFunc( &cflwsp ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.fswsp %rs2, $imm"               ).SetCost(1).SetOpcode(0b10).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b111).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegUNKNOWN).Setrs2Class(RegFLOAT  ).Setimm(FImm).SetFormat(RVCTypeCSS).SetImplFunc( &cfswsp ).SetCompressed(true).InstEntry},
       };
 
     public:

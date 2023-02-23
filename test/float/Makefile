@@ -16,7 +16,7 @@ EXAMPLE=float
 # CC=riscv64-unknown-linux-gnu-gcc
 CC=riscv64-unknown-elf-gcc
 OBJDUMP=riscv64-unknown-elf-objdump
-ARCH=rv64imafd
+ARCH=rv64imafdc
 
 all: $(EXAMPLE).exe
 $(EXAMPLE).exe: $(EXAMPLE).c

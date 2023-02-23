@@ -131,7 +131,6 @@ namespace SST{
       static bool addw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)(R->RV64[Inst.rs1] + R->RV64[Inst.rs2]);
-
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -139,7 +138,6 @@ namespace SST{
       static bool subw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)(R->RV64[Inst.rs1] - R->RV64[Inst.rs2]);
-
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -147,7 +145,6 @@ namespace SST{
       static bool sllw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)((uint32_t)(R->RV64[Inst.rs1]) << (R->RV64[Inst.rs2] & 0b11111));
-
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -189,17 +186,17 @@ namespace SST{
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("subw %rd, %rs1, %rs2"  ).SetCost(1).SetOpcode( 0b0111011 ).SetFunct3( 0b000 ).SetFunct7(0b0100000).SetrdClass(RegGPR    ).Setrs1Class(RegGPR).Setrs2Class(RegGPR    ).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &subw  ).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("sllw %rd, %rs1, %rs2"  ).SetCost(1).SetOpcode( 0b0111011 ).SetFunct3( 0b001 ).SetFunct7(0b0000000).SetrdClass(RegGPR    ).Setrs1Class(RegGPR).Setrs2Class(RegGPR    ).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &sllw  ).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("srlw %rd, %rs1, %rs2"  ).SetCost(1).SetOpcode( 0b0111011 ).SetFunct3( 0b101 ).SetFunct7(0b0000000).SetrdClass(RegGPR    ).Setrs1Class(RegGPR).Setrs2Class(RegGPR    ).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &srlw  ).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("sraw %rd, %rs1, %rs2"  ).SetCost(1).SetOpcode( 0b0111011 ).SetFunct3( 0b101 ).SetFunct7(0b0100000).SetrdClass(RegGPR    ).Setrs1Class(RegGPR).Setrs2Class(RegGPR    ).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &sraw  ).InstEntry}
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("sraw %rd, %rs1, %rs2"  ).SetCost(1).SetOpcode( 0b0111011 ).SetFunct3( 0b101 ).SetFunct7(0b0100000).SetrdClass(RegGPR    ).Setrs1Class(RegGPR).Setrs2Class(RegGPR    ).Setimm12(0b0).Setimm(FUnk).SetFormat(RVTypeR).SetImplFunc( &sraw  ).InstEntry},
       };
 
     std::vector<RevInstEntry> RV64ICTable = {
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.ldsp %rd, $imm").SetCost(1).SetOpcode(0b10).SetFunct3(0b011).SetrdClass(RegGPR).Setrs1Class(RegGPR).Setimm(FVal).SetFormat(RVCTypeCI).SetImplFunc(&cldsp).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.sdsp %rs2, $imm").SetCost(1).SetOpcode(0b10).SetFunct3(0b111).Setrs2Class(RegGPR).Setrs1Class(RegGPR).Setimm(FVal).SetFormat(RVCTypeCSS).SetImplFunc(&csdsp).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.ld %rd, %rs1, $imm").SetCost(1).SetOpcode(0b00).SetFunct3(0b011).SetrdClass(RegGPR).Setrs1Class(RegGPR).Setimm(FVal).SetFormat(RVCTypeCL).SetImplFunc(&cld).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.sd %rs2, %rs1, $imm").SetCost(1).SetOpcode(0b00).SetFunct3(0b111).Setrs1Class(RegGPR).Setrs2Class(RegGPR).Setimm(FVal).SetFormat(RVCTypeCS).SetImplFunc(&csd).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.addiw %rd, $imm").SetCost(1).SetOpcode(0b01).SetFunct3(0b001).Setrs1Class(RegGPR).SetrdClass(RegGPR).Setimm(FVal).SetFormat(RVCTypeCI).SetImplFunc(&caddiw).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.addw %rd,%rs1").SetCost(1).SetOpcode(0b01).SetFunct6(0b100111).SetFunct2(0b01).SetrdClass(RegGPR).Setrs2Class(RegGPR).SetFormat(RVCTypeCA).SetImplFunc(&caddw).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.subw %rd,%rs1").SetCost(1).SetOpcode(0b01).SetFunct6(0b100111).SetFunct2(0b00).SetrdClass(RegGPR).Setrs2Class(RegGPR).SetFormat(RVCTypeCA).SetImplFunc(&csubw).SetCompressed(true).InstEntry}
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.ld %rd, %rs1, $imm"  ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b011).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc(&cld   ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.sd %rs2, %rs1, $imm" ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b111).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc(&csd   ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.addiw %rd, $imm"     ).SetCost(1).SetOpcode(0b01).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b001).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCI ).SetImplFunc(&caddiw).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.subw %rd,%rs1"       ).SetCost(1).SetOpcode(0b01).SetFunct6(0b100111).SetFunct4(0b0   ).SetFunct3(0b100).SetFunct2(0b00).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setimm(FUnk).SetFormat(RVCTypeCR ).SetImplFunc(&csubw ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.addw %rd,%rs1"       ).SetCost(1).SetOpcode(0b01).SetFunct6(0b100111).SetFunct4(0b0   ).SetFunct3(0b100).SetFunct2(0b01).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setimm(FUnk).SetFormat(RVCTypeCR ).SetImplFunc(&caddw ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.ldsp %rd, $imm"      ).SetCost(1).SetOpcode(0b10).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b011).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCI ).SetImplFunc(&cldsp ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.sdsp %rs2, $imm"     ).SetCost(1).SetOpcode(0b10).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b111).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegUNKNOWN).Setrs2Class(RegGPR    ).Setimm(FImm).SetFormat(RVCTypeCSS).SetImplFunc(&csdsp ).SetCompressed(true).InstEntry},
       };
 
     public:

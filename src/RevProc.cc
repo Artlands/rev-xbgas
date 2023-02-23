@@ -173,9 +173,9 @@ bool RevProc::SeedInstTable(){
 
   // I-Extension
   if( feature->IsModeEnabled(RV_I) ){
+    EnableExt(static_cast<RevExt *>(new RV32I(feature,RegFile,mem,xbgas,output)),false);
     if( feature->GetXlen() == 64 ){
       // load RV32I & RV64; no optional compressed
-      EnableExt(static_cast<RevExt *>(new RV32I(feature,RegFile,mem,xbgas,output)),false);
       EnableExt(static_cast<RevExt *>(new RV64I(feature,RegFile,mem,xbgas,output)),false);
     }else{
       // load RV32I w/ optional compressed
@@ -204,6 +204,8 @@ bool RevProc::SeedInstTable(){
     EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,xbgas,output)),false);
     if( feature->GetXlen() == 64 ){
       EnableExt(static_cast<RevExt *>(new RV64F(feature,RegFile,mem,xbgas,output)),false);
+    } else {
+      EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,xbgas,output)),true);
     }
   }
 
@@ -212,6 +214,8 @@ bool RevProc::SeedInstTable(){
     EnableExt(static_cast<RevExt *>(new RV32D(feature,RegFile,mem,xbgas,output)),false);
     if( feature->GetXlen() == 64 ){
       EnableExt(static_cast<RevExt *>(new RV64D(feature,RegFile,mem,xbgas,output)),false);
+    } else {
+      EnableExt(static_cast<RevExt *>(new RV32D(feature,RegFile,mem,xbgas,output)),true);
     }
   }
 
@@ -234,8 +238,8 @@ uint32_t RevProc::CompressCEncoding(RevInstEntry Entry){
   Value |= (uint32_t)(Entry.opcode);
   Value |= (uint32_t)((uint32_t)(Entry.funct2)<<2);
   Value |= (uint32_t)((uint32_t)(Entry.funct3)<<4);
-  Value |= (uint32_t)((uint32_t)(Entry.funct4)<<8);
-  Value |= (uint32_t)((uint32_t)(Entry.funct6)<<12);
+  Value |= (uint32_t)((uint32_t)(Entry.funct4)<<7);
+  Value |= (uint32_t)((uint32_t)(Entry.funct6)<<11);
 
   return Value;
 }
@@ -244,13 +248,9 @@ uint32_t RevProc::CompressEncoding(RevInstEntry Entry){
   uint32_t Value = 0x00;
 
   Value |= (uint32_t)(Entry.opcode);
-  // Value |= (uint32_t)((uint32_t)(Entry.funct3)<<8);
-  // Value |= (uint32_t)((uint32_t)(Entry.funct7)<<11);
-  // Value |= (uint32_t)((uint32_t)(Entry.imm12)<<18);
-
   Value |= (uint32_t)((uint32_t)(Entry.funct3)<<7);
   Value |= (uint32_t)((uint32_t)(Entry.funct7)<<10);
-  Value |= (uint32_t)((uint32_t)(Entry.imm12)<<17);
+  Value |= (uint32_t)((uint32_t)(Entry.imm12) <<17);
 
   return Value;
 }
@@ -376,13 +376,9 @@ bool RevProc::InitExtReg(){
     // e11 = contains the number of PEs
     // e12 = contains the size of the shared memory region
     // e13 = contains the starting address of the physical shared memory region
-    
     RegFile[t].ERV64[10] = (uint64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-
     RegFile[t].ERV64[11] = (uint64_t)(mem->ReadU64(_XBGAS_TOTAL_NPE_ADDR_));
-
     RegFile[t].ERV64[12] = (uint64_t)(0u);
-
     RegFile[t].ERV64[13] = (uint64_t)(0u);
 
 #ifdef _XBGAS_DEBUG_
@@ -476,7 +472,7 @@ bool RevProc::Reset(){
 }
 
 bool RevProc::IsFloat(unsigned Entry){
-  if( (InstTable[Entry].rdClass == RegFLOAT) ||
+  if( (InstTable[Entry].rdClass  == RegFLOAT) ||
       (InstTable[Entry].rs1Class == RegFLOAT) ||
       (InstTable[Entry].rs2Class == RegFLOAT) ||
       (InstTable[Entry].rs3Class == RegFLOAT) ){
@@ -768,28 +764,6 @@ RevInst RevProc::DecodeCSInst(uint16_t Inst, unsigned Entry){
   return CompInst;
 }
 
-RevInst RevProc::DecodeCAInst(uint16_t Inst, unsigned Entry){
-  RevInst CompInst;
-
-  // cost
-  RegFile[threadToDecode].cost  = InstTable[Entry].cost;
-
-  // encodings
-  CompInst.opcode  = InstTable[Entry].opcode;
-  CompInst.funct2  = InstTable[Entry].funct2;
-  CompInst.funct6  = InstTable[Entry].funct6;
-
-  // registers
-  CompInst.rs2     = ((Inst & 0b11100) >> 2);
-  CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
-  CompInst.rd      = ((Inst & 0b1110000000) >> 7);
-
-  CompInst.instSize = 2;
-  CompInst.compressed = true;
-
-  return CompInst;
-}
-
 RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry){
   RevInst CompInst;
 
@@ -877,68 +851,65 @@ RevInst RevProc::DecodeCJInst(uint16_t Inst, unsigned Entry){
 }
 
 RevInst RevProc::DecodeCompressed(uint32_t Inst){
-
-#ifdef _XBGAS_DEBUG_
-  std::cout << "_XBGAS_DEBUG_ DecodeCompressed"<< std::endl;
-#endif
-
   uint16_t TmpInst = (uint16_t)(Inst&0b1111111111111111);
   RevInst CInst;
   uint8_t opc     = 0;
-  uint8_t funct2  = 0;
-  uint8_t funct3  = 0;
-  uint8_t funct4  = 0;
-  uint8_t funct6  = 0;
+  uint8_t funct2  = 0b0;
+  uint8_t funct3  = 0b0;
+  uint8_t funct4  = 0b0;
+  uint8_t funct6  = 0b0;
   uint8_t l3      = 0;
   uint32_t Enc    = 0x00ul;
   uint64_t PC     = GetPC();
+  uint8_t inst1011;
+  uint8_t rd;
+  uint8_t rs2;
+  uint8_t tmp0;
+  uint8_t tmp1;
 
   // decode the opcode
   opc = (TmpInst & 0b11);
-  l3  = ((TmpInst & 0b1110000000000000)>>13);
+  funct3  = ((TmpInst & 0b1110000000000000)>>13);
+  rd  = (TmpInst >> 7) & 0b11111;
+  rs2 = (TmpInst >> 2) & 0b11111;
+
   if( opc == 0b00 ){
-    // quadrant 0
-    funct3 = l3;
-  }else if( opc == 0b01){
+    // quadrant 0, do nothing
+  } else if ( opc == 0b01 ){
     // quadrant 1
-    if( l3 <= 0b011 ){
-      // upper portion: misc
-      funct3 = l3;
-    }else if( (l3 > 0b011) && (l3 < 0b101) ){
-      // middle portion: arithmetics
-      funct2 = ((TmpInst & 0b110000000000) >> 10);
-      if( funct2 == 0b11 ){
-        funct6 = ((TmpInst & 0b1111110000000000) >> 10);
-        funct2 = 0b00;
-      }else{
-        funct3 = l3;
+    if ( funct3 == 0b100 ){
+      inst1011 = (TmpInst >> 10) & (0b11);
+      // Get funct6
+      if (inst1011 != 0b11 ){
+        funct6 =(funct3 << 3) | inst1011;
+      } else {
+        funct6 = TmpInst >> 10;
+        // Get funct2
+        funct2 = (TmpInst >> 5) & (0b11);
       }
-    }else{
-      // lower power: jumps/branches
-      funct3 = l3;
+    } else if ( funct3 == 0b000 ){
+      if ( rd != 0b00000 )
+        // c.addi
+        funct4 = 0b0001;
+    } else if ( funct3 == 0b011 ){
+      // c.addi16sp
+      if ( rd == 0b00010 )
+        funct4 = 0b0111;
     }
-  }else if( opc == 0b10){
+  } else if ( opc == 0b10 ){
     // quadrant 2
-    if( l3 == 0b000 ){
-      // slli{64}
-      funct3 = l3;
-    }else if( l3 < 0b100 ){
-      // float/double/quad load
-      funct3 = l3;
-    }else if( l3 == 0b100 ){
-      // jump, mv, break, add
-      funct4 = ((TmpInst & 0b1111000000000000) >> 12);
-    }else{
-      // float/double/quad store
-      funct3 = l3;
+    if ( funct3 == 0b100 ) {
+      tmp0 = (rs2 != 0);
+      tmp1 = (rd  != 0);
+      funct6 = ((TmpInst >> 12) << 2) | (tmp1 << 1) | tmp0;
     }
   }
 
-  Enc |= (uint32_t)(opc);
-  Enc |= (uint32_t)(funct2 << 2);
-  Enc |= (uint32_t)(funct3 << 4);
-  Enc |= (uint32_t)(funct4 << 8);
-  Enc |= (uint32_t)(funct6 << 12);
+  Enc |= (uint32_t)(opc);           // 2 bits
+  Enc |= (uint32_t)(funct2 << 2);   // 2 bits
+  Enc |= (uint32_t)(funct3 << 4);   // 3 bits
+  Enc |= (uint32_t)(funct4 << 7);   // 4 bits
+  Enc |= (uint32_t)(funct6 << 11);  // 6 bits
 
   std::map<uint32_t,unsigned>::iterator it = CEncToEntry.find(Enc);
   if( it == CEncToEntry.end() ){              
@@ -954,7 +925,6 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
                   "Error: no entry in table for instruction at PC=0x%" PRIx64 "\
                   Opcode = %x Funct2 = %x Funct3 = %x Funct4 = %x Funct6 = %x Enc = %x \n", \
                   PC, opc, funct2, funct3, funct4, funct6, Enc );
-
   }
 
   RegFile[threadToDecode].Entry = Entry;
@@ -979,9 +949,6 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
     break;
   case RVCTypeCS:
     return DecodeCSInst(TmpInst,Entry);
-    break;
-  case RVCTypeCA:
-    return DecodeCAInst(TmpInst,Entry);
     break;
   case RVCTypeCB:
     return DecodeCBInst(TmpInst,Entry);
@@ -1201,12 +1168,6 @@ RevInst RevProc::DecodeBInst(uint32_t Inst, unsigned Entry){
     BInst.rs2  = DECODE_RS2(Inst);
   }
 
-  //DInst.imm     = twos_compl((DECODE_RD(Inst) | (DECODE_FUNCT7(Inst)<<5)),12);
-  // DInst.imm =   (uint32_t)((Inst << 4)&0b100000000000)|   // [11]
-  //               (uint32_t)((Inst & 0b111100000000)>>7)|   // [4:1]
-  //               (uint32_t)((Inst >> 20)&0b11111100000)|   // [10:5]
-  //               (uint32_t)((Inst >> 20)&0b1000000000000);  // [12]
-
   BInst.imm = ((Inst >> (31 - 12)) & (1 << 12)) |         // imm[12]
               ((Inst >> (25 - 5)) & 0x7e0) |              // imm[10:5]
               ((Inst >> (8 - 1)) & 0x1e) |                // imm[4:1]
@@ -1248,12 +1209,6 @@ RevInst RevProc::DecodeJInst(uint32_t Inst, unsigned Entry){
   }
 
   // immA
-  JInst.imm     = 0x00;
-  // JInst.imm     = ( (uint32_t)((Inst >> 20) & 0b11111111110) |            // imm[10:1]
-  //                   (uint32_t)(Inst & 0b11111111000000000000) |           // imm[19:12]
-  //                   (uint32_t)((Inst >> 9) & 0b100000000000) |            // imm[11]
-  //                   (uint32_t)((Inst >> 11) & 0b100000000000000000000) ); // imm[20]
-
   JInst.imm = ((Inst >> (31 - 20)) & (1 << 20)) |   // imm[20]
               ((Inst >> (21 - 1)) & 0x7fe) |        // imm[10:1]
               ((Inst >> (20 - 11)) & (1 << 11)) |   // imm[1]
@@ -1430,7 +1385,7 @@ RevInst RevProc::DecodeInst(){
     Funct3 = ((Inst&0b111000000000000) >> 12 );
   }
 
-  // Stage 4: Determine if we have a funct7 field (R-Type)
+  // Stage 4: Determine if we have a funct7 field
   uint32_t Funct7 = 0x00ul;
   if( inst65 == 0b01 ) {
     if( (inst42 == 0b100) || (inst42 == 0b110)){

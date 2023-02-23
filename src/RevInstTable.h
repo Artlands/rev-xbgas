@@ -405,7 +405,6 @@ namespace SST{
             return rm;
     }
 
-
     template <typename RevInstDefaultsPolicy>
     class RevInstEntryBuilder : public RevInstDefaultsPolicy{
       public:

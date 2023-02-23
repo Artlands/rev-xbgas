@@ -11,10 +11,6 @@
 #ifndef _SST_REVCPU_RV64F_H_
 #define _SST_REVCPU_RV64F_H_
 
-#define F_SIZE_S 32
-#define F32_HIGH_F 0
-#define F_HIGH_F F32_HIGH_F
-
 #include "RevInstTable.h"
 #include "RevExt.h"
 
@@ -27,8 +23,7 @@ namespace SST{
       static bool fcvtls(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint64_t val;
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        val = (int64_t)glue(glue(cvt_sf, F_SIZE_S), _i64)(R->SFP[Inst.rs1], rm, &R->fflags);
-        
+        val = (int64_t)cvt_sf64_i64(R->SFP[Inst.rs1], rm, &R->fflags);
         if(Inst.rd != 0)
             R->RV64[Inst.rd] = val;
         R->RV64_PC += Inst.instSize;
@@ -38,8 +33,7 @@ namespace SST{
       static bool fcvtlus(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint64_t val;
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        val = (int64_t)glue(glue(cvt_sf, F_SIZE_S), _u64)(R->SFP[Inst.rs1], rm, &R->fflags);
-        
+        val = (int64_t)cvt_sf64_u64(R->SFP[Inst.rs1], rm, &R->fflags);
         if(Inst.rd != 0)
             R->RV64[Inst.rd] = val;
         R->RV64_PC += Inst.instSize;
@@ -48,16 +42,14 @@ namespace SST{
 
       static bool fcvtsl(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->SFP[Inst.rd] = glue(cvt_i64_sf, F_SIZE_S)(R->RV64[Inst.rs1], rm,
-                                                  &R->fflags) | F_HIGH_F;
+        R->SFP[Inst.rd] = cvt_i64_sf64(R->RV64[Inst.rs1], rm, &R->fflags);
         R->RV64_PC += Inst.instSize;
         return true;
       }
 
       static bool fcvtslu(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
-        R->SFP[Inst.rd] = glue(cvt_u64_sf, F_SIZE_S)(R->RV64[Inst.rs1], rm,
-                                                  &R->fflags) | F_HIGH_F;
+        R->SFP[Inst.rd] = cvt_u64_sf64(R->RV64[Inst.rs1], rm, &R->fflags);
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -80,10 +72,10 @@ namespace SST{
       };
 
       std::vector<RevInstEntry > RV64FTable = {
-      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.l.s  %rd, %rs1").SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1100000 ).Setimm12(0b110000000010).Setimm(FEnc).SetImplFunc( &fcvtls  ).InstEntry},
-      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.lu.s %rd, %rs1").SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1100000 ).Setimm12(0b110000000011).Setimm(FEnc).SetImplFunc( &fcvtlus ).InstEntry},
-      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.s.l %rd, %rs1" ).SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1101000 ).Setimm12(0b110100000010).Setimm(FEnc).SetImplFunc( &fcvtsl  ).InstEntry},
-      {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.s.lu %rd, %rs1").SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1101000 ).Setimm12(0b110100000011).Setimm(FEnc).SetImplFunc( &fcvtslu ) .InstEntry}
+        {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.l.s  %rd, %rs1").SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1100000 ).Setimm12(0b110000000010).Setimm(FEnc).SetImplFunc( &fcvtls  ).InstEntry},
+        {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.lu.s %rd, %rs1").SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1100000 ).Setimm12(0b110000000011).Setimm(FEnc).SetImplFunc( &fcvtlus ).InstEntry},
+        {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.s.l %rd, %rs1" ).SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1101000 ).Setimm12(0b110100000010).Setimm(FEnc).SetImplFunc( &fcvtsl  ).InstEntry},
+        {RevInstEntryBuilder<Rev64FInstDefaults>().SetMnemonic("fcvt.s.lu %rd, %rs1").SetCost(1).SetFunct3( 0b0   ).SetFunct7( 0b1101000 ).Setimm12(0b110100000011).Setimm(FEnc).SetImplFunc( &fcvtslu ) .InstEntry}
       };
 
 

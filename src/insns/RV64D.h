@@ -24,7 +24,6 @@ namespace SST{
         uint64_t val;
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
         val = (int64_t)cvt_sf64_i64(R->DFP[Inst.rs1], rm, &R->fflags);
-        
         if(Inst.rd != 0)
             R->RV64[Inst.rd] = val;
         R->RV64_PC += Inst.instSize;
@@ -35,7 +34,6 @@ namespace SST{
         uint64_t val;
         RoundingModeEnum rm = static_cast<RoundingModeEnum>(get_insn_rm(R, Inst.rm));
         val = (int64_t)cvt_sf64_u64(R->DFP[Inst.rs1], rm, &R->fflags);
-        
         if(Inst.rd != 0)
             R->RV64[Inst.rd] = val;
         R->RV64_PC += Inst.instSize;
@@ -45,7 +43,6 @@ namespace SST{
       static bool fmvxd(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         uint64_t val;
         val = (int64_t)(R->DFP[Inst.rs1]);
-        
         if(Inst.rd != 0)
             R->RV64[Inst.rd] = val;
         R->RV64_PC += Inst.instSize;
