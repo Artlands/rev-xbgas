@@ -72,6 +72,7 @@ namespace SST{
 
       static bool cj(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.j $imm = jal x0, $imm
+        Inst.rd = 0;
         SEXT(Inst.imm, Inst.jumpTarget, 12);
 
         return jal(F,R,M,Xbgas,Inst);
@@ -79,7 +80,7 @@ namespace SST{
 
       static bool cjal(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.jal $imm = jal x0, $imm
-        Inst.rd = Inst.rs1;
+        Inst.rd = 1;
         SEXT(Inst.imm, Inst.jumpTarget, 12);
 
         return jal(F,R,M,Xbgas,Inst);
