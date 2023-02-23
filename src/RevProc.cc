@@ -516,77 +516,36 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry){
   // registers
   CompInst.rd      = DECODE_RD(Inst);
   CompInst.rs1     = DECODE_RD(Inst);
-  CompInst.imm     = DECODE_LOWER_CRS2(Inst);
-  CompInst.imm    |= ((Inst & 0b1000000000000)>>7);
+  CompInst.imm     = DECODE_LOWER_CRS2(Inst);       // 11111
+  CompInst.imm    |= ((Inst & 0b1000000000000)>>7); //100000 [5], [4:0]
 
-  if((CompInst.opcode == 0b10) &&
-     (CompInst.funct3 == 0b001)){
-    // c.fldsp
-    CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1100000) >> 2);        // [4:3]
-    CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
-    CompInst.imm |= ((Inst & 0b11100) << 4);          // [8:6]
-  }else if( (CompInst.opcode == 0b10) &&
-            (CompInst.funct3 == 0b010) ){
-    // c.lwsp
-    CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1110000) >> 2);        // [4:2]
-    CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
-    CompInst.imm |= ((Inst & 1100) << 4);             // [7:6]
-  }else if( (CompInst.opcode == 0b10) &&
-            (CompInst.funct3 == 0b011) ){
-    CompInst.imm = 0;
-    if( feature->GetXlen() == 64 ){
-      // c.ldsp
-      CompInst.imm =  ((Inst & 0b1100000) >> 2);        // [4:3]
-      CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
-      CompInst.imm |= ((Inst & 0b11100) << 4);          // [8:6]
-    }else{
-      // c.flwsp
-      CompInst.imm =  ((Inst & 0b1110000) >> 2);        // [4:2]
-      CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
-      CompInst.imm |= ((Inst & 1100) << 4);             // [7:6]
-    }
-  }else if( (CompInst.opcode == 0b01) &&
+  if( (CompInst.opcode == 0b01 ) &&
       (CompInst.funct3 == 0b011) &&
-      (CompInst.rd == 2)){
-    // c.addi16sp
+      (CompInst.rd     == 2)){
+    // c.addi16sp [9], [4|6|8:7|5]
     // swizzle: nzimm[4|6|8:7|5] nzimm[9]
-    CompInst.imm = 0;
-    CompInst.imm = ((Inst & 0b1000000) >> 2); // bit 4
-    CompInst.imm |= ((Inst & 0b100) << 3);    // bit 5
-    CompInst.imm |= ((Inst & 0b100000) << 1); // bit 6
-    CompInst.imm |= ((Inst & 0b11000) << 4);  // bit 8:7
-    CompInst.imm |= ((Inst & 0b1000000000000) >> 3);  // bit 9
-    if( (CompInst.imm & 0b1000000000) > 0 ){
-      // sign extend
-      CompInst.imm |= 0b11111111111111111111111000000000;
+    CompInst.imm  = 0;
+    CompInst.imm  = ((Inst & 0b1000000) >> 2);// bit 4                10000
+    CompInst.imm |= ((Inst & 0b100) << 3);    // bit 5               100000
+    CompInst.imm |= ((Inst & 0b100000) << 1); // bit 6              1000000
+    CompInst.imm |= ((Inst & 0b11000) << 4);  // bit 8:7          110000000
+    CompInst.imm |= ((Inst & 0b1000000000000) >> 3);  // bit 9   1000000000
+  } else if (CompInst.opcode == 0b10){
+    if((CompInst.funct3 == 0b001) || 
+      ((feature->GetXlen() == 64) && (CompInst.funct3 == 0b011))) {
+        // c.fldsp, c.ldsp, [5], [4:3|8:6]
+        CompInst.imm = 0;
+        CompInst.imm =  ((Inst & 0b1100000) >> 2);        // [4:3]    11000
+        CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]     100000
+        CompInst.imm |= ((Inst & 0b11100) << 4);          // [8:6]111000000
+    } else if ((CompInst.funct3 == 0b010) || 
+              ((feature->GetXlen() == 32) && (CompInst.funct3 == 0b011))) {
+        // c.lwsp, c.flwsp, [5], [4:2|7:6]
+        CompInst.imm = 0;
+        CompInst.imm =  ((Inst & 0b1110000) >> 2);        // [4:2]   11100
+        CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]    100000
+        CompInst.imm |= ((Inst & 1100) << 4);             // [7:6]11000000
     }
-  }else if( (CompInst.opcode == 0b01) &&
-      (CompInst.funct3 == 0b011)  &&
-      (CompInst.rd != 0) && (CompInst.rd != 2) ){
-    // c.lui
-    CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1111100) << 10);       // [16:12]
-    CompInst.imm |= ((Inst & 0b1000000000000) << 5);  // [17]
-    if( (CompInst.imm & 0b100000000000000000) > 0 ){
-      // sign extend
-      CompInst.imm |= 0b11111111111111000000000000000000;
-    }
-  }else if( (CompInst.opcode == 0b01) &&
-            (CompInst.funct3 == 0b010) &&
-            (CompInst.rd != 0) ){
-    // c.li
-    CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1111100) >> 2);        // [4:0]
-    CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
-    if( (CompInst.imm & 0b100000) > 0 ){
-      // sign extend
-      CompInst.imm |= 0b11111111111111111111111111000000;
-    }
-  }else if( (CompInst.imm & 0b100000) > 0 ){
-    // sign extend
-    CompInst.imm |= 0b11111111111111111111111111100000;
   }
 
   CompInst.instSize = 2;
@@ -609,26 +568,20 @@ RevInst RevProc::DecodeCSSInst(uint16_t Inst, unsigned Entry){
   CompInst.rs2     = DECODE_LOWER_CRS2(Inst);
   CompInst.imm     = ((Inst & 0b1111110000000) >> 7);
 
-  if( CompInst.funct3 == 0b101 ){
-    // c.fsdsp
-    CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1110000000000) >> 7);    // [5:3]
-    CompInst.imm |= ((Inst & 0b1110000000) >> 1);       // [8:6]
-  }else if( CompInst.funct3 == 0b110 ){
-    // c.swsp
-    CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1111000000000) >> 7);    // [5:2]
-    CompInst.imm |= ((Inst & 0b110000000) >> 1);        // [7:6]
-  }else if( CompInst.funct3 == 0b111 ){
-    CompInst.imm = 0;
-    if( feature->GetXlen() == 64 ){
-      // c.sdsp
-      CompInst.imm =  ((Inst & 0b1110000000000) >> 7);    // [5:3]
-      CompInst.imm |= ((Inst & 0b1110000000) >> 1);       // [8:6]
-    }else{
-      // c.fswsp
-      CompInst.imm =  ((Inst & 0b1111000000000) >> 7);    // [5:2]
-      CompInst.imm |= ((Inst & 0b110000000) >> 1);        // [7:6]
+  if (CompInst.opcode == 0b10){
+    if((CompInst.funct3 == 0b101) || 
+      ((feature->GetXlen() == 64) && (CompInst.funct3 == 0b111))) {
+      // c.fsdsp, c.sdsp, [5:3|8:6]
+      CompInst.imm = 0;
+      CompInst.imm =  ((Inst & 0b1110000000000) >> 7);    // [5:3]    111000
+      CompInst.imm |= ((Inst & 0b1110000000) >> 1);       // [8:6] 111000000
+       
+    } else if ((CompInst.funct3 == 0b110) || 
+              ((feature->GetXlen() == 32) && (CompInst.funct3 == 0b111))) {
+      // c.swsp, c.fswsp, [5:2|7:6]
+      CompInst.imm  = 0;
+      CompInst.imm  = ((Inst & 0b1111000000000) >> 7);    // [5:2]   111100
+      CompInst.imm |= ((Inst & 0b110000000) >> 1);        // [7:6] 11000000
     }
   }
 
@@ -653,22 +606,25 @@ RevInst RevProc::DecodeCIWInst(uint16_t Inst, unsigned Entry){
   CompInst.imm     = ((Inst & 0b1111111100000) >> 5);
 
   //swizzle: nzuimm[5:4|9:6|2|3]
-  std::bitset<32> imm(CompInst.imm);
-  std::bitset<32> tmp(0);
-  tmp[0] = imm[1];
-  tmp[1] = imm[0];
-  tmp[2] = imm[6];
-  tmp[3] = imm[7];
-  tmp[4] = imm[2];
-  tmp[5] = imm[3];
-  tmp[6] = imm[4];
-  tmp[7] = imm[5];
+  std::bitset<16> imm(CompInst.imm);
+  std::bitset<16> tmp(0);
+  tmp.reset();
+  // c.addi4spn
+  tmp[0] = 0;
+  tmp[1] = 0;
+  tmp[3] = imm[0];
+  tmp[2] = imm[1];
+  tmp[6] = imm[2];
+  tmp[7] = imm[3];
+  tmp[8] = imm[4];
+  tmp[9] = imm[5];
+  tmp[4] = imm[6];
+  tmp[5] = imm[7];
 
-  CompInst.imm = tmp.to_ulong();
+  CompInst.imm = (uint16_t)tmp.to_ulong();
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
-
   return CompInst;
 }
 
@@ -686,48 +642,20 @@ RevInst RevProc::DecodeCLInst(uint16_t Inst, unsigned Entry){
   CompInst.rd      = ((Inst & 0b11100) >> 2);
   CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
 
-  if( CompInst.funct3 == 0b001 ){
-    // c.fld
-    CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6]
-    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-  }else if( CompInst.funct3 == 0b010 ){
-    // c.lw
-    CompInst.imm =  ((Inst & 0b100000) << 1);         // [6]
-    CompInst.imm |= ((Inst & 0b1000000) >> 4);        // [2]
-    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-  }else if( CompInst.funct3 == 0b011 ){
-    if( feature->GetXlen() == 64 ){
-      // c.ld
-      CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6]
-      CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-    }else{
-      // c.flw
-      CompInst.imm =  ((Inst & 0b100000) << 1);         // [6]
-      CompInst.imm |= ((Inst & 0b1000000) >> 4);        // [2]
-      CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-    }
-  }else if( CompInst.funct3 == 0b101 ){
-    // c.fsd
-    CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6]
-    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-  }else if( CompInst.funct3 == 0b110 ){
-    // c.sw
-    CompInst.imm =  ((Inst & 0b100000) << 1);         // [6]
-    CompInst.imm |= ((Inst & 0b1000000) >> 4);        // [2]
-    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-  }else if( CompInst.funct3 == 0b111 ){
-    if( feature->GetXlen() == 64 ){
-      // c.sd
-      CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6]
-      CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-    }else{
-      // c.fsw
-      CompInst.imm =  ((Inst & 0b100000) << 1);         // [6]
-      CompInst.imm |= ((Inst & 0b1000000) >> 4);        // [2]
-      CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-    }
+  if( CompInst.funct3 == 0b001 || 
+    ((feature->GetXlen() == 64) && 
+    ( (CompInst.funct3 == 0b011) || (CompInst.funct3 == 0b111) )) ) {
+    //c.fld, c.ld, c.fsd, c.sd, [5:3], [7:6]
+    CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6] 11000000
+    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]   111000
+  } else if ( CompInst.funct3 == 0b010 ||
+            ( (feature->GetXlen() == 32) && 
+            ( (CompInst.funct3 == 0b011) || (CompInst.funct3 == 0b111) ))) {
+    // c.lw, c.flw, c.fsw, c.sw, [5:3], [2|6]
+    CompInst.imm =  ((Inst & 0b100000) << 1);         // [6]  1000000
+    CompInst.imm |= ((Inst & 0b1000000) >> 4);        // [2]      100
+    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3] 111000
   }
-
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -752,7 +680,7 @@ RevInst RevProc::DecodeCSInst(uint16_t Inst, unsigned Entry){
   if(CompInst.funct3 == 0b110){
     CompInst.imm     = ((Inst & 0b0100000) >> 1);         //offset[6]
     CompInst.imm    |= ((Inst & 0b1110000000000) >> 6);   //offset[5:3]
-    CompInst.imm    |= ((Inst & 0b1000000) >> 6);          //offset[2]
+    CompInst.imm    |= ((Inst & 0b1000000) >> 6);         //offset[2]
   }else{
     CompInst.imm     = ((Inst & 0b1100000) >> 2);
     CompInst.imm    |= ((Inst & 0b1110000000000) >> 10);
@@ -776,36 +704,18 @@ RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry){
 
   // registers
   CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
-  CompInst.offset  = ((Inst & 0b1111100) >> 2);
-  CompInst.offset |= ((Inst & 0b1110000000000) >> 5);
+  CompInst.offset  = ((Inst & 0b1111100) >> 2);       //   11111
+  CompInst.offset |= ((Inst & 0b1110000000000) >> 5); //11100000
 
-  //swizzle: offset[8|4:3]  offset[7:6|2:1|5]
-  std::bitset<16> tmp(0);
-  std::bitset<16> o(CompInst.offset);
-  tmp[0] = o[1];
-  tmp[1] = o[2];
-  tmp[2] = o[5];
-  tmp[3] = o[6];
-  tmp[4] = o[0];
-  tmp[5] = o[3];
-  tmp[6] = o[4];
-  tmp[7] = o[7];
-
-  CompInst.offset = (uint16_t)tmp.to_ulong();
-
+  // swizzle: offset[8|4:3]  offset[7:6|2:1|5]
   // handle c.beqz/c.bnez offset
   if( (CompInst.opcode = 0b01) && (CompInst.funct3 >= 0b110) ){
-    CompInst.offset = 0;  // reset it
-    CompInst.offset = ((Inst & 0b11000) >> 2);          // [2:1]
-    CompInst.offset |= ((Inst & 0b110000000000) >> 7);  // [4:3]
-    CompInst.offset |= ((Inst & 0b100) << 3);           // [5]
-    CompInst.offset |= ((Inst & 0b1100000) << 1);       // [7:6]
-    CompInst.offset |= ((Inst & 0b1000000000000) >> 4); // [8]
-
-    if( (CompInst.offset & 0b100000000) > 0 ){
-      // sign extend
-      CompInst.offset |= 0b11111111100000000;
-    }
+    CompInst.offset  = 0;  // reset it
+    CompInst.offset  = ((Inst & 0b11000) >> 2);         // [2:1]     110
+    CompInst.offset |= ((Inst & 0b110000000000) >> 7);  // [4:3]   11000
+    CompInst.offset |= ((Inst & 0b100) << 3);           // [5]    100000
+    CompInst.offset |= ((Inst & 0b1100000) << 1);       // [7:6]11000000
+    CompInst.offset |= ((Inst & 0b1000000000000) >> 4); // [8] 100000000
   }
 
   CompInst.instSize = 2;
@@ -829,20 +739,22 @@ RevInst RevProc::DecodeCJInst(uint16_t Inst, unsigned Entry){
 
   //swizzle bits offset[11|4|9:8|10|6|7|3:1|5]
   std::bitset<16> offsetBits(offset);
-  std::bitset<16> target;
+  std::bitset<16> target(0);
   target.reset();
-  target[0] = offsetBits[1];
-  target[1] = offsetBits[2];
-  target[2] = offsetBits[3];
-  target[3] = offsetBits[9];
-  target[4] = offsetBits[0];
-  target[5] = offsetBits[5];
-  target[6] = offsetBits[4];
-  target[7] = offsetBits[7];
-  target[8] = offsetBits[8];
-  target[9] = offsetBits[6];
-  target[10] = offsetBits[10];
-  CompInst.jumpTarget = ((u_int16_t)target.to_ulong()) << 1;
+  target[0]  = 0;
+  target[5]  = offsetBits[0];
+  target[1]  = offsetBits[1];
+  target[2]  = offsetBits[2];
+  target[3]  = offsetBits[3];
+  target[7]  = offsetBits[4];
+  target[6]  = offsetBits[5];
+  target[10] = offsetBits[6];
+  target[8]  = offsetBits[7];
+  target[9]  = offsetBits[8];
+  target[4]  = offsetBits[9];
+  target[11] = offsetBits[10];
+
+  CompInst.jumpTarget = (uint16_t)target.to_ulong();
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -914,8 +826,8 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
   std::map<uint32_t,unsigned>::iterator it = CEncToEntry.find(Enc);
   if( it == CEncToEntry.end() ){              
     output->fatal(CALL_INFO, -1,
-                  "Error: failed to decode instruction at PC=0x%" PRIx64 "; Inst=0x%" PRIx32 ", Enc=%d\n opc=%x; funct2=%x, funct3=%x, funct4=%x, funct6=%x\n",
-                  PC, Inst,
+                  "Error: failed to decode instruction at PC=0x%" PRIx64 "; Inst=0x%" PRIx16 ", Enc=%d\n opc=%x; funct2=%x, funct3=%x, funct4=%x, funct6=%x\n",
+                  PC, TmpInst,
                   Enc, opc, funct2, funct3, funct4, funct6 );
   }
 

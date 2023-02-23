@@ -38,7 +38,7 @@ xbgas_cpu0.addParams({
           "numCores" : 1,                               # Number of cores
           "clock" : "1.0GHz",                           # Clock
           "memSize" : 4*1024*1024*1024,                   # Memory size in bytes
-          "machine" : "[0:RV64IMAFDX]",                 # Core:Config; 
+          "machine" : "[0:RV64IMAFDCX]",                 # Core:Config; 
           "startAddr" : "[0:0x00000000]",               # Starting address for core 0
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
           "xbgas_nic" : "revcpu.XbgasNIC",
@@ -55,7 +55,7 @@ xbgas_cpu1.addParams({
           "numCores" : 1,                               # Number of cores
           "clock" : "1.0GHz",                           # Clock
           "memSize" : 4*1024*1024*1024,                   # Memory size in bytes
-          "machine" : "[0:RV64IMAFDX]",                 # Core:Config;
+          "machine" : "[0:RV64IMAFDCX]",                 # Core:Config;
           "startAddr" : "[0:0x00000000]",               # Starting address for core 0
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
           "xbgas_nic" : "revcpu.XbgasNIC",

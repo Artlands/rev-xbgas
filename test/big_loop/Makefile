@@ -15,7 +15,7 @@
 EXAMPLE=big_loop
 CC=riscv64-unknown-elf-gcc
 #ARCH=rv64g
-ARCH=rv64imafd
+ARCH=rv64imafdc
 
 all: $(EXAMPLE).exe
 $(EXAMPLE).exe: $(EXAMPLE).c

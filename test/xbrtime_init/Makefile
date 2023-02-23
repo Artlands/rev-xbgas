@@ -20,7 +20,7 @@ CC=riscv64-unknown-elf-gcc
 # CC=riscv64-unknown-linux-gnu-gcc
 OBJDUMP=riscv64-unknown-elf-objdump
 
-ARCH=rv64imafd
+ARCH=rv64imafdc
 XBRTIME_INCLUDE=-I../../src/xbgas_runtime
 XBRTIME_LIB=-L../../src/xbgas_runtime -lxbrtime
 
@@ -30,7 +30,7 @@ all: $(EXEC)
 	$(CC) -march=$(ARCH) -mabi=lp64d $(XBRTIME_INCLUDE) -o $@ $< $(XBRTIME_LIB)
 
 objdump:
-	$(OBJDUMP) -d -t -r $(EXEC) > $(ASM)
+	$(OBJDUMP) -d $(EXEC) > $(ASM)
 
 clean:
 	rm -Rf *.exe *.s *.o *.i *.csv *.asm

@@ -22,17 +22,16 @@ namespace SST{
 
       // Compressed instructions
       static bool cldsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        // c.lwsp rd, $imm = lw rd, x2, $imm
+        // c.ldsp rd, $imm = lw rd, x2, $imm
         Inst.rs1  = 2;
-
+        ZEXT(Inst.imm, Inst.imm, 9);
         return ld(F,R,M,Xbgas,Inst);
       }
 
       static bool csdsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.swsp rs2, $imm = sw rs2, x2, $imm
         Inst.rs1  = 2;
-        Inst.imm = ((Inst.imm&0b11111)*8);
-
+        ZEXT(Inst.imm, Inst.imm, 9);
         return sd(F,R,M,Xbgas,Inst);
       }
 
@@ -40,8 +39,7 @@ namespace SST{
         // c.ld %rd, %rs1, $imm = ld %rd, %rs1, $imm
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
-        Inst.imm = ((Inst.imm&0b11111)*8);
-
+        ZEXT(Inst.imm, Inst.imm, 8);
         return ld(F,R,M,Xbgas,Inst);
       }
 
@@ -49,15 +47,14 @@ namespace SST{
         // c.sd rs2, rs1, $imm = sd rs2, $imm(rs1)
         Inst.rs2 = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
-        Inst.imm = ((Inst.imm&0b11111)*8);
-
+        ZEXT(Inst.imm, Inst.imm, 8);
         return sd(F,R,M,Xbgas,Inst);
       }
 
       static bool caddiw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.addiw %rd, $imm = addiw %rd, %rd, $imm
         Inst.rs1 = Inst.rd;
-
+        SEXT(Inst.imm, Inst.imm, 6);
         return addiw(F,R,M,Xbgas,Inst);
       }
 
