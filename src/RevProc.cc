@@ -495,6 +495,9 @@ RevInst RevProc::DecodeCRInst(uint16_t Inst, unsigned Entry){
   CompInst.rd      = DECODE_RD(Inst);
   CompInst.rs1     = DECODE_RD(Inst);
   CompInst.rs2     = DECODE_LOWER_CRS2(Inst);
+  CompInst.crd     = (Inst >> 7) & (0b111);
+  CompInst.crs1    = (Inst >> 7) & (0b111);
+  CompInst.crs2    = (Inst >> 2) & (0b111);
   CompInst.imm     = 0x00;
 
   CompInst.instSize = 2;
@@ -516,6 +519,8 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry){
   // registers
   CompInst.rd      = DECODE_RD(Inst);
   CompInst.rs1     = DECODE_RD(Inst);
+  CompInst.crd     = (Inst >> 7) & (0b111);
+  CompInst.crs1    = (Inst >> 7) & (0b111);
   CompInst.imm     = DECODE_LOWER_CRS2(Inst);       // 11111
   CompInst.imm    |= ((Inst & 0b1000000000000)>>7); //100000 [5], [4:0]
 
@@ -547,6 +552,7 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry){
         CompInst.imm |= ((Inst & 1100) << 4);             // [7:6]11000000
     }
   }
+  // c.lui is a special case, we decode it as [5][4:0] and then handle in RV32I.h
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -599,7 +605,7 @@ RevInst RevProc::DecodeCIWInst(uint16_t Inst, unsigned Entry){
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  CompInst.rd      = ((Inst & 0b11100) >> 2);
+  CompInst.crd     = ((Inst & 0b11100) >> 2);
   CompInst.imm     = ((Inst & 0b1111111100000) >> 5);
 
   //swizzle: nzuimm[5:4|9:6|2|3]
@@ -625,7 +631,7 @@ RevInst RevProc::DecodeCIWInst(uint16_t Inst, unsigned Entry){
   return CompInst;
 }
 
-RevInst RevProc::DecodeCLInst(uint16_t Inst, unsigned Entry){
+RevInst RevProc::DecodeCLSInst(uint16_t Inst, unsigned Entry){
   RevInst CompInst;
 
   // cost
@@ -636,8 +642,9 @@ RevInst RevProc::DecodeCLInst(uint16_t Inst, unsigned Entry){
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  CompInst.rd      = ((Inst & 0b11100) >> 2);
-  CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
+  CompInst.crd      = ((Inst & 0b11100) >> 2);
+  CompInst.crs2     = ((Inst & 0b11100) >> 2);
+  CompInst.crs1     = ((Inst & 0b1110000000) >> 7);
 
   if( CompInst.funct3 == 0b001 || 
     ( (feature->GetXlen() == 64) && 
@@ -660,35 +667,6 @@ RevInst RevProc::DecodeCLInst(uint16_t Inst, unsigned Entry){
   return CompInst;
 }
 
-RevInst RevProc::DecodeCSInst(uint16_t Inst, unsigned Entry){
-  RevInst CompInst;
-
-  // cost
-  RegFile[threadToDecode].cost  = InstTable[Entry].cost;
-
-  // encodings
-  CompInst.opcode  = InstTable[Entry].opcode;
-  CompInst.funct3  = InstTable[Entry].funct3;
-
-  // registers
-  CompInst.rs2     = ((Inst & 0b11100) >> 2);
-  CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
-
-  if(CompInst.funct3 == 0b110){
-    CompInst.imm     = ((Inst & 0b0100000) >> 1);         //offset[6]
-    CompInst.imm    |= ((Inst & 0b1110000000000) >> 6);   //offset[5:3]
-    CompInst.imm    |= ((Inst & 0b1000000) >> 6);         //offset[2]
-  }else{
-    CompInst.imm     = ((Inst & 0b1100000) >> 2);
-    CompInst.imm    |= ((Inst & 0b1110000000000) >> 10);
-  }
-
-  CompInst.instSize = 2;
-  CompInst.compressed = true;
-
-  return CompInst;
-}
-
 RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry){
   RevInst CompInst;
 
@@ -700,19 +678,19 @@ RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry){
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
+  CompInst.crs1    = ((Inst & 0b1110000000) >> 7);
   CompInst.offset  = ((Inst & 0b1111100) >> 2);       //   11111
   CompInst.offset |= ((Inst & 0b1110000000000) >> 5); //11100000
 
   // swizzle: offset[8|4:3]  offset[7:6|2:1|5]
   // handle c.beqz/c.bnez offset
   if( (CompInst.opcode = 0b01) && (CompInst.funct3 >= 0b110) ){
-    CompInst.offset  = 0;  // reset it
-    CompInst.offset  = ((Inst & 0b11000) >> 2);         // [2:1]     110
-    CompInst.offset |= ((Inst & 0b110000000000) >> 7);  // [4:3]   11000
-    CompInst.offset |= ((Inst & 0b100) << 3);           // [5]    100000
-    CompInst.offset |= ((Inst & 0b1100000) << 1);       // [7:6]11000000
-    CompInst.offset |= ((Inst & 0b1000000000000) >> 4); // [8] 100000000
+       CompInst.offset  = 0;  // reset it
+       CompInst.offset  = ((Inst & 0b11000) >> 2);         // [2:1]     110
+       CompInst.offset |= ((Inst & 0b110000000000) >> 7);  // [4:3]   11000
+       CompInst.offset |= ((Inst & 0b100) << 3);           // [5]    100000
+       CompInst.offset |= ((Inst & 0b1100000) << 1);       // [7:6]11000000
+       CompInst.offset |= ((Inst & 0b1000000000000) >> 4); // [8] 100000000
   }
 
   CompInst.instSize = 2;
@@ -734,6 +712,7 @@ RevInst RevProc::DecodeCJInst(uint16_t Inst, unsigned Entry){
   // registers
   uint16_t offset = ((Inst & 0b1111111111100) >> 2);
 
+  // c.jal, c.j
   //swizzle bits offset[11|4|9:8|10|6|7|3:1|5]
   std::bitset<16> offsetBits(offset);
   std::bitset<16> target(0);
@@ -801,12 +780,12 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
         funct2 = (TmpInst >> 5) & (0b11);
       }
     } else if ( funct3 == 0b000 ){
-      if ( rd != 0b00000 )
+      if ( rd != 0 )
         // c.addi
         funct4 = 0b0001;
     } else if ( funct3 == 0b011 ){
-      // c.addi16sp
-      if ( rd == 0b00010 )
+      if ( rd == 2 )
+        // c.addi16sp
         funct4 = 0b0111;
     }
   } else if ( opc == 0b10 ){
@@ -840,10 +819,9 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
                   PC, opc, funct2, funct3, funct4, funct6, Enc );
   }
 
-#ifdef _XBGAS_DEBUG_
-// #if 0
-      std::cout << "----> " << std::hex << PC
-                << ": " << InstTable[Entry].mnemonic << std::endl;
+#if 0
+  std::cout << "----> " << std::hex << PC
+            << ": " << InstTable[Entry].mnemonic << std::endl;
 #endif
 
 
@@ -865,10 +843,10 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
     return DecodeCIWInst(TmpInst,Entry);
     break;
   case RVCTypeCL:
-    return DecodeCLInst(TmpInst,Entry);
+    return DecodeCLSInst(TmpInst,Entry);
     break;
   case RVCTypeCS:
-    return DecodeCSInst(TmpInst,Entry);
+    return DecodeCLSInst(TmpInst,Entry);
     break;
   case RVCTypeCB:
     return DecodeCBInst(TmpInst,Entry);
@@ -1415,8 +1393,11 @@ void RevProc::ResetInst(RevInst *I){
   I->funct6     = 0;
   I->funct7     = 0;
   I->rd         = 0;
+  I->crd        = 0;
   I->rs1        = 0;
+  I->crs1       = 0;
   I->rs2        = 0;
+  I->crs2       = 0;
   I->rs3        = 0;
   I->imm        = 0;
   I->fmt        = 0;

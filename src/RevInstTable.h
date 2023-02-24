@@ -285,8 +285,11 @@ namespace SST{
       uint8_t funct6;       ///< RevInst: compressed funct6 value
       uint8_t funct7;       ///< RevInst: funct7 value
       uint8_t rd;           ///< RevInst: rd value
+      uint8_t crd;          ///< RevInst: compressed rd value
       uint8_t rs1;          ///< RevInst: rs1 value
+      uint8_t crs1;         ///< RevInst: compressed rs1 value
       uint8_t rs2;          ///< RevInst: rs2 value
+      uint8_t crs2;         ///< RevInst: compressed rs2 value
       uint8_t rs3;          ///< RevInst: rs3 value
       uint32_t imm;         ///< RevInst: immediate value
       uint8_t fmt;          ///< RevInst: floating point format

@@ -22,8 +22,8 @@ int main(int argc, char **argv){
   num_pe = 4;
   i = (int)(log(num_pe)/log(2));
 
-  // while (i == 2) {
-  // }
+  while (i != 2) {
+  }
 
   return 0;
 }

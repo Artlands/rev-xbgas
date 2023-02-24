@@ -15,7 +15,7 @@
 EXAMPLE=ex1
 CC=riscv64-unknown-elf-gcc
 OBJDUMP=riscv64-unknown-elf-objdump
-ARCH=rv64imfdc
+ARCH=rv64imfd
 #ARCH=rv32i
 #ABI=ilp32
 

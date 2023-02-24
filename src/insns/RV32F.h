@@ -30,30 +30,26 @@ namespace SST{
       static bool cflwsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.flwsp rd, $imm = lw rd, x2, $imm
         Inst.rs1  = 2;
-        ZEXTI(Inst.imm, 8);
         return flw(F,R,M,Xbgas,Inst);
       }
 
       static bool cfswsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.swsp rs2, $imm = sw rs2, x2, $imm
         Inst.rs1  = 2;
-        ZEXTI(Inst.imm, 8);
         return fsw(F,R,M,Xbgas,Inst);
       }
 
       static bool cflw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.flw %rd, %rs1, $imm = flw %rd, %rs1, $imm
-        Inst.rd  = CRegMap[Inst.rd];
-        Inst.rs1 = CRegMap[Inst.rs1];
-        ZEXTI(Inst.imm, 7);
+        Inst.rd  = CRegMap[Inst.crd];
+        Inst.rs1 = CRegMap[Inst.crs1];
         return flw(F,R,M,Xbgas,Inst);
       }
 
       static bool cfsw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.fsw rs2, rs1, $imm = fsw rs2, $imm(rs1)
-        Inst.rs2 = CRegMap[Inst.rd];
-        Inst.rs1 = CRegMap[Inst.rs1];
-        ZEXTI(Inst.imm, 7);
+        Inst.rs2 = CRegMap[Inst.crd];
+        Inst.rs1 = CRegMap[Inst.crs1];
         return fsw(F,R,M,Xbgas,Inst);
       }
 
@@ -459,8 +455,9 @@ namespace SST{
 
       std::vector<RevInstEntry> RV32FCOTable = {
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.flw %rd, %rs1, $imm"            ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b011).SetFunct2(0b0 ).SetrdClass(RegFLOAT  ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc( &cflw   ).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.fsw %rs2, %rs1, $imm"           ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b111).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegFLOAT  ).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc( &cfsw   ).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.flwsp %rd, $imm"                ).SetCost(1).SetOpcode(0b10).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b011).SetFunct2(0b0 ).SetrdClass(RegFLOAT  ).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCSS).SetImplFunc( &cflwsp ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.fsw %rs2, %rs1, $imm"           ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b111).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegFLOAT  ).Setimm(FImm).SetFormat(RVCTypeCS ).SetImplFunc( &cfsw   ).SetCompressed(true).InstEntry},
+        
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.flwsp %rd, $imm"                ).SetCost(1).SetOpcode(0b10).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b011).SetFunct2(0b0 ).SetrdClass(RegFLOAT  ).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCI ).SetImplFunc( &cflwsp ).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.fswsp %rs2, $imm"               ).SetCost(1).SetOpcode(0b10).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b111).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegUNKNOWN).Setrs2Class(RegFLOAT  ).Setimm(FImm).SetFormat(RVCTypeCSS).SetImplFunc( &cfswsp ).SetCompressed(true).InstEntry},
       };
 

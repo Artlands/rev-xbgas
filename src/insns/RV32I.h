@@ -24,65 +24,57 @@ namespace SST{
       static bool caddi4spn(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.addi4spn rd, $imm == addi rd, x2, $imm
         Inst.rs1  = 2;
-        Inst.rd   = CRegMap[Inst.rd];
-        if( Inst.imm == 0x00 )
-          return false;
-        ZEXTI(Inst.imm, 10);
-        return addi(F,R,M,Xbgas,Inst);
+        Inst.rd   = CRegMap[Inst.crd];
+        if( Inst.imm != 0 )
+          return addi(F,R,M,Xbgas,Inst);
+        return false;        
       }
 
       static bool cnop(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        if( F->IsRV32() ){
+        //C.NOP does not change any user-visible state, except for advancing the pc
+        if ( (Inst.rd != 0) && (Inst.imm != 0) ) {
+          if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
-        }else{
-          R->RV64_PC += Inst.instSize;
+          }else{
+            R->RV64_PC += Inst.instSize;
+          }
+          return true;
         }
-        return true;
+        return false;
       }
 
       static bool clwsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.lwsp rd, $imm = lw rd, x2, $imm
         Inst.rs1  = 2;
-        ZEXTI(Inst.imm, 8);
-        return lw(F,R,M,Xbgas,Inst);
+        if (Inst.rd != 0)
+          return lw(F,R,M,Xbgas,Inst);
+        return false;
       }
 
       static bool cswsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.swsp rs2, $imm = sw rs2, x2, $imm
         Inst.rs1  = 2;
-        ZEXTI(Inst.imm, 8);
         return sw(F,R,M,Xbgas,Inst);
       }
 
       static bool clw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.lw rd, rs1, $imm = lw rd, $imm(rs1)
-        Inst.rd  = CRegMap[Inst.rd];
-        Inst.rs1 = CRegMap[Inst.rs1];
-        ZEXTI(Inst.imm, 7);
+        Inst.rd  = CRegMap[Inst.crd];
+        Inst.rs1 = CRegMap[Inst.crs1];
         return lw(F,R,M,Xbgas,Inst);
       }
 
       static bool csw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.sw rs2, rs1, $imm = sw rs2, $imm(rs1)
-        Inst.rs2 = CRegMap[Inst.rd];
-        Inst.rs1 = CRegMap[Inst.rs1];
-        ZEXTI(Inst.imm, 7);
+        Inst.rs2 = CRegMap[Inst.crd];
+        Inst.rs1 = CRegMap[Inst.crs1];
         return sw(F,R,M,Xbgas,Inst);
       }
 
       static bool cj(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.j $imm = jal x0, $imm
         Inst.rd = 0;
-
-#if 0
-      std::cout << "c.j before SEXT jumpTarget =  " << std::bitset<16>(Inst.jumpTarget) << std::endl;
-#endif
-
         SEXT(Inst.imm, Inst.jumpTarget, 12);
-
-#if 0
-      std::cout << "c.j after SEXT imm =  " << std::bitset<16>(Inst.imm) << std::endl;
-#endif
         return jal(F,R,M,Xbgas,Inst);
       }
 
@@ -95,9 +87,11 @@ namespace SST{
 
       static bool cjr(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.jr %rs1 = jalr x0, 0(%rs1)
-        Inst.rs2 = 0;
+        Inst.rd  = 0;
         Inst.imm = 0;
-        return jalr(F,R,M,Xbgas,Inst);
+        if (Inst.rs1 != 0)
+          return jalr(F,R,M,Xbgas,Inst);
+        return false;
       }
 
       static bool cmv(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
@@ -116,15 +110,16 @@ namespace SST{
       static bool cjalr(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.jalr %rs1 = jalr x1, 0(%rs1)
         Inst.rd  = 1;
-        Inst.rs2 = 0;
         Inst.imm = 0;
-        return jalr(F,R,M,Xbgas,Inst);
+        if (Inst.rs1 != 0)
+          return jalr(F,R,M,Xbgas,Inst);
+        return false;
       }
 
       static bool cbeqz(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.beqz %rs1, $imm = beq %rs1, x0, $imm
         Inst.rs2 = 0;
-        Inst.rs1 = CRegMap[Inst.rs1];
+        Inst.rs1 = CRegMap[Inst.crs1];
         SEXT(Inst.imm, Inst.offset, 9);
         return beq(F,R,M,Xbgas,Inst);
       }
@@ -132,7 +127,7 @@ namespace SST{
       static bool cbnez(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.bnez %rs1, $imm = bne %rs1, x0, $imm
         Inst.rs2 = 0;
-        Inst.rs1 = CRegMap[Inst.rs1];
+        Inst.rs1 = CRegMap[Inst.crs1];
         SEXT(Inst.imm, Inst.offset, 9);
         return bne(F,R,M,Xbgas,Inst);
       }
@@ -140,85 +135,103 @@ namespace SST{
       static bool cli(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.li %rd, $imm = addi %rd, x0, $imm
         Inst.rs1 = 0;
-        SEXTI(Inst.imm, 6);
+        Inst.imm = (Inst.imm << (32 - 6)) >> (32 - 6);
         return addi(F,R,M,Xbgas,Inst);
       }
 
       static bool caddi16sp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         Inst.rd = 2;
         Inst.rs1 = 0;
-        SEXTI(Inst.imm, 10);
+        Inst.imm = (Inst.imm << (32 - 10)) >> (32 - 10);
         return addi(F,R,M,Xbgas,Inst);
       }
 
       static bool clui(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        // lui rd, nzimm[17:12].
-        SEXTI(Inst.imm, 6);
-        return lui(F,R,M,Xbgas,Inst);
+        // lui rd, nzimm[17:12]. Cannot use lui directly
+        Inst.imm = ((Inst.imm << 12) << (32 - 18)) >> (32 - 18);
+        if ( (Inst.rd != 0) && (Inst.rd != 2) && (Inst.imm != 0)) {
+          if( F->IsRV32() ){
+              R->RV32[Inst.rd] = (int32_t)(Inst.imm);
+            R->RV32_PC += Inst.instSize;
+          }else{
+              R->RV64[Inst.rd] = (int32_t)(Inst.imm);
+            R->RV64_PC += Inst.instSize;
+          }
+          return true;
+        }
+        return false;
       }
 
       static bool caddi(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.addi %rd, $imm = addi %rd, %rd, $imm
-        SEXTI(Inst.imm, 6);
-        return addi(F,R,M,Xbgas,Inst);
+        Inst.imm = (Inst.imm << (32 - 6)) >> (32 - 6);
+        if ( (Inst.rd != 0) && (Inst.imm != 0) )
+          return addi(F,R,M,Xbgas,Inst);
+        return false;
       }
 
       static bool cslli(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.slli %rd, $imm = slli %rd, %rd, $imm
-        return slli(F,R,M,Xbgas,Inst);
+        if ( (Inst.rd != 0) && (Inst.imm != 0) )
+          return slli(F,R,M,Xbgas,Inst);
+        return false;
       }
 
       static bool csrli(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.srli %rd, $imm = srli %rd, %rd, $imm
-        Inst.rd   = CRegMap[Inst.rd];
+        Inst.rd   = CRegMap[Inst.crd];
         Inst.rs1  = Inst.rd;
-        return srli(F,R,M,Xbgas,Inst);
+        if ( Inst.imm != 0)
+          return srli(F,R,M,Xbgas,Inst);
+        return false;
       }
 
       static bool csrai(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.srai %rd, $imm = srai %rd, %rd, $imm
-        Inst.rd  = CRegMap[Inst.rd];
+        Inst.rd  = CRegMap[Inst.crd];
         Inst.rs1  = Inst.rd;
-        return srai(F,R,M,Xbgas,Inst);
+        if ( Inst.imm != 0)
+          return srai(F,R,M,Xbgas,Inst);
+        return false;
       }
 
       static bool candi(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.andi %rd, $imm = sandi %rd, %rd, $imm
-        Inst.rd   = CRegMap[Inst.rd];
+        Inst.rd   = CRegMap[Inst.crd];
         Inst.rs1  = Inst.rd;
-        SEXTI(Inst.imm, 6);
+        Inst.imm = (Inst.imm << (32 - 6)) >> (32 - 6);
         return andi(F,R,M,Xbgas,Inst);
       }
 
       static bool cand(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.and %rd, %rs2 = and %rd, %rd, %rs2
-        Inst.rd   = CRegMap[Inst.rd];
-        Inst.rs1  = Inst.rd;
-        Inst.rs2  = CRegMap[Inst.rs2];
+        Inst.rd   = CRegMap[Inst.crd];
+        Inst.rs1  = CRegMap[Inst.crs1];
+        Inst.rs2  = CRegMap[Inst.crs2];
         return f_and(F,R,M,Xbgas,Inst);
       }
 
       static bool cor(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.or %rd, %rs2 = or %rd, %rd, %rs2
-        Inst.rd   = CRegMap[Inst.rd];
-        Inst.rs1  = Inst.rd;
-        Inst.rs2  = CRegMap[Inst.rs2];
+        Inst.rd   = CRegMap[Inst.crd];
+        Inst.rs1  = CRegMap[Inst.crs1];
+        Inst.rs2  = CRegMap[Inst.crs2];
         return f_or(F,R,M,Xbgas,Inst);
       }
 
       static bool cxor(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.xor %rd, %rs2 = xor %rd, %rd, %rs2
-        Inst.rd   = CRegMap[Inst.rd];
-        Inst.rs1  = Inst.rd;
-        Inst.rs2  = CRegMap[Inst.rs2];
+        Inst.rd   = CRegMap[Inst.crd];
+        Inst.rs1  = CRegMap[Inst.crs1];
+        Inst.rs2  = CRegMap[Inst.crs2];
         return f_xor(F,R,M,Xbgas,Inst);
       }
 
       static bool csub(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.sub %rd, %rs2 = sub %rd, %rd, %rs2
-        Inst.rd  = CRegMap[Inst.rd];
-        Inst.rs1  = Inst.rd;
-        Inst.rs2  = CRegMap[Inst.rs2];
+        Inst.rd   = CRegMap[Inst.crd];
+        Inst.rs1  = CRegMap[Inst.crs1];
+        Inst.rs2  = CRegMap[Inst.crs2];
         return sub(F,R,M,Xbgas,Inst);
       }
 
@@ -949,7 +962,7 @@ namespace SST{
         //----- Quadrant 0
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.addi4spn %rd, $imm" ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b000).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCIW).SetImplFunc(&caddi4spn).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.lw %rd, $rs1, $imm" ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b010).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc(&clw      ).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.sw %rs2, %rs1, $imm").SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b110).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc(&csw      ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.sw %rs2, %rs1, $imm").SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b110).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setimm(FImm).SetFormat(RVCTypeCS ).SetImplFunc(&csw      ).SetCompressed(true).InstEntry},
         //----- Quadrant 1
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.nop"                ).SetCost(1).SetOpcode(0b01).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b000).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCI ).SetImplFunc(&cnop     ).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.addi %rd, $imm"     ).SetCost(1).SetOpcode(0b01).SetFunct6(0b0     ).SetFunct4(0b0001).SetFunct3(0b000).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCI ).SetImplFunc(&caddi    ).SetCompressed(true).InstEntry},
