@@ -24,14 +24,14 @@ namespace SST{
       static bool cfldsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.fldsp rd, $imm = lw rd, x2, $imm
         Inst.rs1  = 2;
-        ZEXT(Inst.imm, Inst.imm, 9);
+        ZEXTI(Inst.imm, 9);
         return fld(F,R,M,Xbgas,Inst);
       }
 
       static bool cfsdsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.fsdsp rs2, $imm = fsd rs2, x2, $imm
         Inst.rs1  = 2;
-        ZEXT(Inst.imm, Inst.imm, 9);
+        ZEXTI(Inst.imm, 9);
         return fsd(F,R,M,Xbgas,Inst);
       }
 
@@ -39,7 +39,7 @@ namespace SST{
         // c.fld %rd, %rs1, $imm = fld %rd, %rs1, $imm
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
-        ZEXT(Inst.imm, Inst.imm, 8);
+        ZEXTI(Inst.imm, 8);
         return fld(F,R,M,Xbgas,Inst);
       }
 
@@ -47,7 +47,7 @@ namespace SST{
         // c.fsd rs2, rs1, $imm = fsd rs2, $imm(rs1)
         Inst.rs2 = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
-        ZEXT(Inst.imm, Inst.imm, 8);
+        ZEXTI(Inst.imm, 8);
         return fsd(F,R,M,Xbgas,Inst);
       }
 

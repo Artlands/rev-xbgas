@@ -1,0 +1,431 @@
+WARNING: Building component "cpu" with no links assigned.
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__EH_FRAME_BEGIN__:0x10bb8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__FRAME_END__:0x10bb8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__TMC_END__:0x11758]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__atexit.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__bss_start:0x11808]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__call_atexit.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__call_exitprocs:0x106e8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__do_global_dtors_aux:0x10148]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__do_global_dtors_aux_fini_array_entry:0x11008]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__dso_handle:0x117e8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__errno:0x104f6]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__fdlib_version:0x117f0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__fini_array_end:0x11010]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__fini_array_start:0x11008]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__frame_dummy_init_array_entry:0x11000]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__global_pointer$:0x11f58]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__ieee754_log:0x102b4]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__init_array_end:0x11008]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__init_array_start:0x11000]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__internal_syscall:0x107fa]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__libc_fini_array:0x10522]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__libc_init_array:0x10570]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__preinit_array_end:0x11000]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__preinit_array_start:0x11000]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__register_exitproc:0x10682]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [__syscall_error:0x107da]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_edata:0x11808]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_end:0x11858]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_exit:0x10b82]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_fini:0x100f6]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_global_impure_ptr:0x117f8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_impure_ptr:0x11800]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_init:0x100f6]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [_start:0x100b0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [access:0x10962]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [atexit:0x104e8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [atexit.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [chdir:0x10b0a]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [chmod:0x10b06]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [chown:0x10b02]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [close:0x1099e]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [completed.5184:0x11810]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [conv_stat:0x10798]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [crtstuff.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [deregister_tm_clones:0x100f8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [e_log.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [errno.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [execve:0x109f6]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [exit:0x104fe]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [exit.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [faccessat:0x1097e]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [fini.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [fork:0x10a0e]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [frame_dummy:0x10182]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [fstat:0x1088a]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [fstatat:0x10928]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [ftime:0x10af2]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [getcwd:0x10b0e]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [getpid:0x10a22]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [gettimeofday:0x10a70]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [heap_end.2611:0x11808]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [impure.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [impure_data:0x11010]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [init.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [isatty:0x10a52]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [kill:0x10a26]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [link:0x109ba]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [log:0x101f6]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [lseek:0x10852]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [lstat:0x108f6]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [main:0x101aa]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [math_log.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [matherr:0x104d6]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [memset:0x105d8]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [nan:0x104dc]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [object.5189:0x11818]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [open:0x10816]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [openat:0x10836]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [read:0x10866]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [register_tm_clones:0x1011c]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [s_lib_ver.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [s_matherr.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [s_nan.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [sbrk:0x10b26]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [stat:0x108bc]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [syscalls.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [sysconf:0x10b12]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [t0.2574:0x11848]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [times:0x10a90]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [unlink:0x109da]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [utime:0x10afe]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [w_log.c:0x0]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [wait:0x10a3a]
+RevCPU[cpu:LoadElf:0]: Symbol Table Entry [write:0x10876]
+RevCPU[cpu:LoadProgramArgs:0]: Loading program argv[0] = math_log.exe
+RevCPU[cpu:RevXbgas:0]: Initializing the XBGAS object; set up the XBGAS message handler
+RevCPU[cpu:RevFeature:0]: Core 0 ; Initializing feature set from machine string=RV64IMAFDC
+RevCPU[cpu:ParseMachineModel:0]: Core 0 ; Setting XLEN to 64
+RevCPU[cpu:ParseMachineModel:0]: Core 0 ; Architecture string=IMAFDC
+RevCPU[cpu:SeedInstTable:0]: Core 0 ; Seeding instruction table for machine model=RV64IMAFDC
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling extension=RV32I
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling compressed extension=RV32I
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling extension=RV64I
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling compressed extension=RV64I
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling extension=RV32M
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling compressed extension=RV32M
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling extension=RV64M
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling compressed extension=RV64M
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling extension=RV32A
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling compressed extension=RV32A
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling extension=RV64A
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling compressed extension=RV64A
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling extension=RV32F
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling compressed extension=RV32F
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling extension=RV64F
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling compressed extension=RV64F
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling extension=RV32D
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling compressed extension=RV32D
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling extension=RV64D
+RevCPU[cpu:EnableExt:0]: Core 0 ; Enabling compressed extension=RV64D
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Initializing table mapping for machine model=RV64IMAFDC
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 55 = lui
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 23 = auipc
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 111 = jal
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 103 = jalr
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 99 = beq
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 227 = bne
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 611 = blt
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 739 = bge
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 867 = bltu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 995 = bgeu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 3 = lb
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 131 = lh
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 259 = lw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 515 = lbu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 643 = lhu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 35 = sb
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 163 = sh
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 291 = sw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 19 = addi
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 275 = slti
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 403 = sltiu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 531 = xori
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 787 = ori
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 915 = andi
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 147 = slli
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 659 = srli
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 33427 = srai
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 51 = add
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 32819 = sub
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 179 = sll
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 307 = slt
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 435 = sltu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 563 = xor
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 691 = srl
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 33459 = sra
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 819 = or
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 947 = and
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 15 = fence
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 143 = fence.i
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 115 = ecall
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 131187 = ebreak
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 243 = csrrw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 371 = csrrs
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 499 = csrrc
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 755 = csrrwi
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 883 = csrrsi
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1011 = csrrci
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 0 = c.addi4spn
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 32 = c.lw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 96 = c.sw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 1 = c.nop
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 129 = c.addi
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 33 = c.li
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 945 = c.addi16sp
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 49 = c.lui
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 65601 = c.srli
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 67649 = c.srai
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 69697 = c.andi
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 71745 = c.sub
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 71749 = c.xor
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 71753 = c.or
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 71757 = c.and
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 81 = c.j
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 97 = c.beqz
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 113 = c.bnez
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 2 = c.slli
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 34 = c.lwsp
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 69698 = c.jr
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 71746 = c.mv
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 73794 = c.ebreak
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 77890 = c.jalr
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 79938 = c.add
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 98 = c.swsp
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 771 = lwu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 387 = ld
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 419 = sd
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 27 = addiw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 155 = slliw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 667 = srliw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 33435 = sraiw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 59 = addw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 32827 = subw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 187 = sllw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 699 = srlw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 33467 = sraw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 48 = c.ld
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 112 = c.sd
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 17 = c.addiw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 79937 = c.subw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 79941 = c.addw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 50 = c.ldsp
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 114 = c.sdsp
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1075 = mul
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1203 = mulh
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1331 = mulhsu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1459 = mulhu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1587 = div
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1715 = divu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1843 = rem
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1971 = remu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1083 = mulw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1595 = divw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1723 = divuw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1851 = remw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1979 = remuw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 8495 = lr.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 12591 = sc.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 4399 = amoswap.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 303 = amoadd.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 16687 = amoxor.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 49455 = amoand.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 33071 = amoor.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 65839 = amomin.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 82223 = amomax.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 98607 = amominu.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 114991 = amomaxu.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 8623 = lr.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 12719 = sc.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 4527 = amoswap.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 431 = amoadd.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 16815 = amoxor.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 49583 = amoand.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 33199 = amoor.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 65967 = amomin.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 82351 = amomax.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 98735 = amominu.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 115119 = amomaxu.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 263 = flw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 295 = fsw
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 67 = fmadd.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 71 = fmsub.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 75 = fnmsub.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 79 = fnmadd.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 83 = fadd.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 4179 = fsub.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 8275 = fmul.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 12371 = fdiv.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 184594515 = fsqrt.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 16467 = fsgnj.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 16595 = fsgnjn.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 16723 = fsgnjx.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 20563 = fmin.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 20691 = fmax.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 402751571 = fcvt.w.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 402882643 = fcvt.wu.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 469876819 = fmv.x.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 82259 = feq.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 82131 = flt.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 82003 = fle.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 469876947 = fclass.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 436314195 = fcvt.s.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 436445267 = fcvt.s.wu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 503439443 = fmv.w.x
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 403013715 = fcvt.l.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 403144787 = fcvt.lu.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 436576339 = fcvt.s.l
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 436707411 = fcvt.s.lu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 391 = fld
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 423 = fsd
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1091 = fmadd.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1095 = fmsub.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1099 = fnmsub.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1103 = fnmadd.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 1107 = fadd.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 5203 = fsub.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 9299 = fmul.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 13395 = fdiv.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 188789843 = fsqrt.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 17491 = fsgnj.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 17619 = fsgnjn.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 17747 = fsgnjx.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 21587 = fmin.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 21715 = fmax.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 134381651 = fcvt.s.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 138445907 = fcvt.d.s
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 83283 = feq.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 83155 = flt.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 83027 = fle.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 474072275 = fclass.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 406946899 = fcvt.w.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 407077971 = fcvt.wu.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 440509523 = fcvt.d.w
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 440640595 = fcvt.d.wu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 16 = c.fld
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 80 = c.fsd
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 18 = c.fldsp
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Compressed Table Entry 82 = c.fsdsp
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 407209043 = fcvt.l.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 407340115 = fcvt.lu.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 474072147 = fmv.x.d
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 440771667 = fcvt.d.l
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 440902739 = fcvt.d.lu
+RevCPU[cpu:InitTableMapping:0]: Core 0 ; Table Entry 507634771 = fmv.d.x
+RevCPU[cpu:ReadOverrideTables:0]: Core 0 ; Reading override tables for machine model=RV64IMAFDC
+RevCPU[cpu:RevCPU:0]: 
+*******                   
+/**////**                  
+/**   /**   *****  **    **
+/*******   **///**/**   /**
+/**///**  /*******//** /** 
+/**  //** /**////  //****  
+/**   //**//******  //**   
+//     //  //////    //    
+
+RevCPU[cpu:RevCPU:0]: Initialization of RevCPUs complete.
+CPU0-extended registers: 
+--->e10 (PE id)    = 0
+--->e11 (# of PEs) = 0
+RevCPU[cpu:DecodeInst:1000]: Core 0 ; Thread 0; PC:InstPayload = 0x101aa:0xf4067179
+RevCPU[cpu:DecodeInst:2000]: Core 0 ; Thread 0; PC:InstPayload = 0x101ac:0xf022f406
+RevCPU[cpu:DecodeInst:3000]: Core 0 ; Thread 0; PC:InstPayload = 0x101ae:0x1800f022
+RevCPU[cpu:DecodeInst:4000]: Core 0 ; Thread 0; PC:InstPayload = 0x101b0:0x87aa1800
+RevCPU[cpu:DecodeInst:5000]: Core 0 ; Thread 0; PC:InstPayload = 0x101b2:0x382387aa
+RevCPU[cpu:DecodeInst:6000]: Core 0 ; Thread 0; PC:InstPayload = 0x101b4:0xfcb43823
+RevCPU[cpu:DecodeInst:7000]: Core 0 ; Thread 0; PC:InstPayload = 0x101b8:0xfcf42e23
+RevCPU[cpu:DecodeInst:8000]: Core 0 ; Thread 0; PC:InstPayload = 0x101bc:0x26234791
+RevCPU[cpu:DecodeInst:9000]: Core 0 ; Thread 0; PC:InstPayload = 0x101be:0xfef42623
+RevCPU[cpu:DecodeInst:10000]: Core 0 ; Thread 0; PC:InstPayload = 0x101c2:0xfec42783
+RevCPU[cpu:DecodeInst:19000]: Core 0 ; Thread 0; PC:InstPayload = 0x101c6:0xd20787d3
+RevCPU[cpu:DecodeInst:20000]: Core 0 ; Thread 0; PC:InstPayload = 0x101ca:0x22f78553
+RevCPU[cpu:DecodeInst:21000]: Core 0 ; Thread 0; PC:InstPayload = 0x101ce:0x28000ef
+RevCPU[cpu:DecodeInst:22000]: Core 0 ; Thread 0; PC:InstPayload = 0x101f6:0xbc22715d
+RevCPU[cpu:DecodeInst:23000]: Core 0 ; Thread 0; PC:InstPayload = 0x101f8:0xe486bc22
+RevCPU[cpu:DecodeInst:24000]: Core 0 ; Thread 0; PC:InstPayload = 0x101fa:0x453e486
+RevCPU[cpu:DecodeInst:25000]: Core 0 ; Thread 0; PC:InstPayload = 0x101fc:0x22a50453
+RevCPU[cpu:DecodeInst:26000]: Core 0 ; Thread 0; PC:InstPayload = 0x10200:0xb4000ef
+RevCPU[cpu:DecodeInst:27000]: Core 0 ; Thread 0; PC:InstPayload = 0x102b4:0xe20507d3
+RevCPU[cpu:DecodeInst:28000]: Core 0 ; Thread 0; PC:InstPayload = 0x102b8:0x100637
+RevCPU[cpu:DecodeInst:29000]: Core 0 ; Thread 0; PC:InstPayload = 0x102bc:0x4207d713
+RevCPU[cpu:DecodeInst:30000]: Core 0 ; Thread 0; PC:InstPayload = 0x102c0:0x7069b
+RevCPU[cpu:DecodeInst:31000]: Core 0 ; Thread 0; PC:InstPayload = 0x102c4:0x4c6df63
+RevCPU[cpu:DecodeInst:32000]: Core 0 ; Thread 0; PC:InstPayload = 0x10322:0xb7f54501
+RevCPU[cpu:DecodeInst:33000]: Core 0 ; Thread 0; PC:InstPayload = 0x10324:0xd71bb7f5
+RevCPU[cpu:DecodeInst:34000]: Core 0 ; Thread 0; PC:InstPayload = 0x10310:0x7ff00737
+RevCPU[cpu:DecodeInst:35000]: Core 0 ; Thread 0; PC:InstPayload = 0x10314:0xe6c963
+RevCPU[cpu:DecodeInst:36000]: Core 0 ; Thread 0; PC:InstPayload = 0x10326:0x4146d71b
+RevCPU[cpu:DecodeInst:37000]: Core 0 ; Thread 0; PC:InstPayload = 0x1032a:0xc017071b
+RevCPU[cpu:DecodeInst:38000]: Core 0 ; Thread 0; PC:InstPayload = 0x1032e:0x100837
+RevCPU[cpu:DecodeInst:39000]: Core 0 ; Thread 0; PC:InstPayload = 0x10332:0x187d9d39
+RevCPU[cpu:DecodeInst:40000]: Core 0 ; Thread 0; PC:InstPayload = 0x10334:0x6737187d
+RevCPU[cpu:DecodeInst:41000]: Core 0 ; Thread 0; PC:InstPayload = 0x10336:0x96737
+RevCPU[cpu:DecodeInst:42000]: Core 0 ; Thread 0; PC:InstPayload = 0x1033a:0x106f6b3
+RevCPU[cpu:DecodeInst:43000]: Core 0 ; Thread 0; PC:InstPayload = 0x1033e:0xf647071b
+RevCPU[cpu:DecodeInst:44000]: Core 0 ; Thread 0; PC:InstPayload = 0x10342:0x100637
+RevCPU[cpu:DecodeInst:45000]: Core 0 ; Thread 0; PC:InstPayload = 0x10346:0x8f719f35
+RevCPU[cpu:DecodeInst:46000]: Core 0 ; Thread 0; PC:InstPayload = 0x10348:0x5b78f71
+RevCPU[cpu:DecodeInst:47000]: Core 0 ; Thread 0; PC:InstPayload = 0x1034a:0x3ff005b7
+RevCPU[cpu:DecodeInst:48000]: Core 0 ; Thread 0; PC:InstPayload = 0x1034e:0x567d8db9
+RevCPU[cpu:DecodeInst:49000]: Core 0 ; Thread 0; PC:InstPayload = 0x10350:0x9201567d
+RevCPU[cpu:DecodeInst:50000]: Core 0 ; Thread 0; PC:InstPayload = 0x10352:0x8dd59201
+RevCPU[cpu:DecodeInst:51000]: Core 0 ; Thread 0; PC:InstPayload = 0x10354:0x15828dd5
+RevCPU[cpu:DecodeInst:52000]: Core 0 ; Thread 0; PC:InstPayload = 0x10356:0x8ff11582
+RevCPU[cpu:DecodeInst:53000]: Core 0 ; Thread 0; PC:InstPayload = 0x10358:0x8fcd8ff1
+RevCPU[cpu:DecodeInst:54000]: Core 0 ; Thread 0; PC:InstPayload = 0x1035a:0x15b78fcd
+RevCPU[cpu:DecodeInst:55000]: Core 0 ; Thread 0; PC:InstPayload = 0x1035c:0x115b7
+RevCPU[cpu:DecodeInst:56000]: Core 0 ; Thread 0; PC:InstPayload = 0x10360:0x7785b507
+RevCPU[cpu:DecodeInst:65000]: Core 0 ; Thread 0; PC:InstPayload = 0x10364:0xf20787d3
+RevCPU[cpu:DecodeInst:66000]: Core 0 ; Thread 0; PC:InstPayload = 0x10368:0x26879b
+RevCPU[cpu:DecodeInst:67000]: Core 0 ; Thread 0; PC:InstPayload = 0x1036c:0x107f7b3
+RevCPU[cpu:DecodeInst:68000]: Core 0 ; Thread 0; PC:InstPayload = 0x10370:0x4147571b
+RevCPU[cpu:DecodeInst:69000]: Core 0 ; Thread 0; PC:InstPayload = 0x10374:0x45892781
+RevCPU[cpu:DecodeInst:70000]: Core 0 ; Thread 0; PC:InstPayload = 0x10376:0x63b4589
+RevCPU[cpu:DecodeInst:71000]: Core 0 ; Thread 0; PC:InstPayload = 0x10378:0xa7063b
+RevCPU[cpu:DecodeInst:72000]: Core 0 ; Thread 0; PC:InstPayload = 0x1037c:0xaa7f553
+RevCPU[cpu:DecodeInst:73000]: Core 0 ; Thread 0; PC:InstPayload = 0x10380:0x6f5cc63
+RevCPU[cpu:DecodeInst:74000]: Core 0 ; Thread 0; PC:InstPayload = 0x10384:0xf20007d3
+RevCPU[cpu:DecodeInst:75000]: Core 0 ; Thread 0; PC:InstPayload = 0x10388:0xa2f527d3
+RevCPU[cpu:DecodeInst:76000]: Core 0 ; Thread 0; PC:InstPayload = 0x1038c:0x8553c39d
+RevCPU[cpu:DecodeInst:77000]: Core 0 ; Thread 0; PC:InstPayload = 0x103b2:0x117b7
+RevCPU[cpu:DecodeInst:78000]: Core 0 ; Thread 0; PC:InstPayload = 0x103b6:0x7907b707
+RevCPU[cpu:DecodeInst:87000]: Core 0 ; Thread 0; PC:InstPayload = 0x103ba:0x117b7
+RevCPU[cpu:DecodeInst:88000]: Core 0 ; Thread 0; PC:InstPayload = 0x103be:0x7987b787
+RevCPU[cpu:DecodeInst:97000]: Core 0 ; Thread 0; PC:InstPayload = 0x103c2:0x7ae5774b
+RevCPU[cpu:DecodeInst:98000]: Core 0 ; Thread 0; PC:InstPayload = 0x103c6:0x12a577d3
+RevCPU[cpu:DecodeInst:99000]: Core 0 ; Thread 0; PC:InstPayload = 0x103ca:0x12f77753
+RevCPU[cpu:DecodeInst:100000]: Core 0 ; Thread 0; PC:InstPayload = 0x103ce:0x7553e601
+RevCPU[cpu:DecodeInst:101000]: Core 0 ; Thread 0; PC:InstPayload = 0x103d0:0xae57553
+RevCPU[cpu:DecodeInst:102000]: Core 0 ; Thread 0; PC:InstPayload = 0x103d4:0x7d38082
+RevCPU[cpu:DecodeInst:103000]: Core 0 ; Thread 0; PC:InstPayload = 0x10204:0x8981a703
+RevCPU[cpu:DecodeInst:112000]: Core 0 ; Thread 0; PC:InstPayload = 0x10208:0x6357fd
+RevCPU[cpu:DecodeInst:113000]: Core 0 ; Thread 0; PC:InstPayload = 0x1020a:0xaf70063
+RevCPU[cpu:DecodeInst:114000]: Core 0 ; Thread 0; PC:InstPayload = 0x1020e:0xa28427d3
+RevCPU[cpu:DecodeInst:115000]: Core 0 ; Thread 0; PC:InstPayload = 0x10212:0x7d3cfc1
+RevCPU[cpu:DecodeInst:116000]: Core 0 ; Thread 0; PC:InstPayload = 0x10214:0xf20007d3
+RevCPU[cpu:DecodeInst:117000]: Core 0 ; Thread 0; PC:InstPayload = 0x10218:0xa28797d3
+RevCPU[cpu:DecodeInst:118000]: Core 0 ; Thread 0; PC:InstPayload = 0x1021c:0x16b7e7d9
+RevCPU[cpu:DecodeInst:119000]: Core 0 ; Thread 0; PC:InstPayload = 0x102aa:0x346260a6
+RevCPU[cpu:DecodeInst:128000]: Core 0 ; Thread 0; PC:InstPayload = 0x102ac:0x61613462
+RevCPU[cpu:DecodeInst:137000]: Core 0 ; Thread 0; PC:InstPayload = 0x102ae:0x80826161
+RevCPU[cpu:DecodeInst:138000]: Core 0 ; Thread 0; PC:InstPayload = 0x102b0:0x8082
+RevCPU[cpu:DecodeInst:139000]: Core 0 ; Thread 0; PC:InstPayload = 0x101d2:0x22a50753
+RevCPU[cpu:DecodeInst:140000]: Core 0 ; Thread 0; PC:InstPayload = 0x101d6:0xb78767c5
+RevCPU[cpu:DecodeInst:141000]: Core 0 ; Thread 0; PC:InstPayload = 0x101d8:0xba07b787
+RevCPU[cpu:DecodeInst:150000]: Core 0 ; Thread 0; PC:InstPayload = 0x101dc:0x1af777d3
+RevCPU[cpu:DecodeInst:151000]: Core 0 ; Thread 0; PC:InstPayload = 0x101e0:0xc20797d3
+RevCPU[cpu:DecodeInst:152000]: Core 0 ; Thread 0; PC:InstPayload = 0x101e4:0xfef42423
+RevCPU[cpu:DecodeInst:153000]: Core 0 ; Thread 0; PC:InstPayload = 0x101e8:0x853e4781
+RevCPU[cpu:DecodeInst:154000]: Core 0 ; Thread 0; PC:InstPayload = 0x101ea:0x70a2853e
+RevCPU[cpu:DecodeInst:155000]: Core 0 ; Thread 0; PC:InstPayload = 0x101ec:0x740270a2
+RevCPU[cpu:DecodeInst:164000]: Core 0 ; Thread 0; PC:InstPayload = 0x101ee:0x61457402
+RevCPU[cpu:DecodeInst:173000]: Core 0 ; Thread 0; PC:InstPayload = 0x101f0:0x80826145
+RevCPU[cpu:DecodeInst:174000]: Core 0 ; Thread 0; PC:InstPayload = 0x101f2:0x8082
+RevCPU[cpu:ClockTick:174000]: Program execution complete
+RevCPU[cpu:ClockTick:174000]: Program Stats: Total Cycles: 174 Busy Cycles: 94 Idle Cycles: 80 Eff: 0.540230
+RevCPU[cpu:ClockTick:174000]: Bytes Read: 472 Bytes Written: 5317 Floats Read: 0 Doubles Read 0  Floats Exec: 24 Inst Retired: 94
+RevCPU[cpu:clockTick:174000]: Closing Processor 0 at Cycle: 174
+RevCPU[cpu:clockTick:174000]: OK to end sim at cycle: 174
+Simulation is complete, simulated time: 174 ns

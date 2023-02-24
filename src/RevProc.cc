@@ -568,21 +568,18 @@ RevInst RevProc::DecodeCSSInst(uint16_t Inst, unsigned Entry){
   CompInst.rs2     = DECODE_LOWER_CRS2(Inst);
   CompInst.imm     = ((Inst & 0b1111110000000) >> 7);
 
-  if (CompInst.opcode == 0b10){
-    if((CompInst.funct3 == 0b101) || 
+  if((CompInst.funct3 == 0b101) || 
       ((feature->GetXlen() == 64) && (CompInst.funct3 == 0b111))) {
-      // c.fsdsp, c.sdsp, [5:3|8:6]
-      CompInst.imm = 0;
-      CompInst.imm =  ((Inst & 0b1110000000000) >> 7);    // [5:3]    111000
-      CompInst.imm |= ((Inst & 0b1110000000) >> 1);       // [8:6] 111000000
-       
-    } else if ((CompInst.funct3 == 0b110) || 
+    // c.fsdsp, c.sdsp, [5:3|8:6]
+    CompInst.imm = 0;
+    CompInst.imm =  ((Inst & 0b1110000000000) >> 7);    // [5:3]    111000
+    CompInst.imm |= ((Inst & 0b1110000000) >> 1);       //  [8:6] 111000000
+  } else if ((CompInst.funct3 == 0b110) || 
               ((feature->GetXlen() == 32) && (CompInst.funct3 == 0b111))) {
-      // c.swsp, c.fswsp, [5:2|7:6]
-      CompInst.imm  = 0;
-      CompInst.imm  = ((Inst & 0b1111000000000) >> 7);    // [5:2]   111100
-      CompInst.imm |= ((Inst & 0b110000000) >> 1);        // [7:6] 11000000
-    }
+    // c.swsp, c.fswsp, [5:2|7:6]
+    CompInst.imm  = 0;
+    CompInst.imm  = ((Inst & 0b1111000000000) >> 7);    // [5:2]   111100
+    CompInst.imm |= ((Inst & 0b110000000) >> 1);        // [7:6] 11000000
   }
 
   CompInst.instSize = 2;
@@ -643,7 +640,7 @@ RevInst RevProc::DecodeCLInst(uint16_t Inst, unsigned Entry){
   CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
 
   if( CompInst.funct3 == 0b001 || 
-    ((feature->GetXlen() == 64) && 
+    ( (feature->GetXlen() == 64) && 
     ( (CompInst.funct3 == 0b011) || (CompInst.funct3 == 0b111) )) ) {
     //c.fld, c.ld, c.fsd, c.sd, [5:3], [7:6]
     CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6] 11000000
@@ -754,6 +751,10 @@ RevInst RevProc::DecodeCJInst(uint16_t Inst, unsigned Entry){
   target[4]  = offsetBits[9];
   target[11] = offsetBits[10];
 
+#if 0
+      std::cout << "c.j inst =  " << std::bitset<16>(Inst) << std::endl;
+#endif
+
   CompInst.jumpTarget = (uint16_t)target.to_ulong();
 
   CompInst.instSize = 2;
@@ -838,6 +839,13 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
                   Opcode = %x Funct2 = %x Funct3 = %x Funct4 = %x Funct6 = %x Enc = %x \n", \
                   PC, opc, funct2, funct3, funct4, funct6, Enc );
   }
+
+#ifdef _XBGAS_DEBUG_
+// #if 0
+      std::cout << "----> " << std::hex << PC
+                << ": " << InstTable[Entry].mnemonic << std::endl;
+#endif
+
 
   RegFile[threadToDecode].Entry = Entry;
 

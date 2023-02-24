@@ -27,7 +27,7 @@ namespace SST{
         Inst.rd   = CRegMap[Inst.rd];
         if( Inst.imm == 0x00 )
           return false;
-        ZEXT(Inst.imm, Inst.imm, 10);
+        ZEXTI(Inst.imm, 10);
         return addi(F,R,M,Xbgas,Inst);
       }
 
@@ -43,14 +43,14 @@ namespace SST{
       static bool clwsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.lwsp rd, $imm = lw rd, x2, $imm
         Inst.rs1  = 2;
-        ZEXT(Inst.imm, Inst.imm, 8);
+        ZEXTI(Inst.imm, 8);
         return lw(F,R,M,Xbgas,Inst);
       }
 
       static bool cswsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.swsp rs2, $imm = sw rs2, x2, $imm
         Inst.rs1  = 2;
-        ZEXT(Inst.imm, Inst.imm, 8);
+        ZEXTI(Inst.imm, 8);
         return sw(F,R,M,Xbgas,Inst);
       }
 
@@ -58,7 +58,7 @@ namespace SST{
         // c.lw rd, rs1, $imm = lw rd, $imm(rs1)
         Inst.rd  = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
-        ZEXT(Inst.imm, Inst.imm, 7);
+        ZEXTI(Inst.imm, 7);
         return lw(F,R,M,Xbgas,Inst);
       }
 
@@ -66,14 +66,23 @@ namespace SST{
         // c.sw rs2, rs1, $imm = sw rs2, $imm(rs1)
         Inst.rs2 = CRegMap[Inst.rd];
         Inst.rs1 = CRegMap[Inst.rs1];
-        ZEXT(Inst.imm, Inst.imm, 7);
+        ZEXTI(Inst.imm, 7);
         return sw(F,R,M,Xbgas,Inst);
       }
 
       static bool cj(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.j $imm = jal x0, $imm
         Inst.rd = 0;
+
+#if 0
+      std::cout << "c.j before SEXT jumpTarget =  " << std::bitset<16>(Inst.jumpTarget) << std::endl;
+#endif
+
         SEXT(Inst.imm, Inst.jumpTarget, 12);
+
+#if 0
+      std::cout << "c.j after SEXT imm =  " << std::bitset<16>(Inst.imm) << std::endl;
+#endif
         return jal(F,R,M,Xbgas,Inst);
       }
 
@@ -131,26 +140,26 @@ namespace SST{
       static bool cli(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.li %rd, $imm = addi %rd, x0, $imm
         Inst.rs1 = 0;
-        SEXT(Inst.imm, Inst.imm, 6);
+        SEXTI(Inst.imm, 6);
         return addi(F,R,M,Xbgas,Inst);
       }
 
       static bool caddi16sp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         Inst.rd = 2;
         Inst.rs1 = 0;
-        SEXT(Inst.imm, Inst.imm, 10);
+        SEXTI(Inst.imm, 10);
         return addi(F,R,M,Xbgas,Inst);
       }
 
       static bool clui(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // lui rd, nzimm[17:12].
-        SEXT(Inst.imm, Inst.imm, 6);
+        SEXTI(Inst.imm, 6);
         return lui(F,R,M,Xbgas,Inst);
       }
 
       static bool caddi(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.addi %rd, $imm = addi %rd, %rd, $imm
-        SEXT(Inst.imm, Inst.imm, 6);
+        SEXTI(Inst.imm, 6);
         return addi(F,R,M,Xbgas,Inst);
       }
 
@@ -161,40 +170,46 @@ namespace SST{
 
       static bool csrli(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.srli %rd, $imm = srli %rd, %rd, $imm
-        Inst.rd  = CRegMap[Inst.rd];
+        Inst.rd   = CRegMap[Inst.rd];
+        Inst.rs1  = Inst.rd;
         return srli(F,R,M,Xbgas,Inst);
       }
 
       static bool csrai(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.srai %rd, $imm = srai %rd, %rd, $imm
         Inst.rd  = CRegMap[Inst.rd];
+        Inst.rs1  = Inst.rd;
         return srai(F,R,M,Xbgas,Inst);
       }
 
       static bool candi(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.andi %rd, $imm = sandi %rd, %rd, $imm
-        Inst.rd  = CRegMap[Inst.rd];
-        SEXT(Inst.imm, Inst.imm, 6);
+        Inst.rd   = CRegMap[Inst.rd];
+        Inst.rs1  = Inst.rd;
+        SEXTI(Inst.imm, 6);
         return andi(F,R,M,Xbgas,Inst);
       }
 
       static bool cand(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.and %rd, %rs2 = and %rd, %rd, %rs2
-        Inst.rd  = CRegMap[Inst.rd];
+        Inst.rd   = CRegMap[Inst.rd];
+        Inst.rs1  = Inst.rd;
         Inst.rs2  = CRegMap[Inst.rs2];
         return f_and(F,R,M,Xbgas,Inst);
       }
 
       static bool cor(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.or %rd, %rs2 = or %rd, %rd, %rs2
-        Inst.rd  = CRegMap[Inst.rd];
+        Inst.rd   = CRegMap[Inst.rd];
+        Inst.rs1  = Inst.rd;
         Inst.rs2  = CRegMap[Inst.rs2];
         return f_or(F,R,M,Xbgas,Inst);
       }
 
       static bool cxor(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.xor %rd, %rs2 = xor %rd, %rd, %rs2
-        Inst.rd  = CRegMap[Inst.rd];
+        Inst.rd   = CRegMap[Inst.rd];
+        Inst.rs1  = Inst.rd;
         Inst.rs2  = CRegMap[Inst.rs2];
         return f_xor(F,R,M,Xbgas,Inst);
       }
@@ -202,6 +217,7 @@ namespace SST{
       static bool csub(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.sub %rd, %rs2 = sub %rd, %rd, %rs2
         Inst.rd  = CRegMap[Inst.rd];
+        Inst.rs1  = Inst.rd;
         Inst.rs2  = CRegMap[Inst.rs2];
         return sub(F,R,M,Xbgas,Inst);
       }
