@@ -34,7 +34,7 @@ namespace SST{
         //C.NOP does not change any user-visible state, except for advancing the pc
         if ( (Inst.rd != 0) && (Inst.imm != 0) ) {
           if( F->IsRV32() ){
-          R->RV32_PC += Inst.instSize;
+            R->RV32_PC += Inst.instSize;
           }else{
             R->RV64_PC += Inst.instSize;
           }
@@ -75,6 +75,11 @@ namespace SST{
         // c.j $imm = jal x0, $imm
         Inst.rd = 0;
         SEXT(Inst.imm, Inst.jumpTarget, 12);
+
+#if 0
+      std::cout << "c.j imm =  " << std::bitset<16>(Inst.imm) << std::endl;
+#endif
+
         return jal(F,R,M,Xbgas,Inst);
       }
 
@@ -82,6 +87,10 @@ namespace SST{
         // c.jal $imm = jal x1, $imm
         Inst.rd = 1;
         SEXT(Inst.imm, Inst.jumpTarget, 12);
+
+#if 0
+      std::cout << "c.jal imm =  " << std::bitset<16>(Inst.imm) << std::endl;
+#endif
         return jal(F,R,M,Xbgas,Inst);
       }
 
@@ -181,6 +190,10 @@ namespace SST{
         // c.srli %rd, $imm = srli %rd, %rd, $imm
         Inst.rd   = CRegMap[Inst.crd];
         Inst.rs1  = Inst.rd;
+
+#if 0
+      std::cout << "c.srli imm =  " << std::bitset<16>((Inst.imm & 0b111111)) << std::endl;
+#endif
         if ( Inst.imm != 0)
           return srli(F,R,M,Xbgas,Inst);
         return false;

@@ -554,6 +554,11 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry){
   }
   // c.lui is a special case, we decode it as [5][4:0] and then handle in RV32I.h
 
+#if 0
+      std::cout << "CIInst   =  " << std::bitset<16>(Inst) << std::endl;
+      std::cout << "Imm bits =  " << std::bitset<16>(CompInst.imm) << std::endl;
+#endif
+
   CompInst.instSize = 2;
   CompInst.compressed = true;
 
@@ -714,8 +719,8 @@ RevInst RevProc::DecodeCJInst(uint16_t Inst, unsigned Entry){
 
   // c.jal, c.j
   //swizzle bits offset[11|4|9:8|10|6|7|3:1|5]
-  std::bitset<16> offsetBits(offset);
-  std::bitset<16> target(0);
+  std::bitset<12> offsetBits(offset);
+  std::bitset<12> target(0);
   target.reset();
   target[0]  = 0;
   target[5]  = offsetBits[0];
@@ -730,11 +735,12 @@ RevInst RevProc::DecodeCJInst(uint16_t Inst, unsigned Entry){
   target[4]  = offsetBits[9];
   target[11] = offsetBits[10];
 
-#if 0
-      std::cout << "c.j inst =  " << std::bitset<16>(Inst) << std::endl;
-#endif
-
   CompInst.jumpTarget = (uint16_t)target.to_ulong();
+  
+#if 0
+      std::cout << "CJInst =  " << std::bitset<16>(Inst) << std::endl;
+      std::cout << "Target =  " << std::bitset<16>(CompInst.jumpTarget) << std::endl;
+#endif
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
