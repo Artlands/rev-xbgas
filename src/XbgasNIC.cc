@@ -239,7 +239,7 @@ void XbgasNIC::init(unsigned int phase){
     numDest++;
     SST::Interfaces::SimpleNetwork::nid_t srcID = req->src;
     xbgasHosts.push_back(srcID);
-    output->verbose(CALL_INFO, 1, 0,
+    output->verbose(CALL_INFO, 6, 0,
                     "%s received init message from %s\n",
                     getName().c_str(), ev->getSource().c_str());
   }

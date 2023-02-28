@@ -180,6 +180,11 @@ void *__xbrtime_shared_malloc( size_t sz ){
   /* memory is good, register the block */
   __XBRTIME_CONFIG->_MMAP[slot].size = sz;
   __XBRTIME_CONFIG->_MMAP[slot].start_addr = (uint64_t)(ptr);
+
+  /* write sz and ptr to xbgas firmware */ 
+  *(uint64_t *)(_XBGAS_SHARED_MEM_SIZE_)       = (uint64_t)(sz);
+  *(uint64_t *)(_XBGAS_SHARED_MEM_START_ADDR_) = (uint64_t)(ptr);
+
   return ptr;
 }
 
@@ -200,6 +205,11 @@ void __xbrtime_shared_free(void *ptr){
       revfree( ptr );
       __XBRTIME_CONFIG->_MMAP[i].start_addr = 0x00ull;
       __XBRTIME_CONFIG->_MMAP[i].size = 0;
+
+      /* update values of sz and ptr in xbgas firmware */
+      *(uint64_t *)(_XBGAS_SHARED_MEM_SIZE_)       = (uint64_t)(0u);
+      *(uint64_t *)(_XBGAS_SHARED_MEM_START_ADDR_) = (uint64_t)(0u);
+
       return ;
     }
   }
@@ -215,7 +225,7 @@ extern void *xbrtime_malloc( size_t sz ){
 
   ptr = __xbrtime_shared_malloc( sz );
   __xbrtime_asm_quiet_fence();
-  
+
   return ptr;
 }
 
@@ -252,8 +262,9 @@ uint64_t __xbrtime_ltor(uint64_t remote, int pe){
         /* calculate the local offset */
         offset = remote - __XBRTIME_CONFIG->_MMAP[i].start_addr;
 
-        new_addr = (__xbrtime_get_remote_alloc(base_slot, xbrtime_decode_pe(pe))
-                                              +offset);
+        new_addr = __xbrtime_get_remote_alloc(base_slot, xbrtime_decode_pe(pe))
+                                             +offset;
+
         return new_addr;
       }
     }

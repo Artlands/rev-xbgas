@@ -6,6 +6,7 @@
 *.txt
 *.h.gch
 *.csv
+tmp/
 tmp_xbgas/
 tmp_runtime/
 syscalls/

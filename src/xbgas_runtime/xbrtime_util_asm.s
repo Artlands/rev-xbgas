@@ -1,11 +1,13 @@
 #
 # _XBRTIME_UTIL_ASM_S_
 #
-# Copyright (C) 2017-2021 Tactical Computing Laboratories, LLC
+# Copyright (C) 2017-2018 Tactical Computing Laboratories, LLC
 # All Rights Reserved
 # contact@tactcomplabs.com
 #
-# See LICENSE in the top level directory for licensing details
+# This file is a part of the XBGAS-RUNTIME package.  For license
+# information, see the LICENSE file in the top level directory
+# of the distribution.
 #
 
 # e10 = contains the physical PE id

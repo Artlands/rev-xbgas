@@ -457,8 +457,8 @@ void RevCPU::setup(){
     address = XNic->getAddress();
     Xbgas->initXbgasMem(XNic);
     
-    myPE = (int64_t)(Mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-    numPEs = (unsigned)(Mem->ReadU64(_XBGAS_TOTAL_NPE_ADDR_));
+    myPE = (int64_t)(Mem->ReadU64(_XBGAS_MY_PE_));
+    numPEs = (unsigned)(Mem->ReadU64(_XBGAS_TOTAL_NPE_));
     // output.verbose(CALL_INFO, 1, 0, "--> MY_PE = %" PRId64 ", Total Number of PEs = %u\n", myPE, numPEs);
 
     // Initialize TrackEndSim

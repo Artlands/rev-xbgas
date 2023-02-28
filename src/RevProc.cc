@@ -376,14 +376,14 @@ bool RevProc::InitExtReg(){
     // e11 = contains the number of PEs
     // e12 = contains the size of the shared memory region
     // e13 = contains the starting address of the physical shared memory region
-    RegFile[t].ERV64[10] = (uint64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
-    RegFile[t].ERV64[11] = (uint64_t)(mem->ReadU64(_XBGAS_TOTAL_NPE_ADDR_));
+    RegFile[t].ERV64[10] = (uint64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+    RegFile[t].ERV64[11] = (uint64_t)(mem->ReadU64(_XBGAS_TOTAL_NPE_));
     RegFile[t].ERV64[12] = (uint64_t)(0u);
     RegFile[t].ERV64[13] = (uint64_t)(0u);
 
 #ifdef _XBGAS_DEBUG_
   {
-    int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+    int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
     // if(id == 0)
     {
       std::cout << "CPU" << id << "-extended registers: " <<std::endl;
@@ -1525,9 +1525,54 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
   bool rtn = false;
   Stats.totalCycles++;
 
-#ifdef _REV_DEBUG_
+#ifdef _XBGAS_DEBUG_
   if((currentCycle % 100000000) == 0){
     std::cout << "Current Cycle: " << currentCycle <<  " PC: " << std::hex << ExecPC << std::dec << std::endl;
+  }
+#endif
+
+  for (int t=0;  t < _REV_THREAD_COUNT_; t++){
+    // Update extended registers for the size of the shared memory region and
+    // the starting address of the physical shared memory region
+    RegFile[t].ERV64[12] = (uint64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_SIZE_));
+    RegFile[t].ERV64[13] = (uint64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_START_ADDR_));
+  }
+
+#ifdef _XBGAS_DEBUG_
+// #if 0
+  uint8_t xbgas_mem = (uint8_t)(mem->ReadU64(_XBGAS_DEBUG_MEM_));
+  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+
+  if (xbgas_mem == 0b01) {
+    std::cout << "----- PE " << id << " enters barrier -----"  << std::endl;
+    mem->WriteU8(_XBGAS_DEBUG_MEM_, 0b00);
+  } else if (xbgas_mem == 0b10) {
+    std::cout << "----- PE " << id << " exits barrier -----"  << std::endl;
+    mem->WriteU8(_XBGAS_DEBUG_MEM_, 0b00);
+  }
+#endif
+
+#if 0
+  if((currentCycle % 2000000) == 0){
+    {
+      int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+      if(id == 0)
+      {
+        for (int t=0;  t < _REV_THREAD_COUNT_; t++){
+          std::cout << "Current Cycle: " << std::dec << currentCycle
+                    << " CPU" << id << " - extended registers: "
+                    << "e12 = " << std::dec << RegFile[t].ERV64[12]
+                    << ", e13 = 0x" << std::hex << RegFile[t].ERV64[13]
+                    << ", xbgas debug memory = 0x" 
+                    << std::hex << (uint64_t)(mem->ReadU64(_XBGAS_DEBUG_MEM_))
+                    << std::endl;
+          std::cout << "a0 = " <<  RegFile[t].RV64[10]
+                    << ", a1 = " <<  RegFile[t].RV64[11]
+                    << ", e0 = " <<  RegFile[t].ERV64[10]
+                    << std::endl;
+        }
+      }
+    }
   }
 #endif
 
@@ -1597,7 +1642,7 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
 #if 0
           // std::cout << "COMPLETING INSTRUCTION: " << table[Inst].mnemonic
           //   << ". Next PC @ 0x" << std::hex << regFile[threadID].RV64_PC << std::endl;
-    int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+    int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
     if(id == 1) {
           std::cout << "|---- Register file -----|" << std::endl;
           for(int i=0; i<32; i++) {

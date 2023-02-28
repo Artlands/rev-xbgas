@@ -40,6 +40,9 @@ extern void xbrtime_barrier() {
   /* force a heavy fence */
   __xbrtime_asm_fence();
 
+  /* Enter barrier */
+  *(uint64_t *)(_XBGAS_DEBUG_MEM_) = (uint64_t)(0b01);
+
   while( i < iter ){
     /* derive the correct target pe */
     target = (mype + stride)%num_pe;
@@ -65,6 +68,8 @@ extern void xbrtime_barrier() {
   // Flip the sense
   sense = 1 - sense;
 
+   /* Exit barrier */
+   *(uint64_t *)(_XBGAS_DEBUG_MEM_) = (uint64_t)(0b10);
 }
 
 /* EOF */

@@ -95,8 +95,39 @@ namespace SST{
       }
 
       static bool addiw(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst) {
+
+// #ifdef _XBGAS_DEBUG_
+//           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+//           if (id == 0)
+//           {
+//           std::cout << "_XBGAS_DEBUG_ CPU" << id
+//                           << ": Before ADDIW" << std::endl;
+//           }
+//           std::cout << "|x" <<std::dec << +Inst.rd
+//                     << "|: 0x" << std::hex << R->RV64[Inst.rd]
+//                     << " = |x" <<std::dec << +Inst.rs1
+//                     << "|: 0x" << std::hex << R->ERV64[Inst.rs1]
+//                     << " + imm (" << std::hex << (int32_t)(td_u32(Inst.imm,12))
+//                     << ")" << std::endl;
+// #endif
+
         if(Inst.rd != 0)
           R->RV64[Inst.rd] = (int32_t)(R->RV64[Inst.rs1] + (int32_t)(td_u32(Inst.imm,12)));
+
+// #ifdef _XBGAS_DEBUG_
+//           if (id == 0)
+//           {
+//           std::cout << "_XBGAS_DEBUG_ CPU" << id
+//                           << ": After ADDIW" << std::endl;
+//           }
+//           std::cout << "|x" <<std::dec << +Inst.rd
+//                     << "|: 0x" << std::hex << R->RV64[Inst.rd]
+//                     << " = |x" <<std::dec << +Inst.rs1
+//                     << "|: 0x" << std::hex << R->ERV64[Inst.rs1]
+//                     << " + imm (" << std::hex << (int32_t)(td_u32(Inst.imm,12))
+//                     << ")" << std::endl;
+// #endif
+
         R->RV64_PC += Inst.instSize;
         return true;
       }

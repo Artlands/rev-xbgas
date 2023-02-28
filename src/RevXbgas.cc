@@ -34,18 +34,18 @@ void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
   id = (int64_t)(xnic->getAddress());
 
   // Initialize the Xbgas firmware memory for recording the info of PE ID and the total number of PEs
-  ptr = (uint64_t)(_XBGAS_MY_PE_ADDR_);
+  ptr = (uint64_t)(_XBGAS_MY_PE_);
   mem->WriteU64(ptr, (uint64_t)(id));
 
   numPEs = (unsigned)(xnic->getNumPEs());
-  ptr = (uint64_t)(_XBGAS_TOTAL_NPE_ADDR_);
+  ptr = (uint64_t)(_XBGAS_TOTAL_NPE_);
   mem->WriteU64(ptr, (uint64_t)(numPEs));
 
 #if 0
 // #ifdef _XBGAS_DEBUG_
   if (id == 1) {
-    std::cout << "_XBGAS_MY_PE_ADDR_: 0x" << std::hex << _XBGAS_MY_PE_ADDR_ << ", Value = " << std::dec << id << std::endl;
-    std::cout << "_XBGAS_TOTAL_NPE_ADDR_: 0x" << std::hex << _XBGAS_TOTAL_NPE_ADDR_ << ", Value = " << std::dec << numPEs << std::endl;
+    std::cout << "_XBGAS_MY_PE_: 0x" << std::hex << _XBGAS_MY_PE_ << ", Value = " << std::dec << id << std::endl;
+    std::cout << "_XBGAS_TOTAL_NPE_: 0x" << std::hex << _XBGAS_TOTAL_NPE_ << ", Value = " << std::dec << numPEs << std::endl;
     std::cout << "_REV_HEAP_START_: 0x" << std::hex << _REV_HEAP_START_ << std::endl;
     std::cout << "_REV_HEAP_END_: 0x" << std::hex << _REV_HEAP_END_ << std::endl;
     std::cout << "_REV_HEAP_SIZE_: " << std::hex << _REV_HEAP_SIZE_ << std::endl;
@@ -148,7 +148,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
         // DMA operation; write to memory directly; destination addr, stride
 
 #if 0 //def _XBGAS_DEBUG_
-          int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+          int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
           if ( (id == 0) && tmp_dma ){ 
             std::cout << "_XBGAS_DEBUG_ CPU " << id
                       << ": PE0 BULK GET:" << std::endl;
@@ -205,7 +205,7 @@ void RevXbgas::handleFailed(xbgasNicEvent *event){
 }
 
 void RevXbgas::handleGet(xbgasNicEvent *event){
-  output->verbose(CALL_INFO, 5, 0, "Handling XBGAS Get Request from PE=%d, Tag=%d\n", event->getSrc(), event->getTag());
+  output->verbose(CALL_INFO, 6, 0, "Handling XBGAS Get Request from PE=%d, Tag=%d\n", event->getSrc(), event->getTag());
   // push an event entry back onto the ReadQueue
   ReadQueue.push_back(std::make_tuple(event->getTag(),
                                       RandCost(), 
@@ -234,7 +234,7 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
   char *DataElem = (char *)(Data);
 
 #if 0 //def _XBGAS_DEBUG_
-  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
   if ( (id == 1) ) { 
     std::cout << "_XBGAS_DEBUG_ CPU " << id
               << ": PE0 PUT:" << std::endl;
@@ -410,7 +410,7 @@ bool RevXbgas::sendXBGASMessage(){
   if( SendMB.empty() )
     return true;
 
-  output->verbose(CALL_INFO, 5, 0,
+  output->verbose(CALL_INFO, 6, 0,
                  "Sending XBGAS message from %d to %d; Opc=%s; Tag=%u; Size=%" PRIu32 "\n",
                  int(xnic->getAddress()), SendMB.front().second,
                  SendMB.front().first->getOpcodeStr().c_str(),
@@ -436,7 +436,7 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
   uint32_t idx = 0;
   uint64_t tmp_addr = 0x00ull;
   int Dest = findDest(Nmspace);
-  output->verbose(CALL_INFO, 5, 0,
+  output->verbose(CALL_INFO, 6, 0,
                   "Writing %" PRIu32 " Bytes to PE %d Starting at 0x%2x; Stride = %" PRIu32 ", # of elements = %" PRIu32 "\n", 
                   Len, Dest, Addr, Stride, Nelem);
   uint8_t Tag  = createTag();
@@ -457,7 +457,7 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
     // Read memory and save to buffer
 
   #if 0 //def _XBGAS_DEBUG_
-      int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+      int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
       if ( id == 0) { 
         std::cout << "_XBGAS_DEBUG_ CPU" << id
                   << ": [WriteMem] " << std::endl;
@@ -486,7 +486,7 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
     }
 
 #if 0 //def _XBGAS_DEBUG_
-      int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_ADDR_));
+      int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
       if ( id == 0) { 
         std::cout << "_XBGAS_DEBUG_ CPU" << id
                   << ": [WriteMem] "<< std::endl
@@ -601,7 +601,7 @@ bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
   uint64_t Src = xnic->getAddress();
   bool recvd = false;
 
-  output->verbose(CALL_INFO, 5, 0,
+  output->verbose(CALL_INFO, 6, 0,
                   "Reading %" PRIu32 " Bytes from PE=%d Starting at 0x%2x, Tag=%u\n", Len, Dest, Addr, Tag);
 
   GEvent = new xbgasNicEvent(xnic->getName()); // new event to send

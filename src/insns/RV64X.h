@@ -34,16 +34,59 @@ namespace SST{
         // Send remote memory request otherwise.
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
-        // if (EXT1 != 0x0) 
+        // if (EXT1 != 0x0)
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
               Xbgas->ReadU64(EXT1, Addr);
+
+// #ifdef _XBGAS_DEBUG_
+//           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+//           if (id == 0) 
+//           {
+//             std::cout << "_XBGAS_DEBUG_ CPU" << id
+//                       << " Before eld " << std::endl;
+            
+//             std::cout << "|---- Register file -----|" << std::endl;
+//             for(int i=0; i<32; i++) {
+//               std::cout << "|x" <<std::dec << +i
+//                         << ": 0x" << std::hex << R->RV64[i]
+//                         << "|e" <<std::dec << +i
+//                         << ": 0x" << std::hex << R->ERV64[i]
+//                         << std::endl;
+//             }
+//             std::cout << "|----- Register file -----|" << std::endl;
+            
+//           }
+//   #endif
             } else {
               uint64_t Value;
               if( Xbgas->readGetResponses(Tag, (void *)(&Value)) ) {
                 R->RV64[Inst.rd] = Value;
                 R->RV64_PC += Inst.instSize;
+
+#ifdef _XBGAS_DEBUG_
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+          if (id == 0)
+          {
+          std::cout << "_XBGAS_DEBUG_ CPU" << id
+                          << ": [eld]\tRV64[" << std::dec << +Inst.rd
+                          << "](0x" << std::hex << R->RV64[Inst.rd]
+                          << ") = Nmspace(0x"<< std::hex << EXT1
+                          << ") @ Addr(0x" << std::hex << Addr
+                          << ")" << std::endl;
+          }
+          // std::cout << "|---- Register file -----|" << std::endl;
+          // for(int i=0; i<32; i++) {
+          //   std::cout << "|x" <<std::dec << +i
+          //             << ": 0x" << std::hex << R->RV64[i]
+          //             << "|e" <<std::dec << +i
+          //             << ": 0x" << std::hex << R->ERV64[i]
+          //             << std::endl;
+          // }
+          // std::cout << "|----- Register file -----|" << std::endl;
+#endif
+
               }
             }
           } else {
@@ -97,7 +140,7 @@ namespace SST{
                 SEXT(R->RV64[Inst.rd], Value, 32);
                 R->RV64_PC += Inst.instSize;
   #ifdef _XBGAS_DEBUG_
-              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
               if (id == 0) 
               {
                 std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -124,7 +167,7 @@ namespace SST{
             R->ERV64[0] = 0x00ull;
 
   #ifdef _XBGAS_DEBUG_
-            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
             if (id == 0) 
             { 
               std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -164,7 +207,7 @@ namespace SST{
                 SEXT(R->RV64[Inst.rd], Value, 16);
                 R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
-              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
               if (id == 0) 
               {
                 std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -213,7 +256,7 @@ namespace SST{
                 R->RV64[Inst.rd] = Value;
                 R->RV64_PC += Inst.instSize;
   #ifdef _XBGAS_DEBUG_
-              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
               if (id == 0) 
               {
                 std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -264,7 +307,7 @@ namespace SST{
                 SEXT(R->RV64[Inst.rd], Value, 8);
                 R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
-              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
               if (id == 0) 
               {
                 std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -315,7 +358,7 @@ namespace SST{
                 R->RV64[Inst.rd] = Value;
                 R->RV64_PC += Inst.instSize;
   #ifdef _XBGAS_DEBUG_
-              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+              int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
               if (id == 0) 
               {
                 std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -355,7 +398,7 @@ namespace SST{
         R->ERV64[Inst.rd] = M->ReadU64(Addr);
         R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
-            int64_t id = (int64_t)(M->ReadU32(_XBGAS_MY_PE_ADDR_));
+            int64_t id = (int64_t)(M->ReadU32(_XBGAS_MY_PE_));
             if (id == 0) 
             { 
               std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -376,7 +419,6 @@ namespace SST{
       }
 
       static bool esd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        
         /* The following implementation is based on xBGAS 0.0.6*/
         // esd rs1, imm(rs2)
         // uint64_t EXT2 = R->ERV64[Inst.rs2];
@@ -392,15 +434,36 @@ namespace SST{
         /* The following implementation is based on xbgas-tool (branch: test)*/
         // esd rs2, imm(rs1)
 
+// #ifdef _XBGAS_DEBUG_
+//             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+//             if(id == 0) 
+//             {
+//               std::cout << "_XBGAS_DEBUG_ CPU" << id
+//                         << ": Before esd" << std::endl;
+
+//             std::cout << "|---- Register file -----|" << std::endl;
+//             for(int i=0; i<32; i++) {
+//               std::cout << "|x" <<std::dec << +i
+//                         << ": 0x" << std::hex << R->RV64[i]
+//                         << "|e" <<std::dec << +i
+//                         << ": 0x" << std::hex << R->ERV64[i]
+//                         << std::endl;
+//             }
+//             std::cout << "|----- Register file -----|" << std::endl;
+//             }
+// #endif
+
         uint64_t EXT1 = R->ERV64[Inst.rs1];
-        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
+        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
 
         // if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
+            Xbgas->WriteU64( EXT1, Addr, R->RV64[Inst.rs2] );
+
 #ifdef _XBGAS_DEBUG_
-            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-            // if(id == 0) 
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if(id == 0) 
             {
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [esd]\tNamespace(0x" << EXT1
@@ -408,9 +471,19 @@ namespace SST{
                         << ") = RV64[" << std::dec << +Inst.rs2
                         << "](0x" << std::hex << R->RV64[Inst.rs2]
                         << ")" << std::endl;
+
+            // std::cout << "|---- Register file -----|" << std::endl;
+            // for(int i=0; i<32; i++) {
+            //   std::cout << "|x" <<std::dec << +i
+            //             << ": 0x" << std::hex << R->RV64[i]
+            //             << "|e" <<std::dec << +i
+            //             << ": 0x" << std::hex << R->ERV64[i]
+            //             << std::endl;
+            // }
+            // std::cout << "|----- Register file -----|" << std::endl;
             }
 #endif
-            Xbgas->WriteU64( EXT1, Addr, R->RV64[Inst.rs2] );
+
           } else {
             // DMA operation
             uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
@@ -445,7 +518,7 @@ namespace SST{
         /* The following implementation is based on xbgas-tool (branch: test)*/
         // esw rs2, imm(rs1)
         uint64_t EXT1 = R->ERV64[Inst.rs1];
-        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
+        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
 
         // if (EXT1 != 0x0) 
         {
@@ -453,7 +526,7 @@ namespace SST{
             Xbgas->WriteU32( EXT1, Addr, (uint32_t)(R->RV64[Inst.rs2]) );
 
 #ifdef _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
           if(id == 0) {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [esw]\tNamespace(0x" << EXT1
@@ -498,7 +571,7 @@ namespace SST{
         /* The following implementation is based on xbgas-tool (branch: test)*/
         // esh rs2, imm(rs1)
         uint64_t EXT1 = R->ERV64[Inst.rs1];
-        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
+        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
 
         // if (EXT1 != 0x0) 
         {
@@ -506,7 +579,7 @@ namespace SST{
             Xbgas->WriteU16( EXT1, Addr, (uint16_t)(R->RV64[Inst.rs2]) );
 
 #ifdef _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
           if(id == 0) {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [esh]\tNamespace(0x" << EXT1
@@ -551,7 +624,7 @@ namespace SST{
         /* The following implementation is based on xbgas-tool (branch: test)*/
         // esb rs2, imm(rs1)
         uint64_t EXT1 = R->ERV64[Inst.rs1];
-        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
+        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
 
         // if (EXT1 != 0x0) 
         {
@@ -559,7 +632,7 @@ namespace SST{
             Xbgas->WriteU8( EXT1, Addr, (uint8_t)(R->RV64[Inst.rs2]) );
 
 #ifdef _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
           if(id == 0) {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [esb]\tNamespace(0x" << EXT1
@@ -598,12 +671,12 @@ namespace SST{
         /* The following implementation is based on xbgas-tool (branch: test)*/
         // ese ext1, imm(rs1)
         uint64_t EXT2 = R->ERV64[Inst.rs2];
-        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int64_t)(td_u64(Inst.imm,12)));
+        uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)));
         M->WriteU64(Addr, EXT2);
         R->RV64_PC += Inst.instSize;
 
 #ifdef _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
           if(id == 0) {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [ese]\tAddr(0x" << std::hex << Addr
@@ -632,7 +705,7 @@ namespace SST{
                 R->RV64_PC += Inst.instSize;
 
 #ifdef _XBGAS_DEBUG_
-                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
                 if (id == 0) {
                   std::cout << "_XBGAS_DEBUG_ CPU" << id
                             << ": [erld]\tRV64[" << std::dec << +Inst.rd
@@ -682,7 +755,7 @@ namespace SST{
                 SEXT(R->RV64[Inst.rd], Value, 32);
                 R->RV64_PC += Inst.instSize;
     #ifdef _XBGAS_DEBUG_
-                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
                 if (id == 0) {
                   std::cout << "_XBGAS_DEBUG_ CPU" << id
                             << ": [erlw]\tRV64[" << std::dec << +Inst.rd
@@ -732,7 +805,7 @@ namespace SST{
                 SEXT(R->RV64[Inst.rd], Value, 16);
                 R->RV64_PC += Inst.instSize;
     #ifdef _XBGAS_DEBUG_
-                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
                 if (id == 0) {
                   std::cout << "_XBGAS_DEBUG_ CPU" << id
                             << ": [erlh]\tRV64[" << std::dec << +Inst.rd
@@ -782,7 +855,7 @@ namespace SST{
                 R->RV64[Inst.rd] = Value;
                 R->RV64_PC += Inst.instSize;
     #ifdef _XBGAS_DEBUG_
-                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
                 if (id == 0) {
                   std::cout << "_XBGAS_DEBUG_ CPU" << id
                             << ": [erlhu]\tRV64[" << std::dec << +Inst.rd
@@ -832,7 +905,7 @@ namespace SST{
                 SEXT(R->RV64[Inst.rd], Value, 8);
                 R->RV64_PC += Inst.instSize;
     #ifdef _XBGAS_DEBUG_
-                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
                 if (id == 0) {
                   std::cout << "_XBGAS_DEBUG_ CPU" << id
                             << ": [erlb]\tRV64[" << std::dec << +Inst.rd
@@ -883,7 +956,7 @@ namespace SST{
                 R->RV64[Inst.rd] = Value;
                 R->RV64_PC += Inst.instSize;
     #ifdef _XBGAS_DEBUG_
-                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+                int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
                 if (id == 0) {
                   std::cout << "_XBGAS_DEBUG_ CPU" << id
                             << ": [erlbu]\tRV64[" << std::dec << +Inst.rd
@@ -931,7 +1004,7 @@ namespace SST{
             R->ERV64[Inst.rd] = Value;
             R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
-            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
             if (id == 0) {
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [erle]\tERV64[" << std::dec << +Inst.rd
@@ -959,7 +1032,7 @@ namespace SST{
         // R->RV64_PC += Inst.instSize;
 
 // #ifdef _XBGAS_DEBUG_
-//           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+//           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
 //           if(id == 0) {
 //             std::cout << "_XBGAS_DEBUG_ CPU" << id
 //                       << ": [ersd]\tStore (0x" << std::hex << R->RV64[Inst.rs1]
@@ -991,7 +1064,7 @@ namespace SST{
             Xbgas->WriteU64( EXT3, Addr, R->RV64[Inst.rd] );
 
 #ifdef _XBGAS_DEBUG_
-            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
             if(id == 0) {
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [ersd]\tNamespace(0x" << EXT3
@@ -1042,7 +1115,7 @@ namespace SST{
             Xbgas->WriteU32( EXT3, Addr, R->RV64[Inst.rd] );
 
 #ifdef _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
           if(id == 0) {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [ersw]\tNamespace(0x" << EXT3
@@ -1093,7 +1166,7 @@ namespace SST{
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU16( EXT3, Addr, R->RV64[Inst.rd] );
 #ifdef _XBGAS_DEBUG_
-            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
             if(id == 0) {
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [ersh]\tNamespace(0x" << EXT3
@@ -1143,7 +1216,7 @@ namespace SST{
             Xbgas->WriteU8( EXT3, Addr, R->RV64[Inst.rd] );
 
 #ifdef _XBGAS_DEBUG_
-            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
             if(id == 0) {
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [ersb]\tNamespace(0x" << EXT3
@@ -1197,7 +1270,7 @@ namespace SST{
         R->RV64_PC += Inst.instSize;
 
 #ifdef _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
           if(id == 0) 
           {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -1237,7 +1310,7 @@ namespace SST{
         R->RV64_PC += Inst.instSize;
 
 #ifdef _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
           if(id == 0) 
           {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -1248,10 +1321,10 @@ namespace SST{
       }
 
       static bool eaddi(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        R->RV64[Inst.rd] = dt_u64((int64_t)(td_u64(R->ERV64[Inst.rs1], 64)) + (int64_t)(td_u64(Inst.imm, 12)), 64);
+        R->RV64[Inst.rd] = (uint64_t)(R->ERV64[Inst.rs1] + (int32_t)(td_u32(Inst.imm,12)));
         R->RV64_PC += Inst.instSize;
 #if 0 //def _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
           // if(id == 0) 
           {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -1267,18 +1340,39 @@ namespace SST{
       }
 
       static bool eaddie(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        R->ERV64[Inst.rd] = dt_u64((int64_t)(td_u64(R->RV64[Inst.rs1], 64)) + (int64_t)(td_u64(Inst.imm, 12)), 64);
+
+// #ifdef _XBGAS_DEBUG_
+//             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+//             if(id == 0) 
+//             {
+//               std::cout << "_XBGAS_DEBUG_ CPU" << id
+//                         << " Before eaddie" << std::endl;
+
+//             std::cout << "|---- Register file -----|" << std::endl;
+//             for(int i=0; i<32; i++) {
+//               std::cout << "|x" <<std::dec << +i
+//                         << ": 0x" << std::hex << R->RV64[i]
+//                         << "|e" <<std::dec << +i
+//                         << ": 0x" << std::hex << R->ERV64[i]
+//                         << std::endl;
+//             }
+//             std::cout << "|----- Register file -----|" << std::endl;
+//             }
+// #endif
+
+        R->ERV64[Inst.rd] = (uint64_t)(R->RV64[Inst.rs1] + (int32_t)(td_u64(Inst.imm, 12)));
         R->RV64_PC += Inst.instSize;
+
 #ifdef _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
-          // if(id == 0) 
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+          if(id == 0) 
           {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [eaddie]\tERV64[" << std::dec << +Inst.rd
-                      << "](0x" << std::hex <<(int64_t)(td_u64(R->ERV64[Inst.rd], 64))
+                      << "](0x" << std::hex <<R->ERV64[Inst.rd]
                       << ") = RV64[" << std::dec << +Inst.rs1
-                      << "] (0x" << std::hex << (int64_t)(td_u64(R->RV64[Inst.rs1], 64))
-                      << ") + IMM (" << std::dec << (int64_t)(td_u64(Inst.imm, 12))
+                      << "] (0x" << std::hex << R->RV64[Inst.rs1]
+                      << ") + IMM (" << std::dec << (int32_t)(td_u32(Inst.imm, 12))
                       << ")" << std::endl;
           }
           // if(id == 1) {
@@ -1302,10 +1396,10 @@ namespace SST{
       }
 
       static bool eaddix(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        R->ERV64[Inst.rd] = dt_u64((int64_t)(td_u64(R->ERV64[Inst.rs1], 64)) + (int64_t)(td_u64(Inst.imm, 12)), 64);
+        R->ERV64[Inst.rd] = (uint64_t)(R->ERV64[Inst.rs1] + (int32_t)(td_u32(Inst.imm,12)));
         R->RV64_PC += Inst.instSize;
 #ifdef _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_ADDR_));
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
           // if(id == 0) 
           {
             std::cout << "_XBGAS_DEBUG_ CPU" << id

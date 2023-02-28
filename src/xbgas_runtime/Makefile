@@ -15,7 +15,6 @@ CXX=riscv64-unknown-elf-gcc
 ARCH=rv64imafd
 
 C_FLAGS=-std=c11
-OPTIMIZE_FLAGS=-O2
 
 XBRTIME_SOURCES := $(wildcard *.c)
 
@@ -33,7 +32,7 @@ debug: libxbrtime.a
 libxbrtime.a: $(XBRTIME_OBJS)
 	ar rcs $@ *.o
 %.o:%.c
-	$(CXX) -march=$(ARCH) $(OPTIMIZE_FLAGS) $(C_FLAGS) $(XBRTIME_HEADERS) $(XBRTIME_ASM) -c $<
+	$(CXX) -march=$(ARCH) $(C_FLAGS) $(XBRTIME_HEADERS) $(XBRTIME_ASM) -c $<
 clean:
 	rm -Rf *.o libxbrtime.a *.h.gch
 
