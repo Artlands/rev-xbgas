@@ -25,17 +25,17 @@ int main( int argc, char **argv ){
   // Allocating sz bytes
   ptr = (uint64_t *)(xbrtime_malloc( sz ));
   // Putting a value in the first element
-  ptr[0] = (uint64_t)(xbrtime_mype());
+  ptr[0] = (uint64_t)(xbrtime_mype() + 5);
   // perform a barrier
   xbrtime_barrier();
 
   if( xbrtime_mype() == 0 ){
     // perform an operation
-    xbrtime_ulonglong_get((unsigned long long *)(ptr),
+    xbrtime_ulonglong_put((unsigned long long *)(ptr),
                           (unsigned long long *)(ptr),
                           1,
                           1,
-                          1 );
+                          3 );
   }
 
   // // perform a barrier

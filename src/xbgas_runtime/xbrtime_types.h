@@ -18,6 +18,8 @@ extern "C" {
 #include <stdlib.h>
 #include <stdint.h>
 
+#define __XBRTIME_MAX_PE 1024
+
 typedef struct _XBRTIME_MEM_T{
   uint64_t start_addr;
   size_t size;

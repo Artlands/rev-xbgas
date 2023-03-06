@@ -26,6 +26,7 @@ extern "C" {
 #include "xbrtime_types.h"
 #include "xbrtime_macros.h"
 #include "xbrtime_api.h"
+#include "xbrtime-collectives.h"
 
 /* ---------------------------------------- FUNCTION PROTOTYPES */
 

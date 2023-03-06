@@ -15,9 +15,9 @@
 extern "C" {
 #endif
 
-#define align8(x) ((((x)-1)>>3)<<3 + 8)   // align the pointers to 8 bytes/64 bits
-
 #include <stdlib.h>
+
+#define align8(x) ((((x)-1)>>3)<<3 + 8)   // align the pointers to 8 bytes/64 bits
 
 typedef struct block_meta *b_meta;
 
