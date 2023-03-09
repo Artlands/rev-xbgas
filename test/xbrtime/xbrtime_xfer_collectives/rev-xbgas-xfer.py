@@ -31,10 +31,10 @@ sst.setProgramOption("stopAtCycle", "0s")
 # Tell SST what statistics handling we want
 sst.setStatisticLoadLevel(4)
 
-NPES = 4
+NPES = 1
 
 verb_params = {
-  "verbose" : 6,
+  "verbose" : 4,
 }
 
 net_params = {
@@ -78,10 +78,9 @@ for i in range(0, NPES):
     "enable_xbgas"      : 1,
     "enable_xbgas_test" : 0,                                    # Enable the XBGAS test harness
     "msgPerCycle"       : 10,
-    "program"           : os.getenv("REV_EXE", "xfer_get.exe"), # Target executable
+    "program"           : os.getenv("REV_EXE", "xfer_collectives.exe"), # Target executable
     "splash"            : splash                                # Display the splash message
   })
-  print("Created xBGAS CPU component " + str(i) + ": " + xbgas_cpu.getFullName())
   sst.popNamePrefix()
   
   # Setup the NICs

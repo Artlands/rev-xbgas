@@ -19,7 +19,8 @@ int main( int argc, char **argv ){
 
   // printf( "Initializing xBGAS Runtime\n" );
   rtn = xbrtime_init();
-
+  
+  int my_pe = xbrtime_mype();
   // printf( "xBGAS is Initialized; Closing xBGAS\n" );
   xbrtime_close();
   // printf( "xBGAS is Closed\n" );

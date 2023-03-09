@@ -34,10 +34,10 @@ sst.setStatisticLoadLevel(4)
 # Define the simulation components
 xbgas_cpu0 = sst.Component("cpu0", "revcpu.RevCPU")
 xbgas_cpu0.addParams({
-          "verbose" : 5,                                # Verbosity
+          "verbose" : 6,                                # Verbosity
           "numCores" : 1,                               # Number of cores
           "clock" : "1.0GHz",                           # Clock
-          "memSize" : 4*1024*1024*1024,                   # Memory size in bytes
+          "memSize" : 2*1024*1024*1024,                   # Memory size in bytes
           "machine" : "[0:RV64IMAFDCX]",                 # Core:Config; 
           "startAddr" : "[0:0x00000000]",               # Starting address for core 0
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
@@ -54,7 +54,7 @@ xbgas_cpu1.addParams({
           "verbose" : 0,                                # Verbosity
           "numCores" : 1,                               # Number of cores
           "clock" : "1.0GHz",                           # Clock
-          "memSize" : 4*1024*1024*1024,                   # Memory size in bytes
+          "memSize" : 2*1024*1024*1024,                   # Memory size in bytes
           "machine" : "[0:RV64IMAFDCX]",                 # Core:Config;
           "startAddr" : "[0:0x00000000]",               # Starting address for core 0
           "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles

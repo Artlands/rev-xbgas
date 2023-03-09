@@ -104,7 +104,7 @@ bool RevProc::EnableExt(RevExt *Ext, bool Opt){
   if( !Ext )
     output->fatal(CALL_INFO, -1, "Error: failed to initialize RISC-V extensions\n");
 
-  output->verbose(CALL_INFO, 6, 0,
+  output->verbose(CALL_INFO, 7, 0,
                   "Core %d ; Enabling extension=%s\n",
                   id, Ext->GetName().c_str());
 
@@ -128,7 +128,7 @@ bool RevProc::EnableExt(RevExt *Ext, bool Opt){
 
   // load the compressed instructions
   if( feature->IsModeEnabled(RV_C) ){
-    output->verbose(CALL_INFO, 6, 0,
+    output->verbose(CALL_INFO, 7, 0,
                     "Core %d ; Enabling compressed extension=%s\n",
                     id, Ext->GetName().c_str());
 
@@ -145,7 +145,7 @@ bool RevProc::EnableExt(RevExt *Ext, bool Opt){
     }
     // load the optional compressed instructions
     if( Opt ){
-      output->verbose(CALL_INFO, 6, 0,
+      output->verbose(CALL_INFO, 7, 0,
                       "Core %d ; Enabling optional compressed extension=%s\n",
                       id, Ext->GetName().c_str());
       CT = Ext->GetOInstTable();
@@ -296,7 +296,7 @@ bool RevProc::InitTableMapping(){
       // map normal instruction
       EncToEntry.insert(
         std::pair<uint32_t,unsigned>(CompressEncoding(InstTable[i]),i) );
-      output->verbose(CALL_INFO, 6, 0,
+      output->verbose(CALL_INFO, 7, 0,
                       "Core %d ; Table Entry %d = %s\n",
                       id,
                       CompressEncoding(InstTable[i]),
@@ -305,7 +305,7 @@ bool RevProc::InitTableMapping(){
       // map compressed instruction
       CEncToEntry.insert(
         std::pair<uint32_t,unsigned>(CompressCEncoding(InstTable[i]),i) );
-      output->verbose(CALL_INFO, 6, 0,
+      output->verbose(CALL_INFO, 7, 0,
                       "Core %d ; Compressed Table Entry %d = %s\n",
                       id,
                       CompressCEncoding(InstTable[i]),
@@ -1113,9 +1113,10 @@ RevInst RevProc::DecodeJInst(uint32_t Inst, unsigned Entry){
   }
 
   // immA
-  JInst.imm = ((Inst >> (31 - 20)) & (1 << 20)) |   // imm[20]
+  JInst.imm     = 0x00;
+  JInst.imm = ((Inst >> (31 - 20)) & (1 << 20)) |   // imm[20] 
               ((Inst >> (21 - 1)) & 0x7fe) |        // imm[10:1]
-              ((Inst >> (20 - 11)) & (1 << 11)) |   // imm[1]
+              ((Inst >> (20 - 11)) & (1 << 11)) |   // imm[11]
               (Inst & 0xff000);                     // imm[19:12]
 
   JInst.imm = (JInst.imm << 11) >> 11;
@@ -1247,6 +1248,13 @@ RevInst RevProc::DecodeInst(){
   output->verbose(CALL_INFO, 6, 0,
                   "Core %d ; Thread %d; PC:InstPayload = 0x%" PRIx64 ":0x%" PRIx32 "\n",
                   id, threadToDecode, PC, Inst);
+
+// #ifdef _XBGAS_DEBUG_
+// if (PC == 0xf48a4)
+// {
+//   std::cout << "PC = 0x" << std::hex << PC << ", Inst = 0x" << std::hex << Inst << std::endl;
+// }
+// #endif
 
   // Stage 1a: handle the crack fault injection
   if( CrackFault ){
