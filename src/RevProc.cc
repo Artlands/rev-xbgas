@@ -584,7 +584,7 @@ RevInst RevProc::DecodeCSSInst(uint16_t Inst, unsigned Entry){
     // c.fsdsp, c.sdsp, [5:3|8:6]
     CompInst.imm = 0;
     CompInst.imm =  ((Inst & 0b1110000000000) >> 7);    // [5:3]    111000
-    CompInst.imm |= ((Inst & 0b1110000000) >> 1);       //  [8:6] 111000000
+    CompInst.imm |= ((Inst & 0b1110000000) >> 1);       // [8:6] 111000000
   } else if ((CompInst.funct3 == 0b110) || 
               ((feature->GetXlen() == 32) && (CompInst.funct3 == 0b111))) {
     // c.swsp, c.fswsp, [5:2|7:6]
@@ -595,6 +595,10 @@ RevInst RevProc::DecodeCSSInst(uint16_t Inst, unsigned Entry){
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
+
+// #ifdef _XBGAS_DEBUG_
+//       std::cout << "Decode CSS: offset=" << std::hex << CompInst.imm << std::endl;
+// #endif
 
   return CompInst;
 }
@@ -685,7 +689,7 @@ RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry){
   // registers
   CompInst.crs1    = ((Inst & 0b1110000000) >> 7);
   CompInst.offset  = ((Inst & 0b1111100) >> 2);       //   11111
-  CompInst.offset |= ((Inst & 0b1110000000000) >> 5); //11100000
+  CompInst.offset |= ((Inst & 0b1000000000000) >> 7); //  100000
 
   // swizzle: offset[8|4:3]  offset[7:6|2:1|5]
   // handle c.beqz/c.bnez offset
@@ -697,6 +701,10 @@ RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry){
        CompInst.offset |= ((Inst & 0b1100000) << 1);       // [7:6]11000000
        CompInst.offset |= ((Inst & 0b1000000000000) >> 4); // [8] 100000000
   }
+
+// #ifdef _XBGAS_DEBUG_
+//       std::cout << "Decode CB: offset=" << std::hex << CompInst.offset << std::endl;
+// #endif
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -825,10 +833,11 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
                   PC, opc, funct2, funct3, funct4, funct6, Enc );
   }
 
-#if 0
-  std::cout << "----> " << std::hex << PC
-            << ": " << InstTable[Entry].mnemonic << std::endl;
-#endif
+// #if 0
+// #ifdef _XBGAS_DEBUG_
+//   std::cout << "----> " << std::hex << PC
+//             << ": " << InstTable[Entry].mnemonic << std::endl;
+// #endif
 
 
   RegFile[threadToDecode].Entry = Entry;

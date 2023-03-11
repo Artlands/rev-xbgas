@@ -28,29 +28,63 @@ namespace SST{
 
       // Compressed instructions
       static bool cflwsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        // c.flwsp rd, $imm = lw rd, x2, $imm
+        // c.flwsp rd, $imm = flw rd, offset[7:2](x2).
         Inst.rs1  = 2;
-        return flw(F,R,M,Xbgas,Inst);
+        uint32_t rval;        
+        if( F->IsRV32() ){
+          rval = M->ReadU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(Inst.imm)));
+          R->RV32_PC += Inst.instSize;
+        }else{
+          rval = M->ReadU32((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(Inst.imm)));
+          R->RV64_PC += Inst.instSize;
+        }
+        R->SFP[Inst.rd] = rval;
+        R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        return true;
       }
 
       static bool cfswsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.swsp rs2, $imm = sw rs2, x2, $imm
         Inst.rs1  = 2;
-        return fsw(F,R,M,Xbgas,Inst);
+        if( F->IsRV32() ){
+          M->WriteU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(Inst.imm)), R->SFP[Inst.rs2]);
+          R->RV32_PC += Inst.instSize;
+        }else{
+          M->WriteU32((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(Inst.imm)), R->SFP[Inst.rs2]);
+          R->RV64_PC += Inst.instSize;
+        }
+        return true;
       }
 
       static bool cflw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.flw %rd, %rs1, $imm = flw %rd, %rs1, $imm
         Inst.rd  = CRegMap[Inst.crd];
         Inst.rs1 = CRegMap[Inst.crs1];
-        return flw(F,R,M,Xbgas,Inst);
+        uint32_t rval;        
+        if( F->IsRV32() ){
+          rval = M->ReadU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(Inst.imm)));
+          R->RV32_PC += Inst.instSize;
+        }else{
+          rval = M->ReadU32((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(Inst.imm)));
+          R->RV64_PC += Inst.instSize;
+        }
+        R->SFP[Inst.rd] = rval;
+        R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        return true;
       }
 
       static bool cfsw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.fsw rs2, rs1, $imm = fsw rs2, $imm(rs1)
         Inst.rs2 = CRegMap[Inst.crd];
         Inst.rs1 = CRegMap[Inst.crs1];
-        return fsw(F,R,M,Xbgas,Inst);
+        if( F->IsRV32() ){
+          M->WriteU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(Inst.imm)), R->SFP[Inst.rs2]);
+          R->RV32_PC += Inst.instSize;
+        }else{
+          M->WriteU32((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(Inst.imm)), R->SFP[Inst.rs2]);
+          R->RV64_PC += Inst.instSize;
+        }
+        return true;
       }
 
       // Standard instructions
