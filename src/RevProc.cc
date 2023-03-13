@@ -693,7 +693,7 @@ RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry){
 
   // swizzle: offset[8|4:3]  offset[7:6|2:1|5]
   // handle c.beqz/c.bnez offset
-  if( (CompInst.opcode = 0b01) && (CompInst.funct3 >= 0b110) ){
+  if( (CompInst.opcode == 0b01) && (CompInst.funct3 >= 0b110) ){
        CompInst.offset  = 0;  // reset it
        CompInst.offset  = ((Inst & 0b11000) >> 2);         // [2:1]     110
        CompInst.offset |= ((Inst & 0b110000000000) >> 7);  // [4:3]   11000
