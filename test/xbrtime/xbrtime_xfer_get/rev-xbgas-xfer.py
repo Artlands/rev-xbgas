@@ -57,7 +57,7 @@ router.addParams({
 
 for i in range(0, NPES):
   if (i == 0):
-    verbose = 6
+    verbose = 5
     splash = 1
   else:
     verbose = 4

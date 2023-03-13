@@ -29,28 +29,36 @@ namespace SST{
       // Compressed instructions
       static bool cflwsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.flwsp rd, $imm = flw rd, offset[7:2](x2).
-        Inst.rs1  = 2;
-        uint32_t rval;        
+        uint32_t Tmp;
+        uint32_t Tmp32;
+        uint64_t Tmp64;
+        Inst.rs1  = 2;     
         if( F->IsRV32() ){
-          rval = M->ReadU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(Inst.imm)));
+          ZEXT(Tmp32, Inst.imm, 8);
+          Tmp = M->ReadU32((uint64_t)(R->RV32[Inst.rs1] + Tmp32));
           R->RV32_PC += Inst.instSize;
         }else{
-          rval = M->ReadU32((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(Inst.imm)));
+          ZEXT(Tmp64, Inst.imm, 8);
+          Tmp = M->ReadU32((uint64_t)(R->RV64[Inst.rs1] + Tmp64));
           R->RV64_PC += Inst.instSize;
         }
-        R->SFP[Inst.rd] = rval;
+        R->SFP[Inst.rd] = Tmp;
         R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         return true;
       }
 
       static bool cfswsp(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.swsp rs2, $imm = sw rs2, x2, $imm
+        uint32_t Tmp32;
+        uint64_t Tmp64;
         Inst.rs1  = 2;
         if( F->IsRV32() ){
-          M->WriteU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(Inst.imm)), R->SFP[Inst.rs2]);
+          ZEXT(Tmp32, Inst.imm, 8);
+          M->WriteU32((uint64_t)(R->RV32[Inst.rs1] + Tmp32), R->SFP[Inst.rs2]);
           R->RV32_PC += Inst.instSize;
         }else{
-          M->WriteU32((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(Inst.imm)), R->SFP[Inst.rs2]);
+          ZEXT(Tmp64, Inst.imm, 8);
+          M->WriteU32((uint64_t)(R->RV64[Inst.rs1] + Tmp64), R->SFP[Inst.rs2]);
           R->RV64_PC += Inst.instSize;
         }
         return true;
@@ -58,30 +66,38 @@ namespace SST{
 
       static bool cflw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.flw %rd, %rs1, $imm = flw %rd, %rs1, $imm
+        uint32_t Tmp;
+        uint32_t Tmp32;
+        uint64_t Tmp64;
         Inst.rd  = CRegMap[Inst.crd];
         Inst.rs1 = CRegMap[Inst.crs1];
-        uint32_t rval;        
         if( F->IsRV32() ){
-          rval = M->ReadU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(Inst.imm)));
+          ZEXT(Tmp32, Inst.imm, 7);
+          Tmp = M->ReadU32((uint64_t)(R->RV32[Inst.rs1] + Tmp32));
           R->RV32_PC += Inst.instSize;
         }else{
-          rval = M->ReadU32((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(Inst.imm)));
+          ZEXT(Tmp64, Inst.imm, 7);
+          Tmp = M->ReadU32((uint64_t)(R->RV64[Inst.rs1] + Tmp64));
           R->RV64_PC += Inst.instSize;
         }
-        R->SFP[Inst.rd] = rval;
+        R->SFP[Inst.rd] = Tmp;
         R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         return true;
       }
 
       static bool cfsw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.fsw rs2, rs1, $imm = fsw rs2, $imm(rs1)
+        uint32_t Tmp32;
+        uint64_t Tmp64;
         Inst.rs2 = CRegMap[Inst.crd];
         Inst.rs1 = CRegMap[Inst.crs1];
         if( F->IsRV32() ){
-          M->WriteU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(Inst.imm)), R->SFP[Inst.rs2]);
+          ZEXT(Tmp32, Inst.imm, 7);
+          M->WriteU32((uint64_t)(R->RV32[Inst.rs1] + Tmp32), R->SFP[Inst.rs2]);
           R->RV32_PC += Inst.instSize;
         }else{
-          M->WriteU32((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(Inst.imm)), R->SFP[Inst.rs2]);
+          ZEXT(Tmp64, Inst.imm, 7);
+          M->WriteU32((uint64_t)(R->RV64[Inst.rs1] + Tmp64), R->SFP[Inst.rs2]);
           R->RV64_PC += Inst.instSize;
         }
         return true;
@@ -89,25 +105,33 @@ namespace SST{
 
       // Standard instructions
       static bool flw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        uint32_t rval;        
+        uint32_t Tmp;
+        uint32_t Tmp32;
+        uint64_t Tmp64;
         if( F->IsRV32() ){
-          rval = M->ReadU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
+          SEXT(Tmp32, Inst.imm, 12);
+          Tmp = M->ReadU32((uint64_t)(R->RV32[Inst.rs1] + Tmp32));
           R->RV32_PC += Inst.instSize;
         }else{
-          rval = M->ReadU32((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
+          SEXT(Tmp64, Inst.imm, 12);
+          Tmp = M->ReadU32((uint64_t)(R->RV64[Inst.rs1] + Tmp64));
           R->RV64_PC += Inst.instSize;
         }
-        R->SFP[Inst.rd] = rval;
+        R->SFP[Inst.rd] = Tmp;
         R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         return true;
       }
 
       static bool fsw(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
+        uint32_t Tmp32;
+        uint64_t Tmp64;
         if( F->IsRV32() ){
-          M->WriteU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))), R->SFP[Inst.rs2]);
+          SEXT(Tmp32, Inst.imm, 12);
+          M->WriteU32((uint64_t)(R->RV32[Inst.rs1] + Tmp32), R->SFP[Inst.rs2]);
           R->RV32_PC += Inst.instSize;
         }else{
-          M->WriteU32((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))), R->SFP[Inst.rs2]);
+          SEXT(Tmp64, Inst.imm, 12);
+          M->WriteU32((uint64_t)(R->RV64[Inst.rs1] + Tmp64), R->SFP[Inst.rs2]);
           R->RV64_PC += Inst.instSize;
         }
         return true;
