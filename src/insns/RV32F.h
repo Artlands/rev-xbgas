@@ -511,6 +511,7 @@ namespace SST{
         {RevInstEntryBuilder<Rev32FInstDefaults>().SetMnemonic("fmv.w.x %rd, %rs1"	           ).SetCost(1).SetOpcode( 0b1010011 ).SetFunct3( 0b000 ).SetFunct7( 0b1111000 ).SetrdClass(RegFLOAT  ).Setrs1Class(RegGPR  ).Setrs3Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b111100000000).Setimm(FEnc).SetFormat(RVTypeR).SetImplFunc( &fmvwx  ).InstEntry},
       };
 
+      // RV32C-Only table
       std::vector<RevInstEntry> RV32FCOTable = {
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.flw %rd, %rs1, $imm"            ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b011).SetFunct2(0b0 ).SetrdClass(RegFLOAT  ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc( &cflw   ).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.fsw %rs2, %rs1, $imm"           ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b111).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegFLOAT  ).Setimm(FImm).SetFormat(RVCTypeCS ).SetImplFunc( &cfsw   ).SetCompressed(true).InstEntry},

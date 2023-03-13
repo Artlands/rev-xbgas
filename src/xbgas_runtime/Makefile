@@ -12,7 +12,7 @@
 
 # CXX=riscv64-unknown-linux-gnu-gcc
 CXX=riscv64-unknown-elf-gcc
-ARCH=rv64imafdc
+ARCH=rv64imafd
 
 C_FLAGS=-std=c11
 

@@ -214,14 +214,14 @@ bool RevProc::SeedInstTable(){
     EnableExt(static_cast<RevExt *>(new RV32D(feature,RegFile,mem,xbgas,output)),false);
     if( feature->GetXlen() == 64 ){
       EnableExt(static_cast<RevExt *>(new RV64D(feature,RegFile,mem,xbgas,output)),false);
-    } else {
-      EnableExt(static_cast<RevExt *>(new RV32D(feature,RegFile,mem,xbgas,output)),true);
     }
   }
 
   // XBGAS Extension
   if( feature->IsModeEnabled(RV_X) ){
-    EnableExt(static_cast<RevExt *>(new RV64X(feature,RegFile,mem,xbgas,output)),false);
+    if( feature->GetXlen() == 64 ){
+      EnableExt(static_cast<RevExt *>(new RV64X(feature,RegFile,mem,xbgas,output)),false);
+    }
   }
 
   // PAN Extension
@@ -235,11 +235,11 @@ bool RevProc::SeedInstTable(){
 uint32_t RevProc::CompressCEncoding(RevInstEntry Entry){
   uint32_t Value = 0x00;
 
-  Value |= (uint32_t)(Entry.opcode);
-  Value |= (uint32_t)((uint32_t)(Entry.funct2)<<2);
-  Value |= (uint32_t)((uint32_t)(Entry.funct3)<<4);
-  Value |= (uint32_t)((uint32_t)(Entry.funct4)<<7);
-  Value |= (uint32_t)((uint32_t)(Entry.funct6)<<11);
+  Value |= (uint32_t)(Entry.opcode);                // 2
+  Value |= (uint32_t)((uint32_t)(Entry.funct2)<<2); // 2
+  Value |= (uint32_t)((uint32_t)(Entry.funct3)<<4); // 3
+  Value |= (uint32_t)((uint32_t)(Entry.funct4)<<7); // 4
+  Value |= (uint32_t)((uint32_t)(Entry.funct6)<<11);// 6
 
   return Value;
 }
@@ -693,7 +693,8 @@ RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry){
 
   // swizzle: offset[8|4:3]  offset[7:6|2:1|5]
   // handle c.beqz/c.bnez offset
-  if( (CompInst.opcode == 0b01) && (CompInst.funct3 >= 0b110) ){
+  if( (CompInst.opcode == 0b01) && 
+      ((CompInst.funct3 == 0b110) || (CompInst.funct3 == 0b111)) ){
        CompInst.offset  = 0;  // reset it
        CompInst.offset  = ((Inst & 0b11000) >> 2);         // [2:1]     110
        CompInst.offset |= ((Inst & 0b110000000000) >> 7);  // [4:3]   11000
@@ -798,9 +799,13 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
         // c.addi
         funct4 = 0b0001;
     } else if ( funct3 == 0b011 ){
-      if ( rd == 2 )
+      if ( rd == 2 ){
         // c.addi16sp
         funct4 = 0b0111;
+      } else{
+        // c.lui
+        funct4 = 0b0110;
+      }
     }
   } else if ( opc == 0b10 ){
     // quadrant 2
@@ -858,8 +863,6 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
     return DecodeCIWInst(TmpInst,Entry);
     break;
   case RVCTypeCL:
-    return DecodeCLSInst(TmpInst,Entry);
-    break;
   case RVCTypeCS:
     return DecodeCLSInst(TmpInst,Entry);
     break;
@@ -1086,8 +1089,6 @@ RevInst RevProc::DecodeBInst(uint32_t Inst, unsigned Entry){
               ((Inst >> (8 - 1)) & 0x1e) |                // imm[4:1]
               ((Inst << (11 - 7)) & (1 << 11));           // imm[11]
 
-  BInst.imm = (BInst.imm << 19) >> 19;
-
   // SP/DP Float
   BInst.fmt     = 0;
   BInst.rm      = 0;
@@ -1127,8 +1128,6 @@ RevInst RevProc::DecodeJInst(uint32_t Inst, unsigned Entry){
               ((Inst >> (21 - 1)) & 0x7fe) |        // imm[10:1]
               ((Inst >> (20 - 11)) & (1 << 11)) |   // imm[11]
               (Inst & 0xff000);                     // imm[19:12]
-
-  JInst.imm = (JInst.imm << 11) >> 11;
 
   // SP/DP Float
   JInst.fmt     = 0;

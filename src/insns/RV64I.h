@@ -79,6 +79,7 @@ namespace SST{
       static bool caddw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.addw %rd, %rs2 = addw %rd, %rd, %rs2
         Inst.rd   = CRegMap[Inst.crd];
+        Inst.rs1  = Inst.rd;
         Inst.rs2  = CRegMap[Inst.crs2];
         return addw(F, R, M, Xbgas, Inst);
       }
@@ -86,6 +87,7 @@ namespace SST{
       static bool csubw(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.subw %rd, %rs2 = subw %rd, %rd, %rs2
         Inst.rd   = CRegMap[Inst.crd];
+        Inst.rs1  = Inst.rd;
         Inst.rs2  = CRegMap[Inst.crs2];
         return subw(F, R, M, Xbgas, Inst);
       }

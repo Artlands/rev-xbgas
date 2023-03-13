@@ -34,7 +34,7 @@ sst.setStatisticLoadLevel(4)
 NPES = 4
 
 verb_params = {
-  "verbose" : 6,
+  "verbose" : 5,
 }
 
 net_params = {

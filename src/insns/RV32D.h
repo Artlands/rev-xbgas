@@ -29,11 +29,11 @@ namespace SST{
         Inst.rs1  = 2;
         if( F->IsRV32() ){
           ZEXT(Tmp32, Inst.imm, 9);
-          Tmp = M->ReadU64((int64_t)(R->RV32[Inst.rs1] + Tmp32));
+          Tmp = M->ReadU64((uint64_t)(R->RV32[Inst.rs1] + Tmp32));
           R->RV32_PC += Inst.instSize;
         }else{
           ZEXT(Tmp64, Inst.imm, 9);
-          Tmp = M->ReadU64((int64_t)(R->RV64[Inst.rs1] + Tmp64));
+          Tmp = M->ReadU64((uint64_t)(R->RV64[Inst.rs1] + Tmp64));
           R->RV64_PC += Inst.instSize;
         }
         R->DFP[Inst.rd] = Tmp;
@@ -48,11 +48,11 @@ namespace SST{
         Inst.rs1  = 2;
         if( F->IsRV32() ){
           ZEXT(Tmp32, Inst.imm, 9);
-          M->WriteU64((int64_t)(R->RV32[Inst.rs1] + Tmp32), R->DFP[Inst.rs2]);
+          M->WriteU64((uint64_t)(R->RV32[Inst.rs1] + Tmp32), R->DFP[Inst.rs2]);
           R->RV32_PC += Inst.instSize;
         }else{
           ZEXT(Tmp64, Inst.imm, 9);
-          M->WriteU64((int64_t)(R->RV64[Inst.rs1] + Tmp64), R->DFP[Inst.rs2]);
+          M->WriteU64((uint64_t)(R->RV64[Inst.rs1] + Tmp64), R->DFP[Inst.rs2]);
           R->RV64_PC += Inst.instSize;
         }
         return true;
@@ -67,11 +67,11 @@ namespace SST{
         Inst.rs1 = CRegMap[Inst.crs1];
         if( F->IsRV32() ){
           ZEXT(Tmp32, Inst.imm, 8);
-          Tmp = M->ReadU64((int64_t)(R->RV32[Inst.rs1] + Tmp32));
+          Tmp = M->ReadU64((uint64_t)(R->RV32[Inst.rs1] + Tmp32));
           R->RV32_PC += Inst.instSize;
         }else{
           ZEXT(Tmp64, Inst.imm, 8);
-          Tmp = M->ReadU64((int64_t)(R->RV64[Inst.rs1] + Tmp64));
+          Tmp = M->ReadU64((uint64_t)(R->RV64[Inst.rs1] + Tmp64));
           R->RV64_PC += Inst.instSize;
         }
         R->DFP[Inst.rd] = Tmp;
@@ -87,11 +87,11 @@ namespace SST{
         Inst.rs1 = CRegMap[Inst.crs1];
         if( F->IsRV32() ){
           ZEXT(Tmp32, Inst.imm, 8);
-          M->WriteU64((int64_t)(R->RV32[Inst.rs1] + Tmp32), R->DFP[Inst.rs2]);
+          M->WriteU64((uint64_t)(R->RV32[Inst.rs1] + Tmp32), R->DFP[Inst.rs2]);
           R->RV32_PC += Inst.instSize;
         }else{
           ZEXT(Tmp64, Inst.imm, 8);
-          M->WriteU64((int64_t)(R->RV64[Inst.rs1] + Tmp64), R->DFP[Inst.rs2]);
+          M->WriteU64((uint64_t)(R->RV64[Inst.rs1] + Tmp64), R->DFP[Inst.rs2]);
           R->RV64_PC += Inst.instSize;
         }
         return true;
