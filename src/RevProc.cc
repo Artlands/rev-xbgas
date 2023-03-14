@@ -577,7 +577,6 @@ RevInst RevProc::DecodeCSSInst(uint16_t Inst, unsigned Entry){
 
   // registers
   CompInst.rs2     = DECODE_LOWER_CRS2(Inst);
-  CompInst.imm     = ((Inst & 0b1111110000000) >> 7);
 
   if((CompInst.funct3 == 0b101) || 
       ((feature->GetXlen() == 64) && (CompInst.funct3 == 0b111))) {
@@ -595,10 +594,6 @@ RevInst RevProc::DecodeCSSInst(uint16_t Inst, unsigned Entry){
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
-
-// #ifdef _XBGAS_DEBUG_
-//       std::cout << "Decode CSS: offset=" << std::hex << CompInst.imm << std::endl;
-// #endif
 
   return CompInst;
 }
@@ -651,23 +646,27 @@ RevInst RevProc::DecodeCLSInst(uint16_t Inst, unsigned Entry){
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  CompInst.crd      = ((Inst & 0b11100) >> 2);
-  CompInst.crs2     = ((Inst & 0b11100) >> 2);
-  CompInst.crs1     = ((Inst & 0b1110000000) >> 7);
+  CompInst.crd     = (Inst >> 2) & 0b111;
+  CompInst.crs2    = (Inst >> 2) & 0b111;
+  CompInst.crs1    = (Inst >> 7) & 0b111;
 
-  if( CompInst.funct3 == 0b001 || 
-    ( (feature->GetXlen() == 64) && 
+  if( (CompInst.funct3 == 0b001) ||  // c.fld
+      (CompInst.funct3 == 0b101) ||  // c.fsd
+    ( (feature->GetXlen() == 64) &&  // c.ld, c.sd
     ( (CompInst.funct3 == 0b011) || (CompInst.funct3 == 0b111) )) ) {
     //c.fld, c.ld, c.fsd, c.sd, [5:3], [7:6]
     CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6] 11000000
     CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]   111000
-  } else if ( CompInst.funct3 == 0b010 ||
-            ( (feature->GetXlen() == 32) && 
+  } else if ( (CompInst.funct3 == 0b010) ||   // c.lw
+              (CompInst.funct3 == 0b110) ||   // c.sw
+            ( (feature->GetXlen() == 32) &&   // c.flw, c.fsw
             ( (CompInst.funct3 == 0b011) || (CompInst.funct3 == 0b111) ))) {
     // c.lw, c.flw, c.fsw, c.sw, [5:3], [2|6]
     CompInst.imm =  ((Inst & 0b100000) << 1);         // [6]  1000000
     CompInst.imm |= ((Inst & 0b1000000) >> 4);        // [2]      100
     CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3] 111000
+  } else {
+    output->fatal(CALL_INFO, -1, "Error: failed decode this CL/CS type compressed instruction.\n");
   }
 
   CompInst.instSize = 2;
@@ -687,25 +686,22 @@ RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry){
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  CompInst.crs1    = ((Inst & 0b1110000000) >> 7);
+  CompInst.crd     = (Inst >> 7) & 0b111;
+  CompInst.crs1    = (Inst >> 7) & 0b111;
   CompInst.offset  = ((Inst & 0b1111100) >> 2);       //   11111
   CompInst.offset |= ((Inst & 0b1000000000000) >> 7); //  100000
 
   // swizzle: offset[8|4:3]  offset[7:6|2:1|5]
   // handle c.beqz/c.bnez offset
-  if( (CompInst.opcode == 0b01) && 
-      ((CompInst.funct3 == 0b110) || (CompInst.funct3 == 0b111)) ){
+  if( (CompInst.funct3 == 0b110) || 
+      (CompInst.funct3 == 0b111) ){
        CompInst.offset  = 0;  // reset it
-       CompInst.offset  = ((Inst & 0b11000) >> 2);         // [2:1]     110
-       CompInst.offset |= ((Inst & 0b110000000000) >> 7);  // [4:3]   11000
-       CompInst.offset |= ((Inst & 0b100) << 3);           // [5]    100000
-       CompInst.offset |= ((Inst & 0b1100000) << 1);       // [7:6]11000000
-       CompInst.offset |= ((Inst & 0b1000000000000) >> 4); // [8] 100000000
+       CompInst.offset  = ((Inst & 0b11000) >> 2);         // [2:1]      110
+       CompInst.offset |= ((Inst & 0b110000000000) >> 7);  // [4:3]    11000
+       CompInst.offset |= ((Inst & 0b100) << 3);           // [5]     100000
+       CompInst.offset |= ((Inst & 0b1100000) << 1);       // [7:6] 11000000
+       CompInst.offset |= ((Inst & 0b1000000000000) >> 4); // [8]  100000000
   }
-
-// #ifdef _XBGAS_DEBUG_
-//       std::cout << "Decode CB: offset=" << std::hex << CompInst.offset << std::endl;
-// #endif
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -724,7 +720,7 @@ RevInst RevProc::DecodeCJInst(uint16_t Inst, unsigned Entry){
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  uint16_t offset = ((Inst & 0b1111111111100) >> 2);
+  uint16_t offset = (Inst >> 2) & 0b11111111111;
 
   // c.jal, c.j
   //swizzle bits offset[11|4|9:8|10|6|7|3:1|5]
@@ -745,11 +741,6 @@ RevInst RevProc::DecodeCJInst(uint16_t Inst, unsigned Entry){
   target[11] = offsetBits[10];
 
   CompInst.jumpTarget = (uint16_t)target.to_ulong();
-  
-#if 0
-      std::cout << "CJInst =  " << std::bitset<16>(Inst) << std::endl;
-      std::cout << "Target =  " << std::bitset<16>(CompInst.jumpTarget) << std::endl;
-#endif
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -837,13 +828,6 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
                   Opcode = %x Funct2 = %x Funct3 = %x Funct4 = %x Funct6 = %x Enc = %x \n", \
                   PC, opc, funct2, funct3, funct4, funct6, Enc );
   }
-
-// #if 0
-// #ifdef _XBGAS_DEBUG_
-//   std::cout << "----> " << std::hex << PC
-//             << ": " << InstTable[Entry].mnemonic << std::endl;
-// #endif
-
 
   RegFile[threadToDecode].Entry = Entry;
 
@@ -1257,13 +1241,6 @@ RevInst RevProc::DecodeInst(){
                   "Core %d ; Thread %d; PC:InstPayload = 0x%" PRIx64 ":0x%" PRIx32 "\n",
                   id, threadToDecode, PC, Inst);
 
-// #ifdef _XBGAS_DEBUG_
-// if (PC == 0xf48a4)
-// {
-//   std::cout << "PC = 0x" << std::hex << PC << ", Inst = 0x" << std::hex << Inst << std::endl;
-// }
-// #endif
-
   // Stage 1a: handle the crack fault injection
   if( CrackFault ){
     srand(time(NULL));
@@ -1568,30 +1545,6 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
   }
 #endif
 
-#if 0
-  if((currentCycle % 2000000) == 0){
-    {
-      int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
-      if(id == 0)
-      {
-        for (int t=0;  t < _REV_THREAD_COUNT_; t++){
-          std::cout << "Current Cycle: " << std::dec << currentCycle
-                    << " CPU" << id << " - extended registers: "
-                    << "e12 = " << std::dec << RegFile[t].ERV64[12]
-                    << ", e13 = 0x" << std::hex << RegFile[t].ERV64[13]
-                    << ", xbgas debug memory = 0x" 
-                    << std::hex << (uint64_t)(mem->ReadU64(_XBGAS_DEBUG_MEM_))
-                    << std::endl;
-          std::cout << "a0 = " <<  RegFile[t].RV64[10]
-                    << ", a1 = " <<  RegFile[t].RV64[11]
-                    << ", e0 = " <<  RegFile[t].ERV64[10]
-                    << std::endl;
-        }
-      }
-    }
-  }
-#endif
-
   // -- MAIN PROGRAM LOOP --
   //
   // If the clock is down to zero, then fetch the next instruction
@@ -1653,28 +1606,6 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
         output->fatal(CALL_INFO, -1,
                     "Error: failed to execute instruction at PC=%" PRIx64 ".", ExecPC );
       }
-
-// #ifdef _XBGAS_DEBUG_
-#if 0
-          // std::cout << "COMPLETING INSTRUCTION: " << table[Inst].mnemonic
-          //   << ". Next PC @ 0x" << std::hex << regFile[threadID].RV64_PC << std::endl;
-    int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
-    if(id == 1) {
-          std::cout << "|---- Register file -----|" << std::endl;
-          for(int i=0; i<32; i++) {
-            std::cout << "|SPF[" <<std::dec << +i
-                      << "]: " << std::setprecision(10) << RegFile[threadToExec].SPF[i]
-                      << "| DPF[" <<std::dec << +i
-                      << "]: " << std::setprecision(10) << RegFile[threadToExec].DPF[i]
-                      << "| ERV64[" <<std::dec << +i
-                      << "]: 0x" << std::hex << RegFile[threadToExec].ERV64[i]
-                      << "| RV64[" <<std::dec << +i
-                      << "]: 0x" << std::hex << RegFile[threadToExec].RV64[i]
-                      << std::endl;
-          }
-          std::cout << "|----- Register file -----|" << std::endl;
-    }
-#endif
 
       if( (Ext->GetName() == "RV32F") ||
           (Ext->GetName() == "RV32D") ||
@@ -1796,8 +1727,8 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
       // we are really done, return
       output->verbose(CALL_INFO,2,0,"Program execution complete\n");
       Stats.percentEff = float(Stats.cyclesBusy)/Stats.totalCycles;
-      output->verbose(CALL_INFO,2,0,"Program Stats: Total Cycles: %d Busy Cycles: %d Idle Cycles: %d Eff: %f\n", Stats.totalCycles, Stats.cyclesBusy, Stats.cyclesIdle, Stats.percentEff);
-      output->verbose(CALL_INFO,2,0,"Bytes Read: %d Bytes Written: %d Floats Read: %d Doubles Read %d  Floats Exec: %d Inst Retired: %" PRIu64 "\n", \
+      output->verbose(CALL_INFO,2,0,"Program Stats: Total Cycles: %" PRIu64 " Busy Cycles: %" PRIu64 " Idle Cycles: %" PRIu64 " Eff: %f\n", Stats.totalCycles, Stats.cyclesBusy, Stats.cyclesIdle, Stats.percentEff);
+      output->verbose(CALL_INFO,2,0,"Bytes Read: %" PRIu32 " Bytes Written: %" PRIu32 " Floats Read: %" PRIu32 " Doubles Read: %" PRIu32 "  Floats Exec: %" PRIu32 " Inst Retired: %" PRIu64 "\n", \
                                       mem->memStats.bytesRead, \
                                       mem->memStats.bytesWritten, \
                                       mem->memStats.floatsRead, \

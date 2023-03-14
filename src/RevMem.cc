@@ -16,8 +16,8 @@ RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
 
   // allocate the backing memory
   physMem = new char [memSize];
-  pageSize = 262144; //Page Size (in Bytes)
-  // pageSize = 65536; //Page Size (in Bytes)
+  // pageSize = 262144; //Page Size (in Bytes)
+  pageSize = 65536; //Page Size (in Bytes)
   addrShift = int(log(pageSize) / log(2.0));
   nextPage = 0;
 

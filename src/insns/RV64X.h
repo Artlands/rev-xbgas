@@ -1363,35 +1363,19 @@ namespace SST{
         R->ERV64[Inst.rd] = (uint64_t)(R->RV64[Inst.rs1] + (int32_t)(td_u64(Inst.imm, 12)));
         R->RV64_PC += Inst.instSize;
 
-#ifdef _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
-          if(id == 0) 
-          {
-            std::cout << "_XBGAS_DEBUG_ CPU" << id
-                      << ": [eaddie]\tERV64[" << std::dec << +Inst.rd
-                      << "](0x" << std::hex <<R->ERV64[Inst.rd]
-                      << ") = RV64[" << std::dec << +Inst.rs1
-                      << "] (0x" << std::hex << R->RV64[Inst.rs1]
-                      << ") + IMM (" << std::dec << (int32_t)(td_u32(Inst.imm, 12))
-                      << ")" << std::endl;
-          }
-          // if(id == 1) {
-          //   std::cout << "_XBGAS_DEBUG_ CPU" << id << std::endl;
-          //   std::cout << "|---- Register file -----|" << std::endl;
-          //   for(int i=0; i<32; i++) {
-          //     std::cout << "|SPF[" <<std::dec << +i
-          //               << "]: " << std::setprecision(10) << R->SPF[i]
-          //               << "| DPF[" <<std::dec << +i
-          //               << "]: " << std::setprecision(10) << R->DPF[i]
-          //               << "| ERV64[" <<std::dec << +i
-          //               << "]: 0x" << std::hex << R->ERV64[i]
-          //               << "| RV64[" <<std::dec << +i
-          //               << "]: 0x" << std::hex << R->RV64[i]
-          //               << std::endl;
-          //   }
-          //   std::cout << "|----- Register file -----|" << std::endl;
-          // }
-#endif
+// #ifdef _XBGAS_DEBUG_
+//           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+//           if(id == 0) 
+//           {
+//             std::cout << "_XBGAS_DEBUG_ CPU" << id
+//                       << ": [eaddie]\tERV64[" << std::dec << +Inst.rd
+//                       << "](0x" << std::hex <<R->ERV64[Inst.rd]
+//                       << ") = RV64[" << std::dec << +Inst.rs1
+//                       << "] (0x" << std::hex << R->RV64[Inst.rs1]
+//                       << ") + IMM (" << std::dec << (int32_t)(td_u32(Inst.imm, 12))
+//                       << ")" << std::endl;
+//           }
+// #endif
         return true;
       }
 

@@ -130,7 +130,6 @@ namespace SST{
         // c.j $imm = jal x0, $imm
         uint32_t Tmp32;
         uint64_t Tmp64;
-        Inst.rd = 0;
         Inst.imm = Inst.jumpTarget;
         if( F->IsRV32() ){
           SEXT(Tmp32, Inst.imm, 12);
@@ -158,12 +157,15 @@ namespace SST{
 
       static bool cjr(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.jr %rs1 = jalr x0, 0(%rs1)
-        if( F->IsRV32() ){
-          R->RV32_PC = R->RV32[Inst.rs1] & (~1);
-        }else{
-          R->RV64_PC = R->RV64[Inst.rs1] & (~(uint64_t)1);
+        if(Inst.rs1 != 0){
+          if( F->IsRV32() ){
+            R->RV32_PC = R->RV32[Inst.rs1] & (~1);
+          }else{
+            R->RV64_PC = R->RV64[Inst.rs1] & (~(uint64_t)1);
+          }
+          return true;
         }
-        return true;
+        return false;
       }
 
       static bool cmv(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
@@ -186,7 +188,6 @@ namespace SST{
       }
 
       static bool cadd(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
-        Inst.rs1 = Inst.rd;
         if((Inst.rd != 0) && (Inst.rs2 !=0))
           return add(F,R,M,Xbgas,Inst);
         return false;
@@ -198,12 +199,12 @@ namespace SST{
         uint32_t TMP32PC = 0x00;
         uint64_t TMP64PC = 0x00ull;
         if( F->IsRV32() ){
-          TMP32PC = R->RV32_PC + Inst.instSize;
+          TMP32PC = R->RV32_PC + 2;
           R->RV32_PC = R->RV32[Inst.rs1] & (~1);
           R->RV32[Inst.rd] = TMP32PC;
           R->RV32[0] = 0x00;  // ensure that x0 = 0
         }else{
-          TMP64PC = R->RV64_PC + Inst.instSize;
+          TMP64PC = R->RV64_PC + 2;
           R->RV64_PC = R->RV64[Inst.rs1] & (~(uint64_t)1);
           R->RV64[Inst.rd] = TMP64PC;
           R->RV64[0] = 0x00ull;  // ensure that x0 = 0
@@ -316,7 +317,6 @@ namespace SST{
         // c.addi %rd, $imm = addi %rd, %rd, $imm
         uint32_t Tmp32;
         uint64_t Tmp64;
-        Inst.rs1  = Inst.rd;
         if ( (Inst.rd != 0) && (Inst.imm != 0) ){
           if( F->IsRV32() ){
             SEXT(Tmp32, Inst.imm, 6);
@@ -334,23 +334,22 @@ namespace SST{
 
       static bool cslli(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.slli %rd, $imm = slli %rd, %rd, $imm
-        Inst.rs1  = Inst.rd;
         return slli(F,R,M,Xbgas,Inst);
       }
 
       static bool csrli(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.srli %rd, $imm = srli %rd, %rd, $imm
-        Inst.rd   = CRegMap[Inst.crd];
-        Inst.rs1  = Inst.rd;
-        Inst.imm  = Inst.offset;
+        Inst.rd  = CRegMap[Inst.crd];
+        Inst.rs1 = Inst.rd;
+        Inst.imm = Inst.offset;
         return srli(F,R,M,Xbgas,Inst);
       }
 
       static bool csrai(RevFeature *F, RevRegFile *R, RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // c.srai %rd, $imm = srai %rd, %rd, $imm
         Inst.rd  = CRegMap[Inst.crd];
-        Inst.rs1  = Inst.rd;
-        Inst.imm  = Inst.offset;
+        Inst.rs1 = Inst.rd;
+        Inst.imm = Inst.offset;
         return srai(F,R,M,Xbgas,Inst);
       }
 
@@ -360,6 +359,7 @@ namespace SST{
         uint64_t Tmp64;
         Inst.rd   = CRegMap[Inst.crd];
         Inst.rs1  = Inst.rd;
+        Inst.imm = Inst.offset;
         if( F->IsRV32() ){
           SEXT(Tmp32, Inst.imm, 6);
           R->RV32[Inst.rd] = R->RV32[Inst.rs1] & Tmp32;
@@ -871,10 +871,10 @@ namespace SST{
 
       static bool add(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
-          R->RV32[Inst.rd] = (int32_t)(R->RV32[Inst.rs1] + R->RV32[Inst.rs2]);
+          R->RV32[Inst.rd] = R->RV32[Inst.rs1] + R->RV32[Inst.rs2];
           R->RV32_PC += Inst.instSize;
         }else{
-          R->RV64[Inst.rd] = (int64_t)(R->RV64[Inst.rs1] + R->RV64[Inst.rs2]);
+          R->RV64[Inst.rd] = R->RV64[Inst.rs1] + R->RV64[Inst.rs2];
           R->RV64_PC += Inst.instSize;
         }
         return true;
@@ -882,10 +882,10 @@ namespace SST{
 
       static bool sub(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         if( F->IsRV32() ){
-          R->RV32[Inst.rd] = (int32_t)(R->RV32[Inst.rs1] - R->RV32[Inst.rs2]);
+          R->RV32[Inst.rd] = R->RV32[Inst.rs1] - R->RV32[Inst.rs2];
           R->RV32_PC += Inst.instSize;
         }else{
-          R->RV64[Inst.rd] = (int32_t)(R->RV32[Inst.rs1] - R->RV32[Inst.rs2]);
+          R->RV64[Inst.rd] = R->RV32[Inst.rs1] - R->RV32[Inst.rs2];
           R->RV64_PC += Inst.instSize;
         }
         return true;
@@ -1016,22 +1016,20 @@ namespace SST{
         if( F->IsRV32() ){
           R->RV32_PC += Inst.instSize;
         }else{
-
-#ifdef _XBGAS_DEBUG_
-          // int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
-          // if (id == 0) 
-          {
-            // std::cout << "_XBGAS_DEBUG_ ECALL" << id << std::endl;
+// #ifdef _XBGAS_DEBUG_
+//           // int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+//           // if (id == 0) 
+//           {
+//             // std::cout << "_XBGAS_DEBUG_ ECALL" << id << std::endl;
             
-            std::cout << "|---- Register file -----|" << std::endl;
-            std::cout << "a7 = " << std::dec << R->RV64[17] << std::endl;
-            for(int i=0; i<6; i++) {
-              std::cout << "a" <<std::dec << +i << " = " << std::dec << R->RV64[10 + i] << std::endl;      
-            }
-            std::cout << "|----- Register file -----|" << std::endl;
-          }
-  #endif
-
+//             std::cout << "|---- Register file -----|" << std::endl;
+//             std::cout << "a7 = " << std::dec << R->RV64[17] << std::endl;
+//             for(int i=0; i<6; i++) {
+//               std::cout << "a" <<std::dec << +i << " = " << std::dec << R->RV64[10 + i] << std::endl;      
+//             }
+//             std::cout << "|----- Register file -----|" << std::endl;
+//           }
+//   #endif
           R->RV64_PC += Inst.instSize;
         }
         return true;
@@ -1175,14 +1173,14 @@ namespace SST{
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.lw %rd, $rs1, $imm" ).SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b010).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCL ).SetImplFunc(&clw      ).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.sw %rs2, %rs1, $imm").SetCost(1).SetOpcode(0b00).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b110).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setimm(FImm).SetFormat(RVCTypeCS ).SetImplFunc(&csw      ).SetCompressed(true).InstEntry},
         //----- Quadrant 1
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.nop"                ).SetCost(1).SetOpcode(0b01).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b000).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCI ).SetImplFunc(&cnop     ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.nop"                ).SetCost(1).SetOpcode(0b01).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b000).SetFunct2(0b0 ).SetrdClass(RegUNKNOWN).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FUnk).SetFormat(RVCTypeCI ).SetImplFunc(&cnop     ).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.addi %rd, $imm"     ).SetCost(1).SetOpcode(0b01).SetFunct6(0b0     ).SetFunct4(0b0001).SetFunct3(0b000).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCI ).SetImplFunc(&caddi    ).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.li %rd, $imm"       ).SetCost(1).SetOpcode(0b01).SetFunct6(0b0     ).SetFunct4(0b0   ).SetFunct3(0b010).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCI ).SetImplFunc(&cli      ).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.addi16sp %rd, $imm" ).SetCost(1).SetOpcode(0b01).SetFunct6(0b0     ).SetFunct4(0b0111).SetFunct3(0b011).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCI ).SetImplFunc(&caddi16sp).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.lui %rd, $imm"      ).SetCost(1).SetOpcode(0b01).SetFunct6(0b0     ).SetFunct4(0b0110).SetFunct3(0b011).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegUNKNOWN).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCI ).SetImplFunc(&clui     ).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.srli %rd, $imm"     ).SetCost(1).SetOpcode(0b01).SetFunct6(0b100000).SetFunct4(0b0   ).SetFunct3(0b100).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCB ).SetImplFunc(&csrli    ).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.srai %rd, $imm"     ).SetCost(1).SetOpcode(0b01).SetFunct6(0b100001).SetFunct4(0b0   ).SetFunct3(0b100).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCB ).SetImplFunc(&csrai    ).SetCompressed(true).InstEntry},
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.andi %rd, $imm"     ).SetCost(1).SetOpcode(0b01).SetFunct6(0b100010).SetFunct4(0b0   ).SetFunct3(0b100).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCI ).SetImplFunc(&candi    ).SetCompressed(true).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.andi %rd, $imm"     ).SetCost(1).SetOpcode(0b01).SetFunct6(0b100010).SetFunct4(0b0   ).SetFunct3(0b100).SetFunct2(0b0 ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setimm(FImm).SetFormat(RVCTypeCB ).SetImplFunc(&candi    ).SetCompressed(true).InstEntry},
         
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.sub %rd,%rs1"       ).SetCost(1).SetOpcode(0b01).SetFunct6(0b100011).SetFunct4(0b0   ).SetFunct3(0b100).SetFunct2(0b00).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setimm(FUnk).SetFormat(RVCTypeCR ).SetImplFunc(&csub     ).SetCompressed(true).InstEntry},
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("c.xor %rd,%rs1"       ).SetCost(1).SetOpcode(0b01).SetFunct6(0b100011).SetFunct4(0b0   ).SetFunct3(0b100).SetFunct2(0b01).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setimm(FUnk).SetFormat(RVCTypeCR ).SetImplFunc(&cxor     ).SetCompressed(true).InstEntry},
