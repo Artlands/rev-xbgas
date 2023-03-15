@@ -96,7 +96,7 @@ namespace SST{
       static bool lwu(RevFeature *F, RevRegFile *R,RevMem *M,RevXbgas *Xbgas,RevInst Inst){
         uint64_t Tmp64;
         SEXT(Tmp64, Inst.imm, 12);
-        ZEXT(R->RV64[Inst.rd], M->ReadU32((uint64_t)(R->RV64[Inst.rs1] + Tmp64)), 64);
+        ZEXT(R->RV64[Inst.rd], M->ReadU32((uint64_t)(R->RV64[Inst.rs1] + Tmp64)), 32);
         R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         R->RV64_PC += Inst.instSize;
         return true;

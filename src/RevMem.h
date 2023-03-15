@@ -135,7 +135,7 @@ namespace SST {
       SST::Output *output;      ///< RevMem: output handler
 
       // uint64_t CalcPhysAddr(uint64_t pageNum, uint64_t Addr);
-      int64_t CalcPhysAddr(uint64_t Addr);
+      uint64_t CalcPhysAddr(uint64_t Addr);
 
       char *physMem;                          ///< RevMem: memory container
       

@@ -120,8 +120,8 @@ unsigned RevMem::RandCost( unsigned Min, unsigned Max ){
   return R;
 }
 
-int64_t RevMem::CalcPhysAddr(uint64_t Addr){
-  int64_t physAddr = 0;
+uint64_t RevMem::CalcPhysAddr(uint64_t Addr){
+  uint64_t physAddr = 0;
   uint64_t pageNum = Addr >> addrShift;
   if(pageMap.count(pageNum) == 0){
     // First touch of this page, mark it as in use
@@ -145,7 +145,7 @@ bool RevMem::WriteMem( uint64_t Addr, size_t Len, void *Data ){
     RevokeFuture(Addr); // revoke the future if it is present; ignore the return
     
     uint64_t physAddr = CalcPhysAddr(Addr);
-    uint32_t firstPageNum = Addr >> addrShift;
+    uint64_t firstPageNum = Addr >> addrShift;
     uint64_t firstPageEnd = (firstPageNum << addrShift) | (pageSize - 1);
 
     char *BaseMem = &physMem[physAddr]; 
@@ -154,12 +154,12 @@ bool RevMem::WriteMem( uint64_t Addr, size_t Len, void *Data ){
     uint32_t tmpLen = 0;
     uint32_t lenCount = 0;
     uint64_t tmpPhysAddr = 0;
-    uint32_t tmpPageNum = 0;
+    uint64_t tmpPageNum = 0;
     uint64_t tmpPageEnd = 0;
     uint64_t tmpStartAddr = 0;
 
     uint64_t endAddr = Addr + Len - 1;
-    uint32_t lastPageNum   = endAddr >> addrShift;
+    uint64_t lastPageNum   = endAddr >> addrShift;
 
     //check to see if we're about to walk off the page....
     if((Addr + Len - 1) > firstPageEnd){
@@ -187,7 +187,7 @@ bool RevMem::WriteMem( uint64_t Addr, size_t Len, void *Data ){
         lenCount = lenCount + tmpLen;
       }
   #ifdef _REV_DEBUG_
-      std::cout << "Warning: Reading off end of page... " << std::endl;
+      std::cout << "Warning: Writing off end of page... " << std::endl;
   #endif
     }else{
       for( unsigned i=0; i<Len; i++ ){
@@ -204,7 +204,7 @@ bool RevMem::ReadMem( uint64_t Addr, size_t Len, void *Data ){
   std::cout << "Reading " << Len << " Bytes Starting at 0x" << std::hex << Addr << std::endl;
 #endif
   uint64_t physAddr = CalcPhysAddr(Addr);
-  uint32_t firstPageNum = Addr >> addrShift;
+  uint64_t firstPageNum = Addr >> addrShift;
   uint64_t firstPageEnd = (firstPageNum << addrShift) | (pageSize - 1);
 
   char *BaseMem = &physMem[physAddr]; 
@@ -213,12 +213,12 @@ bool RevMem::ReadMem( uint64_t Addr, size_t Len, void *Data ){
   uint32_t tmpLen = 0;
   uint32_t lenCount = 0;
   uint64_t tmpPhysAddr = 0;
-  uint32_t tmpPageNum = 0;
+  uint64_t tmpPageNum = 0;
   uint64_t tmpPageEnd = 0;
   uint64_t tmpStartAddr = 0;
 
   uint64_t endAddr = Addr + Len - 1;
-  uint32_t lastPageNum   = endAddr >> addrShift;
+  uint64_t lastPageNum   = endAddr >> addrShift;
   
   //check to see if we're about to walk off the page....
   if((Addr + Len - 1) > firstPageEnd){
