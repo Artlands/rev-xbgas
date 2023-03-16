@@ -72,6 +72,23 @@ namespace SST{
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
+
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [eld]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT1
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << ")" << std::endl;
+            }
+ #endif
+
           }
         } 
         // else {
@@ -191,6 +208,21 @@ namespace SST{
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [elh]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT1
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
         } 
         // else {
@@ -243,6 +275,21 @@ namespace SST{
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [elhu]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT1
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
 
         } 
@@ -296,6 +343,21 @@ namespace SST{
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [elb]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT1
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
           
         } 
@@ -349,6 +411,21 @@ namespace SST{
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [elbu]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT1
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
         } 
         // else {
@@ -412,15 +489,18 @@ namespace SST{
             Xbgas->WriteU64( EXT1, Addr, R->RV64[Inst.rs2] );
 
 #ifdef _XBGAS_DEBUG_
+// if ((Addr >= _XBGAS_BARRIER_) && (Addr <= _XBGAS_BARRIER_END_)) {
+            uint8_t xbgas_mem = (uint8_t)(M->ReadU64(_XBGAS_DEBUG_MEM_));
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
-            if(id == 0) 
-            {
+            if ( xbgas_mem != 0b01 ) {
+              if(id == 0) {
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [esd]\tNamespace(0x" << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ") = RV64[" << std::dec << +Inst.rs2
                         << "](0x" << std::hex << R->RV64[Inst.rs2]
                         << ")" << std::endl;
+              }
             }
 #endif
           } else {
@@ -433,6 +513,21 @@ namespace SST{
                                   (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [esd]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tTO: Nmspace(0x"<< std::hex << EXT1
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
           
         } 
@@ -479,20 +574,6 @@ namespace SST{
 #endif
 
           } else {
-
-#ifdef _XBGAS_DEBUG_
-          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
-          // if (id == 0) 
-          {
-            std::cout << "_XBGAS_DEBUG_ CPU" << id
-                      << ": [esw]\tNamespace(0x" << EXT1
-                      << ") @ Addr(0x" << std::hex << Addr
-                      << ") = RV64[" << std::dec << +Inst.rs2
-                      << "](0x" << std::hex << R->RV64[Inst.rs2]
-                      << ")" << std::endl;
-            
-          }
-  #endif
             // DMA operation
             uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
             uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
@@ -502,6 +583,21 @@ namespace SST{
                                   (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [esw]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tTO: Nmspace(0x"<< std::hex << EXT1
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
         } 
         // else {
@@ -555,6 +651,21 @@ namespace SST{
                                   (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [esh]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tTO: Nmspace(0x"<< std::hex << EXT1
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
           
         } 
@@ -610,6 +721,21 @@ namespace SST{
                                  (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [esb]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tTO: Nmspace(0x"<< std::hex << EXT1
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
         } 
         // else {
@@ -687,6 +813,21 @@ namespace SST{
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [erld]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT2
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
           
         } 
@@ -786,6 +927,21 @@ namespace SST{
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [erlh]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT2
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
           
         } 
@@ -836,6 +992,21 @@ namespace SST{
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [erlhu]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT2
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
 
         } 
@@ -886,6 +1057,21 @@ namespace SST{
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [erlb]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT2
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
           
         } 
@@ -936,6 +1122,21 @@ namespace SST{
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [erlbu]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tFROM: Nmspace(0x"<< std::hex << EXT2
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
           
         } 
@@ -1040,6 +1241,21 @@ namespace SST{
                                   (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [ersd]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tTO: Nmspace(0x"<< std::hex << EXT3
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
           
         } 
@@ -1091,6 +1307,21 @@ namespace SST{
                                   (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [ersw]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tTO: Nmspace(0x"<< std::hex << EXT3
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
           
         } 
@@ -1140,6 +1371,21 @@ namespace SST{
                                   (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [ersh]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tTO: Nmspace(0x"<< std::hex << EXT3
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
           
         } 
@@ -1190,6 +1436,21 @@ namespace SST{
                                  (uint64_t)(R->RV64[srcReg]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
+#ifdef _XBGAS_DEBUG_
+            int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+            if (id == 0) 
+            { 
+              std::cout << "_XBGAS_DEBUG_ CPU" << id
+                        << ": [ersb]\tAGGREGATION:\t" << std::endl
+                        << "\t# of elements = " << std::dec << R->RV64[nelemReg]
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << "\tTO: Nmspace(0x"<< std::hex << EXT3
+                        << ") @ Addr(0x" << std::hex << Addr
+                        << ")" << std::endl
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << ")" << std::endl;
+            }
+ #endif
           }
         } 
         // else {
@@ -1260,10 +1521,10 @@ namespace SST{
 
         R->RV64_PC += Inst.instSize;
 
-#if 0
-// #ifdef _XBGAS_DEBUG_
+// #if 0
+#ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
-          // if(id == 0) 
+          if(id == 0) 
           {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [eag]\tERV64[0] = " << std::bitset<32>( encodedIns ) << std::endl;
