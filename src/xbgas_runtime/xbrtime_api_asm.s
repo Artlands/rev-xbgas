@@ -450,8 +450,8 @@ __xbrtime_put_s4_seq:
   .type __xbrtime_put_s4_agg, @function
 __xbrtime_put_s4_agg:
   eaddie e11, a2, 0
-  eag x31,a3, a0
-  esw x30, 0(a1)
+  eag a0, a3, a4
+  esw a0, 0(a1)
   ret
   .size __xbrtime_put_s4_agg, .-__xbrtime_put_s4_agg
 

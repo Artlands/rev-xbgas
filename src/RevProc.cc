@@ -1518,9 +1518,11 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
   bool rtn = false;
   Stats.totalCycles++;
 
-#ifdef _XBGAS_DEBUG_
-  if((currentCycle % 100000000) == 0){
-    std::cout << "Current Cycle: " << currentCycle <<  " PC: " << std::hex << ExecPC << std::dec << std::endl;
+#if 0
+// #ifdef _XBGAS_DEBUG_
+  if((currentCycle % 2000000) == 0){
+    std::cout << "Current Cycle: " << currentCycle <<  " PC: " << std::hex << ExecPC << std::dec << std::endl
+              << " Shared memory size: " << std::dec <<  (uint64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_SIZE_)) << std::endl;
   }
 #endif
 

@@ -181,8 +181,9 @@ void *__xbrtime_shared_malloc( size_t sz ){
   __XBRTIME_CONFIG->_MMAP[slot].size = sz;
   __XBRTIME_CONFIG->_MMAP[slot].start_addr = (uint64_t)(ptr);
 
-  /* write sz and ptr to xbgas firmware */ 
-  *(uint64_t *)(_XBGAS_SHARED_MEM_SIZE_)       = (uint64_t)(sz);
+  /* write sz and ptr to xbgas firmware */
+  uint64_t tmp = (uint64_t)((uint64_t *)_XBGAS_SHARED_MEM_SIZE_);
+  *(uint64_t *)(_XBGAS_SHARED_MEM_SIZE_)       = (uint64_t)(sz) + tmp;
   *(uint64_t *)(_XBGAS_SHARED_MEM_START_ADDR_) = (uint64_t)(ptr);
 
   return ptr;

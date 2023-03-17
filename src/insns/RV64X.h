@@ -551,6 +551,8 @@ namespace SST{
 
         /* The following implementation is based on xbgas-tool (branch: test)*/
         // esw rs2, imm(rs1)
+        // 0000000 11110 01011 010 00000 1111011, rs2=30, rs1=11
+        // 0000000 01010 01011 010 00000 1111011, rs2=10, rs1=11
         uint64_t Tmp;
         SEXT(Tmp, Inst.imm, 12);
         uint64_t EXT1 = R->ERV64[Inst.rs1];
@@ -559,28 +561,42 @@ namespace SST{
         // if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
-            Xbgas->WriteU32( EXT1, Addr, (uint32_t)(R->RV64[Inst.rs2]) );
+            Xbgas->WriteU32( EXT1, Addr, (uint32_t)(R->RV64[Inst.rs2] & MASK32) );
 
 #ifdef _XBGAS_DEBUG_
           int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
-          if(id == 0) {
+          if(id == 0) 
+          {
             std::cout << "_XBGAS_DEBUG_ CPU" << id
                       << ": [esw]\tNamespace(0x" << EXT1
                       << ") @ Addr(0x" << std::hex << Addr
                       << ") = RV64[" << std::dec << +Inst.rs2
                       << "](0x" << std::hex << R->RV64[Inst.rs2]
                       << ")" << std::endl;
+            
+            // std::cout << "|----- Register file -----|" << std::endl;
+
+            // for(int i=0; i<32; i++) {
+            //   std::cout << "|e" <<std::dec << +i
+            //             << ": 0x" << std::hex << R->ERV64[i]
+            //             << "\t|x" <<std::dec << +i
+            //             << ": 0x" << std::hex << R->RV64[i]
+            //             << std::endl;
+            // }
+            // std::cout << "|----- Register file -----|" << std::endl;
+          
           }
 #endif
 
           } else {
+            // rd: destination/source address; rs1: number of elements; rs2: stride
+            //  0100011 (rs2)01010 (rs1)01101 001 (rd)11111 0110011
             // DMA operation
-            uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
             uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
             uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
             Xbgas -> WriteBulkU32( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
                                   (uint32_t)(R->RV64[strideReg]), 
-                                  (uint64_t)(R->RV64[srcReg]));
+                                  (uint64_t)(R->RV64[Inst.rs2]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
 #ifdef _XBGAS_DEBUG_
@@ -590,11 +606,11 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [esw]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << "(bytes)"<< std::endl
                         << "\tTO: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
-                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[Inst.rs2] 
                         << ")" << std::endl;
             }
  #endif
@@ -1505,7 +1521,8 @@ namespace SST{
         // CURRENT DESIGN rd: destination address; rs1: number of elements; rs2: stride
         // eag rd, rs1, rs2
         // 0x1000106b -> 0x46001033
-        // 0100011 01010 01101 001 11111 0110011
+        //  0100011 (rs2)01010 (rs1)01101 001 (rd)11111 0110011
+        //  0100011 01010 01101 001 11111 0110011
         uint64_t encodedIns = 0x00ull;
 
         uint32_t funct7 = Inst.funct7 & 0b1111111;

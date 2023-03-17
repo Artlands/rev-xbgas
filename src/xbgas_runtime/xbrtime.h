@@ -22,10 +22,11 @@ extern "C" {
 #include "../../common/include/XbgasAddr.h"
 
 /* ---------------------------------------- REQUIRED HEADERS */
-#include "xbrtime_alloc.h"
 #include "xbrtime_types.h"
-#include "xbrtime_macros.h"
 #include "xbrtime_api.h"
+#include "xbrtime_alloc.h"
+#include "xbrtime_version.h"
+#include "xbrtime_macros.h"
 #include "xbrtime_collectives.h"
 
 /* ---------------------------------------- FUNCTION PROTOTYPES */
