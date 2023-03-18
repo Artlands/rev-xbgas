@@ -33,7 +33,7 @@ b_meta find_block(b_meta *last, size_t size){
 void split_block( b_meta b, size_t sz){
   b_meta new;
   new = (b_meta)(b->data + sz);
-  new->size = b->size - sz - META_SIZE;
+  new->size = b->size - sz - sizeof(b_meta);
   new->next = b->next;
   new->prev = b;
   new->free = 1;
@@ -62,14 +62,14 @@ b_meta extend_heap(b_meta last, size_t sz){
   }
   b->free = 0;
 
-  rev_heap_top = rev_heap_top + META_SIZE + sz;
+  rev_heap_top = rev_heap_top + sizeof(b_meta) + sz;
   return (b);
 }
 
 /* Fusion memory block segments*/
 b_meta fusion(b_meta b){
   if( b->next && b->next->free){
-    b->size += META_SIZE + b->next->size;
+    b->size += sizeof(b_meta) + b->next->size;
     b->next = b->next->next;
     if (b->next){
       b->next->prev = b;
@@ -82,7 +82,7 @@ b_meta fusion(b_meta b){
 b_meta get_block(void *p){
   char *tmp;
   tmp = p;
-  return (p = tmp -= META_SIZE);
+  return (p = tmp -= sizeof(b_meta));
 }
 
 /* Valid addr for free */
@@ -103,7 +103,7 @@ extern void *revmalloc( size_t size ){
     last = global_base;
     b = find_block(&last, sz);
     if (b){
-      if ( (b->size - sz) >= (META_SIZE + 8) ){
+      if ( (b->size - sz) >= (sizeof(b_meta)) ){
         split_block(b, sz);
       }
       b->free = 0;
@@ -173,6 +173,7 @@ void *__xbrtime_shared_malloc( size_t sz ){
 
   /* attempt to create an allocation */
   ptr = revmalloc( sz );
+  // ptr = malloc( sz );
   if( ptr == NULL ) {
     return NULL;
   }
@@ -204,6 +205,7 @@ void __xbrtime_shared_free(void *ptr){
                 __XBRTIME_CONFIG->_MMAP[i].size)) ){
       /* found the allocation */
       revfree( ptr );
+      // free(ptr);
       __XBRTIME_CONFIG->_MMAP[i].start_addr = 0x00ull;
       __XBRTIME_CONFIG->_MMAP[i].size = 0;
 

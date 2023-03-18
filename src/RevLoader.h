@@ -35,6 +35,10 @@
 #define PT_LOAD 1
 #endif
 
+#ifndef ET_DYN
+#define ET_DYN 3
+#endif
+
 #ifndef SHT_NOBITS
 #define SHT_NOBITS 8
 #endif

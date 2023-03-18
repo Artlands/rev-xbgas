@@ -27,11 +27,13 @@ extern int xbrtime_init(){
   /* allocate the structure in the local heap */
   __XBRTIME_CONFIG = NULL;
   __XBRTIME_CONFIG = revmalloc( sizeof( XBRTIME_DATA) );
+  // __XBRTIME_CONFIG = malloc( sizeof( XBRTIME_DATA) );
   if( __XBRTIME_CONFIG == NULL ){
     return -1;
   }
 
   __XBRTIME_CONFIG->_MMAP       = revmalloc(sizeof(XBRTIME_MEM_T) * _XBRTIME_MEM_SLOTS_);
+  // __XBRTIME_CONFIG->_MMAP       = malloc(sizeof(XBRTIME_MEM_T) * _XBRTIME_MEM_SLOTS_);
   __XBRTIME_CONFIG->_ID         = __xbrtime_asm_get_id();
   __XBRTIME_CONFIG->_MEMSIZE    = __xbrtime_asm_get_memsize();
   __XBRTIME_CONFIG->_NPES       = __xbrtime_asm_get_npes();
@@ -47,14 +49,18 @@ extern int xbrtime_init(){
   /* too many total PEs */
   if( __XBRTIME_CONFIG->_NPES > __XBRTIME_MAX_PE ){
     revfree( __XBRTIME_CONFIG );
+    // free( __XBRTIME_CONFIG );
     return -1;
   }
 
   /* init the pe mapping block */
   __XBRTIME_CONFIG->_MAP = revmalloc( sizeof( XBRTIME_PE_MAP ) *
                                       __XBRTIME_CONFIG->_NPES );
+  // __XBRTIME_CONFIG->_MAP = malloc( sizeof( XBRTIME_PE_MAP ) *
+  //                                 __XBRTIME_CONFIG->_NPES );
   if( __XBRTIME_CONFIG->_MAP == NULL ){
     revfree( __XBRTIME_CONFIG );
+    // free( __XBRTIME_CONFIG );
     return -1;
   }
 
@@ -90,10 +96,12 @@ extern void xbrtime_close(){
 
     if( __XBRTIME_CONFIG->_MAP != NULL ){
       revfree( __XBRTIME_CONFIG->_MAP );
+      // free( __XBRTIME_CONFIG->_MAP );
       __XBRTIME_CONFIG->_MAP = NULL;
     }
 
     revfree( __XBRTIME_CONFIG );
+    // free( __XBRTIME_CONFIG );
   }
 }
 

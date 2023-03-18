@@ -9,6 +9,7 @@
 //
 
 #include "RevLoader.h"
+#include "../common/include/XbgasAddr.h"
 
 RevLoader::RevLoader( std::string Exe, std::string Args,
                       RevMem *Mem, SST::Output *Output )
@@ -153,9 +154,16 @@ bool RevLoader::LoadElf64(char *membuf, size_t sz){
   mem->WriteMem(sp,elfinfo.phdr_size,(void *)(ph));
   mem->SetStackTop(sp);
 
+  uint64_t bias = 0;
+  if( eh->e_type == ET_DYN)
+    bias = _REVMEM_PGSIZE_;
 
   for( unsigned i=0; i<eh->e_phnum; i++ ){
     if( ph[i].p_type == PT_LOAD && ph[i].p_memsz ){
+      uint64_t vaddr = ph[i].p_vaddr + bias;
+      if((vaddr + ph[i].p_memsz) > mem->GetBrkMin())
+        mem->SetBrkMin(vaddr + ph[i].p_memsz);
+
       if( ph[i].p_filesz ){
         if( sz < ph[i].p_offset + ph[i].p_filesz )
           output->fatal(CALL_INFO, -1, "Error: RV64 Elf is unrecognizable\n" );
@@ -169,6 +177,13 @@ bool RevLoader::LoadElf64(char *membuf, size_t sz){
                     &zeros[0] );
     }
   }
+
+#if 0
+// #ifdef _XBGAS_DEBUG_
+  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+  if(id == 0)
+    std::cout << "Init Brk addr: 0x" << std::dec << (mem->GetBrkMin()) << std::endl;
+#endif
 
   Elf64_Shdr* sh = (Elf64_Shdr*)(membuf + eh->e_shoff);
   if( sz < eh->e_shoff + eh->e_shnum * sizeof(*sh) )

@@ -13,6 +13,7 @@
 
 #include "RevInstTable.h"
 #include "RevExt.h"
+#include "RevSysCalls.h"
 
 using namespace SST::RevCPU;
 
@@ -1013,23 +1014,57 @@ namespace SST{
       }
 
       static bool ecall(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
+        // x17 (a7) is the code for ecall
+        std::cout << "FOUND AN ECALL" << std::endl;
         if( F->IsRV32() ){
+          uint32_t code = R->RV32[17];
+          std::cout << "32-bit ECALL CODE: " + std::to_string(code) << std::endl;
+          switch( code ){
+          case 49: 
+            // -- CHDIR
+            RevChdir<Riscv32>(R, M, Inst);
+            break;
+          default:
+            break;
+          }
           R->RV32_PC += Inst.instSize;
-        }else{
+        }
+        else{ // F->IsRV64
+          uint64_t code = R->RV64[17];
+
+#if 0
 // #ifdef _XBGAS_DEBUG_
-//           // int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
-//           // if (id == 0) 
-//           {
-//             // std::cout << "_XBGAS_DEBUG_ ECALL" << id << std::endl;
+          int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
+          if(id == 0) 
+          {
+            std::cout << "64-Bit ECALL CODE: " + std::to_string(code) << std::endl;
+            std::cout << "|----- Register file -----|" << std::endl;
+
+            for(int i=0; i<32; i++) {
+              std::cout << "|e" <<std::dec << +i
+                        << ": 0x" << std::hex << R->ERV64[i]
+                        << "\t|x" <<std::dec << +i
+                        << ": 0x" << std::hex << R->RV64[i]
+                        << std::endl;
+            }
+            std::cout << "|----- Register file -----|" << std::endl;
+          
+          }
+#endif    
+          // uint64_t
+          switch( code ){
             
-//             std::cout << "|---- Register file -----|" << std::endl;
-//             std::cout << "a7 = " << std::dec << R->RV64[17] << std::endl;
-//             for(int i=0; i<6; i++) {
-//               std::cout << "a" <<std::dec << +i << " = " << std::dec << R->RV64[10 + i] << std::endl;      
-//             }
-//             std::cout << "|----- Register file -----|" << std::endl;
-//           }
-//   #endif
+          case 49:
+            // std::cout << "ABOUT TO EXECUTE CHDIR" << std::endl;
+            // RevChdir<Riscv64>(R, M, Inst);
+            // std::cout << "EXECUTED CHDIR" << std::endl;
+            break;
+          case 214: 
+            // RevBrk<Riscv64>(R, M, Inst);
+            break;
+          default:
+            break;
+          }
           R->RV64_PC += Inst.instSize;
         }
         return true;

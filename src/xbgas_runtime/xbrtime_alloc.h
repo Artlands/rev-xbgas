@@ -25,12 +25,10 @@ struct block_meta{
   size_t size;            // 8 bytes in RV64
   b_meta next;            // 8 bytes
   b_meta prev;            // 8 bytes
-  long free;              // 8 bytes, in order to provide block metadata alignment.
+  long free;              // 8 bytes
   void *ptr;              // 8 bytes in RV64
   char data[1];           // starting of the memory block
 };
-
-#define META_SIZE 40
 
 #ifdef __cplusplus
 }

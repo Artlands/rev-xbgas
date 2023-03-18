@@ -13,30 +13,34 @@
 #include <inttypes.h>
 #include "xbrtime.h"
 
-#define _XBGAS_ALLOC_SIZE_ 8
+#define _XBGAS_ALLOC_SIZE_ 4
 
 int main( int argc, char **argv ){
   int rtn = 0;
-  uint64_t *ptr = NULL;
+  int *ptr = NULL;
   size_t sz = _XBGAS_ALLOC_SIZE_;
 
   // Initializing xBGAS Runtime
   rtn = xbrtime_init();
+
+  int my_pe = xbrtime_mype();
+	int numpes = xbrtime_num_pes();
+  
   // Allocating sz bytes
-  ptr = (uint64_t *)(xbrtime_malloc( sz ));
+  ptr = (int *)(xbrtime_malloc( sz ));
   // Putting a value in the first element
-  ptr[0] = (uint64_t)(xbrtime_mype() + 5);
+  ptr[0] = (int)(xbrtime_mype() + 5);
   // perform a barrier
   xbrtime_barrier();
 
-  if( xbrtime_mype() == 0 ){
+  // if( xbrtime_mype() == 0 ){
     // perform an operation
-    xbrtime_ulonglong_put((unsigned long long *)(ptr),
-                          (unsigned long long *)(ptr),
-                          1,
-                          1,
-                          3 );
-  }
+    xbrtime_int_put((int *)(ptr),
+                    (int *)(ptr),
+                    1,
+                    1,
+                    ((my_pe+1)%numpes) );
+  // }
 
   // // perform a barrier
   xbrtime_barrier();

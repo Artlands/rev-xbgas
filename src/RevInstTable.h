@@ -35,6 +35,8 @@
 #define _REV_THREAD_COUNT_ 1
 #endif
 
+#define ROUNDUP(a, b) ((((a)-1)/(b)+1)*(b))
+
 // Masks
 #define MASK8   0b11111111                          // 8bit mask
 #define MASK16  0b1111111111111111                  // 16bit mask

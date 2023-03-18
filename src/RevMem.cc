@@ -9,15 +9,18 @@
 //
 
 #include "RevMem.h"
+#include "../common/include/XbgasAddr.h"
 #include <math.h>
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
-  : memSize(MemSize), opts(Opts), output(Output), physMem(nullptr), stacktop(0x00ull) {
-
+  : memSize(MemSize), opts(Opts), output(Output), physMem(nullptr), 
+    stacktop(0x00ull), heapaddr(_REV_HEAP_START_), 
+    brk(0x00ull), brk_min(0x00ull), brk_max(0x00ull) {
+  
   // allocate the backing memory
   physMem = new char [memSize];
   // pageSize = 262144; //Page Size (in Bytes)
-  pageSize = 65536; //Page Size (in Bytes)
+  pageSize = _REVMEM_PGSIZE_; //Page Size (in Bytes)
   addrShift = int(log(pageSize) / log(2.0));
   nextPage = 0;
 

@@ -27,7 +27,7 @@ XBRTIME_LIB=-L../../../src/xbgas_runtime -lxbrtime
 all: $(EXEC)
 
 %.exe:%.c
-	$(CC) -march=$(ARCH) -mabi=lp64d $(XBRTIME_INCLUDE) -o $@ $< $(XBRTIME_LIB) -lm
+	$(CC) -march=$(ARCH) -mabi=lp64d -std=c11 $(XBRTIME_INCLUDE) -o $@ $< $(XBRTIME_LIB) -lm
 
 objdump:
 	$(OBJDUMP) -d $(EXEC) > $(ASM)
