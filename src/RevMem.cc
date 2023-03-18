@@ -9,18 +9,16 @@
 //
 
 #include "RevMem.h"
-#include "../common/include/XbgasAddr.h"
 #include <math.h>
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
   : memSize(MemSize), opts(Opts), output(Output), physMem(nullptr), 
-    stacktop(0x00ull), heapaddr(_REV_HEAP_START_), 
-    brk(0x00ull), brk_min(0x00ull), brk_max(0x00ull) {
+    stacktop(0x00ull), brk(0x00ull), brk_min(0x00ull), brk_max(0x00ull) {
   
   // allocate the backing memory
   physMem = new char [memSize];
   // pageSize = 262144; //Page Size (in Bytes)
-  pageSize = _REVMEM_PGSIZE_; //Page Size (in Bytes)
+  pageSize = _REV_PAGE_SIZE_; //Page Size (in Bytes)
   addrShift = int(log(pageSize) / log(2.0));
   nextPage = 0;
 
@@ -32,7 +30,7 @@ RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
     physMem[i] = 0;
   }
 
-  stacktop = _REVMEM_BASE_ + memSize;
+  stacktop = _REVMEM_BASE_ + memSize - _REV_PAGE_SIZE_; // reserve one page for xbgas firmware.
 
   memStats.bytesRead = 0;
   memStats.bytesWritten = 0;
@@ -348,5 +346,4 @@ void RevMem::WriteDouble( uint64_t Addr, double Value ){
   if( !WriteMem(Addr,8,(void *)(&Tmp)) )
     output->fatal(CALL_INFO, -1, "Error: could not write memory (DOUBLE)");
 }
-
 // EOF

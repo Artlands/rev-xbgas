@@ -48,12 +48,14 @@ extern void xbrtime_barrier() {
     target = (mype + stride)%num_pe;
 
     target = (uint64_t)(xbrtime_decode_pe((int)(target)));
-    addr   = (uint64_t)(&__XBRTIME_CONFIG->_BARRIER[sense*10 + i]);
+    // addr   = (uint64_t)(&__XBRTIME_CONFIG->_BARRIER[sense*10 + i]);
+    addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8));
 
     __xbrtime_remote_touch(addr, target, (uint64_t)stride);
 
     /* spinwait on local value */
-    while( __XBRTIME_CONFIG->_BARRIER[sense*10 + i] != stride ) {
+    // while( __XBRTIME_CONFIG->_BARRIER[sense*10 + i] != stride ) { 
+    while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) != stride ) {
       // debug
     }
 
@@ -63,7 +65,8 @@ extern void xbrtime_barrier() {
   
   /* switch the sense */
   for( i = 0; i < iter; i++ ) {
-    __XBRTIME_CONFIG->_BARRIER[sense*10 + i] = 0xdeadbeefull;
+    // __XBRTIME_CONFIG->_BARRIER[sense*10 + i] = 0xdeadbeefull;
+    *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) = 0xdeadbeefull;
   }
   // Flip the sense
   sense = 1 - sense;

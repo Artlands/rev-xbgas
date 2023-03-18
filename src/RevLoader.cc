@@ -156,7 +156,7 @@ bool RevLoader::LoadElf64(char *membuf, size_t sz){
 
   uint64_t bias = 0;
   if( eh->e_type == ET_DYN)
-    bias = _REVMEM_PGSIZE_;
+    bias = _REV_PAGE_SIZE_;
 
   for( unsigned i=0; i<eh->e_phnum; i++ ){
     if( ph[i].p_type == PT_LOAD && ph[i].p_memsz ){
@@ -178,11 +178,15 @@ bool RevLoader::LoadElf64(char *membuf, size_t sz){
     }
   }
 
+// Write brk to _REV_HEAP_START_ADDR_
+  uint64_t heap_start = mem->GetBrkMin();
+  mem->WriteU64(_REV_HEAP_START_ADDR_, heap_start);
+
 #if 0
 // #ifdef _XBGAS_DEBUG_
   int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
   if(id == 0)
-    std::cout << "Init Brk addr: 0x" << std::dec << (mem->GetBrkMin()) << std::endl;
+    std::cout << "Init Brk addr: 0x" << std::hex << (mem->GetBrkMin()) << std::endl;
 #endif
 
   Elf64_Shdr* sh = (Elf64_Shdr*)(membuf + eh->e_shoff);

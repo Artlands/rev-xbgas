@@ -26,13 +26,14 @@
 
 // -- RevCPU Headers
 #include "RevOpts.h"
+#include "../common/include/XbgasAddr.h"
 
 #ifndef _REVMEM_BASE_
 #define _REVMEM_BASE_ 0x00000000
 #endif
 
-#ifndef _REVMEM_PGSIZE_
-#define _REVMEM_PGSIZE_ 65536
+#ifndef _REV_PAGE_SIZE_
+#define _REV_PAGE_SIZE_ 65536
 #endif
 
 
@@ -62,10 +63,6 @@ namespace SST {
       /// RevMem: set the stack_top address
       void SetStackTop(uint64_t Addr) { stacktop = Addr; }
 
-      uint64_t GetHeapAddr() {return heapaddr; }
-
-      void SetHeapAddr(uint64_t Addr) {heapaddr = Addr;}
-
       uint64_t GetBrk() { return brk; }
 
       uint64_t GetBrkMin() { return brk_min; }
@@ -74,7 +71,7 @@ namespace SST {
 
       void SetBrk( uint64_t addr ) { brk = addr; };
 
-      void SetBrkMin( uint64_t addr ) { brk_min = addr; };
+      void SetBrkMin( uint64_t addr ){ brk_min = addr; };
 
       void SetBrkMax( uint64_t addr ) { brk_max = addr; };
 
@@ -168,7 +165,6 @@ namespace SST {
                                                                     /// nextPage * pageSize into physMem
 
       uint64_t stacktop;        ///< RevMem: top of the stack
-      uint64_t heapaddr;
       uint64_t brk;             
       uint64_t brk_min;
       uint64_t brk_max;

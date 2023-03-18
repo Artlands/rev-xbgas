@@ -33,14 +33,14 @@ int main( int argc, char **argv ){
   // perform a barrier
   xbrtime_barrier();
 
-  // if( xbrtime_mype() == 0 ){
+  if( xbrtime_mype() == 0 ){
     // perform an operation
     xbrtime_int_put((int *)(ptr),
                     (int *)(ptr),
                     1,
                     1,
-                    ((my_pe+1)%numpes) );
-  // }
+                    ((my_pe+2)%numpes) );
+  }
 
   // // perform a barrier
   xbrtime_barrier();

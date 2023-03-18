@@ -191,9 +191,9 @@ int RevBrk(RevRegFile* regFile, RevMem* mem, RevInst inst) {
       newbrk = brk_max;
 
     if(brk == 0)
-      mem->SetBrk(ROUNDUP(brk_min, _REVMEM_PGSIZE_));
+      mem->SetBrk(ROUNDUP(brk_min, _REV_PAGE_SIZE_));
 
-    uint64_t newbrk_page = ROUNDUP(newbrk, _REVMEM_PGSIZE_);
+    uint64_t newbrk_page = ROUNDUP(newbrk, _REV_PAGE_SIZE_);
     if( brk > newbrk_page ){
       // munmap
     } else if (brk < newbrk_page) {

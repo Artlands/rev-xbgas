@@ -46,9 +46,9 @@ void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
   if (id == 1) {
     std::cout << "_XBGAS_MY_PE_: 0x" << std::hex << _XBGAS_MY_PE_ << ", Value = " << std::dec << id << std::endl;
     std::cout << "_XBGAS_TOTAL_NPE_: 0x" << std::hex << _XBGAS_TOTAL_NPE_ << ", Value = " << std::dec << numPEs << std::endl;
-    std::cout << "_REV_HEAP_START_: 0x" << std::hex << _REV_HEAP_START_ << std::endl;
-    std::cout << "_REV_HEAP_END_: 0x" << std::hex << _REV_HEAP_END_ << std::endl;
-    std::cout << "_REV_HEAP_SIZE_: " << std::hex << _REV_HEAP_SIZE_ << std::endl;
+    // std::cout << "_REV_HEAP_START_: 0x" << std::hex << _REV_HEAP_START_ << std::endl;
+    // std::cout << "_REV_HEAP_END_: 0x" << std::hex << _REV_HEAP_END_ << std::endl;
+    // std::cout << "_REV_HEAP_SIZE_: " << std::hex << _REV_HEAP_SIZE_ << std::endl;
   }
 #endif
 
