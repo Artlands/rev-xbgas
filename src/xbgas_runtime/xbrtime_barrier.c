@@ -47,7 +47,7 @@ extern void xbrtime_barrier() {
     target = (mype + stride)%num_pe;
 
     target = (uint64_t)(xbrtime_decode_pe((int)(target)));
-     addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)(i * 8));
+    addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)(i * 8));
     // addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8));
 
     __xbrtime_remote_touch(addr, target, (uint64_t)stride);

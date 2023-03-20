@@ -36,8 +36,8 @@ extern void *revmalloc( size_t size ){
         /* Found a block that is free and big enough */
         if (current_block->size > size + sizeof(mem_block)){
           /* Split the block into two blocks */
-          new_block = (mem_block*)(current_block->data + size);
-          new_block->size = current_block->size - size - sizeof(mem_block);
+          new_block = (mem_block*)((void *)(current_block + sizeof(mem_block) + size));
+          new_block->size = current_block->size - sizeof(mem_block) - size ;
           new_block->free = 1;
           new_block->prev = current_block;
           new_block->next = current_block->next;
@@ -45,7 +45,7 @@ extern void *revmalloc( size_t size ){
           current_block->next = new_block;
         }
         current_block->free = 0;
-        return (current_block->data);
+        return ((void *)(current_block + 1));
       }
       current_block = current_block->next;
     }
@@ -58,13 +58,13 @@ extern void *revmalloc( size_t size ){
 
   } else {
     /* First malloc*/
-    current_block = (mem_block*)((char *)(*(uint64_t*)(_REV_HEAP_START_ADDR_)));
+    current_block = (mem_block*)((void *)(*(uint64_t*)(_REV_HEAP_START_ADDR_)));
     current_block->size = size;
     current_block->free = 0;
     current_block->prev = NULL;
     
     /* Split the remaining block */
-    new_block = (mem_block*)((char*)(current_block) + sizeof(mem_block) + size);
+    new_block = (mem_block*)((void*)(current_block) + sizeof(mem_block) + size);
     new_block->size = heap_end - (int32_t)(sizeof(mem_block) + size);
     new_block->free = 1;
     new_block->prev = current_block;
@@ -76,7 +76,7 @@ extern void *revmalloc( size_t size ){
 
     /* Set global base */
     global_base = current_block;
-    return (current_block->data);
+    return ((void *)(current_block + 1));
   }
 }
 
@@ -91,11 +91,17 @@ extern void revfree( void *ptr ) {
     return;
   } else {
     /* Find the block corresponding to the given pointer */
-    current_block = (mem_block*)(tmp - sizeof(mem_block));
+    current_block = (mem_block*)((void *)(tmp - sizeof(mem_block)));
     prev_block = current_block->prev;
 
     /* Mark the block as free */
     current_block->free = 1;
+
+    /* Reset the data in the block*/
+    for( unsigned long i=0; i<(int32_t)(current_block->size); i++ ){
+      *(char *)(tmp + i) = 0;
+      // *((uint64_t*)(_XBGAS_DEBUG_ERROR0_)) = (uint64_t)(tmp + i);  // Debug
+    }
 
     /* Merge adjacent free blocks */
     while( current_block->next != NULL && current_block->next->free){

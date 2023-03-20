@@ -22,7 +22,6 @@ typedef struct mem_block {
   struct mem_block *prev;
   size_t size;
   int free;
-  char data[1];
 } mem_block;
 
 #ifdef __cplusplus
