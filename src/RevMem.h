@@ -135,6 +135,8 @@ namespace SST {
       /// RevMem: Interrogates the target address and returns 'true' if a future reservation is present [RV64P only]
       bool StatusFuture( uint64_t Addr );
 
+      bool DumpDataAsString(uint64_t data);
+
     class RevMemStats {
       public:
       uint32_t floatsRead;

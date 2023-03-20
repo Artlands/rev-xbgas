@@ -63,12 +63,11 @@ namespace SST{
             }
           } else {
             // DMA operation
-            uint8_t destReg   = DECODE_RD(R->ERV64[0]);
             uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
             uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
             Xbgas -> ReadBulkU64( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
                                   (uint32_t)(R->RV64[strideReg]), 
-                                  (uint64_t)(R->RV64[destReg]));
+                                  (uint64_t)(R->RV64[Inst.rd]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
             R->RV64_PC += Inst.instSize;
@@ -80,11 +79,11 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [eld]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tFROM: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
-                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[Inst.rd] 
                         << ")" << std::endl;
             }
  #endif
@@ -148,7 +147,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [elw]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tFROM: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -215,7 +214,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [elh]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tFROM: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -282,7 +281,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [elhu]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tFROM: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -350,7 +349,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [elb]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tFROM: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -418,7 +417,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [elbu]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tFROM: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -500,23 +499,16 @@ namespace SST{
                         << ") = RV64[" << std::dec << +Inst.rs2
                         << "](0x" << std::hex << R->RV64[Inst.rs2]
                         << ")" << std::endl;
-
-            // std::cout << "|----- Shared Memory Slot -----|" << std::endl;
-            // std::cout << "Shared Memory Size: " << std::hex << (int64_t)(M->ReadU64(_XBGAS_SHARED_MEM_SIZE_)) << std::endl;
-            // std::cout << "Shared Memory Start Addr: 0x" << std::hex << M->ReadU64(_XBGAS_SHARED_MEM_START_ADDR_) << std::endl;
-            // std::cout << "Heap Start Address: 0x" << std::hex << M->ReadU64(_REV_HEAP_START_ADDR_) << std::endl;
-            // std::cout << "|----- Shared Memory Slot -----|" << std::endl;
               }
             }
 #endif
           } else {
             // DMA operation
-            uint8_t srcReg    = DECODE_RD(R->ERV64[0]);
             uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
             uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
             Xbgas -> WriteBulkU64( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
                                   (uint32_t)(R->RV64[strideReg]), 
-                                  (uint64_t)(R->RV64[srcReg]));
+                                  (uint64_t)(R->RV64[Inst.rs2]));
             // Reset ERV64[0]
             R->ERV64[0] = 0x00ull;
 #ifdef _XBGAS_DEBUG_
@@ -526,11 +518,11 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [esd]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << "(bytes)"<< std::endl
                         << "\tTO: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
-                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[Inst.rs2] 
                         << ")" << std::endl;
             }
  #endif
@@ -692,11 +684,11 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [esh]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << "(bytes)"<< std::endl
                         << "\tTO: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
-                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[Inst.rs2] 
                         << ")" << std::endl;
             }
  #endif
@@ -762,11 +754,11 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [esb]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << "(bytes)"<< std::endl
                         << "\tTO: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
-                        << "\tFROM: Addr(0x" << std::hex << R->RV64[srcReg] 
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[Inst.rs2] 
                         << ")" << std::endl;
             }
  #endif
@@ -854,11 +846,11 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [erld]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
-                        << "\tFROM: Nmspace(0x"<< std::hex << EXT2
+                        << ", stride = " << std:: dec << R->RV64[strideReg] << "(bytes)"<< std::endl
+                        << "\tTO: Nmspace(0x"<< std::hex << EXT2
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
-                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
+                        << "\tFROM: Addr(0x" << std::hex << R->RV64[Inst.rs2] 
                         << ")" << std::endl;
             }
  #endif
@@ -968,7 +960,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [erlh]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tFROM: Nmspace(0x"<< std::hex << EXT2
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -1033,7 +1025,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [erlhu]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tFROM: Nmspace(0x"<< std::hex << EXT2
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -1098,7 +1090,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [erlb]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tFROM: Nmspace(0x"<< std::hex << EXT2
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -1163,7 +1155,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [erlbu]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tFROM: Nmspace(0x"<< std::hex << EXT2
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -1282,7 +1274,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [ersd]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tTO: Nmspace(0x"<< std::hex << EXT3
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -1348,7 +1340,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [ersw]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tTO: Nmspace(0x"<< std::hex << EXT3
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -1412,7 +1404,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [ersh]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tTO: Nmspace(0x"<< std::hex << EXT3
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
@@ -1477,7 +1469,7 @@ namespace SST{
               std::cout << "_XBGAS_DEBUG_ CPU" << id
                         << ": [ersb]\tAGGREGATION:\t" << std::endl
                         << "\t# of elements = " << std::dec << R->RV64[nelemReg]
-                        << ", stride = " << std:: dec << R->RV64[strideReg] << std::endl
+                        << ", stride = " << std:: dec << R->RV64[strideReg]  << "(bytes)"<< std::endl
                         << "\tTO: Nmspace(0x"<< std::hex << EXT3
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl

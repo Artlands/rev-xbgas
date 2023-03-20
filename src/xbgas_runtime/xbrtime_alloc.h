@@ -17,7 +17,10 @@ extern "C" {
 
 #include <stdlib.h>
 
-#define align8(x) ((((x)-1)>>3)<<3 + 8)   // align the pointers to 8 bytes/64 bits
+// #define align8(x) ((((x)-1)>>3)<<3 + 8)   // align the pointers to 8 bytes/64 bits
+
+#define ROUNDUP(a, b) ((((a)-1)/(b)+1)*(b))
+
 
 typedef struct block_meta *b_meta;
 
@@ -29,6 +32,14 @@ struct block_meta{
   void *ptr;              // 8 bytes in RV64
   char data[1];           // starting of the memory block
 };
+
+typedef struct mem_block {
+  struct mem_block *next;
+  struct mem_block *prev;
+  size_t size;
+  int free;
+  char data[1];
+} mem_block;
 
 #ifdef __cplusplus
 }

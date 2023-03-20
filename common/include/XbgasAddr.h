@@ -19,14 +19,15 @@
 #define _XBRTIME_MEM_SLOTS_ 2048
 #endif
 
-#ifndef _REV_PAGE_SIZE_
-#define _REV_PAGE_SIZE_                      65536           //Page Size (in Bytes), i.e., 64KB
+#ifndef _XBGAS_PAGE_SIZE_
+#define _XBGAS_PAGE_SIZE_ 65536
 #endif
 
-// #define _REV_MEM_SIZE                        0x180000000    //6GB
-// #define _XBGAS_FIRMWARE_                     0x100000000    //4GB
 #define _REV_MEM_SIZE_                       0x80000000    //2GB
-#define _XBGAS_FIRMWARE_                     _REV_MEM_SIZE_ -  _REV_PAGE_SIZE_  // Firmware size: 64KB
+#define _REV_HEAP_END_                       _REV_MEM_SIZE_ >> 1   // Half of the simulated memory
+
+#define _XBGAS_FIRMWARE_SIZE_                65536       // 64KB
+#define _XBGAS_FIRMWARE_                     _REV_MEM_SIZE_ - _XBGAS_FIRMWARE_SIZE_  // Firmware size: 64KB
 
 #define _XBGAS_MY_PE_                        _XBGAS_FIRMWARE_          // the physical PE id
 #define _XBGAS_TOTAL_NPE_                    _XBGAS_FIRMWARE_ + 8      // the number of PEs
@@ -39,15 +40,9 @@
 #define _XBGAS_MMAP_END_                     _XBGAS_MMAP_ + _XBRTIME_MEM_SLOTS_ * 16
 
 #define _REV_HEAP_START_ADDR_                _XBGAS_MMAP_END_ + 8
-#define _REV_HEAP_END_                        0x40000000    //1GB
 #define _XBGAS_DEBUG_MEM_                    _REV_HEAP_START_ADDR_ + 8
-#define _XBGAS_DEBUG_ERROR_                  _XBGAS_DEBUG_MEM_ + 8
-#define _XBGAS_FIRMWARE_END_                 _XBGAS_FIRMWARE_ + _REV_PAGE_SIZE
-
-// Simulated memory heap
-// #define _REV_HEAP_START_                     (uint64_t)((int64_t)((_XBGAS_FIRMWARE_END_ - 1)/_REV_PAGE_SIZE) * _REV_PAGE_SIZE + _REV_PAGE_SIZE)
-// #define _REV_HEAP_END_                       _REV_MEM_SIZE
-// #define _REV_HEAP_SIZE_                      _REV_MEM_SIZE - _REV_HEAP_START_
+#define _XBGAS_DEBUG_ERROR0_                 _XBGAS_DEBUG_MEM_ + 8
+#define _XBGAS_DEBUG_ERROR1_                 _XBGAS_DEBUG_ERROR0_ + 8
 
 typedef struct{
     uint64_t nmspace;

@@ -13,13 +13,14 @@
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
   : memSize(MemSize), opts(Opts), output(Output), physMem(nullptr), 
-    stacktop(0x00ull), brk(0x00ull), brk_min(0x00ull), brk_max(0x00ull) {
+    stacktop(0x00ull), brk(0x00ull), brk_min(0x00ull), brk_max(_REV_HEAP_END_) {
   
   // allocate the backing memory
   physMem = new char [memSize];
   // pageSize = 262144; //Page Size (in Bytes)
   pageSize = _REV_PAGE_SIZE_; //Page Size (in Bytes)
   addrShift = int(log(pageSize) / log(2.0));
+
   nextPage = 0;
 
   if( !physMem )
@@ -30,7 +31,7 @@ RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
     physMem[i] = 0;
   }
 
-  stacktop = _REVMEM_BASE_ + memSize - _REV_PAGE_SIZE_; // reserve one page for xbgas firmware.
+  stacktop = _REVMEM_BASE_ + memSize - _XBGAS_FIRMWARE_SIZE_; //reserve for xbgas firmware.
 
   memStats.bytesRead = 0;
   memStats.bytesWritten = 0;
@@ -135,6 +136,15 @@ uint64_t RevMem::CalcPhysAddr(uint64_t Addr){
   }else{
     output->fatal(CALL_INFO, -1, "Error: Page allocated multiple times");
   }
+
+#if 0
+// #ifdef _XBGAS_DEBUG_
+            { 
+              std::cout << "Addr: 0x" << std::hex << Addr 
+                        << ", PhysAddr: 0x" << std::hex << physAddr << std::endl;
+            }
+ #endif
+
   return physAddr;
 }
 
@@ -346,4 +356,16 @@ void RevMem::WriteDouble( uint64_t Addr, double Value ){
   if( !WriteMem(Addr,8,(void *)(&Tmp)) )
     output->fatal(CALL_INFO, -1, "Error: could not write memory (DOUBLE)");
 }
+
+bool RevMem::DumpDataAsString(uint64_t data) {
+  unsigned char bytes[5];
+	bytes[4] = 0;
+	bytes[3] = (data >> 24) & 0xFF;
+	bytes[2] = (data >> 16) & 0xFF;
+	bytes[1] = (data >> 8) & 0xFF;
+	bytes[0] = data & 0xFF;
+	std::cout << bytes;
+	return (bytes[0] == 0 || bytes[1] == 0 || bytes[2] == 0 || bytes[3] == 0);
+}
+
 // EOF

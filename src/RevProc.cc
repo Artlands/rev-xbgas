@@ -1520,9 +1520,25 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
 
 #if 0
 // #ifdef _XBGAS_DEBUG_
-  if((currentCycle % 2000000) == 0){
-    std::cout << "Current Cycle: " << currentCycle <<  " PC: " << std::hex << ExecPC << std::dec << std::endl
-              << " Shared memory size: " << std::dec <<  (uint64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_SIZE_)) << std::endl;
+  if((currentCycle % 1000000) == 0){
+    int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+    if (id == 0) {
+      std::cout << "Current Cycle: " << currentCycle <<  " PC: " << std::hex << ExecPC << std::dec << std::endl;
+      std::cout << "|----- Shared Memory Slot -----|" << std::endl;
+      std::cout << "Shared Memory Size: " << std::dec << (int64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_SIZE_)) << std::endl;
+      std::cout << "Shared Memory Start Addr: 0x" << std::hex << mem->ReadU64(_XBGAS_SHARED_MEM_START_ADDR_) << std::endl;
+      std::cout << "Heap Start Address: 0x" << std::hex << mem->ReadU64(_REV_HEAP_START_ADDR_) << std::endl;
+      std::cout << "Heap End Address: 0x" << std::hex << (uint64_t)(_REV_HEAP_END_) << std::endl;
+      std::cout << "ERROR Message 0: 0x" << std::hex << mem->ReadU64(_XBGAS_DEBUG_ERROR0_) << std::endl;
+      std::cout << "ERROR Message 1: 0x" << std::hex << mem->ReadU64(_XBGAS_DEBUG_ERROR1_) << std::endl;
+      for ( int i=0; i < 5; i++ ) {
+        std::cout << "Slot " <<std::dec << +i
+                  << "\t start addr: 0x" << std::hex << (int64_t)(mem->ReadU64(_XBGAS_MMAP_ + i *16))
+                  << ",\t size: " << std::dec << (int64_t)(mem->ReadU64(_XBGAS_MMAP_ + i * 16 + 8))
+                  << std::endl;
+      }
+      std::cout << "|----- Shared Memory Slot -----|" << std::endl;
+    }
   }
 #endif
 

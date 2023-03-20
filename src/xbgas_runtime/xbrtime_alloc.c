@@ -19,135 +19,93 @@ uint64_t __xbrtime_get_remote_alloc( uint64_t slot, int pe );
 int xbrtime_decode_pe( int pe );
 void __xbrtime_asm_quiet_fence();
 
-b_meta find_block(b_meta *last, size_t size){
-  b_meta b = global_base;
-  while(b && !(b->free && b->size >=size)) {
-    *last = b;
-    b = b->next;
-  }
-  return (b);
-}
-
-/* Split block according to size */
-void split_block( b_meta b, size_t sz){
-  b_meta new;
-  new = (b_meta)(b->data + sz);
-  new->size = b->size - sz - sizeof(b_meta);
-  new->next = b->next;
-  new->prev = b;
-  new->free = 1;
-  new->ptr = new->data;
-  b->size = sz;
-  b->next = new;
-  if( new->next ){
-    new->next->prev = new;
-  }
-}
-
-/* Add a new block at the end of heap */
-b_meta extend_heap(b_meta last, size_t sz){
-  b_meta b;
-  uint64_t heap_top = (uint64_t)(*(uint64_t*)(_REV_HEAP_START_ADDR_));
-  // b = (b_meta)(rev_heap_top);
-  b = (b_meta)((void *)(heap_top));
-  if ( ((int64_t)(*((uint64_t*)_REV_HEAP_START_ADDR_)) + sz) > (int64_t)(_REV_HEAP_END_) ) {
-    return NULL;
-  }
-  b->size = sz;
-  b->next = NULL;
-  b->prev = last;
-  b->ptr = b->data;
-
-  if( last ){
-    last->next = b;
-  }
-  b->free = 0;
-
-  // rev_heap_top = rev_heap_top + sizeof(b_meta) + sz;
-  *((uint64_t*)_REV_HEAP_START_ADDR_) = heap_top + (uint64_t)(sizeof(b_meta) + sz);
-  return (b);
-}
-
-/* Fusion memory block segments*/
-b_meta fusion(b_meta b){
-  if( b->next && b->next->free){
-    b->size += sizeof(b_meta) + b->next->size;
-    b->next = b->next->next;
-    if (b->next){
-      b->next->prev = b;
-    }
-  }
-  return b;
-}
-
-/* Get the block from addr */
-b_meta get_block(void *p){
-  char *tmp;
-  tmp = p;
-  return (p = tmp -= sizeof(b_meta));
-}
-
-/* Valid addr for free */
-int valid_addr(void *p){
-  if( global_base ){
-    // if( p > global_base && p < rev_heap_top ){ 
-    if( p > global_base && p < (void *)(*((uint64_t*)_REV_HEAP_START_ADDR_))){
-      return (p == (get_block(p))-> ptr);
-    }
-  }
-  return 0;
-}
 
 extern void *revmalloc( size_t size ){
-  b_meta b, last;
-  size_t sz;
-  sz = align8(size);
+  int32_t heap_end = (int32_t)(_REV_HEAP_END_);
+  mem_block *current_block, *new_block;
+
+  /* align the requested size to 8-byte boundary */
+  size = (size + 7) & ~7;
+
   if ( global_base ) {
-    last = global_base;
-    b = find_block(&last, sz);
-    if (b){
-      if ( (b->size - sz) >= (sizeof(b_meta)) ){
-        split_block(b, sz);
+    /* Search for a free block in the heap */
+    current_block = global_base;
+
+    while ( current_block != NULL ){
+      if( current_block->free && current_block->size >= size ){
+        /* Found a block that is free and big enough */
+        if (current_block->size > size + sizeof(mem_block)){
+          /* Split the block into two blocks */
+          new_block = (mem_block*)(current_block->data + size);
+          new_block->size = current_block->size - size - sizeof(mem_block);
+          new_block->free = 1;
+          new_block->prev = current_block;
+          new_block->next = current_block->next;
+          current_block->size = size;
+          current_block->next = new_block;
+        }
+        current_block->free = 0;
+        return (current_block->data);
       }
-      b->free = 0;
-    } else {
-      /* No fitting block, extend the heap */
-      b = extend_heap(last, sz);
-      if ( !b ){
-        return NULL;
-      }
+      current_block = current_block->next;
     }
-  } else {
-    /* first malloc*/
-    b = extend_heap(NULL, sz);
-    if ( !b ){
+
+    /* if no free block is found, return NULL */
+    if (current_block == NULL) { 
+      // *((uint64_t*)(_XBGAS_DEBUG_ERROR1_)) = 0b01;  // Debug
       return NULL;
     }
-    global_base = b;
-  }
 
-  return( b->data );
+  } else {
+    /* First malloc*/
+    current_block = (mem_block*)((char *)(*(uint64_t*)(_REV_HEAP_START_ADDR_)));
+    current_block->size = size;
+    current_block->free = 0;
+    current_block->prev = NULL;
+    
+    /* Split the remaining block */
+    new_block = (mem_block*)((char*)(current_block) + sizeof(mem_block) + size);
+    new_block->size = heap_end - (int32_t)(sizeof(mem_block) + size);
+    new_block->free = 1;
+    new_block->prev = current_block;
+    new_block->next = NULL;
+    
+    // *((uint64_t*)(_XBGAS_DEBUG_ERROR0_)) = (uint64_t)(new_block->size);  // Debug
+    /* Update the current block*/
+    current_block->next = new_block;
+
+    /* Set global base */
+    global_base = current_block;
+    return (current_block->data);
+  }
 }
 
-extern void revfree( void *p ) {
-  b_meta b;
-  if( valid_addr(p) ){
-    b = get_block(p);
-    b->free = 1;
-    if( b->prev && b->prev->free){
-      b = fusion(b->prev);
+extern void revfree( void *ptr ) {
+  char *tmp = ptr;
+  mem_block *current_block, *prev_block;
+  if( ptr == NULL ){
+    return;
+  }
+  /* Check if the pointer is valid and get the block if it is valid */
+  if (global_base == NULL){
+    return;
+  } else {
+    /* Find the block corresponding to the given pointer */
+    current_block = (mem_block*)(tmp - sizeof(mem_block));
+    prev_block = current_block->prev;
+
+    /* Mark the block as free */
+    current_block->free = 1;
+
+    /* Merge adjacent free blocks */
+    while( current_block->next != NULL && current_block->next->free){
+      current_block->size += sizeof(mem_block) + current_block->next->size;
+      current_block->next = current_block->next->next;
     }
-    if( b->next ){
-      fusion(b);
-    } else {
-      /* free the end of the heap */
-      if( b->prev ){
-        b->prev->next = NULL;
-      } else {
-        global_base = NULL;
-      }
-      // rev_heap_top = b;
-      *((uint64_t*)_REV_HEAP_START_ADDR_) = (uint64_t)(b);
+
+    if (prev_block != NULL && prev_block->free) {
+      prev_block->size += sizeof(mem_block) + current_block->size;
+      prev_block->next = current_block->next;
     }
   }
 }
@@ -240,7 +198,6 @@ extern void *xbrtime_malloc( size_t sz ){
   if( sz == 0 ){
     return NULL;
   }
-
   ptr = __xbrtime_shared_malloc( sz );
   __xbrtime_asm_quiet_fence();
 

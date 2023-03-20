@@ -176,8 +176,7 @@ template<typename RiscvArchType>
 int RevBrk(RevRegFile* regFile, RevMem* mem, RevInst inst) {
   if constexpr (std::is_same<RiscvArchType, Riscv32>::value){
     
-  }
-  else if (std::is_same<RiscvArchType, Riscv64>::value){
+  } else if (std::is_same<RiscvArchType, Riscv64>::value){
     uint64_t rtn;
     uint64_t addr = (uint64_t)(regFile->RV64[10]);
     uint64_t newbrk = addr;
@@ -190,28 +189,68 @@ int RevBrk(RevRegFile* regFile, RevMem* mem, RevInst inst) {
     else if( addr > brk_max)
       newbrk = brk_max;
 
+#ifdef _XBGAS_DEBUG_
+    std::cout << "Old heap Addr: 0x" << std::hex << (brk_min) << std::endl;
+#endif
+
     if(brk == 0)
       mem->SetBrk(ROUNDUP(brk_min, _REV_PAGE_SIZE_));
 
     uint64_t newbrk_page = ROUNDUP(newbrk, _REV_PAGE_SIZE_);
-    if( brk > newbrk_page ){
-      // munmap
-    } else if (brk < newbrk_page) {
-      // mmap
-      rtn = brk;
-    }
     mem->SetBrk(newbrk_page);
     rtn = newbrk;
 
 #ifdef _XBGAS_DEBUG_
-  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
-  if(id == 0)
-    std::cout << "New heap Addr: 0x" << std::hex << (rtn) << std::endl;
+    std::cout << "New heap Addr: 0x" << std::hex << (newbrk_page) << std::endl;
 #endif
 
     regFile->RV64[10] = rtn;
     return true;
     }
+    return false;
+  }
+
+template<typename RiscvArchType>
+int RevFstat(RevRegFile* regFile, RevMem* mem, RevInst inst) {
+  if constexpr (std::is_same<RiscvArchType, Riscv32>::value){
+    
+  } else if (std::is_same<RiscvArchType, Riscv64>::value){
+    uint64_t rtn;
+    int fd = (int)(regFile->RV64[10]);
+    if( fd == 1){
+      rtn = 1;
+    } else {
+      rtn = 0;
+    }
+
+    regFile->RV64[10] = rtn;
+    return true;
+    }
+    return false;
+  }
+
+template<typename RiscvArchType>
+int PrintString(RevRegFile* regFile, RevMem* mem, RevInst inst) {
+  if constexpr (std::is_same<RiscvArchType, Riscv32>::value){
+    
+  } else if (std::is_same<RiscvArchType, Riscv64>::value){
+    uint64_t ptr = regFile->RV64[11];
+
+#ifdef _XBGAS_DEBUG_
+  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+  if(id == 0)
+    std::cout << "Print String Start Addr: 0x" << std::hex << (ptr) << std::endl;
+#endif
+
+    for( uint64_t ptr;; ptr += 8) {
+      uint64_t data = mem->ReadU64(ptr);
+      if( mem->DumpDataAsString(data) ){
+        std::cout << std::endl;
+        break;
+      }
+    }
+    return true;
+  }
     return false;
   }
 

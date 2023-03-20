@@ -1015,7 +1015,7 @@ namespace SST{
 
       static bool ecall(RevFeature *F, RevRegFile *R,RevMem *M, RevXbgas *Xbgas, RevInst Inst) {
         // x17 (a7) is the code for ecall
-        std::cout << "FOUND AN ECALL" << std::endl;
+        // std::cout << "FOUND AN ECALL" << std::endl;
         if( F->IsRV32() ){
           uint32_t code = R->RV32[17];
           std::cout << "32-bit ECALL CODE: " + std::to_string(code) << std::endl;
@@ -1038,16 +1038,16 @@ namespace SST{
           if(id == 0) 
           {
             std::cout << "64-Bit ECALL CODE: " + std::to_string(code) << std::endl;
-            std::cout << "|----- Register file -----|" << std::endl;
+            // std::cout << "|----- Register file -----|" << std::endl;
 
-            for(int i=0; i<32; i++) {
-              std::cout << "|e" <<std::dec << +i
-                        << ": 0x" << std::hex << R->ERV64[i]
-                        << "\t|x" <<std::dec << +i
-                        << ": 0x" << std::hex << R->RV64[i]
-                        << std::endl;
-            }
-            std::cout << "|----- Register file -----|" << std::endl;
+            // for(int i=0; i<32; i++) {
+            //   std::cout << "|e" <<std::dec << +i
+            //             << ": 0x" << std::hex << R->ERV64[i]
+            //             << "\t|x" <<std::dec << +i
+            //             << ": 0x" << std::hex << R->RV64[i]
+            //             << std::endl;
+            // }
+            // std::cout << "|----- Register file -----|" << std::endl;
           
           }
 #endif    
@@ -1061,6 +1061,16 @@ namespace SST{
             break;
           case 214: 
             // RevBrk<Riscv64>(R, M, Inst);
+            break;
+          case 56:  //openat
+          case 48:  //fsaccessat
+          case 64:  //write
+          case 78:  //readlinkat
+          case 80:
+            // RevFstat<Riscv64>(R, M, Inst);
+          case 291: //statx
+          
+            // PrintString<Riscv64>(R, M, Inst);
             break;
           default:
             break;
