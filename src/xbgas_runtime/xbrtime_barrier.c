@@ -9,7 +9,6 @@
 //
 
 #include "xbrtime.h"
-#define SENSE __XBRTIME_CONFIG->_SENSE
 
 /* ------------------------------------------------- FUNCTION PROTOTYPES */
 void __xbrtime_asm_fence();
@@ -21,7 +20,7 @@ extern void xbrtime_barrier() {
   int64_t stride              = 1;
   uint64_t target         = 0x00ull;
   uint64_t addr           = 0x00ull;
-  volatile uint64_t sense = SENSE;
+  // volatile uint64_t sense = *((uint64_t*)(_XBGAS_SENSE_));
 
   int64_t num_pe = xbrtime_num_pes();
 
@@ -48,28 +47,32 @@ extern void xbrtime_barrier() {
     target = (mype + stride)%num_pe;
 
     target = (uint64_t)(xbrtime_decode_pe((int)(target)));
-    // addr   = (uint64_t)(&__XBRTIME_CONFIG->_BARRIER[sense*10 + i]);
-    addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8));
+     addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)(i * 8));
+    // addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8));
 
     __xbrtime_remote_touch(addr, target, (uint64_t)stride);
 
     /* spinwait on local value */
-    // while( __XBRTIME_CONFIG->_BARRIER[sense*10 + i] != stride ) { 
-    while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) != stride ) {
+    while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)(i * 8))) != stride ) {
       // debug
     }
+    // while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) != stride ) {
+    //   // debug
+    // }
 
     stride *= 2;
     i++;
   }
   
-  /* switch the sense */
+  /* reset the sense */
   for( i = 0; i < iter; i++ ) {
-    // __XBRTIME_CONFIG->_BARRIER[sense*10 + i] = 0xdeadbeefull;
-    *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) = 0xdeadbeefull;
+    // *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) = 0xdeadbeefull;
+     *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)(i * 8))) = 0xdeadbeefull;
   }
+
   // Flip the sense
-  sense = 1 - sense;
+  // sense = 1 - sense;
+  //  *((uint64_t*)(_XBGAS_SENSE_)) = 1 - sense;
 
    /* Exit barrier */
    *(uint64_t *)(_XBGAS_DEBUG_MEM_) = (uint64_t)(0b10);

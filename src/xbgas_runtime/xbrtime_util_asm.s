@@ -76,7 +76,7 @@ __xbrtime_get_remote_alloc:
   # __xbrtime_remote_touch
   # - a0 = base address of remote barrier variable
   # - a1 = remote pe
-  # - a2 = sense
+  # - a2 = stride
   .globl __xbrtime_remote_touch
   .type __xbrtime_remote_touch, @function
 __xbrtime_remote_touch:

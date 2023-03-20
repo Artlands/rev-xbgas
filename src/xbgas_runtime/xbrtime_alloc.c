@@ -118,7 +118,6 @@ void *__xbrtime_shared_malloc( size_t sz ){
 
   /* find an open slot */
   while( (slot == -1) && (done != 1) ){
-    // if( __XBRTIME_CONFIG->_MMAP[i].size == 0 ){
     if( (uint64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16 + 8))) == 0){
       slot = i;
       done = 1;
@@ -142,8 +141,6 @@ void *__xbrtime_shared_malloc( size_t sz ){
   }
 
   /* memory is good, register the block */
-  // __XBRTIME_CONFIG->_MMAP[slot].size = sz;
-  // __XBRTIME_CONFIG->_MMAP[slot].start_addr = (uint64_t)(ptr);
   *((uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(slot * 16 + 8))) = (uint64_t)(sz);   // size
   *((uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(slot * 16)))     = (uint64_t)(ptr);  // start address
     
@@ -166,17 +163,12 @@ void __xbrtime_shared_free(void *ptr){
    *
    */
   for( i=0; i<_XBRTIME_MEM_SLOTS_; i++ ){
-    // if( (mem >= __XBRTIME_CONFIG->_MMAP[i].start_addr) &&
-    //     (mem < (__XBRTIME_CONFIG->_MMAP[i].start_addr+
-    //             __XBRTIME_CONFIG->_MMAP[i].size)) ){
       if( (mem >= (int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)))) &&
           (mem < ((int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16))) + 
                   (int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16 + 8))))) ){
       /* found the allocation */
       revfree( ptr );
       // free(ptr);
-      // __XBRTIME_CONFIG->_MMAP[i].start_addr = 0x00ull;
-      // __XBRTIME_CONFIG->_MMAP[i].size = 0;
 
       /* update values of sz and ptr in xbgas firmware */
       int64_t tmp = (int64_t)(*(uint64_t*)(_XBGAS_SHARED_MEM_SIZE_));
@@ -208,11 +200,6 @@ extern void xbrtime_free( void *ptr ){
   if( ptr == NULL ) {
     return;
   } 
-  // else if( __XBRTIME_CONFIG == NULL ){
-  //   return;
-  // } else if(__XBRTIME_CONFIG->_MMAP == NULL ) {
-  //   return;
-  // }
   __xbrtime_shared_free(ptr);
   __xbrtime_asm_quiet_fence();
 }
@@ -229,18 +216,13 @@ uint64_t __xbrtime_ltor(uint64_t remote, int pe){
   }else{
     /* perform the address translation */
     for( i=0; i<_XBRTIME_MEM_SLOTS_; i++ ){
-      // if( (remote >= __XBRTIME_CONFIG->_MMAP[i].start_addr) &&
-      //     (remote < (__XBRTIME_CONFIG->_MMAP[i].start_addr+
-      //                __XBRTIME_CONFIG->_MMAP[i].size)) ){
         if( (remote >= (int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)))) &&
             (remote < ((int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16))) + 
                        (int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16 + 8))))) ){
         /* found our slot */
-        // base_slot = (uint64_t)(&__XBRTIME_CONFIG->_MMAP[i].start_addr);
         base_slot = (uint64_t)(_XBGAS_MMAP_ + (uint64_t)(i * 16));
 
         /* calculate the local offset */
-        // offset = remote - __XBRTIME_CONFIG->_MMAP[i].start_addr;
         offset = remote - (int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)));
 
         new_addr = __xbrtime_get_remote_alloc(base_slot, xbrtime_decode_pe(pe))
