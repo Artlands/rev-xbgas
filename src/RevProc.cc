@@ -1523,13 +1523,11 @@ void RevProc::PrintBuffer(){
 
   if (length > 0) {
     /* Read data from the output buffer */
-    char buffer[_XBGAS_OUTPUT_BUFFER_SIZE_];
-
     mem->ReadMem(_XBGAS_OUTPUT_BUFFER_START_, length, buffer);
     std::cout << buffer;
 
     /* Reset the buffer */
-    memset(buffer, 0x00ul, _XBGAS_OUTPUT_BUFFER_SIZE_);
+    memset(buffer, 0, _XBGAS_OUTPUT_BUFFER_SIZE_);
     mem->WriteU64(_XBGAS_OUTPUT_BUFFER_LENGTH_, 0x00ul);
     mem->WriteMem(_XBGAS_OUTPUT_BUFFER_START_, length, buffer);
   }
@@ -1538,38 +1536,30 @@ void RevProc::PrintBuffer(){
 bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
   bool rtn = false;
   Stats.totalCycles++;
-
-  // int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
-  // if (id == 0) 
-  {
-    PrintBuffer();
-  }
+  PrintBuffer();
 
 #if 0
 // #ifdef _XBGAS_DEBUG_
   int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
-  if (id == 0) {
-    PrintBuffer();
+  if((currentCycle % 1000000) == 0){
+    if (id == 0) {
+      std::cout << "Current Cycle: " << currentCycle <<  " PC: " << std::hex << ExecPC << std::dec << std::endl;
+      std::cout << "|----- Shared Memory Slot -----|" << std::endl;
+      std::cout << "Shared Memory Size: " << std::dec << (int64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_SIZE_)) << std::endl;
+      std::cout << "Shared Memory Start Addr: 0x" << std::hex << mem->ReadU64(_XBGAS_SHARED_MEM_START_ADDR_) << std::endl;
+      std::cout << "Heap Start Address: 0x" << std::hex << mem->ReadU64(_REV_HEAP_START_ADDR_) << std::endl;
+      std::cout << "Heap End Address: 0x" << std::hex << (uint64_t)(_REV_HEAP_END_) << std::endl;
+      std::cout << "ERROR Message 0: 0x" << std::hex << mem->ReadU64(_XBGAS_DEBUG_ERROR0_) << std::endl;
+      std::cout << "ERROR Message 1: 0x" << std::hex << mem->ReadU64(_XBGAS_DEBUG_ERROR1_) << std::endl;
+      for ( int i=0; i < 5; i++ ) {
+        std::cout << "Slot " <<std::dec << +i
+                  << "\t start addr: 0x" << std::hex << (int64_t)(mem->ReadU64(_XBGAS_MMAP_ + i *16))
+                  << ",\t size: " << std::dec << (int64_t)(mem->ReadU64(_XBGAS_MMAP_ + i * 16 + 8))
+                  << std::endl;
+      }
+      std::cout << "|----- Shared Memory Slot -----|" << std::endl;
+    }
   }
-  // if((currentCycle % 1000000) == 0){
-  //   if (id == 0) {
-  //     std::cout << "Current Cycle: " << currentCycle <<  " PC: " << std::hex << ExecPC << std::dec << std::endl;
-  //     std::cout << "|----- Shared Memory Slot -----|" << std::endl;
-  //     std::cout << "Shared Memory Size: " << std::dec << (int64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_SIZE_)) << std::endl;
-  //     std::cout << "Shared Memory Start Addr: 0x" << std::hex << mem->ReadU64(_XBGAS_SHARED_MEM_START_ADDR_) << std::endl;
-  //     std::cout << "Heap Start Address: 0x" << std::hex << mem->ReadU64(_REV_HEAP_START_ADDR_) << std::endl;
-  //     std::cout << "Heap End Address: 0x" << std::hex << (uint64_t)(_REV_HEAP_END_) << std::endl;
-  //     std::cout << "ERROR Message 0: 0x" << std::hex << mem->ReadU64(_XBGAS_DEBUG_ERROR0_) << std::endl;
-  //     std::cout << "ERROR Message 1: 0x" << std::hex << mem->ReadU64(_XBGAS_DEBUG_ERROR1_) << std::endl;
-  //     for ( int i=0; i < 5; i++ ) {
-  //       std::cout << "Slot " <<std::dec << +i
-  //                 << "\t start addr: 0x" << std::hex << (int64_t)(mem->ReadU64(_XBGAS_MMAP_ + i *16))
-  //                 << ",\t size: " << std::dec << (int64_t)(mem->ReadU64(_XBGAS_MMAP_ + i * 16 + 8))
-  //                 << std::endl;
-  //     }
-  //     std::cout << "|----- Shared Memory Slot -----|" << std::endl;
-  //   }
-  // }
 #endif
 
   for (int t=0;  t < _REV_THREAD_COUNT_; t++){
@@ -1578,20 +1568,6 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
     RegFile[t].ERV64[12] = (uint64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_SIZE_));
     RegFile[t].ERV64[13] = (uint64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_START_ADDR_));
   }
-
-#ifdef _XBGAS_DEBUG_
-// #if 0
-  uint8_t xbgas_mem = (uint8_t)(mem->ReadU64(_XBGAS_DEBUG_MEM_));
-  // int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
-
-  if (xbgas_mem == 0b01) {
-    std::cout << "----- PE " << id << " enters barrier -----"  << std::endl;
-    mem->WriteU8(_XBGAS_DEBUG_MEM_, 0b00);
-  } else if (xbgas_mem == 0b10) {
-    std::cout << "----- PE " << id << " exits barrier -----"  << std::endl;
-    mem->WriteU8(_XBGAS_DEBUG_MEM_, 0b00);
-  }
-#endif
 
   // -- MAIN PROGRAM LOOP --
   //

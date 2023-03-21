@@ -138,7 +138,9 @@ namespace SST{
       RevProcStats Stats;       ///< RevProc: collection of performance stats
 
       RevRegFile RegFile[_REV_THREAD_COUNT_];      ///< RevProc: register file
-      RevInst Inst;             ///< RevProc: instruction payload
+      RevInst Inst;                                ///< RevProc: instruction payload
+
+      char buffer[_XBGAS_OUTPUT_BUFFER_SIZE_];     ///< RevProc: Output buffer
 
       std::vector<RevInstEntry> InstTable;        ///< RevProc: target instruction table
 
