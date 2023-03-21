@@ -468,6 +468,10 @@ bool RevProc::Reset(){
   }
   THREAD_CTS.set();
 
+  // // set the xbgas firmware. my_pe and total_npe will not be reset.
+  // for (int32_t addr = (int32_t)(_XBGAS_SHARED_MEM_SIZE_); addr <= (int32_t)(_REV_MEM_SIZE_); addr++){
+  //   mem->WriteU64(addr, 0x00ul);
+  // }
   return true;
 }
 
@@ -1514,36 +1518,60 @@ uint8_t RevProc::GetThreadID(){
   return nextID;
 }
 
+void RevProc::PrintBuffer(){
+  int length = (int)(mem->ReadU64(_XBGAS_OUTPUT_BUFFER_LENGTH_));
+
+  if (length > 0) {
+    /* Read data from the output buffer */
+    char buffer[length];
+    mem->ReadMem(_XBGAS_OUTPUT_BUFFER_START_, length, (void *)buffer);
+    std::printf("%s", buffer);
+
+    /* Reset the buffer */
+    memset(buffer, 0x00ul, length);
+    mem->WriteU64(_XBGAS_OUTPUT_BUFFER_LENGTH_, 0x00ul);
+    mem->WriteMem(_XBGAS_OUTPUT_BUFFER_START_, length, buffer);
+  }
+}
+
 bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
   bool rtn = false;
   Stats.totalCycles++;
 
+  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+  if (id == 0) {
+    PrintBuffer();
+  }
+
 #if 0
 // #ifdef _XBGAS_DEBUG_
-  if((currentCycle % 1000000) == 0){
-    int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
-    if (id == 0) {
-      std::cout << "Current Cycle: " << currentCycle <<  " PC: " << std::hex << ExecPC << std::dec << std::endl;
-      std::cout << "|----- Shared Memory Slot -----|" << std::endl;
-      std::cout << "Shared Memory Size: " << std::dec << (int64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_SIZE_)) << std::endl;
-      std::cout << "Shared Memory Start Addr: 0x" << std::hex << mem->ReadU64(_XBGAS_SHARED_MEM_START_ADDR_) << std::endl;
-      std::cout << "Heap Start Address: 0x" << std::hex << mem->ReadU64(_REV_HEAP_START_ADDR_) << std::endl;
-      std::cout << "Heap End Address: 0x" << std::hex << (uint64_t)(_REV_HEAP_END_) << std::endl;
-      std::cout << "ERROR Message 0: 0x" << std::hex << mem->ReadU64(_XBGAS_DEBUG_ERROR0_) << std::endl;
-      std::cout << "ERROR Message 1: 0x" << std::hex << mem->ReadU64(_XBGAS_DEBUG_ERROR1_) << std::endl;
-      for ( int i=0; i < 5; i++ ) {
-        std::cout << "Slot " <<std::dec << +i
-                  << "\t start addr: 0x" << std::hex << (int64_t)(mem->ReadU64(_XBGAS_MMAP_ + i *16))
-                  << ",\t size: " << std::dec << (int64_t)(mem->ReadU64(_XBGAS_MMAP_ + i * 16 + 8))
-                  << std::endl;
-      }
-      std::cout << "|----- Shared Memory Slot -----|" << std::endl;
-    }
+  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+  if (id == 0) {
+    PrintBuffer();
   }
+  // if((currentCycle % 1000000) == 0){
+  //   if (id == 0) {
+  //     std::cout << "Current Cycle: " << currentCycle <<  " PC: " << std::hex << ExecPC << std::dec << std::endl;
+  //     std::cout << "|----- Shared Memory Slot -----|" << std::endl;
+  //     std::cout << "Shared Memory Size: " << std::dec << (int64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_SIZE_)) << std::endl;
+  //     std::cout << "Shared Memory Start Addr: 0x" << std::hex << mem->ReadU64(_XBGAS_SHARED_MEM_START_ADDR_) << std::endl;
+  //     std::cout << "Heap Start Address: 0x" << std::hex << mem->ReadU64(_REV_HEAP_START_ADDR_) << std::endl;
+  //     std::cout << "Heap End Address: 0x" << std::hex << (uint64_t)(_REV_HEAP_END_) << std::endl;
+  //     std::cout << "ERROR Message 0: 0x" << std::hex << mem->ReadU64(_XBGAS_DEBUG_ERROR0_) << std::endl;
+  //     std::cout << "ERROR Message 1: 0x" << std::hex << mem->ReadU64(_XBGAS_DEBUG_ERROR1_) << std::endl;
+  //     for ( int i=0; i < 5; i++ ) {
+  //       std::cout << "Slot " <<std::dec << +i
+  //                 << "\t start addr: 0x" << std::hex << (int64_t)(mem->ReadU64(_XBGAS_MMAP_ + i *16))
+  //                 << ",\t size: " << std::dec << (int64_t)(mem->ReadU64(_XBGAS_MMAP_ + i * 16 + 8))
+  //                 << std::endl;
+  //     }
+  //     std::cout << "|----- Shared Memory Slot -----|" << std::endl;
+  //   }
+  // }
 #endif
 
   for (int t=0;  t < _REV_THREAD_COUNT_; t++){
-    // Update extended registers for the size of the shared memory region and
+    // Update extended registers for the size of the shared memory region and 
     // the starting address of the physical shared memory region
     RegFile[t].ERV64[12] = (uint64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_SIZE_));
     RegFile[t].ERV64[13] = (uint64_t)(mem->ReadU64(_XBGAS_SHARED_MEM_START_ADDR_));
@@ -1552,7 +1580,7 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
 #ifdef _XBGAS_DEBUG_
 // #if 0
   uint8_t xbgas_mem = (uint8_t)(mem->ReadU64(_XBGAS_DEBUG_MEM_));
-  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+  // int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
 
   if (xbgas_mem == 0b01) {
     std::cout << "----- PE " << id << " enters barrier -----"  << std::endl;

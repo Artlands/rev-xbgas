@@ -13,22 +13,23 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "xbrtime.h"
 
 int main(int argc, char **argv){
 
-  // printf( "Test\n" );
-  // char ch = 'A';
-  // char str[20] = "test";
-  // float flt = 10.234;
-  int no = 150;
-  // double dbl = 20.123456;
-  // printf("Character is %c \n", ch);
-  // printf("String is %s \n" , str);
-  // printf("Float value is %f \n", flt);
-  printf("Integer value is %d\n" , no);
-  // printf("Double value is %lf \n", dbl);
-  // printf("Octal value is %o \n", no);
-  // printf("Hexadecimal value is %x \n", no);
+  revprintf( "Test\n" );
+  char ch = 'A';
+  char str[20] = "test";
+  double flt = 12.23;
+  int no = 465;
+  double dbl = 10.15;
+  revprintf("Character is %c \n", ch);
+  revprintf("String is %s \n" , str);
+  revprintf("Float value is %f \n", flt);
+  revprintf("Integer value is %d\n" , no);
+  revprintf("Double value is %f \n", dbl);
+  // revprintf("Octal value is %d \n", no);
+  revprintf("Hexadecimal value is 0x%x \n", no); //Hexadecimal value is
   return 0;
 
 }

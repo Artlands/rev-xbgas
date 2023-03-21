@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <random>
+#include <cstdio>
 
 // -- RevCPU Headers
 #include "RevOpts.h"
@@ -100,6 +101,9 @@ namespace SST{
 
       /// RevProc: Handle ALU faults
       void HandleALUFault(unsigned width);
+
+      /// RevProc: Print output buffer
+      void PrintBuffer();
 
       class RevProcStats {
         public:

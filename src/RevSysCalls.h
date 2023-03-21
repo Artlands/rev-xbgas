@@ -235,20 +235,6 @@ int PrintString(RevRegFile* regFile, RevMem* mem, RevInst inst) {
     
   } else if (std::is_same<RiscvArchType, Riscv64>::value){
     uint64_t ptr = regFile->RV64[11];
-
-#ifdef _XBGAS_DEBUG_
-  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
-  if(id == 0)
-    std::cout << "Print String Start Addr: 0x" << std::hex << (ptr) << std::endl;
-#endif
-
-    for( uint64_t ptr;; ptr += 8) {
-      uint64_t data = mem->ReadU64(ptr);
-      if( mem->DumpDataAsString(data) ){
-        std::cout << std::endl;
-        break;
-      }
-    }
     return true;
   }
     return false;

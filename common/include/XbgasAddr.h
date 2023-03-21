@@ -27,6 +27,7 @@
 #define _REV_HEAP_END_                       _REV_MEM_SIZE_ >> 1   // Half of the simulated memory
 
 #define _XBGAS_FIRMWARE_SIZE_                65536       // 64KB
+#define _XBGAS_OUTPUT_BUFFER_SIZE_           4096        // 4KB
 #define _XBGAS_FIRMWARE_                     _REV_MEM_SIZE_ - _XBGAS_FIRMWARE_SIZE_  // Firmware size: 64KB
 
 #define _XBGAS_MY_PE_                        _XBGAS_FIRMWARE_          // the physical PE id
@@ -39,7 +40,11 @@
 #define _XBGAS_MMAP_                         _XBGAS_BARRIER_END_ + 8
 #define _XBGAS_MMAP_END_                     _XBGAS_MMAP_ + _XBRTIME_MEM_SLOTS_ * 16
 
-#define _REV_HEAP_START_ADDR_                _XBGAS_MMAP_END_ + 8
+#define _XBGAS_OUTPUT_BUFFER_START_          _XBGAS_MMAP_END_ + 8
+#define _XBGAS_OUTPUT_BUFFER_END_            _XBGAS_OUTPUT_BUFFER_START_ + _XBGAS_OUTPUT_BUFFER_SIZE_
+#define _XBGAS_OUTPUT_BUFFER_LENGTH_         _XBGAS_OUTPUT_BUFFER_END_ + 8
+
+#define _REV_HEAP_START_ADDR_                _XBGAS_OUTPUT_BUFFER_LENGTH_ + 8
 #define _XBGAS_DEBUG_MEM_                    _REV_HEAP_START_ADDR_ + 8
 #define _XBGAS_DEBUG_ERROR0_                 _XBGAS_DEBUG_MEM_ + 8
 #define _XBGAS_DEBUG_ERROR1_                 _XBGAS_DEBUG_ERROR0_ + 8

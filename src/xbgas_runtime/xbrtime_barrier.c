@@ -40,7 +40,7 @@ extern void xbrtime_barrier() {
   __xbrtime_asm_fence();
 
   /* Enter barrier */
-  *(uint64_t *)(_XBGAS_DEBUG_MEM_) = (uint64_t)(0b01);
+  // *(uint64_t *)(_XBGAS_DEBUG_MEM_) = (uint64_t)(0b01);
 
   while( i < iter ){
     /* derive the correct target pe */
@@ -51,6 +51,8 @@ extern void xbrtime_barrier() {
     // addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8));
 
     __xbrtime_remote_touch(addr, target, (uint64_t)stride);
+
+    revprintf( "XBGAS_DEBUG : PE=%d; SUCCESS TOUCHING REMOTE ADDRESS\n", xbrtime_mype() );
 
     /* spinwait on local value */
     while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)(i * 8))) != stride ) {
@@ -75,7 +77,7 @@ extern void xbrtime_barrier() {
   //  *((uint64_t*)(_XBGAS_SENSE_)) = 1 - sense;
 
    /* Exit barrier */
-   *(uint64_t *)(_XBGAS_DEBUG_MEM_) = (uint64_t)(0b10);
+  //  *(uint64_t *)(_XBGAS_DEBUG_MEM_) = (uint64_t)(0b10);
 }
 
 /* EOF */

@@ -18,14 +18,19 @@ CC=riscv64-unknown-elf-gcc
 OBJDUMP=riscv64-unknown-elf-objdump
 ARCH=rv64imafd
 
+XBRTIME_SST=/home/li29729/SST/rev-xbgas/src/xbgas_runtime
+
+XBRTIME_SST=/home/li29729/SST/rev-xbgas/src/xbgas_runtime
+CFLAGS=-std=c11 -O0 -I$(XBRTIME_SST) -L$(XBRTIME_SST)
+LIBS=-lxbrtime -lm
+
 all: $(EXAMPLE).exe
 $(EXAMPLE).exe: $(EXAMPLE).c
-	$(CC) -march=$(ARCH) $(EXAMPLE).c -o $(EXAMPLE).exe
-	$(CC) -march=$(ARCH) -S $(EXAMPLE).c
+	$(CC) -march=$(ARCH) -mabi=lp64d $(CFLAGS) -o $@ $^  $(LIBS)
 # $(CC) -march=$(ARCH) $(EXAMPLE).c -o $(EXAMPLE).exe --save-temps
 
 objdump:
-	$(OBJDUMP) -S -d $(EXAMPLE).exe > $(EXAMPLE).asm
+	$(OBJDUMP) -d $(EXAMPLE).exe > $(EXAMPLE).asm
 
 
 clean:

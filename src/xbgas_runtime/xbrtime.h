@@ -15,6 +15,9 @@
 extern "C" {
 #endif
 
+#include <stdarg.h>
+#include <string.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -33,6 +36,7 @@ extern "C" {
 
 extern void *revmalloc( size_t sz );
 extern void revfree( void *ptr );
+extern void revprintf( const char *format, ...);
 
 extern int xbrtime_init();
 extern void xbrtime_close();

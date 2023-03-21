@@ -357,15 +357,4 @@ void RevMem::WriteDouble( uint64_t Addr, double Value ){
     output->fatal(CALL_INFO, -1, "Error: could not write memory (DOUBLE)");
 }
 
-bool RevMem::DumpDataAsString(uint64_t data) {
-  unsigned char bytes[5];
-	bytes[4] = 0;
-	bytes[3] = (data >> 24) & 0xFF;
-	bytes[2] = (data >> 16) & 0xFF;
-	bytes[1] = (data >> 8) & 0xFF;
-	bytes[0] = data & 0xFF;
-	std::cout << bytes;
-	return (bytes[0] == 0 || bytes[1] == 0 || bytes[2] == 0 || bytes[3] == 0);
-}
-
 // EOF
