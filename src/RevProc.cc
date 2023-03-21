@@ -1523,12 +1523,13 @@ void RevProc::PrintBuffer(){
 
   if (length > 0) {
     /* Read data from the output buffer */
-    char buffer[length];
-    mem->ReadMem(_XBGAS_OUTPUT_BUFFER_START_, length, (void *)buffer);
-    std::printf("%s", buffer);
+    char buffer[_XBGAS_OUTPUT_BUFFER_SIZE_];
+
+    mem->ReadMem(_XBGAS_OUTPUT_BUFFER_START_, length, buffer);
+    std::cout << buffer;
 
     /* Reset the buffer */
-    memset(buffer, 0x00ul, length);
+    memset(buffer, 0x00ul, _XBGAS_OUTPUT_BUFFER_SIZE_);
     mem->WriteU64(_XBGAS_OUTPUT_BUFFER_LENGTH_, 0x00ul);
     mem->WriteMem(_XBGAS_OUTPUT_BUFFER_START_, length, buffer);
   }
@@ -1538,8 +1539,9 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
   bool rtn = false;
   Stats.totalCycles++;
 
-  int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
-  if (id == 0) {
+  // int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+  // if (id == 0) 
+  {
     PrintBuffer();
   }
 

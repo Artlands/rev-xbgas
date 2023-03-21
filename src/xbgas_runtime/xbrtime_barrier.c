@@ -52,7 +52,7 @@ extern void xbrtime_barrier() {
 
     __xbrtime_remote_touch(addr, target, (uint64_t)stride);
 
-    revprintf( "XBGAS_DEBUG : PE=%d; SUCCESS TOUCHING REMOTE ADDRESS\n", xbrtime_mype() );
+    // revprintf( "XBGAS_DEBUG : PE=%d; SUCCESS TOUCHING REMOTE ADDRESS\n", xbrtime_mype() );
 
     /* spinwait on local value */
     while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)(i * 8))) != stride ) {
