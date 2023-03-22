@@ -21,9 +21,10 @@ extern int xbrtime_init(){
   /* vars */
   int i = 0;
   int my_pe = __xbrtime_asm_get_id();
+  int npes  = __xbrtime_asm_get_npes();
   /* initialize xbrtime configuration in the firmware */
   *((uint64_t*)(_XBGAS_MY_PE_))                 = (uint64_t)(my_pe);
-  *((uint64_t*)(_XBGAS_TOTAL_NPE_))             = (uint64_t)(__xbrtime_asm_get_npes());
+  *((uint64_t*)(_XBGAS_TOTAL_NPE_))             = (uint64_t)(npes);
   *((uint64_t*)(_XBGAS_SHARED_MEM_SIZE_))       = 0x00ull;
   *((uint64_t*)(_XBGAS_SHARED_MEM_START_ADDR_)) = 0x00ull;
   *((uint64_t*)(_XBGAS_SENSE_))                 = 0x01ull;
@@ -43,6 +44,13 @@ extern int xbrtime_init(){
     *((uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)))     = 0x00ull;   // start address
     *((uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16 + 8))) = 0x00ull;   // size
   }
+
+  /* init the PE mapping structure */
+  for( i = 0; i < npes; i++ ){ 
+    *((uint64_t*)(_XBGAS_MAP_ + (uint64_t)(i * 16)))     = i;   // logical address
+    *((uint64_t*)(_XBGAS_MAP_ + (uint64_t)(i * 16 + 8))) = i+1; // physical address
+  }
+
 
 #ifdef _XBGAS_DEBUG_
   revprintf("\033[36mPE \033[1m%d\033[0m \033[36mInitialized xBGAS Runtime\033[0m\n", my_pe);

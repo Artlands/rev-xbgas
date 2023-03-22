@@ -11,7 +11,15 @@
 #include "xbrtime.h"
 
 extern int xbrtime_decode_pe( int pe ) {
-  return pe;
+  int raw_pe = 0;
+  int i = 0;
+  int npes = (int)(*((uint64_t*)(_XBGAS_TOTAL_NPE_)));
+  
+  for( i = 0; i < npes; i++ ){ 
+   if( (int)(*(uint64_t*)(_XBGAS_MAP_ + (uint64_t)(i * 16))) == pe )      // logical address
+      return (int)(*(uint64_t*)(_XBGAS_MAP_ + (uint64_t)(i * 16 + 8))); // physical address
+  }
+  return raw_pe;
 }
 
 extern int xbrtime_addr_accessible( const void *addr, int pe ){

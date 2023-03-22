@@ -22,7 +22,7 @@ void xbrtime_##_typename##_reduce_##_funcname##_tree(_type *dest, const _type *s
 {                                                                                                                                                       \
     int i, j, numpes, my_rpe, my_vpe, numpes_log, mask, two_i, r_partner, v_partner;                                                                    \
     stride = ((stride == 0) ? 1 : stride);   /* Avoid memory allocation problem */                                                                      \
-    _type *temp = (_type*) malloc(nelems * (sizeof(_type) * stride));                                                                                   \
+    _type *temp = (_type*) revmalloc(nelems * (sizeof(_type) * stride));                                                                                   \
     _type *accumulate = (_type*) xbrtime_malloc(nelems * (sizeof(_type) * stride));                                                                     \
     numpes = xbrtime_num_pes();                                                                                                                         \
     my_rpe = xbrtime_mype();                                                                                                                            \
@@ -69,7 +69,7 @@ void xbrtime_##_typename##_reduce_##_funcname##_tree(_type *dest, const _type *s
         }                                                                                                                                               \
     }                                                                                                                                                   \
     xbrtime_free(accumulate);                                                                                                                           \
-    free(temp);                                                                                                                                         \
+    revfree(temp);                                                                                                                                         \
 }                                                                                                                                                       \
                                                                                                                                                         \
 void xbrtime_##_typename##_reduce_##_funcname##_rabenseifner(_type *dest, const _type *src, size_t nelems, int stride, int root)                        \

@@ -36,7 +36,7 @@ namespace SST{
         // Search in TrackGets, if found, the request has been sent;
         // Use the corresponding Tag to get the data from GetResponse;
         // Send remote memory request otherwise.
-        // if (EXT1 != 0x0) 
+        if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
@@ -90,11 +90,11 @@ namespace SST{
 
           }
         } 
-        // else {
-        //   R->RV64[Inst.rd] = M->ReadU64(Addr);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          R->RV64[Inst.rd] = M->ReadU64(Addr);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
         return true;
       }
 
@@ -104,7 +104,7 @@ namespace SST{
         SEXT(Tmp, Inst.imm, 12);
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1] + Tmp);
-        // if (EXT1 != 0x0) 
+        if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
@@ -158,11 +158,11 @@ namespace SST{
             R->RV64_PC += Inst.instSize;
           }
         } 
-        // else {
-        //   SEXT(R->RV64[Inst.rd], M->ReadU32(Addr), 32);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          SEXT(R->RV64[Inst.rd], M->ReadU32(Addr), 32);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
         return true;
       }
 
@@ -172,7 +172,7 @@ namespace SST{
         SEXT(Tmp, Inst.imm, 12);
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1] + Tmp);
-        // if (EXT1 != 0x0) 
+        if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
@@ -224,11 +224,11 @@ namespace SST{
  #endif
           }
         } 
-        // else {
-        //   SEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 16);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          SEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 16);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
         return true;
       }
 
@@ -238,7 +238,7 @@ namespace SST{
         SEXT(Tmp, Inst.imm, 12);
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1] + Tmp);
-        // if (EXT1 != 0x0) 
+        if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
@@ -292,11 +292,11 @@ namespace SST{
           }
 
         } 
-        // else {
-        //   R->RV64[Inst.rd] = M->ReadU16(Addr);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          R->RV64[Inst.rd] = M->ReadU16(Addr);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
         return true;
       }
 
@@ -306,7 +306,7 @@ namespace SST{
         SEXT(Tmp, Inst.imm, 12);
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1] + Tmp);
-        // if (EXT1 != 0x0) 
+        if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
@@ -360,11 +360,11 @@ namespace SST{
           }
           
         } 
-        // else {
-        //   SEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 8);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          SEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 8);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
         return true;
       }
 
@@ -374,7 +374,7 @@ namespace SST{
         SEXT(Tmp, Inst.imm, 12);
         uint64_t EXT1 = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1] + Tmp);
-        // if (EXT1 != 0x0) 
+        if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT1, Addr, &Tag) ) {
@@ -427,11 +427,11 @@ namespace SST{
  #endif
           }
         } 
-        // else {
-        //   R->RV64[Inst.rd] = M->ReadU8(Addr);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          R->RV64[Inst.rd] = M->ReadU8(Addr);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
         return true;
       }
 
@@ -482,7 +482,7 @@ namespace SST{
         uint64_t EXT1 = R->ERV64[Inst.rs1];
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1] + Tmp);
 
-        // if (EXT1 != 0x0) 
+        if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU64( EXT1, Addr, R->RV64[Inst.rs2] );
@@ -529,9 +529,9 @@ namespace SST{
           }
           
         } 
-        // else {
-        //   M->WriteU64(Addr, R->RV64[Inst.rs2]);
-        // }
+        else {
+          M->WriteU64(Addr, R->RV64[Inst.rs2]);
+        }
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -556,7 +556,7 @@ namespace SST{
         uint64_t EXT1 = R->ERV64[Inst.rs1];
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1] + Tmp);
 
-        // if (EXT1 != 0x0) 
+        if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU32( EXT1, Addr, (uint32_t)(R->RV64[Inst.rs2] & MASK32) );
@@ -626,9 +626,9 @@ namespace SST{
  #endif
           }
         } 
-        // else {
-        //   M->WriteU32( Addr, R->RV64[Inst.rs2]);
-        // }
+        else {
+          M->WriteU32( Addr, R->RV64[Inst.rs2]);
+        }
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -651,7 +651,7 @@ namespace SST{
         uint64_t EXT1 = R->ERV64[Inst.rs1];
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1] + Tmp);
 
-        // if (EXT1 != 0x0) 
+        if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU16( EXT1, Addr, (uint16_t)(R->RV64[Inst.rs2]) );
@@ -695,9 +695,9 @@ namespace SST{
           }
           
         } 
-        // else {
-        //   M->WriteU16( Addr, (uint16_t)(R->RV64[Inst.rs2]));
-        // }
+        else {
+          M->WriteU16( Addr, (uint16_t)(R->RV64[Inst.rs2]));
+        }
         R->RV64_PC += Inst.instSize;  
         return true;
       }
@@ -720,7 +720,7 @@ namespace SST{
         uint64_t EXT1 = R->ERV64[Inst.rs1];
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1] + Tmp);
 
-        // if (EXT1 != 0x0) 
+        if (EXT1 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU8( EXT1, Addr, (uint8_t)(R->RV64[Inst.rs2]) );
@@ -764,9 +764,9 @@ namespace SST{
  #endif
           }
         } 
-        // else {
-        //   M->WriteU8( Addr, (uint8_t)(R->RV64[Inst.rs2]));
-        // }
+        else {
+          M->WriteU8( Addr, (uint8_t)(R->RV64[Inst.rs2]));
+        }
         R->RV64_PC += Inst.instSize;     
         return true;
       }
@@ -804,7 +804,7 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        // if (EXT2 != 0x0) 
+        if (EXT2 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
@@ -857,11 +857,11 @@ namespace SST{
           }
           
         } 
-        // else {
-        //   R->RV64[Inst.rd] = M->ReadU64(Addr);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          R->RV64[Inst.rd] = M->ReadU64(Addr);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
         return true;
       }
 
@@ -869,7 +869,7 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        // if (EXT2 != 0x0) 
+        if (EXT2 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
@@ -906,11 +906,11 @@ namespace SST{
           }
           
         } 
-        // else {
-        //   R->RV64[Inst.rd] = M->ReadU32(Addr);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          R->RV64[Inst.rd] = M->ReadU32(Addr);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
 
         return true;
       }
@@ -919,7 +919,7 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        // if (EXT2 != 0x0) 
+        if (EXT2 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
@@ -971,11 +971,11 @@ namespace SST{
           }
           
         } 
-        // else {
-        //   SEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 16);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          SEXT(R->RV64[Inst.rd], M->ReadU16(Addr), 16);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
 
         return true;
       }
@@ -984,7 +984,7 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        // if (EXT2 != 0x0) 
+        if (EXT2 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
@@ -1036,11 +1036,11 @@ namespace SST{
           }
 
         } 
-        // else {
-        //   R->RV64[Inst.rd] = M->ReadU16(Addr);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          R->RV64[Inst.rd] = M->ReadU16(Addr);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
         return true;
       }
 
@@ -1048,7 +1048,7 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        // if (EXT2 != 0x0) 
+        if (EXT2 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
@@ -1101,11 +1101,11 @@ namespace SST{
           }
           
         } 
-        // else {
-        //   SEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 8);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          SEXT(R->RV64[Inst.rd], M->ReadU8(Addr), 8);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
         return true;
       }
 
@@ -1113,7 +1113,7 @@ namespace SST{
         uint8_t Tag = 0;
         uint64_t EXT2 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        // if (EXT2 != 0x0) 
+        if (EXT2 != 0x0) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             if ( !Xbgas->checkGetRequests(EXT2, Addr, &Tag) ) {
@@ -1166,11 +1166,11 @@ namespace SST{
           }
           
         } 
-        // else {
-        //   R->RV64[Inst.rd] = M->ReadU8(Addr);
-        //   R->RV64_PC += Inst.instSize;
-        //   R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
-        // }
+        else {
+          R->RV64[Inst.rd] = M->ReadU8(Addr);
+          R->RV64_PC += Inst.instSize;
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
         return true;
       }
 
@@ -1240,7 +1240,7 @@ namespace SST{
         // ersd rd, rs1, rs2
         uint64_t EXT3 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        // if( EXT3 != 0x0 ) 
+        if( EXT3 != 0x0 ) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU64( EXT3, Addr, R->RV64[Inst.rd] );
@@ -1285,9 +1285,9 @@ namespace SST{
           }
           
         } 
-        // else {
-        //   M->WriteU64( Addr, R->RV64[Inst.rd] );
-        // }
+        else {
+          M->WriteU64( Addr, R->RV64[Inst.rd] );
+        }
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -1306,7 +1306,7 @@ namespace SST{
         // ersw rd, rs1, rs2
         uint64_t EXT3 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        // if( EXT3 != 0x0 ) 
+        if( EXT3 != 0x0 ) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU32( EXT3, Addr, R->RV64[Inst.rd] );
@@ -1351,9 +1351,9 @@ namespace SST{
           }
           
         } 
-        // else {
-        //   M->WriteU32( Addr, R->RV64[Inst.rd] );
-        // }
+        else {
+          M->WriteU32( Addr, R->RV64[Inst.rd] );
+        }
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -1372,7 +1372,7 @@ namespace SST{
         // ersh rd, rs1, rs2
         uint64_t EXT3 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        // if( EXT3 != 0x0 ) 
+        if( EXT3 != 0x0 ) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU16( EXT3, Addr, R->RV64[Inst.rd] );
@@ -1415,9 +1415,9 @@ namespace SST{
           }
           
         } 
-        // else {
-        //   M->WriteU16( Addr, R->RV64[Inst.rd] );
-        // }
+        else {
+          M->WriteU16( Addr, R->RV64[Inst.rd] );
+        }
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -1436,7 +1436,7 @@ namespace SST{
         // ersb rd, rs1, rs2
         uint64_t EXT3 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        // if( EXT3 != 0x0 ) 
+        if( EXT3 != 0x0 ) 
         {
           if ( R->ERV64[0] == 0x00ull ) {
             Xbgas->WriteU8( EXT3, Addr, R->RV64[Inst.rd] );
@@ -1479,9 +1479,9 @@ namespace SST{
  #endif
           }
         } 
-        // else {
-        //   M->WriteU8( Addr, R->RV64[Inst.rd] );
-        // }
+        else {
+          M->WriteU8( Addr, R->RV64[Inst.rd] );
+        }
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -1500,13 +1500,13 @@ namespace SST{
         // erse rd, rs1, rs2
         uint64_t EXT3 = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t Addr = (uint64_t)(R->RV64[Inst.rs1]);
-        // if( EXT3 != 0x0 ) 
+        if( EXT3 != 0x0 ) 
         {
           Xbgas->WriteU64( EXT3, Addr, R->ERV64[Inst.rd] );
         } 
-        // else {
-        //   M->WriteU64( Addr, R->ERV64[Inst.rd] );
-        // }
+        else {
+          M->WriteU64( Addr, R->ERV64[Inst.rd] );
+        }
         R->RV64_PC += Inst.instSize;
 
 #ifdef _XBGAS_DEBUG_

@@ -59,8 +59,7 @@ void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
 
   NLB.push_back(std::make_pair(0x0, id));
   for(SST::Interfaces::SimpleNetwork::nid_t i: xbgasHosts){
-    if ( (int64_t)i != id)
-      NLB.push_back( std::make_pair( (uint64_t(i+1)), i ) );
+    NLB.push_back( std::make_pair( (uint64_t(i+1)), i ) );
   }
 
   // output->verbose(CALL_INFO, 6, 0, "--> MY NLB is: \n");
@@ -720,13 +719,13 @@ uint8_t RevXbgas::createTag(){
 }
 
 int RevXbgas::findDest(uint64_t nmspace){
-  return nmspace;
-  // for( auto it=NLB.begin(); it != NLB.end(); ++it ) {
-  //   if( std::get<0>(*it) == nmspace ) {
-  //     return std::get<1>(*it);
-  //   }
-  // }
-  // return -1;
+  // return nmspace;
+  for( auto it=NLB.begin(); it != NLB.end(); ++it ) {
+    if( std::get<0>(*it) == nmspace ) {
+      return std::get<1>(*it);
+    }
+  }
+  return -1;
 }
 
 bool RevXbgas::checkGetRequests( uint64_t Nmspace, uint64_t Addr, uint8_t *Tag ){
