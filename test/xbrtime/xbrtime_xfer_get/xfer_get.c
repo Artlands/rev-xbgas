@@ -16,16 +16,15 @@
 #define _XBGAS_ALLOC_SIZE_ 8
 
 int main( int argc, char **argv ){
-  int rtn = 0;
   int *ptr = NULL;
   size_t sz = _XBGAS_ALLOC_SIZE_;
+
+  // Initializing xBGAS Runtime
+  xbrtime_init();
 
   int my_pe = xbrtime_mype();
 	int numpes = xbrtime_num_pes();
   int target = (my_pe+2)%numpes;
-
-  // Initializing xBGAS Runtime
-  rtn = xbrtime_init();
 
   // Allocating sz bytes
   ptr = (int *)(xbrtime_malloc( sz ));
@@ -57,7 +56,6 @@ int main( int argc, char **argv ){
 
   // Closing xBGAS
   xbrtime_close();
-  return rtn;
 }
 
 /* EOF */

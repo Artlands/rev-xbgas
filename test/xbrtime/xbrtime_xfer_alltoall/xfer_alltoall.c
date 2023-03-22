@@ -13,33 +13,38 @@
 #include "xbrtime.h"
 
 int main( int argc, char **argv ){
-  int i, my_pe, numpes, *my_array;
+  int i, numpes, my_pe, nelems, src_stride, dest_stride;
+  int *src_array, *dest_array;
 
   // Initializing xBGAS Runtime
   xbrtime_init();
   
   my_pe = xbrtime_mype();
   numpes = xbrtime_num_pes();
-  revprintf("PE %d initializes xBGAS Runtime\n", my_pe);
+  nelems = 1;
+  src_stride = 1;
+  dest_stride = 1;
+  src_array = (int*) xbrtime_malloc(numpes * nelems * sizeof(int));
+  dest_array = (int*) xbrtime_malloc(numpes * nelems * sizeof(int));
 
-  my_array = (int*) xbrtime_malloc(8 * sizeof(int));
-
-  for(i = 0; i < 4; i++)
-  {
-    my_array[i] = my_pe;
+  for(i = 0; i < (numpes*nelems); i++) {
+    src_array[i] = (int) my_pe;
+    dest_array[i] = 99;
   }
 
-  revprintf("Pre-AlltoAll\nPE:%d src_array: %d %d %d %d\n",
-                            my_pe, my_array[0], my_array[1], my_array[2], my_array[3]);
+  revprintf("Pre-AlltoAll\nPE:%d src_array: %d %d %d %d, dest_array: %d %d %d %d\n",
+                            my_pe, src_array[0], src_array[1], src_array[2], src_array[3],
+                            dest_array[0], dest_array[1], dest_array[2], dest_array[3]);
   
-  xbrtime_int_alltoall(my_array, my_array, 1, 1, 1);
+  xbrtime_int_alltoall(dest_array, src_array, src_stride, dest_stride, nelems);
   
-  revprintf("Post-AlltoAll\nPE:%d src_array: %d %d %d %d\n",
-                            my_pe, my_array[0], my_array[1], my_array[2], my_array[3]);
+  revprintf("Pre-AlltoAll\nPE:%d src_array: %d %d %d %d, dest_array: %d %d %d %d\n",
+                            my_pe, src_array[0], src_array[1], src_array[2], src_array[3],
+                            dest_array[0], dest_array[1], dest_array[2], dest_array[3]);
 
-  xbrtime_free( my_array );
+  xbrtime_free( src_array );
+  xbrtime_free( dest_array );
 
-  revprintf("PE %d closes xBGAS Runtime\n", my_pe);
   // Closing xBGAS
   xbrtime_close();
 }

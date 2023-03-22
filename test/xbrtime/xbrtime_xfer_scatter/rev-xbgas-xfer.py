@@ -31,7 +31,7 @@ sst.setProgramOption("stopAtCycle", "0s")
 # Tell SST what statistics handling we want
 sst.setStatisticLoadLevel(4)
 
-NPES = 2
+NPES = 4
 
 verb_params = {
   "verbose" : 5,
@@ -57,10 +57,10 @@ router.addParams({
 
 for i in range(0, NPES):
   if (i == 0):
-    verbose = 5
+    verbose = 1
     splash = 1
   else:
-    verbose = 4
+    verbose = 1
     splash = 0
   
   # xBGAS CPUs

@@ -53,7 +53,9 @@ extern void xbrtime_barrier() {
 
     __xbrtime_remote_touch(addr, target, (uint64_t)stride);
 
-    // revprintf( "XBGAS_DEBUG : PE=%d; SUCCESS TOUCHING REMOTE ADDRESS\n", xbrtime_mype() );
+#ifdef _XBGAS_DEBUG_
+    revprintf("\033[35mBarrier-iteration-%d: PE \033[1m%d\033[0m \033[35mTouches PE \033[1m%d\033[0m\033[0m\n", i, my_pe, target);
+#endif
 
     while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) != stride ) {
       // debug

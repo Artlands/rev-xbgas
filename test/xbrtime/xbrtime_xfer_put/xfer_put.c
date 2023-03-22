@@ -16,29 +16,28 @@
 #define _XBGAS_ALLOC_SIZE_ 4
 
 int main( int argc, char **argv ){
-  int rtn = 0;
   int *ptr = NULL;
   size_t sz = _XBGAS_ALLOC_SIZE_;
+
+  // Initializing xBGAS Runtime
+  xbrtime_init();
 
   int my_pe = xbrtime_mype();
 	int numpes = xbrtime_num_pes();
   int target = (my_pe+1)%numpes;
-
-  // Initializing xBGAS Runtime
-  rtn = xbrtime_init();
 
   // Allocating sz bytes
   ptr = (int *)(xbrtime_malloc( sz ));
   // Putting a value in the first element
   ptr[0] = (int)(my_pe + 5);
 
-  revprintf("Pre-Get - PE:%d Val: %d\n", my_pe, ptr[0]);
+  revprintf("Pre-Put - PE:%d Val: %d\n", my_pe, ptr[0]);
 
   // perform a barrier
   xbrtime_barrier();
 
   if( my_pe == 0 ){
-    revprintf("PE %d PUTs a value to PE %d\n", xbrtime_mype(), target);
+    revprintf("PE %d PUTs %d to PE %d\n", xbrtime_mype(), ptr[0], target);
     // perform an operation
     xbrtime_int_put((int *)(ptr),
                     (int *)(ptr),
@@ -50,13 +49,12 @@ int main( int argc, char **argv ){
   // perform a barrier
   xbrtime_barrier();
 
-  revprintf("Post-Get - PE:%d Val: %d\n", my_pe, ptr[0]);
+  revprintf("Post-Put - PE:%d Val: %d\n", my_pe, ptr[0]);
 
   xbrtime_free( ptr );
 
   // Closing xBGAS
   xbrtime_close();
-  return rtn;
 }
 
 /* EOF */

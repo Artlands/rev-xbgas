@@ -156,7 +156,7 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
 #endif
 
         for( unsigned i=0; i<tmp_nelem; i++ ){
-          tmp_addr = tmp_dest_addr + (uint64_t)(i * (1 + tmp_stride) * tmp_len);
+          tmp_addr = tmp_dest_addr + (uint64_t)(i * tmp_stride);
 
 #if 0 //def _XBGAS_DEBUG_
           if ( (id == 0) && tmp_dma ) { 
@@ -243,7 +243,7 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
 
   // Write each element to the target address
   for( unsigned i=0; i<Nelem; i++) {
-    tmp_addr = Addr + (uint64_t)(i * (1 + Stride) * Len);
+    tmp_addr = Addr + (uint64_t)(i * Stride);
 
 #if 0 //def _XBGAS_DEBUG_
     if ( (id == 1) ) { 
@@ -439,6 +439,13 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
   output->verbose(CALL_INFO, 6, 0,
                   "Writing %" PRIu32 " Bytes to PE %d Starting at 0x%2x; Stride = %" PRIu32 ", # of elements = %" PRIu32 "\n", 
                   Len, Dest, Addr, Stride, Nelem);
+  
+  // Len: bytes for the data type; Size: the packet size; 
+  // Stride: the distance (in bytes) between consecutive elements.
+  // Block: one block contains 8 bytes
+  // For transferring 2 int numbers, Size = Len (4 bytes) * Nelem (2) = 8 bytes
+  // Number of blocks needed: 1
+
   uint8_t Tag  = createTag();
   uint32_t Size = (uint32_t)(Len * Nelem);
   uint64_t Src = xnic->getAddress();
@@ -456,7 +463,8 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
   if ( Dma ) {
     // Read memory and save to buffer
 
-  #if 0 //def _XBGAS_DEBUG_
+  // #ifdef _XBGAS_DEBUG_
+  #if 0
       int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
       if ( id == 0) { 
         std::cout << "_XBGAS_DEBUG_ CPU" << id
@@ -465,15 +473,16 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
   #endif
 
     for( unsigned i=0; i< Nelem; i++ ){
-      tmp_addr = (uint64_t)(DataElem) + (uint64_t)(i * (1 + Stride) * Len);
+      tmp_addr = (uint64_t)(DataElem) + (uint64_t)(i * Stride);
       if( !mem->ReadMem( tmp_addr, Len, (void *)(&BufElem[i*Len])) ){
         break;
       }
 
-  #if 0 //def _XBGAS_DEBUG_
+  // #ifdef _XBGAS_DEBUG_
+  #if 0
       if ( id == 0) { 
         std::cout << "\tBuffer[" << std::dec << int(i) 
-                  << "] = 0x" << std::hex << (uint64_t)(Buf[i]) << std::endl;
+                  << "] = 0x" << std::hex << (int64_t)(BufElem[i*Len]) << std::endl;
       }
   #endif
 
@@ -485,7 +494,8 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
       BufElem[i] = DataElem[i];
     }
 
-#if 0 //def _XBGAS_DEBUG_
+// #ifdef _XBGAS_DEBUG_
+#if 0
       int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
       if ( id == 0) { 
         std::cout << "_XBGAS_DEBUG_ CPU" << id

@@ -13,7 +13,7 @@
 #include "xbrtime.h"
 
 int main( int argc, char **argv ){
-  int numpes, my_pe, root_pe, *b_val;
+  int i, numpes, my_pe, root_pe, nelems, stride, *b_val;
   root_pe = 3;
 
   // Initializing xBGAS Runtime
@@ -21,23 +21,28 @@ int main( int argc, char **argv ){
   
   my_pe = xbrtime_mype();
   numpes = xbrtime_num_pes();
-  revprintf("PE %d initializes xBGAS Runtime\n", my_pe);
+  nelems = 5;
+  stride = 1;
 
-  b_val = (int*)xbrtime_malloc(sizeof(int));
-  *b_val = my_pe + 12;
+  b_val = (int*)xbrtime_malloc(nelems * sizeof(int));
 
-  revprintf("Pre-Broadcast - PE:%d Val: %d\n", my_pe, b_val[0]);
+  for (i = 0; i < nelems; i++){
+    b_val[i] = i + my_pe;
+  }
+
+  revprintf("Pre-Broadcast - PE:%d Val: %d %d %d %d %d\n", 
+            my_pe, b_val[0], b_val[1], b_val[2], b_val[3], b_val[4]);
 
   if (my_pe == root_pe)
-    revprintf("PE %d BROADCASTs a value to other PEs\n", root_pe);
+    revprintf("PE %d BROADCASTs values to other PEs\n", root_pe);
   
-  xbrtime_int_broadcast(b_val, b_val, 1, 1, root_pe);
+  xbrtime_int_broadcast(b_val, b_val, nelems, stride, root_pe);
 
-  revprintf("Post-Broadcast - PE:%d Val: %d\n", my_pe, b_val[0]);
+  revprintf("Post-Broadcast - PE:%d Val: %d %d %d %d %d\n", 
+            my_pe, b_val[0], b_val[1], b_val[2], b_val[3], b_val[4]);
 
   xbrtime_free( b_val );
 
-  revprintf("PE %d closes xBGAS Runtime\n", my_pe);
   // Closing xBGAS
   xbrtime_close();
 }

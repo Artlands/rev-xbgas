@@ -57,10 +57,10 @@ router.addParams({
 
 for i in range(0, NPES):
   if (i == 0):
-    verbose = 5
+    verbose = 1
     splash = 1
   else:
-    verbose = 4
+    verbose = 1
     splash = 0
   
   # xBGAS CPUs
@@ -81,7 +81,7 @@ for i in range(0, NPES):
     "program"           : os.getenv("REV_EXE", "xfer_broadcast.exe"), # Target executable
     "splash"            : splash                                # Display the splash message
   })
-  print("Created xBGAS CPU component " + str(i) + ": " + xbgas_cpu.getFullName())
+  # print("Created xBGAS CPU component " + str(i) + ": " + xbgas_cpu.getFullName())
   sst.popNamePrefix()
   
   # Setup the NICs
