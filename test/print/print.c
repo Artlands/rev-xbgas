@@ -22,12 +22,12 @@ int main(int argc, char **argv){
   char str[20] = "test";
   double flt = 12.23;
   int no = 465;
-  double dbl = 10.15;
+  double dbl = 10.1507;
   revprintf("Character is %c \n", ch);
   revprintf("String is %s \n" , str);
   revprintf("Float value is %f \n", flt);
   revprintf("Integer value is %d\n" , no);
-  revprintf("Double value is %f \n", dbl);
+  revprintf("Double value is %.6f \n", dbl);
   // revprintf("Octal value is %d \n", no);
   revprintf("Hexadecimal value is 0x%x \n", no); //Hexadecimal value is
   return 0;

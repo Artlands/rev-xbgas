@@ -20,7 +20,7 @@ extern void xbrtime_barrier() {
   int64_t stride              = 1;
   uint64_t target         = 0x00ull;
   uint64_t addr           = 0x00ull;
-  // volatile uint64_t sense = *((uint64_t*)(_XBGAS_SENSE_));
+  volatile uint64_t sense = *((uint64_t*)(_XBGAS_SENSE_));
 
   int64_t num_pe = xbrtime_num_pes();
 
@@ -30,7 +30,7 @@ extern void xbrtime_barrier() {
   }
 
   /* Get the total iterations */
-  int64_t mype = xbrtime_mype();
+  int64_t my_pe = xbrtime_mype();
   int64_t iter = (int64_t)(log(num_pe)/log(2));
   
   if (iter < log(num_pe)/log(2))
@@ -39,40 +39,40 @@ extern void xbrtime_barrier() {
   /* force a heavy fence */
   __xbrtime_asm_fence();
 
+
+#ifdef _XBGAS_DEBUG_
+  revprintf("\033[31mPE \033[1m%d\033[0m \033[31mEnters Barrier\033[0m\n", my_pe);
+#endif
   /* Enter barrier */
   while( i < iter ){
     /* derive the correct target pe */
-    target = (mype + stride)%num_pe;
+    target = (my_pe + stride)%num_pe;
 
     target = (uint64_t)(xbrtime_decode_pe((int)(target)));
-    addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)(i * 8));
-    // addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8));
+    addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8));
 
     __xbrtime_remote_touch(addr, target, (uint64_t)stride);
 
     // revprintf( "XBGAS_DEBUG : PE=%d; SUCCESS TOUCHING REMOTE ADDRESS\n", xbrtime_mype() );
 
-    /* spinwait on local value */
-    while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)(i * 8))) != stride ) {
+    while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) != stride ) {
       // debug
     }
-    // while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) != stride ) {
-    //   // debug
-    // }
 
     stride *= 2;
     i++;
   }
-  
+
+#ifdef _XBGAS_DEBUG_
+  revprintf("\033[32mPE \033[1m%d\033[0m \033[32mExits Barrier\033[0m\n", my_pe);
+#endif
   /* reset the sense */
   for( i = 0; i < iter; i++ ) {
-    // *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) = 0xdeadbeefull;
-     *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)(i * 8))) = 0xdeadbeefull;
+    *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) = 0xdeadbeefull;
   }
 
   // Flip the sense
-  // sense = 1 - sense;
-  //  *((uint64_t*)(_XBGAS_SENSE_)) = 1 - sense;
+   *((uint64_t*)(_XBGAS_SENSE_)) = 1 - sense;
 
 }
 

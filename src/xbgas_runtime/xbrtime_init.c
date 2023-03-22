@@ -20,9 +20,9 @@ void __xbrtime_asm_fence();
 extern int xbrtime_init(){
   /* vars */
   int i = 0;
-  
+  int my_pe = __xbrtime_asm_get_id();
   /* initialize xbrtime configuration in the firmware */
-  *((uint64_t*)(_XBGAS_MY_PE_))                 = (uint64_t)(__xbrtime_asm_get_id());
+  *((uint64_t*)(_XBGAS_MY_PE_))                 = (uint64_t)(my_pe);
   *((uint64_t*)(_XBGAS_TOTAL_NPE_))             = (uint64_t)(__xbrtime_asm_get_npes());
   *((uint64_t*)(_XBGAS_SHARED_MEM_SIZE_))       = 0x00ull;
   *((uint64_t*)(_XBGAS_SHARED_MEM_START_ADDR_)) = 0x00ull;
@@ -44,12 +44,16 @@ extern int xbrtime_init(){
     *((uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16 + 8))) = 0x00ull;   // size
   }
 
+#ifdef _XBGAS_DEBUG_
+  revprintf("\033[36mPE \033[1m%d\033[0m \033[36mInitialized xBGAS Runtime\033[0m\n", my_pe);
+#endif
+
   return 0;
 }
 
 extern void xbrtime_close(){
   int i = 0;
-
+  int my_pe = __xbrtime_asm_get_id();
   /* hard fence */
   __xbrtime_asm_fence();
 
@@ -59,6 +63,9 @@ extern void xbrtime_close(){
       xbrtime_free((void *)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)))); // start address
     }
   }
+#ifdef _XBGAS_DEBUG_
+  revprintf("\033[36mPE \033[1m%d\033[0m \033[36mClosed xBGAS Runtime\033[0m\n", my_pe);
+#endif
 }
 
 extern int xbrtime_mype(){

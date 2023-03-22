@@ -17,30 +17,44 @@
 
 int main( int argc, char **argv ){
   int rtn = 0;
-  uint64_t *ptr = NULL;
+  int *ptr = NULL;
   size_t sz = _XBGAS_ALLOC_SIZE_;
+
+  int my_pe = xbrtime_mype();
+	int numpes = xbrtime_num_pes();
+  int target = (my_pe+2)%numpes;
 
   // Initializing xBGAS Runtime
   rtn = xbrtime_init();
+
   // Allocating sz bytes
-  ptr = (uint64_t *)(xbrtime_malloc( sz ));
+  ptr = (int *)(xbrtime_malloc( sz ));
   // Putting a value in the first element
-  ptr[0] = (uint64_t)(xbrtime_mype() + 5);
+  ptr[0] = (int)(my_pe + 10);
+
+  revprintf("Pre-Get - PE:%d Val: %d\n", my_pe, ptr[0]);
+
   // perform a barrier
   xbrtime_barrier();
 
   if( xbrtime_mype() == 0 ){
     // perform an operation
+    revprintf("PE %d GETs a value from PE %d\n", xbrtime_mype(), target);
+
     xbrtime_ulonglong_get((unsigned long long *)(ptr),
                           (unsigned long long *)(ptr),
                           1,
                           1,
-                          3 );
+                          target );
   }
 
-  // // perform a barrier
+  // perform a barrier
   xbrtime_barrier();
+
+  revprintf("Post-Get - PE:%d Val: %d\n", my_pe, ptr[0]);
+
   xbrtime_free( ptr );
+
   // Closing xBGAS
   xbrtime_close();
   return rtn;

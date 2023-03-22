@@ -140,8 +140,6 @@ namespace SST{
       RevRegFile RegFile[_REV_THREAD_COUNT_];      ///< RevProc: register file
       RevInst Inst;                                ///< RevProc: instruction payload
 
-      char buffer[_XBGAS_OUTPUT_BUFFER_SIZE_];     ///< RevProc: Output buffer
-
       std::vector<RevInstEntry> InstTable;        ///< RevProc: target instruction table
 
       std::vector<RevExt *> Extensions;           ///< RevProc: vector of enabled extensions

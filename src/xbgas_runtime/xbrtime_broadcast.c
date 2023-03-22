@@ -25,13 +25,13 @@
      mask = (int) (pow(2,numpes_log) - 1);                                                                                  \
 															    \
      /* Root load values into buffer without stride */									    \
-     if(my_rpe == root)													    \
-     {															    \
-	 for(i = 0; i < nelems; i++)											    \
-	 {														    \
-	     temp[i] = src[i*stride];											    \
-	 }														    \
-     }															    \
+    if(my_rpe == root)													    \
+    {															    \
+	    for(i = 0; i < nelems; i++)											    \
+	    {														    \
+	      temp[i] = src[i*stride];											    \
+	    }														    \
+    }															    \
                                                                                                                             \
      /* Perform communication if PE active at stage i and has valid partner */                                              \
      for(i = numpes_log-1; i >= 0; i--)                                                                                     \

@@ -208,6 +208,8 @@ namespace SST {
       RevXbgas *Xbgas;                    ///< RevCPU: RISC-V Xbgas object
       std::vector<RevProc *> Procs;       ///< RevCPU: RISC-V processor objects
       bool *Enabled;                      ///< RevCPU: Completion structure
+      
+      char buffer[_XBGAS_OUTPUT_BUFFER_SIZE_];     ///< RevCPU: Output buffer
 
       uint8_t PrivTag;                    ///< RevCPU: private tag locator
       uint64_t LToken;                    ///< RevCPU: token identifier for PAN Test
@@ -330,6 +332,9 @@ namespace SST {
       //-------------------------------------------------------
       // -- FUNCTIONS
       //-------------------------------------------------------
+
+      /// RevCPU: Print output buffer
+      void PrintBuffer();
 
       /// RevCPU: initializes the PAN NIC tables
       void initNICMem();

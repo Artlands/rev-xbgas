@@ -381,7 +381,8 @@ bool RevProc::InitExtReg(){
     RegFile[t].ERV64[12] = (uint64_t)(0u);
     RegFile[t].ERV64[13] = (uint64_t)(0u);
 
-#ifdef _XBGAS_DEBUG_
+// #ifdef _XBGAS_DEBUG_
+#if 0
   {
     int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
     // if(id == 0)
@@ -1518,25 +1519,9 @@ uint8_t RevProc::GetThreadID(){
   return nextID;
 }
 
-void RevProc::PrintBuffer(){
-  int length = (int)(mem->ReadU64(_XBGAS_OUTPUT_BUFFER_LENGTH_));
-
-  if (length > 0) {
-    /* Read data from the output buffer */
-    mem->ReadMem(_XBGAS_OUTPUT_BUFFER_START_, length, buffer);
-    std::cout << buffer;
-
-    /* Reset the buffer */
-    memset(buffer, 0, _XBGAS_OUTPUT_BUFFER_SIZE_);
-    mem->WriteU64(_XBGAS_OUTPUT_BUFFER_LENGTH_, 0x00ul);
-    mem->WriteMem(_XBGAS_OUTPUT_BUFFER_START_, length, buffer);
-  }
-}
-
 bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
   bool rtn = false;
   Stats.totalCycles++;
-  PrintBuffer();
 
 #if 0
 // #ifdef _XBGAS_DEBUG_
