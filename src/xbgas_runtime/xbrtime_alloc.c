@@ -23,10 +23,7 @@ void __xbrtime_asm_quiet_fence();
 extern void *revmalloc( size_t size ){
   int32_t heap_end = (int32_t)(_REV_HEAP_END_);
   mem_block *current_block, *new_block;
-
-  /* align the requested size to 8-byte boundary */
-  size = (size + 7) & ~7;
-
+  
   if ( global_base ) {
     /* Search for a free block in the heap */
     current_block = global_base;
@@ -37,7 +34,7 @@ extern void *revmalloc( size_t size ){
         if (current_block->size > size + sizeof(mem_block)){
           /* Split the block into two blocks */
           new_block = (mem_block*)((void *)(current_block + sizeof(mem_block) + size));
-          new_block->size = current_block->size - sizeof(mem_block) - size ;
+          new_block->size = current_block->size - sizeof(mem_block) - size;
           new_block->free = 1;
           new_block->prev = current_block;
           new_block->next = current_block->next;
@@ -53,6 +50,7 @@ extern void *revmalloc( size_t size ){
     /* if no free block is found, return NULL */
     if (current_block == NULL) { 
       // *((uint64_t*)(_XBGAS_DEBUG_ERROR1_)) = 0b01;  // Debug
+      revprintf("revmalloc fails\n");
       return NULL;
     }
 
@@ -122,6 +120,9 @@ void *__xbrtime_shared_malloc( size_t sz ){
   int i     = 0;
   int done  = 0;
 
+  /* align the requested size to 8-byte boundary */
+  sz = (sz + 7) & ~7;
+
   /* find an open slot */
   while( (slot == -1) && (done != 1) ){
     if( (uint64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16 + 8))) == 0){
@@ -149,7 +150,6 @@ void *__xbrtime_shared_malloc( size_t sz ){
   /* memory is good, register the block */
   *((uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(slot * 16 + 8))) = (uint64_t)(sz);   // size
   *((uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(slot * 16)))     = (uint64_t)(ptr);  // start address
-    
 
   /* write sz and ptr to xbgas firmware */
   int64_t tmp = (int64_t)(*(uint64_t *)(_XBGAS_SHARED_MEM_SIZE_));

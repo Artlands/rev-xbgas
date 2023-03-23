@@ -244,10 +244,14 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
   for( unsigned i=0; i<Nelem; i++) {
     tmp_addr = Addr + (uint64_t)(i * Stride);
 
-#if 0 //def _XBGAS_DEBUG_
-    if ( (id == 1) ) { 
-      std::cout << "\tUpdate value @" << std::hex << tmp_addr
-                << " " << std:: dec << (int)(mem->ReadU32(tmp_addr));
+// #if 0
+#ifdef _XBGAS_DEBUG_
+    // if ( (id == 1) ) 
+    int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+    { 
+      std::cout << "PE " << id << " update value @" << std::hex << tmp_addr
+                << " Len " << std:: dec << Len 
+                << " Value: " << std:: dec << (int)(DataElem[i*Len]) << std::endl;
     }
 #endif
 
@@ -436,7 +440,7 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
   uint64_t tmp_addr = 0x00ull;
   int Dest = findDest(Nmspace);
   output->verbose(CALL_INFO, 6, 0,
-                  "Writing %" PRIu32 " Bytes to PE %d Starting at 0x%2x; Stride = %" PRIu32 ", # of elements = %" PRIu32 "\n", 
+                  "Writing %" PRIu32 " Bytes (each element) to PE %d Starting at 0x%2x; Stride = %" PRIu32 ", # of elements = %" PRIu32 "\n", 
                   Len, Dest, Addr, Stride, Nelem);
   
   // Len: bytes for the data type; Size: the packet size; 

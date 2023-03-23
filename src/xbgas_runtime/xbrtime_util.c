@@ -17,7 +17,7 @@ extern int xbrtime_decode_pe( int pe ) {
   
   for( i = 0; i < npes; i++ ){ 
    if( (int)(*(uint64_t*)(_XBGAS_MAP_ + (uint64_t)(i * 16))) == pe )      // logical address
-      return (int)(*(uint64_t*)(_XBGAS_MAP_ + (uint64_t)(i * 16 + 8))); // physical address
+      return (int)(*(uint64_t*)(_XBGAS_MAP_ + (uint64_t)(i * 16 + 8)));   // physical address
   }
   return raw_pe;
 }

@@ -43,19 +43,20 @@ extern void xbrtime_barrier() {
 #ifdef _XBGAS_DEBUG_
   revprintf("\033[31mPE \033[1m%d\033[0m \033[31mEnters Barrier\033[0m\n", my_pe);
 #endif
+
   /* Enter barrier */
   while( i < iter ){
     /* derive the correct target pe */
     target = (my_pe + stride)%num_pe;
 
+#ifdef _XBGAS_DEBUG_
+    revprintf("\033[35mBarrier-iteration-%d: PE \033[1m%d\033[0m \033[35mTouches PE \033[1m%d\033[0m\033[0m\n", i, my_pe, target);
+#endif
+
     target = (uint64_t)(xbrtime_decode_pe((int)(target)));
     addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8));
 
     __xbrtime_remote_touch(addr, target, (uint64_t)stride);
-
-#ifdef _XBGAS_DEBUG_
-    revprintf("\033[35mBarrier-iteration-%d: PE \033[1m%d\033[0m \033[35mTouches PE \033[1m%d\033[0m\033[0m\n", i, my_pe, target);
-#endif
 
     while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) != stride ) {
       // debug

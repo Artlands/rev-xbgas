@@ -14,18 +14,23 @@
 #include "xbrtime.h"
 
 int main( int argc, char **argv ){
-  int rtn = 0;
-  void *ptr = NULL;
+  int *array_1, *array_2, *array_3, *array_4;
 
-  // printf( "Initializing xBGAS Runtime\n" );
-  rtn = xbrtime_init();
+  xbrtime_init();
   
-  int my_pe = xbrtime_mype();
-  // printf( "xBGAS is Initialized; Closing xBGAS\n" );
-  xbrtime_close();
-  // printf( "xBGAS is Closed\n" );
+  array_1 = (int*) xbrtime_malloc(24);
+  array_2 = (int*) xbrtime_malloc(56);
+  array_3 = (int*) xbrtime_malloc(124);
 
-  return rtn;
+  xbrtime_free( array_1 );
+  xbrtime_free( array_2 );
+
+  array_4 = (int*) xbrtime_malloc(241);
+
+  xbrtime_free( array_4 );
+
+  xbrtime_close();
+
 }
 
 /* EOF */

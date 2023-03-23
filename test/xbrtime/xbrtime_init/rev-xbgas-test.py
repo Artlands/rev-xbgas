@@ -34,7 +34,7 @@ sst.setStatisticLoadLevel(4)
 # Define the simulation components
 xbgas_cpu0 = sst.Component("cpu0", "revcpu.RevCPU")
 xbgas_cpu0.addParams({
-          "verbose" : 6,                                # Verbosity
+          "verbose" : 5,                                # Verbosity
           "numCores" : 1,                               # Number of cores
           "clock" : "1.0GHz",                           # Clock
           "memSize" : 1*1024*1024*1024,                   # Memory size in bytes
@@ -49,29 +49,10 @@ xbgas_cpu0.addParams({
           "splash" : 1                                  # Display the splash message
 })
 
-xbgas_cpu1 = sst.Component("cpu1", "revcpu.RevCPU")
-xbgas_cpu1.addParams({
-          "verbose" : 0,                                # Verbosity
-          "numCores" : 1,                               # Number of cores
-          "clock" : "1.0GHz",                           # Clock
-          "memSize" : 2*1024*1024*1024,                   # Memory size in bytes
-          "machine" : "[0:RV64IMAFDCX]",                 # Core:Config;
-          "startAddr" : "[0:0x00000000]",               # Starting address for core 0
-          "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
-          "xbgas_nic" : "revcpu.XbgasNIC",
-          "enable_xbgas" : 1,
-          "enable_xbgas_test" : 0,                      # Enable the XBGAS test harness
-          "msgPerCycle": 10,
-          "program" : os.getenv("REV_EXE", "init_test_1.exe"),  # Target executable
-          "splash" : 1                                  # Display the splash message
-})
-
 # setup the NICs
 nic0 = xbgas_cpu0.setSubComponent("xbgas_nic", "revcpu.XbgasNIC")
-nic1 = xbgas_cpu1.setSubComponent("xbgas_nic", "revcpu.XbgasNIC")
 
 iface0 = nic0.setSubComponent("iface", "merlin.linkcontrol")
-iface1 = nic1.setSubComponent("iface", "merlin.linkcontrol")
 
 # setup the router
 router = sst.Component("router", "merlin.hr_router")
@@ -88,10 +69,8 @@ net_params = {
 }
 
 nic0.addParams(verb_params)
-nic1.addParams(verb_params)
 
 iface0.addParams(net_params)
-iface1.addParams(net_params)
 router.addParams(net_params)
 
 router.addParams({
@@ -104,11 +83,5 @@ router.addParams({
 # setup the links
 link0 = sst.Link("link0")
 link0.connect( (iface0, "rtr_port", "1ms"), (router, "port0", "1ms") )
-
-link1 = sst.Link("link1")
-link1.connect( (iface1, "rtr_port", "1ms"), (router, "port1", "1ms") )
-
-sst.setStatisticOutput("sst.statOutputCSV")
-sst.enableAllStatisticsForAllComponents()
 
 # EOF
