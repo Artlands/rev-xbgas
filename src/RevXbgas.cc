@@ -244,9 +244,8 @@ void RevXbgas::handlePut(xbgasNicEvent *event){
   for( unsigned i=0; i<Nelem; i++) {
     tmp_addr = Addr + (uint64_t)(i * Stride);
 
-// #if 0
-#ifdef _XBGAS_DEBUG_
-    // if ( (id == 1) ) 
+#if 0
+// #ifdef _XBGAS_DEBUG_
     int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
     { 
       std::cout << "PE " << id << " update value @" << std::hex << tmp_addr

@@ -20,14 +20,14 @@ int main( int argc, char **argv ){
   
   my_pe = xbrtime_mype();
   numpes = xbrtime_num_pes();
-  root_pe = 0;
+  root_pe = 2;
 
-  nelems = 8;
+  nelems = 10;
   src_array = (int*) xbrtime_malloc(nelems * sizeof(int));
 
   if(my_pe == root_pe) {
     for(i = 0; i < nelems; i++) {
-        src_array[i] = i+1;
+        src_array[i] = i + my_pe;
     }
   } else {
     for(i = 0; i < nelems; i++) {
@@ -35,13 +35,16 @@ int main( int argc, char **argv ){
     }
   }
 
-  int pe_msg_sz[4] = {2, 2, 2, 2};
-	int pe_disp[4] = {0, 2, 4, 6};
-  int dest_array[2] = {99};
+  int pe_msg_sz[5]  = {2, 2, 2, 2, 2};
+	int pe_disp[5]    = {0, 2, 4, 6, 8};
+  int dest_array[2] = {99, 99};
 
-	revprintf("Pre-Scatter\nPE %d src_array = %d %d %d %d %d %d %d %d\n", 
-             my_pe, src_array[0], src_array[1], src_array[2], src_array[3],
-                    src_array[4], src_array[5], src_array[6], src_array[7]);
+  if (my_pe == root_pe) {
+    revprintf("Pre-Scatter PE %d src_array = %d %d %d %d %d %d %d %d %d %d\n", 
+             my_pe, src_array[0], src_array[1], src_array[2], src_array[3], src_array[4], 
+                    src_array[5], src_array[6], src_array[7], src_array[8], src_array[9]);
+  }
+	
 
   // pe_msg: contains the number of data elements that are to be scattered to each 
   // PE indexed by PE logical rank.

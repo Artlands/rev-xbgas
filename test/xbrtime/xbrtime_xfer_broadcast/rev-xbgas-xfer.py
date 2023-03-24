@@ -31,7 +31,7 @@ sst.setProgramOption("stopAtCycle", "0s")
 # Tell SST what statistics handling we want
 sst.setStatisticLoadLevel(4)
 
-NPES = 8
+NPES = 4
 
 verb_params = {
   "verbose" : 5,

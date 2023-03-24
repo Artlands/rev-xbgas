@@ -215,7 +215,7 @@ uint64_t __xbrtime_ltor(uint64_t remote, int pe){
   uint64_t base_slot  = 0x00ull;
   uint64_t offset     = 0x00ull;
   uint64_t new_addr   = 0x00ull;
-
+  int64_t tmp;
   if( xbrtime_mype() == pe ){
     /* return the same address block */
     return remote;
@@ -227,10 +227,12 @@ uint64_t __xbrtime_ltor(uint64_t remote, int pe){
                        (int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16 + 8))))) ){
         /* found our slot */
         base_slot = (uint64_t)(_XBGAS_MMAP_ + (uint64_t)(i * 16));
+        tmp = (uint64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)));
 
         /* calculate the local offset */
-        offset = remote - (int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)));
-
+        offset = (uint64_t)((int32_t)remote - (int32_t)tmp);
+        // revprintf("PE %d slot: %d, base_slot: %x, offset: %x\n", pe, i, base_slot, offset);
+        // revprintf("PE %d, slot: %d, offset base: %x, remote: %x\n", pe, i, tmp, remote);
         new_addr = __xbrtime_get_remote_alloc(base_slot, xbrtime_decode_pe(pe))
                                              +offset;
 

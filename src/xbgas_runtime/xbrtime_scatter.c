@@ -44,7 +44,6 @@ void xbrtime_##_typename##_scatter_tree(_type *dest, const _type *src, int *pe_m
             for(j = 0; j < pe_msg_sz[temp_rpe]; j++)                                                                                    \
             {                                                                                                                           \
                 temp[counter++] = src[(pe_disp[temp_rpe]+j)];                                                                           \
-                /* revprintf("PE %d Tmp buffer: %d\n", my_rpe, src[(pe_disp[temp_rpe]+j)]); */                                          \
             }                                                                                                                           \
         }                                                                                                                               \
     }                                                                                                                                   \
@@ -79,8 +78,7 @@ void xbrtime_##_typename##_scatter_tree(_type *dest, const _type *src, int *pe_m
    /* Copy data to destination */                                                                                                       \
    for(i = 0; i < pe_msg_sz[my_rpe]; i++)                                                                                               \
    {                                                                                                                                    \
-      dest[i] = temp[i]; /*temp[(adj_disp[my_vpe])+i];*/                                                                                                                \
-      /*revprintf("PE %d Tmp buffer - out: %d\n", my_rpe, temp[i]);*/                                                                       \
+       dest[i] = temp[(adj_disp[my_vpe])+i];                                                                                            \
    }                                                                                                                                    \
    xbrtime_free(temp);                                                                                                                  \
 }                                                                                                                                       \

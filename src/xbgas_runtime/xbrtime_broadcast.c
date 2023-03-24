@@ -20,36 +20,26 @@
      numpes = xbrtime_num_pes();                                                                                            \
      my_rpe = xbrtime_mype();                                                                                               \
      my_vpe = ((my_rpe >= root) ? (my_rpe - root) : (my_rpe + numpes - root));                                              \
-     _type *temp = (_type*) xbrtime_malloc(sizeof(_type) * nelems);							    \
+     _type *temp = (_type*) xbrtime_malloc(sizeof(_type) * nelems);                                                         \
      numpes_log = (int) ceil((log(numpes)/log(2)));  /* Number of commmuication stages */                                   \
-     mask = (int) (pow(2,numpes_log) - 1);                                                                                  \
-															    \
-     /* Root load values into buffer without stride */									    \
-    if(my_rpe == root)													    \
-    {															    \
-	    for(i = 0; i < nelems; i++)											    \
-	    {														    \
-	      temp[i] = src[i*stride];											    \
-	    }														    \
-    }															    \
-                                                                                                                            \
-     /* Perform communication if PE active at stage i and has valid partner */                                              \
-     for(i = numpes_log-1; i >= 0; i--)                                                                                     \
+     /* Root load values into buffer without stride */                                                                      \
+    if(my_rpe == root)                                                                                                      \
+    {                                                                                                                       \
+     for(i = 0; i < nelems; i++)                                                                                            \
      {                                                                                                                      \
-         two_i = (int) pow(2,i);                                                                                            \
-         mask = mask ^ two_i;                                                                                               \
-         if(((my_vpe & mask) == 0) && ((my_vpe & two_i) == 0))                                                              \
-         {                                                                                                                  \
-             v_partner = (my_vpe ^ two_i) % numpes;                                                                         \
-             r_partner = (v_partner + root) % numpes;                                                                       \
-             if(my_vpe < v_partner)                                                                                         \
-             {                                                                                                              \
-                 xbrtime_##_typename##_put(temp, temp, nelems, 1, r_partner);                                               \
-             }                                                                                                              \
-         }                                                                                                                  \
-         xbrtime_barrier();                                                                                                 \
+       temp[i] = src[i*stride];                                                                                             \
      }                                                                                                                      \
-															    \
+    }                                                                                                                       \
+    /* Refer: https://en.wikipedia.org/wiki/Broadcast_(parallel_pattern) */                                                 \
+    for( i = numpes_log - 1; i >= 0; i-- ){                                                                                 \
+      if((my_vpe % (int)(pow(2, i+1)) == 0) && (( my_vpe + (int)(pow(2, i))) <= numpes)) {                                  \
+        v_partner = my_vpe + (int)(pow(2, i));                                                                              \
+        r_partner = (v_partner + root) % numpes;                                                                            \
+        xbrtime_##_typename##_put(temp, temp, nelems, 1, r_partner);                                                        \
+      }                                                                                                                     \
+      xbrtime_barrier();                                                                                                    \
+    }                                                                                                                       \
+                                                                                                                            \
      /* Migrate from buffer to dest with stride */                                                                          \
      for(i = 0; i < nelems; i++)                                                                                            \
      {                                                                                                                      \

@@ -14,7 +14,7 @@
 
 int main( int argc, char **argv ){
   int i, numpes, my_pe, root_pe, nelems, stride, *r_val;
-  root_pe = 0;
+  root_pe = 2;
 
   // Initializing xBGAS Runtime
   xbrtime_init();
@@ -27,7 +27,7 @@ int main( int argc, char **argv ){
   r_val = (int*)xbrtime_malloc(nelems * sizeof(int));
 
   for (i = 0; i < nelems; i++){
-    r_val[i] = (i+1) + (int)my_pe;
+    r_val[i] = (int)my_pe;
   }
 
   revprintf("Pre-Reduction - PE:%d Val: %d %d %d %d %d %d %d %d %d %d\n", 

@@ -22,41 +22,31 @@ void xbrtime_##_typename##_reduce_##_funcname##_tree(_type *dest, const _type *s
 {                                                                                                                                                       \
     int i, j, numpes, my_rpe, my_vpe, numpes_log, mask, two_i, r_partner, v_partner;                                                                    \
     stride = ((stride == 0) ? 1 : stride);   /* Avoid memory allocation problem */                                                                      \
-    _type *temp = (_type*) revmalloc(nelems * (sizeof(_type) * stride));                                                                                   \
+    _type *temp = (_type*) revmalloc(nelems * (sizeof(_type) * stride));                                                                                \
     _type *accumulate = (_type*) xbrtime_malloc(nelems * (sizeof(_type) * stride));                                                                     \
     numpes = xbrtime_num_pes();                                                                                                                         \
     my_rpe = xbrtime_mype();                                                                                                                            \
     my_vpe = ((my_rpe >= root) ? (my_rpe - root) : (my_rpe + numpes - root));                                                                           \
     numpes_log = (int) ceil((log(numpes)/log(2)));  /* Number of commmuication stages */                                                                \
-    mask = (int) (pow(2,numpes_log) - 1);                                                                                                               \
                                                                                                                                                         \
     /* Load accumulate buffer on each PE */                                                                                                             \
     for(i = 0; i < nelems; i++)                                                                                                                         \
     {                                                                                                                                                   \
         accumulate[i*stride] = src[i*stride];                                                                                                           \
     }                                                                                                                                                   \
-                                                                                                                                                        \
     /* Ensure accumulate buffer is ready */                                                                                                             \
     xbrtime_barrier();                                                                                                                                  \
                                                                                                                                                         \
     /* Perform communication if PE active at stage i and has valid partner */                                                                           \
-    for(i = 0; i < numpes_log; i++)                                                                                                                     \
-    {                                                                                                                                                   \
-        two_i = (int) pow(2,i);                                                                                                                         \
-        mask = mask ^ two_i;                                                                                                                            \
-        if(((my_vpe | mask) == mask) && ((my_vpe & two_i) == 0))                                                                                        \
-        {                                                                                                                                               \
-            v_partner = (my_vpe ^ two_i) % numpes;                                                                                                      \
-            r_partner = (v_partner + root) % numpes;                                                                                                    \
-            if(my_vpe < v_partner)                                                                                                                      \
-            {                                                                                                                                           \
-                xbrtime_##_typename##_get(temp, accumulate, nelems, stride, r_partner);                                                                 \
-                for(j = 0; j < nelems; j++)                                                                                                             \
-                {                                                                                                                                       \
-                    accumulate[j*stride] = (_type) accumulate[j*stride] _op temp[j*stride];                                                             \
-                }                                                                                                                                       \
-            }                                                                                                                                           \
+    for ( i = 0; i < numpes_log; i++ ) {                                                                                                                \
+      if((my_vpe % (int)(pow(2, i+1)) == 0) && (( my_vpe + (int)(pow(2, i))) <= numpes )) {                                                             \
+        v_partner = my_vpe + (int)(pow(2, i));                                                                                                          \
+        r_partner = (v_partner + root) % numpes;                                                                                                        \
+        xbrtime_##_typename##_get(temp, accumulate, nelems, stride, r_partner);                                                                         \
+        for( j = 0; j < nelems; j++ ) {                                                                                                                 \
+          accumulate[j*stride] = (_type) accumulate[j*stride] _op temp[j*stride];                                                                       \
         }                                                                                                                                               \
+      }                                                                                                                                                 \
         xbrtime_barrier();                                                                                                                              \
     }                                                                                                                                                   \
                                                                                                                                                         \
@@ -69,7 +59,7 @@ void xbrtime_##_typename##_reduce_##_funcname##_tree(_type *dest, const _type *s
         }                                                                                                                                               \
     }                                                                                                                                                   \
     xbrtime_free(accumulate);                                                                                                                           \
-    revfree(temp);                                                                                                                                         \
+    revfree(temp);                                                                                                                                      \
 }                                                                                                                                                       \
                                                                                                                                                         \
 void xbrtime_##_typename##_reduce_##_funcname##_rabenseifner(_type *dest, const _type *src, size_t nelems, int stride, int root)                        \
