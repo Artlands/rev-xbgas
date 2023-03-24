@@ -32,15 +32,15 @@ int main( int argc, char **argv ){
     dest_array[i] = 99;
   }
 
-  revprintf("Pre-AlltoAll\nPE:%d src_array: %d %d %d %d, dest_array: %d %d %d %d\n",
-                            my_pe, src_array[0], src_array[1], src_array[2], src_array[3],
-                            dest_array[0], dest_array[1], dest_array[2], dest_array[3]);
+  revprintf("Pre-AlltoAll - PE: %d src_array: %d %d %d %d %d, dest_array: %d %d %d %d %d\n",
+                            my_pe, src_array[0], src_array[1], src_array[2], src_array[3], src_array[4],
+                            dest_array[0], dest_array[1], dest_array[2], dest_array[3], dest_array[4]);
   
   xbrtime_int_alltoall(dest_array, src_array, src_stride, dest_stride, nelems);
   
-  revprintf("Pre-AlltoAll\nPE:%d src_array: %d %d %d %d, dest_array: %d %d %d %d\n",
-                            my_pe, src_array[0], src_array[1], src_array[2], src_array[3],
-                            dest_array[0], dest_array[1], dest_array[2], dest_array[3]);
+  revprintf("Post-AlltoAll - PE: %d src_array: %d %d %d %d %d, dest_array: %d %d %d %d %d\n",
+                            my_pe, src_array[0], src_array[1], src_array[2], src_array[3], src_array[4],
+                            dest_array[0], dest_array[1], dest_array[2], dest_array[3], dest_array[4]);
 
   xbrtime_free( src_array );
   xbrtime_free( dest_array );

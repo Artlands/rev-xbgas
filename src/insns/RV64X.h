@@ -63,15 +63,14 @@ namespace SST{
             }
           } else {
             // DMA operation
-            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
-            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
-            Xbgas -> ReadBulkU64( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
-                                  (uint32_t)(R->RV64[strideReg]), 
-                                  (uint64_t)(R->RV64[Inst.rd]));
-            // Reset ERV64[0]
-            R->ERV64[0] = 0x00ull;
-            R->RV64_PC += Inst.instSize;
-
+            uint8_t destReg, nelemReg, strideReg;
+            if (!Xbgas->checkGetRequests(EXT1, Addr, &Tag)) {
+              destReg   = DECODE_RD(R->ERV64[0]);
+              nelemReg  = DECODE_RS1(R->ERV64[0]);
+              strideReg = DECODE_RS2(R->ERV64[0]);
+              Xbgas -> ReadBulkU64( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                    (uint32_t)(R->RV64[strideReg]), 
+                                    (uint64_t)(R->RV64[destReg]));
 #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
             if (id == 0) 
@@ -83,11 +82,21 @@ namespace SST{
                         << "\tFROM: Nmspace(0x"<< std::hex << EXT1
                         << ") @ Addr(0x" << std::hex << Addr
                         << ")" << std::endl
-                        << "\tTO: Addr(0x" << std::hex << R->RV64[Inst.rd] 
+                        << "\tTO: Addr(0x" << std::hex << R->RV64[destReg] 
                         << ")" << std::endl;
             }
  #endif
 
+            } else {
+              //check if the memory is updated.
+              if (!Xbgas->checkDmaResponses(Tag)){
+                // Do nothing
+              } else {
+                // Receive the DMA data; reset ERV64[0] and advance PC
+                R->ERV64[0] = 0x00ull;
+                R->RV64_PC += Inst.instSize;
+              }
+            }
           }
         } 
         else {
@@ -130,16 +139,14 @@ namespace SST{
             }
           } else {
             // DMA operation
-            uint8_t destReg   = DECODE_RD(R->ERV64[0]);
-            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
-            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
-
-            Xbgas -> ReadBulkU32( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
-                                  (uint32_t)(R->RV64[strideReg]), 
-                                  (uint64_t)(R->RV64[destReg]));
-            // Reset ERV64[0]
-            R->ERV64[0] = 0x00ull;
-
+            uint8_t destReg, nelemReg, strideReg;
+            if (!Xbgas->checkGetRequests(EXT1, Addr, &Tag)) {
+              destReg   = DECODE_RD(R->ERV64[0]);
+              nelemReg  = DECODE_RS1(R->ERV64[0]);
+              strideReg = DECODE_RS2(R->ERV64[0]);
+              Xbgas -> ReadBulkU32( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                    (uint32_t)(R->RV64[strideReg]), 
+                                    (uint64_t)(R->RV64[destReg]));
 #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
             if (id == 0) 
@@ -155,7 +162,17 @@ namespace SST{
                         << ")" << std::endl;
             }
  #endif
-            R->RV64_PC += Inst.instSize;
+
+            } else {
+              //check if the memory is updated.
+              if (!Xbgas->checkDmaResponses(Tag)){
+                // Do nothing
+              } else {
+                // Receive the DMA data; reset ERV64[0] and advance PC
+                R->ERV64[0] = 0x00ull;
+                R->RV64_PC += Inst.instSize;
+              }
+            }
           }
         } 
         else {
@@ -198,15 +215,14 @@ namespace SST{
             }
           } else {
             // DMA operation
-            uint8_t destReg   = DECODE_RD(R->ERV64[0]);
-            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
-            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
-            Xbgas -> ReadBulkU16( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
-                                  (uint32_t)(R->RV64[strideReg]), 
-                                  (uint64_t)(R->RV64[destReg]));
-            // Reset ERV64[0]
-            R->ERV64[0] = 0x00ull;
-            R->RV64_PC += Inst.instSize;
+            uint8_t destReg, nelemReg, strideReg;
+            if (!Xbgas->checkGetRequests(EXT1, Addr, &Tag)) {
+              destReg   = DECODE_RD(R->ERV64[0]);
+              nelemReg  = DECODE_RS1(R->ERV64[0]);
+              strideReg = DECODE_RS2(R->ERV64[0]);
+              Xbgas -> ReadBulkU16( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                    (uint32_t)(R->RV64[strideReg]), 
+                                    (uint64_t)(R->RV64[destReg]));
 #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
             if (id == 0) 
@@ -222,6 +238,17 @@ namespace SST{
                         << ")" << std::endl;
             }
  #endif
+
+            } else {
+              //check if the memory is updated.
+              if (!Xbgas->checkDmaResponses(Tag)){
+                // Do nothing
+              } else {
+                // Receive the DMA data; reset ERV64[0] and advance PC
+                R->ERV64[0] = 0x00ull;
+                R->RV64_PC += Inst.instSize;
+              }
+            }
           }
         } 
         else {
@@ -265,15 +292,14 @@ namespace SST{
             }
           } else {
             // DMA operation
-            uint8_t destReg   = DECODE_RD(R->ERV64[0]);
-            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
-            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
-            Xbgas -> ReadBulkU16( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
-                                  (uint32_t)(R->RV64[strideReg]), 
-                                  (uint64_t)(R->RV64[destReg]));
-            // Reset ERV64[0]
-            R->ERV64[0] = 0x00ull;
-            R->RV64_PC += Inst.instSize;
+            uint8_t destReg, nelemReg, strideReg;
+            if (!Xbgas->checkGetRequests(EXT1, Addr, &Tag)) {
+              destReg   = DECODE_RD(R->ERV64[0]);
+              nelemReg  = DECODE_RS1(R->ERV64[0]);
+              strideReg = DECODE_RS2(R->ERV64[0]);
+              Xbgas -> ReadBulkU16( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                    (uint32_t)(R->RV64[strideReg]), 
+                                    (uint64_t)(R->RV64[destReg]));
 #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
             if (id == 0) 
@@ -289,6 +315,17 @@ namespace SST{
                         << ")" << std::endl;
             }
  #endif
+
+            } else {
+              //check if the memory is updated.
+              if (!Xbgas->checkDmaResponses(Tag)){
+                // Do nothing
+              } else {
+                // Receive the DMA data; reset ERV64[0] and advance PC
+                R->ERV64[0] = 0x00ull;
+                R->RV64_PC += Inst.instSize;
+              }
+            }
           }
 
         } 
@@ -333,15 +370,14 @@ namespace SST{
             }
           } else {
             // DMA operation
-            uint8_t destReg   = DECODE_RD(R->ERV64[0]);
-            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
-            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
-            Xbgas -> ReadBulkU8( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
-                                 (uint32_t)(R->RV64[strideReg]), 
-                                 (uint64_t)(R->RV64[destReg]));
-            // Reset ERV64[0]
-            R->ERV64[0] = 0x00ull;
-            R->RV64_PC += Inst.instSize;
+            uint8_t destReg, nelemReg, strideReg;
+            if (!Xbgas->checkGetRequests(EXT1, Addr, &Tag)) {
+              destReg   = DECODE_RD(R->ERV64[0]);
+              nelemReg  = DECODE_RS1(R->ERV64[0]);
+              strideReg = DECODE_RS2(R->ERV64[0]);
+              Xbgas -> ReadBulkU8( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                    (uint32_t)(R->RV64[strideReg]), 
+                                    (uint64_t)(R->RV64[destReg]));
 #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
             if (id == 0) 
@@ -357,6 +393,17 @@ namespace SST{
                         << ")" << std::endl;
             }
  #endif
+
+            } else {
+              //check if the memory is updated.
+              if (!Xbgas->checkDmaResponses(Tag)){
+                // Do nothing
+              } else {
+                // Receive the DMA data; reset ERV64[0] and advance PC
+                R->ERV64[0] = 0x00ull;
+                R->RV64_PC += Inst.instSize;
+              }
+            }
           }
           
         } 
@@ -401,15 +448,14 @@ namespace SST{
             }
           } else {
             // DMA operation
-            uint8_t destReg   = DECODE_RD(R->ERV64[0]);
-            uint8_t nelemReg  = DECODE_RS1(R->ERV64[0]);
-            uint8_t strideReg = DECODE_RS2(R->ERV64[0]);
-            Xbgas -> ReadBulkU8( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
-                                 (uint32_t)(R->RV64[strideReg]), 
-                                 (uint64_t)(R->RV64[destReg]));
-            // Reset ERV64[0]
-            R->ERV64[0] = 0x00ull;
-            R->RV64_PC += Inst.instSize;
+            uint8_t destReg, nelemReg, strideReg;
+            if (!Xbgas->checkGetRequests(EXT1, Addr, &Tag)) {
+              destReg   = DECODE_RD(R->ERV64[0]);
+              nelemReg  = DECODE_RS1(R->ERV64[0]);
+              strideReg = DECODE_RS2(R->ERV64[0]);
+              Xbgas -> ReadBulkU8( EXT1, Addr, (uint32_t)(R->RV64[nelemReg]),
+                                    (uint32_t)(R->RV64[strideReg]), 
+                                    (uint64_t)(R->RV64[destReg]));
 #ifdef _XBGAS_DEBUG_
             int64_t id = (int64_t)(M->ReadU64(_XBGAS_MY_PE_));
             if (id == 0) 
@@ -425,6 +471,17 @@ namespace SST{
                         << ")" << std::endl;
             }
  #endif
+
+            } else {
+              //check if the memory is updated.
+              if (!Xbgas->checkDmaResponses(Tag)){
+                // Do nothing
+              } else {
+                // Receive the DMA data; reset ERV64[0] and advance PC
+                R->ERV64[0] = 0x00ull;
+                R->RV64_PC += Inst.instSize;
+              }
+            }
           }
         } 
         else {

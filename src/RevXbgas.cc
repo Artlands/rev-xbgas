@@ -177,7 +177,8 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
         }
         // Success to write all elements;
         // erase TrackGets
-        TrackGets.erase(GetIter);
+        // TrackGets.erase(GetIter);
+        DmaResponses.push_back(tmp_tag);
       }
       break;
     }
@@ -362,12 +363,22 @@ bool RevXbgas::processXBGASMemRead(){
       bool flag = 1;
       // Try to read memory for each requested element
       for( unsigned i=0; i<tmp_nelem; i++ ){
-        tmp_addr = tmp_base_addr + (uint64_t)(i * (1 + tmp_stride) * Len);
-
+        tmp_addr = tmp_base_addr + (uint64_t)(i * tmp_stride);
         if( !mem->ReadMem( tmp_addr, Len, (void *)(&DataElem[i*Len])) ){
           flag = 0;
           break;
         }
+
+#if 0
+// #ifdef _XBGAS_DEBUG_
+    int64_t id = (int64_t)(mem->ReadU64(_XBGAS_MY_PE_));
+    { 
+      std::cout << "PE " << id << " read value @" << std::hex << tmp_addr
+                << " Len " << std:: dec << Len 
+                << " Value: " << std:: dec << (int)(DataElem[i*Len]) << std::endl;
+    }
+#endif
+
       }
 
       if (flag == 0) {
@@ -747,6 +758,24 @@ bool RevXbgas::checkGetRequests( uint64_t Nmspace, uint64_t Addr, uint8_t *Tag )
   return false;
 }
 
+bool RevXbgas::checkDmaResponses( uint8_t Tag ){
+  // Check the DMA operations.
+  for( auto it=DmaResponses.begin(); it != DmaResponses.end(); ++it ){
+    if ( (*it) == Tag) {
+      // Finished the DMA opeation
+      for( auto itt=TrackGets.begin(); itt != TrackGets.end(); ++itt ){
+        if( std::get<0>(*itt) == Tag ) {
+          TrackGets.erase(itt);
+          break;
+        }
+      }
+      DmaResponses.erase(it);
+      return true;
+    }
+  }
+  return false;
+}
+
 bool RevXbgas::readGetResponses( uint8_t Tag, void *Data ){
   output->verbose(CALL_INFO, 6, 0, "Read Get Response for Tag=%u\n", Tag);
   char *DataElem = (char *)(Data);
@@ -760,7 +789,7 @@ bool RevXbgas::readGetResponses( uint8_t Tag, void *Data ){
       }
       delete[] tmp_data;
 
-      for( auto itt=TrackGets.begin(); itt != TrackGets.end(); ++it ){
+      for( auto itt=TrackGets.begin(); itt != TrackGets.end(); ++itt ){
         if( std::get<0>(*itt) == Tag ) {
           TrackGets.erase(itt);
           break;

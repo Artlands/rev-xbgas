@@ -1,0 +1,38 @@
+#
+# Makefile
+#
+# makefile: xbrtime_xfer_get
+#
+# Copyright (C) 2017-2020 Tactical Computing Laboratories, LLC
+# All Rights Reserved
+# contact@tactcomplabs.com
+#
+# See LICENSE in the top level directory for licensing details
+#
+
+.PHONY: src
+
+SRCS = $(wildcard *.c)
+EXEC = $(SRCS:.c=.exe)
+ASM = $(SRCS:.c=.asm)
+
+CC=riscv64-unknown-elf-gcc
+# CC=riscv64-unknown-linux-gnu-gcc
+OBJDUMP=riscv64-unknown-elf-objdump
+
+ARCH=rv64imafdc
+XBRTIME_INCLUDE=-I../../../src/xbgas_runtime
+XBRTIME_LIB=-L../../../src/xbgas_runtime -lxbrtime
+
+all: $(EXEC)
+
+%.exe:%.c
+	$(CC) -march=$(ARCH) -mabi=lp64d -std=c11 $(XBRTIME_INCLUDE) -o $@ $< $(XBRTIME_LIB) -lm
+
+objdump:
+	$(OBJDUMP) -d $(EXEC) > $(ASM)
+
+clean:
+	rm -Rf *.exe *.s *.o *.i *.csv *.asm *.txt
+
+#-- EOF

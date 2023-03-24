@@ -54,7 +54,8 @@ namespace SST {
 
       bool checkGetRequests( uint64_t Nmspace, uint64_t Addr, uint8_t *Tag );
 
-      // bool checkGetResponses( uint8_t Tag );
+      bool checkDmaResponses( uint8_t Tag );
+
       bool readGetResponses( uint8_t Tag, void *Data );
 
       // Remote memory operation interfaces
@@ -123,6 +124,7 @@ namespace SST {
                              uint64_t *, 
                              uint32_t>> GetResponses; ///< RevXbgas: tracks the get responses; tuple<Tag,*Data,Sz>
       
+      std::vector<uint8_t> DmaResponses;              ///< RevXbgas: tracks the DMA responses; Tags exist in the vector if the corresponding DMA operations finished. 
       std::vector<std::tuple<uint8_t,
                              unsigned,
                              uint32_t,
