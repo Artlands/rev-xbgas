@@ -169,9 +169,9 @@ void __xbrtime_shared_free(void *ptr){
    *
    */
   for( i=0; i<_XBRTIME_MEM_SLOTS_; i++ ){
-      if( (mem >= (int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)))) &&
-          (mem < ((int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16))) + 
-                  (int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16 + 8))))) ){
+      if( (mem >= (*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)))) &&
+          (mem < ((*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16))) + 
+                  (*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16 + 8))))) ){
       /* found the allocation */
       revfree( ptr );
       // free(ptr);
@@ -215,24 +215,20 @@ uint64_t __xbrtime_ltor(uint64_t remote, int pe){
   uint64_t base_slot  = 0x00ull;
   uint64_t offset     = 0x00ull;
   uint64_t new_addr   = 0x00ull;
-  int64_t tmp;
   if( xbrtime_mype() == pe ){
     /* return the same address block */
     return remote;
   }else{
     /* perform the address translation */
     for( i=0; i<_XBRTIME_MEM_SLOTS_; i++ ){
-        if( (remote >= (int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)))) &&
-            (remote < ((int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16))) + 
-                       (int64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16 + 8))))) ){
+        if( (remote >= (uint64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)))) &&
+            (remote < ((uint64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16))) + 
+                       (uint64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16 + 8))))) ){
         /* found our slot */
         base_slot = (uint64_t)(_XBGAS_MMAP_ + (uint64_t)(i * 16));
-        tmp = (uint64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)));
 
         /* calculate the local offset */
-        offset = (uint64_t)((int32_t)remote - (int32_t)tmp);
-        // revprintf("PE %d slot: %d, base_slot: %x, offset: %x\n", pe, i, base_slot, offset);
-        // revprintf("PE %d, slot: %d, offset base: %x, remote: %x\n", pe, i, tmp, remote);
+        offset = remote - (uint64_t)(*(uint64_t*)(_XBGAS_MMAP_ + (uint64_t)(i * 16)));
         new_addr = __xbrtime_get_remote_alloc(base_slot, xbrtime_decode_pe(pe))
                                              +offset;
 
