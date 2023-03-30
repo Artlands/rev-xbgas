@@ -222,7 +222,8 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
 
   // Create the xbgas object
   {  
-    EnableXBGAS = params.find<bool>("enable_xbgas", 0);
+    EnableXBGAS = params.find<bool>("enable_xbgas", 1);
+    EnableXbgasStats = params.find<bool>("enable_xbgas_stats", 0);
     // No matter if xBGAS is enabled or not, always set up xBGAS NIC
     XNic = loadUserSubComponent<xbgasNicAPI>("xbgas_nic");
     // check to see if the nic was loaded.  if not, DO NOT load an anonymous endpoint
@@ -235,6 +236,9 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
       output.fatal(CALL_INFO, -1, "Error: failed to initialize the xbgas object\n" );
     // record the number of injected messages per cycle
     msgPerCycle = params.find<unsigned>("msgPerCycle", 1);
+
+    if( EnableXbgasStats )
+      registerXbgasStatistics();
   }
 
   // Create the processor objects
@@ -391,6 +395,14 @@ void RevCPU::initNICMem(){
     Mem->WriteU64(ptr,host);
     ptr += 8;
   }
+}
+
+void RevCPU::registerXbgasStatistics() {
+  // xBGAS stats
+  RemoteGet = registerStatistic<uint64_t>("RemoteGet");
+  RemotePut = registerStatistic<uint64_t>("RemotePut");
+  RemoteMemoryRead = registerStatistic<uint64_t>("RemoteMemoryRead");
+  RemoteMemoryWrite = registerStatistic<uint64_t>("RemoteMemoryWrite");
 }
 
 void RevCPU::registerStatistics(){
@@ -2321,6 +2333,14 @@ void RevCPU::HandleFaultInjection(SST::Cycle_t currentCycle){
   }
 }
 
+void RevCPU::UpdateXbgasStatistics(){
+  RevXbgas::RevXbgasStats stats = Xbgas->GetStats();
+  RemoteGet->addData(stats.remoteGet);
+  RemotePut->addData(stats.remotePut);
+  RemoteMemoryRead->addData(stats.remoteMemoryRead);
+  RemoteMemoryWrite->addData(stats.remoteMemoryWrite);
+}
+
 void RevCPU::UpdateCoreStatistics(uint16_t coreNum){
   RevProc::RevProcStats stats = Procs[coreNum]->GetStats();
   TotalCycles[coreNum]->addData(stats.totalCycles);
@@ -2345,7 +2365,7 @@ void RevCPU::PrintBuffer(){
     /* Reset the buffer */
     memset(buffer, 0, _XBGAS_OUTPUT_BUFFER_SIZE_);
     Mem->WriteU64(_XBGAS_OUTPUT_BUFFER_LENGTH_, 0x00ul);
-    Mem->WriteMem(_XBGAS_OUTPUT_BUFFER_START_, length, buffer);
+    Mem->WriteMem(_XBGAS_OUTPUT_BUFFER_START_, _XBGAS_OUTPUT_BUFFER_SIZE_, buffer);
   }
 }
 
@@ -2372,6 +2392,8 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   // Clock the Xbgas module
   if ( EnableXBGAS ) {
     Xbgas->clockTick( currentCycle, msgPerCycle );
+    // Update the Xbgas statistics
+    UpdateXbgasStatistics();
   }
 
   // Clock the PAN network transport module
@@ -2471,7 +2493,7 @@ bool RevCPU::clockTickXBGASTest( SST::Cycle_t currentCycle ){
 
 void RevCPU::ExecXBGASTest(){
   // wait for the previous test to finish
-  if( !Xbgas->TrackTags.empty() )
+  if( !Xbgas->checkTrackTags() )
     return;
   
   uint64_t Nmspace;

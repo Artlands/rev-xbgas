@@ -61,7 +61,7 @@ extern int xbrtime_init(){
 
 extern void xbrtime_close(){
   int i = 0;
-  int my_pe = __xbrtime_asm_get_id();
+  int my_pe = (int)xbrtime_mype();
   /* hard fence */
   __xbrtime_asm_fence();
 

@@ -1038,16 +1038,16 @@ namespace SST{
           if(id == 0) 
           {
             std::cout << "64-Bit ECALL CODE: " + std::to_string(code) << std::endl;
-            // std::cout << "|----- Register file -----|" << std::endl;
+            std::cout << "|----- Register file -----|" << std::endl;
 
-            // for(int i=0; i<32; i++) {
-            //   std::cout << "|e" <<std::dec << +i
-            //             << ": 0x" << std::hex << R->ERV64[i]
-            //             << "\t|x" <<std::dec << +i
-            //             << ": 0x" << std::hex << R->RV64[i]
-            //             << std::endl;
-            // }
-            // std::cout << "|----- Register file -----|" << std::endl;
+            for(int i=0; i<32; i++) {
+              std::cout << "|e" <<std::dec << +i
+                        << ": 0x" << std::hex << R->ERV64[i]
+                        << "\t|x" <<std::dec << +i
+                        << ": 0x" << std::hex << R->RV64[i]
+                        << std::endl;
+            }
+            std::cout << "|----- Register file -----|" << std::endl;
           
           }
 #endif    
@@ -1057,22 +1057,28 @@ namespace SST{
           case 49:
             // std::cout << "ABOUT TO EXECUTE CHDIR" << std::endl;
             // RevChdir<Riscv64>(R, M, Inst);
-            // std::cout << "EXECUTED CHDIR" << std::endl;
+            std::cout << "ECALL: chdir" << std::endl;
             break;
           case 214: 
             // RevBrk<Riscv64>(R, M, Inst);
+            std::cout << "ECALL: brk" << std::endl;
             break;
-          case 56:  //openat
-          case 48:  //fsaccessat
-          case 64:  //write
-          case 78:  //readlinkat
-          case 80:
-            // RevFstat<Riscv64>(R, M, Inst);
-          case 291: //statx
-          
-            // PrintString<Riscv64>(R, M, Inst);
+          case 169: {
+            // gettimeofday
+            std::cout << "ECALL: gettimeofday" << std::endl;
+            SST::Cycle_t currentCycleTmp = Xbgas->GetCurrentCycle();
+            uint64_t kloc[2];
+            kloc[0] = currentCycleTmp / 1000000000;
+            kloc[1] = (currentCycleTmp % 1000000000)/(1000000000/1000000);
+            if( !M->WriteMem(R->RV64[10], 16, (void *)(kloc)) ) {
+              R->RV64[10] = -1;
+            } else {
+              R->RV64[10] = 0;
+            }
             break;
+          }
           default:
+            std::cout << "ECALL" << std::endl;
             break;
           }
           R->RV64_PC += Inst.instSize;

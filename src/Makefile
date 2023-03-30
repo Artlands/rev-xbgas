@@ -39,7 +39,7 @@ librevcpu.so: $(REV_OBJS)
 %.o:%.cc $(REV_HEADERS)
 	$(CXX) $(OPTIMIZE_FLAGS) $(CXXFLAGS) $(CPPFLAGS) -c $<
 install: librevcpu.so
-	sst-register revcpu revcpu_LIBDIR=$(CURDIR)
+	sst-register revcpu -revcpu_LIBDIR=$(CURDIR)
 clean:
 	rm -Rf *.o librevcpu.so
 

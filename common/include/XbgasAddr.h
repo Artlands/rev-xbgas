@@ -23,7 +23,8 @@
 #define _XBGAS_PAGE_SIZE_ 65536
 #endif
 
-#define _REV_MEM_SIZE_                       0x40000000    //1GB
+// #define _REV_MEM_SIZE_                       0x40000000    //1GB
+#define _REV_MEM_SIZE_                       0x100000000      //4GB
 #define _REV_HEAP_END_                       _REV_MEM_SIZE_ >> 1   // Half of the simulated memory
 
 #define _XBGAS_FIRMWARE_SIZE_                65536       // 64KB

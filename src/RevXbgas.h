@@ -58,6 +58,8 @@ namespace SST {
 
       bool readGetResponses( uint8_t Tag, void *Data );
 
+      bool checkTrackTags () { return TrackTags.empty();}
+
       // Remote memory operation interfaces
       void WriteU8( uint64_t Nmspace, uint64_t Addr, uint8_t Value);
       void WriteU16( uint64_t Nmspace, uint64_t Addr, uint16_t Value);
@@ -101,20 +103,28 @@ namespace SST {
       void ReadBulkDouble( uint64_t Nmspace, uint64_t SrcAddr, 
                            uint32_t Nelem, uint32_t Stride, uint64_t DestAddr);
 
-    
-    public:
-      std::list<std::pair<uint8_t,int>> TrackTags;    ///< RevXbgas: tracks the outgoing remote memory request; pair<Tag,Dest>
+      class RevXbgasStats{
+        public:
+          uint64_t remoteGet;
+          uint64_t remotePut;
+          uint64_t remoteMemoryRead;
+          uint64_t remoteMemoryWrite;
+      };
 
+      RevXbgasStats GetStats() {return Stats;}
+      SST::Cycle_t GetCurrentCycle() {return currentCycleTmp;}
     private:
       xbgasNicAPI *xnic;                              ///< RevXbgas: XbgasNic object
       RevOpts *opts;                                  ///< RevXbgas: options object
       RevMem *mem;                                    ///< RevXbgas: memory object
+      RevXbgasStats Stats;                            ///< RevXbgas: statistics object
       SST::Output *output;                            ///< RevXbgas: output handler
       // unsigned testStage;                          ///< RevXbgas: controls the XBGAS Test harness staging
+      SST::Cycle_t currentCycleTmp;                   ///< RevXbgas: temporary variable for current cycle
       uint8_t PrivTag;                                ///< RevXbgas: private tag locator
       std::vector<std::pair<uint64_t, 
                             SST::Interfaces::SimpleNetwork::nid_t>> NLB;      ///< RevXbgas: namespace lookaside buffer; pair<Namespace, Dest>
-      // std::list<std::pair<uint8_t,int>> TrackTags;    ///< RevXbgas: tracks the outgoing remote memory request; pair<Tag,Dest>
+      std::list<std::pair<uint8_t,int>> TrackTags;    ///< RevXbgas: tracks the outgoing remote memory request; pair<Tag,Dest>
       
       std::vector<std::tuple<uint8_t,
                              int,

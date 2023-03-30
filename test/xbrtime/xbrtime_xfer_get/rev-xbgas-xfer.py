@@ -28,10 +28,7 @@ import sst
 sst.setProgramOption("timebase", "1ps")
 sst.setProgramOption("stopAtCycle", "0s")
 
-# Tell SST what statistics handling we want
-sst.setStatisticLoadLevel(4)
-
-NPES = 4
+NPES = 5
 
 verb_params = {
   "verbose" : 5,
@@ -76,12 +73,14 @@ for i in range(0, NPES):
     "memCost"           : "[0:1:10]",                           # Memory loads required 1-10 cycles
     "xbgas_nic"         : "revcpu.XbgasNIC",
     "enable_xbgas"      : 1,
+    "enable_xbgas_stats" :1,
     "enable_xbgas_test" : 0,                                    # Enable the XBGAS test harness
     "msgPerCycle"       : 10,
     "program"           : os.getenv("REV_EXE", "xfer_get.exe"), # Target executable
     "splash"            : splash                                # Display the splash message
   })
-  # print("Created xBGAS CPU component " + str(i) + ": " + xbgas_cpu.getFullName())
+  print("Created xBGAS CPU component " + str(i) + ": " + xbgas_cpu.getFullName())
+  xbgas_cpu.enableAllStatistics()
   sst.popNamePrefix()
   
   # Setup the NICs
@@ -96,7 +95,8 @@ for i in range(0, NPES):
   link.connect( (iface, "rtr_port", "1ms"), (router, f"port{i}", "1ms") )
   sst.popNamePrefix()
 
-# sst.setStatisticOutput("sst.statOutputCSV")
-# sst.enableAllStatisticsForAllComponents()
+# Tell SST what statistics handling we want
+sst.setStatisticLoadLevel(2)
+sst.setStatisticOutput("sst.statOutputCSV")
 
 # EOF

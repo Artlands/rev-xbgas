@@ -14,7 +14,6 @@
 
 int main( int argc, char **argv ){
   int i, numpes, my_pe, root_pe, nelems, stride, *r_val;
-  root_pe = 2;
 
   // Initializing xBGAS Runtime
   xbrtime_init();
@@ -23,6 +22,7 @@ int main( int argc, char **argv ){
   numpes = xbrtime_num_pes();
   nelems = 10;
   stride = 2;
+  root_pe = 1;
 
   r_val = (int*)xbrtime_malloc(nelems * sizeof(int));
 

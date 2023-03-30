@@ -152,7 +152,6 @@ bool xbgasNicEvent::buildPut(uint8_t Tag, uint64_t Addr, uint32_t Size,
     return false;
   if( !setData(Data, Size) )
     return false;
-  
   return true;
 }
 

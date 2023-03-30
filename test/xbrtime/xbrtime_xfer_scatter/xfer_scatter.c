@@ -20,7 +20,7 @@ int main( int argc, char **argv ){
   
   my_pe = xbrtime_mype();
   numpes = xbrtime_num_pes();
-  root_pe = 2;
+  root_pe = 0;
 
   nelems = 10;
   src_array = (int*) xbrtime_malloc(nelems * sizeof(int));
@@ -51,7 +51,7 @@ int main( int argc, char **argv ){
   // pe_disp: provides the offsets that each PE's values begin at relative to src.
   xbrtime_int_scatter(dest_array, src_array, pe_msg_sz, pe_disp, nelems, root_pe);
   
-  revprintf("Post-Scatter\nPE %d dest_array = %d %d\n", 
+  revprintf("Post-Scatter PE %d dest_array = %d %d\n", 
              my_pe, dest_array[0], dest_array[1]);
 
   xbrtime_free( src_array );

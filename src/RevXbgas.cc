@@ -20,7 +20,11 @@ RevXbgas::RevXbgas( xbgasNicAPI *XNic, RevOpts *Opts, RevMem *Mem, SST::Output *
                   "Initializing the XBGAS object; set up the XBGAS message handler\n");
   // Set up the Xbgas message handler
   xnic->setMsgHandler(new Event::Handler<RevXbgas>(this, &RevXbgas::handleXbgasMessage));
-
+  Stats.remoteGet = 0;
+  Stats.remotePut = 0;
+  Stats.remoteMemoryRead = 0;
+  Stats.remoteMemoryWrite = 0;
+  currentCycleTmp = 0;
 }
 
 void RevXbgas::initXbgasMem( xbgasNicAPI *XNic ) {
@@ -176,8 +180,6 @@ void RevXbgas::handleSuccess(xbgasNicEvent *event){
 #endif
         }
         // Success to write all elements;
-        // erase TrackGets
-        // TrackGets.erase(GetIter);
         DmaResponses.push_back(tmp_tag);
       }
       break;
@@ -310,7 +312,7 @@ void RevXbgas::clockTick(Cycle_t currentCycle, unsigned msgPerCycle){
     if( ! sendXBGASMessage() )
       output->fatal(CALL_INFO, -1, "Error: could not send XBGAS command message\n" );
   }
-
+  currentCycleTmp = currentCycle;
   // print xbgas memory heap
 }
 
@@ -537,6 +539,8 @@ bool RevXbgas::WriteMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
   }
 
   delete[] Buf;
+  Stats.remotePut++;
+  Stats.remoteMemoryWrite += Size;
   return true;
 }
 
@@ -642,7 +646,8 @@ bool RevXbgas::ReadMem( uint64_t Nmspace, uint64_t Addr, size_t Len,
 
   // Remember the get request
   TrackGets.push_back(std::make_tuple(Tag, Dest, Addr));
-
+  Stats.remoteGet++;
+  Stats.remoteMemoryRead+=Size;
   return true;
 }
 

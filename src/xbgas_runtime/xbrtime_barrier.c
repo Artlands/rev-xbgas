@@ -30,7 +30,7 @@ extern void xbrtime_barrier() {
   }
 
   /* Get the total iterations */
-  int64_t my_pe = xbrtime_mype();
+  int my_pe = xbrtime_mype();
   int64_t iter = (int64_t)(log(num_pe)/log(2));
   
   if (iter < log(num_pe)/log(2))

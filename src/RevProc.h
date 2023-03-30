@@ -102,9 +102,6 @@ namespace SST{
       /// RevProc: Handle ALU faults
       void HandleALUFault(unsigned width);
 
-      /// RevProc: Print output buffer
-      void PrintBuffer();
-
       class RevProcStats {
         public:
           uint64_t totalCycles;

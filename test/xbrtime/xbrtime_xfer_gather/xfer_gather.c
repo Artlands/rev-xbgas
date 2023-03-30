@@ -36,7 +36,7 @@ int main( int argc, char **argv ){
   revprintf("Pre-Gather\nPE %d src_array = %d %d\n", 
              my_pe, src_array[0], src_array[1]);	
 
-  // pe_msg: contains the number of data elements that are to be scattered to each 
+  // pe_msg: contains the number of data elements that are to be gathered from each 
   // PE indexed by PE logical rank.
   // pe_disp: provides the offsets that each PE's values begin at relative to src.
   xbrtime_int_gather(dest_array, src_array, pe_msg_sz, pe_disp, nelems, root_pe);

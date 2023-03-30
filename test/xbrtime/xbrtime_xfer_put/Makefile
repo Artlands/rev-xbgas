@@ -20,7 +20,7 @@ CC=riscv64-unknown-elf-gcc
 # CC=riscv64-unknown-linux-gnu-gcc
 OBJDUMP=riscv64-unknown-elf-objdump
 
-ARCH=rv64imafd
+ARCH=rv64imafdc
 XBRTIME_INCLUDE=-I../../../src/xbgas_runtime
 XBRTIME_LIB=-L../../../src/xbgas_runtime -lxbrtime
 
