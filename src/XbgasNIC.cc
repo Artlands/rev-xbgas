@@ -15,23 +15,29 @@ using namespace RevCPU;
 
 std::string xbgasNicEvent::getOpcodeStr(){
   switch(Opcode){
-    case xbgasNicEvent::Get:
-      return "Get";
+    case xbgasNicEvent::GetRqst:
+      return "GetRqst";
       break;
-    case xbgasNicEvent::Put:
-      return "Put";
+    case xbgasNicEvent::PutRqst:
+      return "PutRqst";
       break;
-    case xbgasNicEvent::DmaGet:
-      return "DmaGet";
+    case xbgasNicEvent::DmaGetRqst:
+      return "DmaGetRqst";
       break;
-    case xbgasNicEvent::DmaPut:
-      return "DmaPut";
+    case xbgasNicEvent::DmaPutRqst:
+      return "DmaPutRqst";
       break;
-    case xbgasNicEvent::Success:
-      return "Success";
+    case xbgasNicEvent::GetResp:
+      return "GetResp";
       break;
-    case xbgasNicEvent::Failed:
-      return "Failed";
+    case xbgasNicEvent::PutResp:
+      return "PutResp";
+      break;
+    case xbgasNicEvent::DmaGetResp:
+      return "DmaGetResp";
+      break;
+    case xbgasNicEvent::DmaPutResp:
+      return "DmaPutResp";
       break;
     default:
       return "UNKNOWN";
@@ -39,45 +45,64 @@ std::string xbgasNicEvent::getOpcodeStr(){
   }
 }
 
-void xbgasNicEvent::getData(uint64_t *Out){
-  unsigned blocks = 0;
+// unsigned xbgasNicEvent::getNumBlocks(uint32_t Sz){
+//   unsigned blocks = 0;
+//   if( Sz == 0 ){
+//     blocks = 0;
+//   }else if ( Sz < 8 ){
+//     blocks = 1;
+//   }else{
+//     blocks = Sz/8;
+//     if( (Sz%8) > 0 )
+//       blocks += 1;
+//   }
+//   return blocks;
+// }
+
+// void xbgasNicEvent::getData(uint64_t *Out){
+//   unsigned blocks = 0;
+//   uint32_t TotalSize = Size * Nelem;
+//   if( TotalSize == 0 )
+//     return;
+//   blocks = getNumBlocks(TotalSize);
+//   for( unsigned i=0; i<blocks; i++){
+//     Out[i] = Data[i];
+//   }
+// }
+
+// bool xbgasNicEvent::setData(uint64_t *In, uint32_t Sz){
+//   unsigned blocks = 0;
+//   if( Sz == 0 )
+//     return true;
+//   blocks = getNumBlocks(Sz);
+//   for( unsigned i=0; i<blocks; i++ ){
+//     Data.push_back(In[i]);
+//   }
+//   return true;
+// }
+
+void xbgasNicEvent::getData(uint8_t *Out){
   uint32_t TotalSize = Size * Nelem;
   if( TotalSize == 0 )
     return;
-  blocks = getNumBlocks(TotalSize);
-  for( unsigned i=0; i<blocks; i++){
+  for( unsigned i=0; i<TotalSize; i++){
     Out[i] = Data[i];
   }
 }
 
-unsigned xbgasNicEvent::getNumBlocks(uint32_t Sz){
-  unsigned blocks = 0;
-  if( Sz == 0 ){
-    blocks = 0;
-  }else if ( Sz < 8 ){
-    blocks = 1;
-  }else{
-    blocks = Sz/8;
-    if( (Sz%8) > 0 )
-      blocks += 1;
-  }
-  return blocks;
-}
-
-bool xbgasNicEvent::setData(uint64_t *In, uint32_t Sz){
-  unsigned blocks = 0;
-  if( Sz == 0 )
+bool xbgasNicEvent::setData(uint8_t *In, uint32_t Sz){
+  uint32_t TotalSize = Size * Nelem;
+  if( TotalSize == 0 )
     return true;
-  blocks = getNumBlocks(Sz);
-  for( unsigned i=0; i<blocks; i++ ){
+  for( unsigned i=0; i<TotalSize; i++ ){
     Data.push_back(In[i]);
   }
   return true;
 }
 
-bool xbgasNicEvent::buildGet( uint64_t Id, uint64_t SrcAddr, uint32_t Size ){
-  Opcode = xbgasNicEvent::Get;
-  if( !setID(Id) )
+bool xbgasNicEvent::buildGetRqst( uint64_t PktId, uint64_t SrcAddr, uint32_t Size){
+  Opcode = xbgasNicEvent::GetRqst;
+  if( !setPktId(PktId) )
     return false;
   if( !setSrcAddr(SrcAddr) )
     return false;
@@ -86,10 +111,11 @@ bool xbgasNicEvent::buildGet( uint64_t Id, uint64_t SrcAddr, uint32_t Size ){
   return true;
 }
 
-bool xbgasNicEvent::buildDmaGet( uint64_t Id, uint64_t SrcAddr, uint32_t Size,
-                                 uint32_t Nelem, uint32_t Stride, uint64_t DmaDestAddr){
-  Opcode = xbgasNicEvent::Get;
-  if( !setID(Id) )
+bool xbgasNicEvent::buildDmaGetRqst( uint64_t PktId, uint64_t SrcAddr, 
+                                     uint32_t Size, uint32_t Nelem, 
+                                     uint32_t Stride, uint64_t DmaDestAddr){
+  Opcode = xbgasNicEvent::DmaGetRqst;
+  if( !setPktId(PktId) )
     return false;
   if( !setSrcAddr(SrcAddr) )
     return false;
@@ -104,33 +130,37 @@ bool xbgasNicEvent::buildDmaGet( uint64_t Id, uint64_t SrcAddr, uint32_t Size,
   return true;
 }
 
-bool xbgasNicEvent::buildPut(uint64_t Id, uint64_t DestAddr, uint32_t Size, uint64_t *Data){
-  Opcode = xbgasNicEvent::Put;
-  if (Data == nullptr )
+bool xbgasNicEvent::buildPutRqst(uint64_t PktId, uint64_t DestAddr, 
+                                 uint32_t Size, uint8_t *Buffer){
+  Opcode = xbgasNicEvent::PutRqst;
+  if ( Buffer == nullptr )
     return false;
-  if( !setID(Id) )
+  if( !setPktId(PktId) )
     return false;
   if( !setDestAddr(DestAddr) )
     return false;
   if( !setSize(Size) )
     return false;
-  if( !setData(Data, Size) )
+  if( !setData(Buffer, Size) )
     return false;
   return true;
 }
 
-bool xbgasNicEvent::buildDmaPut(uint64_t Id, uint64_t DestAddr, uint32_t Size, uint64_t *Data,
-                                uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr){
-  Opcode = xbgasNicEvent::Put;
-  if (Data == nullptr )
+bool xbgasNicEvent::buildDmaPutRqst(uint64_t PktId, uint64_t DestAddr, 
+                                    uint32_t Size, uint8_t *Buffer,
+                                    uint32_t Nelem, uint32_t Stride, 
+                                    uint64_t SrcAddr){
+  uint32_t TotalSize = Size * Nelem;
+  Opcode = xbgasNicEvent::DmaPutRqst;
+  if ( Buffer == nullptr )
     return false;
-  if( !setID(Id) )
+  if( !setPktId(PktId) )
     return false;
   if( !setDestAddr(DestAddr) )
     return false;
   if( !setSize(Size) )
     return false;
-  if( !setData(Data, Size) )
+  if( !setData(Buffer, TotalSize) )
     return false;
   if( !setNelem(Nelem) )
     return false;
@@ -141,20 +171,51 @@ bool xbgasNicEvent::buildDmaPut(uint64_t Id, uint64_t DestAddr, uint32_t Size, u
   return true;
 }
 
-bool xbgasNicEvent::buildSuccess(uint64_t Id){
-  Opcode = xbgasNicEvent::Success;
-  if( !setID(Id) )
+bool xbgasNicEvent::buildGetResp(uint64_t PktId, uint32_t Size, uint8_t *Buffer){
+  Opcode = xbgasNicEvent::GetResp;
+  if ( Buffer == nullptr )
     return false;
-  if( !setSize(0x00) )
+  if( !setPktId(PktId) )
+    return false;
+  if( !setSize(Size) )
+    return false;
+  if( !setData(Buffer, Size) )
     return false;
   return true;
 }
 
-bool xbgasNicEvent::buildFailed(uint64_t Id){
-  Opcode = xbgasNicEvent::Failed;
-  if( !setID(Id) )
+bool xbgasNicEvent::buildDmaGetResp(uint64_t PktId, uint32_t Size, 
+                                    uint32_t Nelem, uint32_t Stride, 
+                                    uint64_t DmaDestAddr, uint8_t *Buffer){
+  uint32_t TotalSize = Size * Nelem;
+  Opcode = xbgasNicEvent::DmaGetResp;
+  if ( Buffer == nullptr )
     return false;
-  if( !setSize(0x00) )
+  if( !setPktId(PktId) )
+    return false;
+  if( !setSize(Size) )
+    return false;
+  if( !setData(Buffer, TotalSize) )
+    return false;
+  if( !setNelem(Nelem) )
+    return false;
+  if( !setStride(Stride) )
+    return false;
+  if( !setDestAddr(DmaDestAddr) )
+    return false;
+  return true;
+}
+
+bool xbgasNicEvent::buildPutResp(uint64_t PktId){
+  Opcode = xbgasNicEvent::PutResp;
+  if( !setPktId(PktId) )
+    return false;
+  return true;
+}
+
+bool xbgasNicEvent::buildDmaPutResp(uint64_t PktId){
+  Opcode = xbgasNicEvent::DmaPutResp;
+  if( !setPktId(PktId) )
     return false;
   return true;
 }

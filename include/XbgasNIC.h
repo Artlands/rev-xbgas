@@ -36,26 +36,28 @@ namespace SST {
     class xbgasNicEvent : public SST::Event {
     public:
       typedef enum {
-        Get         = 0b000,     ///< xbgasNicEvent: Get operation
-        Put         = 0b001,     ///< xbgasNicEvent: Put operation
-        DmaGet      = 0b010,     ///< xbgasNicEvent: DMA Get operation
-        DmaPut      = 0b011,     ///< xbgasNicEvent: DMA Put operation
-        Success     = 0b100,     ///< xbgasNicEvent: Request Success
-        Failed      = 0b101,     ///< xbgasNicEvent: Request Failed
-        Unknown     = 0b111      ///< xbgasNicEvent: Unknown operation
+        GetRqst     = 0b0000,     ///< xbgasNicEvent: Get request
+        PutRqst     = 0b0001,     ///< xbgasNicEvent: Put request
+        DmaGetRqst  = 0b0010,     ///< xbgasNicEvent: DMA Get request
+        DmaPutRqst  = 0b0011,     ///< xbgasNicEvent: DMA Put request
+        GetResp     = 0b0100,     ///< xbgasNicEvent: Get response
+        PutResp     = 0b0101,     ///< xbgasNicEvent: Put response
+        DmaGetResp  = 0b0110,     ///< xbgasNicEvent: DMA Get response
+        DmaPutResp  = 0b0111,     ///< xbgasNicEvent: DMA Put response
+        Unknown     = 0b1000      ///< xbgasNicEvent: Unknown operation
       } XbgasOpcode;
 
       /// xbgasNicEvent: standard constructor
       xbgasNicEvent(std::string name) 
-      : Event(), Id(0), SrcName(name), Src(0),
-        Size(0), Nelem(0), Stride(0), 
-        SrcAddr(0), DestAddr(0), Opcode(Unknown){ }
+      : Event(), PktId(0), SrcName(name), Src(0),
+        Size(0), Nelem(1), Stride(0), 
+        SrcAddr(0), DestAddr(0), Target(nullptr), Opcode(Unknown){ }
 
       /// xbgasNicEvent: rerieve the source name
       std::string getSource() { return SrcName; }
 
       /// xbgasNicEvent: retrieve the packet Id
-      uint8_t getID() { return Id; }
+      uint64_t getPktId() { return PktId; }
       
       /// xbgasNicEvent: retrieve the source ID
       int getSrc() { return Src; }
@@ -79,10 +81,13 @@ namespace SST {
       uint64_t getSrcAddr() { return SrcAddr; }
 
       /// xbgasNicEvent: retrieve the destination address (local memory address if read, remote memory address if write)
-      uint64_t getDestAddr() { return DestAddr ;}
+      uint64_t getDestAddr() { return DestAddr; }
+
+      /// xbgasNicEvent: retrieve the target register pointer
+      void *getTarget() { return Target; }
 
       /// xbgasNicEvent: retrieve the packet data
-      void getData(uint64_t *Out);
+      void getData(uint8_t *Buffer);
 
       /// xbgasNicEvent: get the number of data blocks for the target size
       unsigned getNumBlocks(uint32_t Size);
@@ -91,9 +96,9 @@ namespace SST {
       bool setSrc(int S) { Src = S; return true; }
 
       /// xbgasNicEvent: set the Id for the target packet
-      bool setID(uint64_t Id) {Id = Id; return true; }
+      bool setPktId(uint64_t PktId) {PktId = PktId; return true; }
 
-      /// xbgasNicEvent: set the size in the packet
+      /// xbgasNicEvent: set the size of each element in the packet
       bool setSize(uint32_t Sz) {Size = Sz; return true; }
 
       /// xbgasNicEvent: set the # of elements in the packet
@@ -108,32 +113,45 @@ namespace SST {
       /// xbgasNicEvent: set the destination address (local memory address if read, remote memory address if write)
       bool setDestAddr( uint64_t DAddr ) { DestAddr = DAddr; return true; }
 
+      /// xbgasNicEvent: set the target register pointer
+      bool setTarget(void *T) { Target = T; return true; }
+
       /// xbgasNicEvent: set the packet data
-      bool setData(uint64_t *In, uint32_t Sz);
+      bool setData(uint8_t *Buffer, uint32_t Sz);
 
       // ------------------------------------------------
       // Packet Building Functions
       // ------------------------------------------------
 
-      /// xbgasNicEvent: build a Get packet
-      bool buildGet(uint64_t Id, uint64_t SrcAddr, uint32_t Size);
+      /// xbgasNicEvent: build a Get request packet
+      bool buildGetRqst(uint64_t PktId, uint64_t SrcAddr, uint32_t Size);
       
-      /// xbgasNicEvent: build a DMA Get packet
-      bool buildDmaGet(uint64_t Id, uint64_t SrcAddr, uint32_t Size, 
-                       uint32_t Nelem, uint32_t Stride, uint64_t DmaDestAddr);
+      /// xbgasNicEvent: build a DMA Get request packet
+      bool buildDmaGetRqst(uint64_t PktId, uint64_t SrcAddr, uint32_t Size, 
+                           uint32_t Nelem, uint32_t Stride, uint64_t DmaDestAddr);
       
-      /// xbgasNicEvent: build a Put packet
-      bool buildPut(uint64_t Id, uint64_t DestAddr, uint32_t Size, uint64_t *Data);
+      /// xbgasNicEvent: build a Put request packet
+      bool buildPutRqst(uint64_t PktId, uint64_t DestAddr, 
+                        uint32_t Size, uint8_t *Buffer);
       
-      /// xbgasNicEvent: build a DMA Put packet
-      bool buildDmaPut(uint64_t Id, uint64_t DestAddr, uint32_t Size, uint64_t *Data,
-                       uint32_t Nelem, uint32_t Stride, uint64_t DmaSrcAddr);
+      /// xbgasNicEvent: build a DMA Put request packet
+      bool buildDmaPutRqst(uint64_t PktId, uint64_t DestAddr, 
+                           uint32_t Size, uint8_t *Buffer,
+                           uint32_t Nelem, uint32_t Stride, uint64_t DmaSrcAddr);
       
-      /// xbgasNicEvent: build a success packet
-      bool buildSuccess(uint64_t Id);
+      /// xbgasNicEvent: build a Get respond packet
+      bool buildGetResp(uint64_t PktId, uint32_t Size, uint8_t *Buffer);
 
-      /// xbgasNicEvent: build a failed packet
-      bool buildFailed(uint64_t Id);
+      /// xbgasNicEvent: build a DMA Get respond packet
+      bool buildDmaGetResp(uint64_t PktId, uint32_t Size, 
+                           uint32_t Nelem, uint32_t Stride, 
+                           uint64_t DmaDestAddr, uint8_t *Buffer);
+      
+      /// xbgasNicEvent: build a Put respond packet
+      bool buildPutResp(uint64_t PktId);
+
+      /// xbgasNicEvent: build a DMA Put respond packet
+      bool buildDmaPutResp(uint64_t PktId);
       
       /// xbgasNicEvent: virtual function to clone an event
       virtual Event* clone(void) override{
@@ -142,17 +160,17 @@ namespace SST {
       }
       
     private:
-      uint64_t Id;               ///< xbgasNicEvent: Id for the packet
-      std::string SrcName;       ///< xbgasNicEvent: Name of the sending device
-      int Src;                   ///< xbgasNicEvent: Source node ID
-      uint32_t Size;             ///< xbgasNicEvent: Size of each data element
-      uint32_t Nelem;            ///< xbgasNicEvent: Number of elements
-      uint32_t Stride;           ///< xbgasNicEvent: Stride for bulk transfers
-      uint64_t SrcAddr;          ///< xbgasNicEvent: Source address
-      uint64_t DestAddr;         ///< xbgasNicEvent: Destination address
-      std::vector<uint8_t> Data; ///< xbgasNicEvent: Data payload
-      XbgasOpcode Opcode;        ///< xbgasNicEvent: Operation code 
-      // static std::atomic<uint64_t> main_id;
+      uint64_t PktId;             ///< xbgasNicEvent: Id for the packet
+      std::string SrcName;        ///< xbgasNicEvent: Name of the sending device
+      int Src;                    ///< xbgasNicEvent: Source node ID
+      uint32_t Size;              ///< xbgasNicEvent: Size of each data element, in bytes
+      uint32_t Nelem;             ///< xbgasNicEvent: Number of elements
+      uint32_t Stride;            ///< xbgasNicEvent: Stride for bulk transfers
+      uint64_t SrcAddr;           ///< xbgasNicEvent: Source address
+      uint64_t DestAddr;          ///< xbgasNicEvent: Destination address
+      void *Target;               ///< xbgasNicEvent: Target register pointer
+      std::vector<uint8_t> Data;  ///< xbgasNicEvent: Data payload
+      XbgasOpcode Opcode;         ///< xbgasNicEvent: Operation code 
     public:
       /// xbgasNicEvent: secondary constructor
       xbgasNicEvent() : Event() { }
@@ -160,7 +178,7 @@ namespace SST {
       /// xbgasNicEvent: event serializer
       void serialize_order(SST::Core::Serialization::serializer &ser) override {
         Event::serialize_order(ser);
-        ser & Id;
+        ser & PktId;
         ser & SrcName;
         ser & Src;
         ser & Opcode;
