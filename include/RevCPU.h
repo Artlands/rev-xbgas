@@ -128,7 +128,6 @@ namespace SST {
       SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
         {"nic", "Network interface", "SST::RevCPU::RevNIC"},
         {"pan_nic", "PAN Network interface", "SST::RevCPU::PanNet"},
-        {"xbgas_nic", "xBGAS Network interface", "SST::RevCPU::XbgasNIC"},
         {"memory", "Memory interface to utilize cache/memory hierachy", "SST::RevCPU::RevMemCtrl"},
         {"remote_memory", "Memory interface to utilize remote memory", "SST::RevCPU::RevRmtMemCtrl"}
       )

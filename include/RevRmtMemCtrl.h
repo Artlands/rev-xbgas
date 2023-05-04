@@ -111,7 +111,9 @@ namespace SST {
                               { "max_responses", "Set the maximum number of outstanding responses per cycle",    "64"},
                               { "ops_per_cycle", "Set the maximum number of operations to issue per cycle",      "2"})
 
-      SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS({ "nicIface", "Set the interface to the NIC", "SST::Interfaces::SimpleNetwork" })
+      SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
+        {"xbgas_nic", "xBGAS Network interface", "SST::RevCPU::XbgasNIC"},
+      )
 
       SST_ELI_DOCUMENT_PORTS()
 

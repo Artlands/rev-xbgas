@@ -129,6 +129,9 @@ bool RevFeature::ParseMachineModel(){
     case 'P':
       SetMachineEntry(RV_P);
       break;
+    case 'X':
+      SetMachineEntry(RV_X);
+      break;
     default:
     case 'E':
     case 'Q':
