@@ -81,38 +81,28 @@ void RevMem::setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl){
   }
 }
 
-bool RevMem::WritePE(int PE){
+bool RevMem::WriteXbgasMem( uint64_t Addr, size_t Len, void *Data ){
   if( xbgasMem ){
-    // write the PE to the xBGAS memory
-    *(int *)(xbgasMem + _XBGAS_MY_PE_ADDR) = PE;
+    char *BaseXbgasMem = &xbgasMem[Addr];
+    char *DataMem = (char *)Data;
+    for( unsigned i=0; i<Len; i++ ){
+      BaseXbgasMem[i] = DataMem[i];
+    }
     return true;
   }
   return false;
 }
 
-int RevMem::ReadPE(){
+bool RevMem::ReadXbgasMem( uint64_t Addr, size_t Len, void *Data ){
   if( xbgasMem ){
-    // read the PE from the xBGAS memory
-    return *(int *)(xbgasMem + _XBGAS_MY_PE_ADDR);
-  }
-  return -1;
-}
-
-bool RevMem::WriteNumPEs(int NumPEs){
-  if( xbgasMem ){
-    // write the NumPEs to the xBGAS memory
-    *(int *)(xbgasMem + _XBGAS_TOTAL_PES_ADDR) = NumPEs;
+    char *BaseXbgasMem = &xbgasMem[Addr];
+    char *DataMem = (char *)Data;
+    for( unsigned i=0; i<Len; i++ ){
+      DataMem[i] = BaseXbgasMem[i];
+    }
     return true;
   }
   return false;
-}
-
-int RevMem::ReadNumPEs(){
-  if( xbgasMem ){
-    // read the NumPEs from the xBGAS memory
-    return *(int *)(xbgasMem + _XBGAS_TOTAL_PES_ADDR);
-  }
-  return -1;
 }
 
 bool RevMem::outstandingRqsts(){

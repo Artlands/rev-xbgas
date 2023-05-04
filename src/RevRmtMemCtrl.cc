@@ -91,12 +91,12 @@ void RevBasicRmtMemCtrl::init(unsigned int phase){
   xbgas_nic->init(phase);
   id = (int)(xbgas_nic->getAddress());
   numPEs = (int)(xbgas_nic->getNumPEs());
-  
+
   // Write id and numPEs to the xBGAS memory
-  if(!mem->WritePE(id))
+  if( !mem->WriteXbgasMem(_XBGAS_MY_PE_ADDR_, 4, (void*)(&id)) )
     output->fatal(CALL_INFO, -1, "Error: could not write PE id to xBGAS memory\n");
   
-  if(!mem->WriteNumPEs(numPEs))
+  if( !mem->WriteXbgasMem(_XBGAS_TOTAL_PES_ADDR_, 4, (void*)(&numPEs)) )
     output->fatal(CALL_INFO, -1, "Error: could not write number of PEs to xBGAS memory\n");
   
   // Namespece Lookaside Buffer Initialization. Now using a naive implementation

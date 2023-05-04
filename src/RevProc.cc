@@ -62,8 +62,11 @@ RevProc::RevProc( unsigned Id,
   // initialize extended registers for PE ID and # of PEs
   // e10 = contains the physical PE id
   // e11 = contains the number of PEs
-  int pe = mem->ReadPE();
-  int numPEs = mem->ReadNumPEs();
+  int pe = 0;
+  int numPEs = 0;
+  mem->ReadXbgasMem(_XBGAS_MY_PE_ADDR_, 4, (void*)(&pe));
+  mem->ReadXbgasMem(_XBGAS_TOTAL_PES_ADDR_, 4, (void*)(&numPEs));
+
   if( pe > 0 && numPEs > 0 ) {
     for (int t=0;  t < _REV_THREAD_COUNT_; t++){
       RegFile[t].ERV64[10] = (uint64_t)(pe);
@@ -246,6 +249,13 @@ bool RevProc::SeedInstTable(){
     EnableExt(static_cast<RevExt *>(new RV32D(feature,RegFile,mem,output)),false);
     if( feature->GetXlen() == 64 ){
       EnableExt(static_cast<RevExt *>(new RV64D(feature,RegFile,mem,output)),false);
+    }
+  }
+
+  // xBGAS Extension
+  if( feature->IsModeEnabled(RV_X) ){
+    if( feature->GetXlen() == 64 ){
+      EnableExt(static_cast<RevExt *>(new RV64X(feature,RegFile,mem,output)),false);
     }
   }
 

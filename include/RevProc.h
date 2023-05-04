@@ -37,6 +37,7 @@
 #include "RevInstTables.h"
 #include "PanExec.h"
 #include "RevPrefetcher.h"
+#include "RevRmtMemCtrl.h"
 
 #define _PAN_FWARE_JUMP_            0x0000000000010000
 

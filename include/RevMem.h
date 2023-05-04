@@ -117,17 +117,11 @@ namespace SST {
                             uint32_t Size, uint32_t Nelem, 
                             uint32_t Stride, uint64_t SrcAddr );
 
-      /// RevMem: write PE ID to the xBGAS memory
-      bool WritePE( int PE );
+      /// RevMem: write data to the xBGAS memory
+      bool WriteXbgasMem( uint64_t Addr, size_t Len, void *Data );
 
-      /// RevMem: read PE ID from the xBGAS memory
-      int ReadPE();
-
-      /// RevMem: write Total Number of PEs to the xBGAS memory
-      bool WriteNumPEs( int NumPEs );
-
-      /// RevMem: read Total Number of PEs from the xBGAS memory
-      int ReadNumPEs();
+      /// RevMem: read data from the xBGAS memory
+      bool ReadXbgasMem( uint64_t Addr, size_t Len, void *Data );
       
       // ----------------------------------------------------
       // ---- Read Memory Interfaces
