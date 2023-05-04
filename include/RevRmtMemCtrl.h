@@ -24,10 +24,10 @@
 
 // -- RevCPU Headers
 #include "RevOpts.h"
-#include "RevMem.h"
 #include "XbgasNIC.h"
 
 namespace SST::RevCPU {
+  class RevMem;
   class RevRmtMemCtrl;
 }
 
@@ -56,6 +56,9 @@ namespace SST {
 
       /// RevRmtMemCtrl: setup function
       virtual void setup() = 0;
+
+      /// RevBasicRmtMemCtrl: set the local memory object
+      virtual void setMem(RevMem *Mem) = 0;
 
       /// RevRmtMemCtrl: send a remote memory read request
       virtual bool sendRmtReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
@@ -114,10 +117,10 @@ namespace SST {
       typedef enum{
         RmtReadInFlight  = 0,
         RmtReadPending   = 1,
-        RmtReadBytes         = 2,
+        RmtReadBytes     = 2,
         RmtWriteInFlight = 3,
         RmtWritePending  = 4,
-        RmtWritesBytes        = 5
+        RmtWritesBytes   = 5
       }RmtMemCtrlStat;
 
       /// RevBasicRmtMemCtrl: constructor
@@ -137,6 +140,9 @@ namespace SST {
 
       /// RevBasicRmtMemCtrl: clock tick function
       virtual bool clockTick( Cycle_t cycle );
+
+      /// RevBasicRmtMemCtrl: set the local memory object
+      void setMem(RevMem *Mem) { mem = Mem; };
 
       /// RevBasicRmtMemCtrl: remote memory event processing handler
       void rmtMemEventHandler( Event *ev );
@@ -194,9 +200,6 @@ namespace SST {
 
       /// RevBasicRmtMemCtrl: register statistics
       void recordStat(RmtMemCtrlStat Stat, uint64_t Data);
-
-      /// RevBasicRmtMemCtrl: set the local memory object
-      bool setMem(RevMem *Mem) { mem = Mem; return true; };
 
       // -- private data members
       RevMem *mem;                               ///< RevBasicRmtMemCtrl: pointer to the memory object

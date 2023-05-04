@@ -35,6 +35,8 @@
 #include "RevNIC.h"
 #include "PanNet.h"
 #include "PanExec.h"
+#include "RevRmtMemCtrl.h"
+#include "XbgasNIC.h"
 
 // -- PAN Common Headers
 #include "../common/include/PanAddr.h"
@@ -101,6 +103,8 @@ namespace SST {
         {"enable_test",     "Enable PAN network endpoint test",             "0"},
         {"enable_pan_stats","Enable PAN network statistics",                "1"},
         {"enable_memH",     "Enable memHierarchy",                          "0"},
+        {"enable_xbgas",    "Exnable xBGAS for remote memory operations",   "0"},
+        {"enable_xbgas_stats", "Enable xBGAS statistics",                   "1"},
         {"enableRDMAMbox",  "Enable the RDMA mailbox",                      "1"},
         {"enable_faults",   "Enable the fault injection logic",             "0"},
         {"faults",          "Enable specific faults",                       "decode,mem,reg,alu"},
@@ -124,7 +128,9 @@ namespace SST {
       SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
         {"nic", "Network interface", "SST::RevCPU::RevNIC"},
         {"pan_nic", "PAN Network interface", "SST::RevCPU::PanNet"},
-        {"memory", "Memory interface to utilize for cache/memory hierachy", "SST::RevCPU::RevMemCtrl"}
+        {"xbgas_nic", "xBGAS Network interface", "SST::RevCPU::XbgasNIC"},
+        {"memory", "Memory interface to utilize cache/memory hierachy", "SST::RevCPU::RevMemCtrl"},
+        {"remote_memory", "Memory interface to utilize remote memory", "SST::RevCPU::RevRmtMemCtrl"}
       )
 
       // -------------------------------------------------------
@@ -223,6 +229,9 @@ namespace SST {
 
       bool EnableMemH;                    ///< RevCPU: Enable memHierarchy
 
+      bool EnableXBGAS;                   ///< RevCPU: Enable xBGAS
+      bool EnableXBGASStats;              ///< RevCPU: Enable xBGAS statistics
+
       bool EnableFaults;                  ///< RevCPU: Enable fault injection logic
       bool EnableCrackFaults;             ///< RevCPU: Enable Crack+Decode Faults
       bool EnableMemFaults;               ///< RevCPU: Enable memory faults (bit flips)
@@ -239,7 +248,7 @@ namespace SST {
       panNicAPI *PNic;                    ///< RevCPU: PAN network interface controller
       PanExec *PExec;                     ///< RevCPU: PAN execution context
       RevMemCtrl *Ctrl;                   ///< RevCPU: Rev memory controller
-
+      RevRmtMemCtrl *RmtCtrl;             ///< RevCPU: Rev remote memory controller
 
       std::queue<std::pair<panNicEvent *,int>> SendMB;  ///< RevCPU: outgoing command mailbox; pair<Cmd,Dest>
       std::queue<std::pair<uint32_t,char *>> ZeroRqst;  ///< RevCPU: tracks incoming zero address put requests; pair<Size,Data>

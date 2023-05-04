@@ -9,12 +9,13 @@
 //
 
 #include "../include/RevMem.h"
+#include "../include/RevRmtMemCtrl.h"
 #include <math.h>
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
                 RevMemCtrl *Ctrl, SST::Output *Output )
-  : memSize(MemSize), opts(Opts), ctrl(Ctrl), output(Output), physMem(nullptr),
-    stacktop(0x00ull) {
+  : memSize(MemSize), opts(Opts), ctrl(Ctrl), rmtCtrl(nullptr),
+    output(Output), physMem(nullptr), stacktop(0x00ull) {
   // Note: this constructor assumes the use of the memHierarchy backend
   pageSize = 262144; //Page Size (in Bytes)
   addrShift = int(log(pageSize) / log(2.0));
@@ -31,8 +32,8 @@ RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
 }
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
-  : memSize(MemSize), opts(Opts), ctrl(nullptr),output(Output),
-    physMem(nullptr), stacktop(0x00ull) {
+  : memSize(MemSize), opts(Opts), ctrl(nullptr), rmtCtrl(nullptr),
+    output(Output), physMem(nullptr), stacktop(0x00ull) {
 
   // allocate the backing memory
   physMem = new char [memSize];
@@ -492,6 +493,34 @@ void RevMem::WriteDouble( uint64_t Addr, double Value ){
   memStats.doublesWritten++;
   if( !WriteMem(Addr,8,(void *)(&Tmp)) )
     output->fatal(CALL_INFO, -1, "Error: could not write memory (DOUBLE)");
+}
+
+bool RevMem::RmtReadMem( uint64_t Nmspace, uint64_t SrcAddr, 
+                 uint32_t Size, void *Target ){
+  bool rtn = rmtCtrl->sendRmtReadRqst(Nmspace, SrcAddr, Size, Target);
+  return rtn;
+}
+
+bool RevMem::RmtBulkReadMem( uint64_t Nmspace, uint64_t SrcAddr, uint32_t Size, 
+                     uint32_t Nelem, uint32_t Stride, uint64_t DestAddr ) {
+  bool rtn = rmtCtrl->sendRmtBulkReadRqst(Nmspace, SrcAddr, Size, 
+                                          Nelem, Stride, DestAddr);
+  return rtn;
+}
+
+bool RevMem::RmtWriteMem( uint64_t Nmspace, uint64_t DestAddr, uint32_t Size, void *Data ){
+  uint8_t *Buffer = new uint8_t[Size];
+  std::memcpy(Buffer, Data, Size);
+  bool rtn = rmtCtrl->sendRmtWriteRqst(Nmspace, DestAddr, Size, Buffer);
+  delete [] Buffer;
+  return rtn;
+}
+
+bool RevMem::RmtBulkWriteMem( uint64_t Nmspace, uint64_t DestAddr, uint32_t Size, 
+                      uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr ) {
+  bool rtn = rmtCtrl->sendRmtBulkWriteRqst(Nmspace, DestAddr, Size, 
+                                           Nelem, Stride, SrcAddr);
+  return rtn;
 }
 
 // EOF

@@ -187,6 +187,10 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     FaultCntr = fault_width;
   }
 
+  // See if we should load the xBGAS subcomponent
+  EnableXBGAS = params.find<bool>("enable_xbgas", 0);
+  EnableXBGASStats = params.find<bool>("enable_xbgas_stats", 0);
+
   // Create the memory object
   const unsigned long memSize = params.find<unsigned long>("memSize", 1073741824);
   EnableMemH = params.find<bool>("enable_memH", 0);
@@ -194,6 +198,15 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     Mem = new RevMem( memSize, Opts,  &output );
     if( !Mem )
       output.fatal(CALL_INFO, -1, "Error: failed to initialize the memory object\n" );
+    
+    if( EnableXBGAS ){
+      RmtCtrl = loadUserSubComponent<RevRmtMemCtrl>("remote_memory");
+      RmtCtrl->setMem( Mem );
+      if ( !RmtCtrl )
+        output.fatal(CALL_INFO, -1, "Error : failed to inintialize the remote memory controller subcomponent\n" );
+      Mem->setRmtMemCtrl( RmtCtrl );
+    }    
+
   }else{
     if( EnablePAN )
       output.fatal(CALL_INFO, -1, "Error: PAN does not currently support memHierarchy\n");
@@ -205,6 +218,14 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     Mem = new RevMem( memSize, Opts, Ctrl, &output );
     if( !Mem )
       output.fatal(CALL_INFO, -1, "Error : failed to initialize the memory object\n" );
+
+    if( EnableXBGAS ){
+      RmtCtrl = loadUserSubComponent<RevRmtMemCtrl>("remote_memory");
+      RmtCtrl->setMem( Mem );
+      if ( !RmtCtrl )
+        output.fatal(CALL_INFO, -1, "Error : failed to inintialize the remote memory controller subcomponent\n" );
+      Mem->setRmtMemCtrl( RmtCtrl );
+    }
 
     if( EnableFaults )
       output.verbose(CALL_INFO, 1, 0, "Warning: memory faults cannot be enabled with memHierarchy support\n");

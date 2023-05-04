@@ -9,6 +9,7 @@
 //
 
 #include "../include/RevRmtMemCtrl.h"
+#include "../include/RevMem.h"
 
 using namespace SST;
 using namespace RevCPU;

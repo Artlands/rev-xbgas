@@ -36,6 +36,7 @@
 #define REVMEM_FLAGS(x) ((StandardMem::Request::flags_t)(x))
 
 namespace SST::RevCPU {
+  class RevRmtMemCtrl;
   class RevMem;
 }
 
@@ -54,6 +55,9 @@ namespace SST {
 
       /// RevMem: standard destructor
       ~RevMem();
+
+      /// RevMem: set the remote memory controller
+      void setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl) { rmtCtrl = RmtCtrl; };
 
       /// RevMem: determine if there are any outstanding requests
       bool outstandingRqsts();
@@ -90,6 +94,28 @@ namespace SST {
       /// RevMem: DEPRECATED: read data from the target memory location
       [[deprecated("Simple RevMem interfaces have been deprecated")]]
       bool ReadMem( uint64_t Addr, size_t Len, void *Data );
+
+      // ----------------------------------------------------
+      // ---- Remote Memory Interfaces
+      // ----------------------------------------------------
+
+      /// RevMem: read data from the target remote memory location
+      bool RmtReadMem( uint64_t Nmspace, uint64_t SrcAddr, 
+                       uint32_t Size, void *Target );
+      
+      /// RevMem: read bulk data from the target remote memory location
+      bool RmtBulkReadMem( uint64_t Nmspace, uint64_t SrcAddr, 
+                           uint32_t Size, uint32_t Nelem, 
+                           uint32_t Stride, uint64_t DestAddr );
+
+      /// RevMem: write data to the target remote memory location
+      bool RmtWriteMem( uint64_t Nmspace, uint64_t DestAddr, 
+                        uint32_t Size, void *Data );
+      
+      /// RevMem: write bulk data to the target remote memory location
+      bool RmtBulkWriteMem( uint64_t Nmspace, uint64_t DestAddr, 
+                            uint32_t Size, uint32_t Nelem, 
+                            uint32_t Stride, uint64_t SrcAddr );
 
       // ----------------------------------------------------
       // ---- Read Memory Interfaces
@@ -186,6 +212,7 @@ namespace SST {
       unsigned long memSize;    ///< RevMem: size of the target memory
       RevOpts *opts;            ///< RevMem: options object
       RevMemCtrl *ctrl;         ///< RevMem: memory controller object
+      RevRmtMemCtrl *rmtCtrl;   ///< RevMem: remote memory controller object
       SST::Output *output;      ///< RevMem: output handler
 
       uint64_t CalcPhysAddr(uint64_t pageNum, uint64_t Addr);
