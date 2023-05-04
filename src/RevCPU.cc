@@ -2409,6 +2409,11 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
       rtn = false;
   }
 
+  // check to see if remote memory operations are completed
+  if( EnableXBGAS ) {
+    rtn = RmtCtrl->isFinished();
+  }
+
   // check to see if the network has any outstanding messages: fixme
   if( !SendMB.empty() || !TrackTags.empty() || !ZeroRqst.empty() || !RevokeHasArrived ){
 #ifdef _REV_DEBUG_

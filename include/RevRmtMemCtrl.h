@@ -61,6 +61,12 @@ namespace SST {
       /// RevRmtMemCtrl: setup function
       virtual void setup() = 0;
 
+      /// RevRmtMemCtrl: finish function
+      virtual void finish() = 0;
+
+      /// RevRmtMemCtrl: check if the remote memory operation is finished
+      virtual bool isFinished() = 0;
+
       /// RevBasicRmtMemCtrl: set the local memory object
       virtual void setMem(RevMem *Mem) = 0;
 
@@ -140,7 +146,10 @@ namespace SST {
       virtual void setup() override;
 
       /// RevBasicRmtMemCtrl: finish function
-      virtual bool isFinished();
+      virtual void finish() override;
+
+      /// RevBasicRmtMemCtrl: finish function
+      virtual bool isFinished() override;
 
       /// RevBasicRmtMemCtrl: clock tick function
       virtual bool clockTick( Cycle_t cycle );

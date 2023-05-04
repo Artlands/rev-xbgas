@@ -113,9 +113,13 @@ void RevBasicRmtMemCtrl::setup(){
   xbgas_nic->setup();
 }
 
+void RevBasicRmtMemCtrl::finish(){
+}
+
 bool RevBasicRmtMemCtrl::isFinished(){
   bool rtn = false;
-  if( rqstQ.empty() && respQ.empty() ){
+  if( rqstQ.empty() && respQ.empty() && 
+      readRqsts.empty() && bulkReadRqsts.empty() && writeRqsts.empty()){
     rtn = true;
   }
   return rtn;
