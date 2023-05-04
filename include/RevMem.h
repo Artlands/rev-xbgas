@@ -57,7 +57,7 @@ namespace SST {
       ~RevMem();
 
       /// RevMem: set the remote memory controller
-      void setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl) { rmtCtrl = RmtCtrl; };
+      void setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl);
 
       /// RevMem: determine if there are any outstanding requests
       bool outstandingRqsts();
@@ -117,6 +117,18 @@ namespace SST {
                             uint32_t Size, uint32_t Nelem, 
                             uint32_t Stride, uint64_t SrcAddr );
 
+      /// RevMem: write PE ID to the xBGAS memory
+      bool WritePE( int PE );
+
+      /// RevMem: read PE ID from the xBGAS memory
+      int ReadPE();
+
+      /// RevMem: write Total Number of PEs to the xBGAS memory
+      bool WriteNumPEs( int NumPEs );
+
+      /// RevMem: read Total Number of PEs from the xBGAS memory
+      int ReadNumPEs();
+      
       // ----------------------------------------------------
       // ---- Read Memory Interfaces
       // ----------------------------------------------------
@@ -207,6 +219,7 @@ namespace SST {
 
     protected:
       char *physMem;                          ///< RevMem: memory container
+      char *xbgasMem;                         ///< RevMem: memory space for storing the xBGAS metadata
 
     private:
       unsigned long memSize;    ///< RevMem: size of the target memory

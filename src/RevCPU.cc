@@ -485,6 +485,9 @@ void RevCPU::setup(){
   if( EnableMemH ){
     Ctrl->setup();
   }
+  if( EnableXBGAS ){
+    RmtCtrl->setup();
+  }
 }
 
 void RevCPU::finish(){
@@ -497,6 +500,8 @@ void RevCPU::init( unsigned int phase ){
     PNic->init(phase);
   if( EnableMemH )
     Ctrl->init(phase);
+  if( EnableXBGAS )
+    RmtCtrl->init(phase);
 }
 
 void RevCPU::handleMessage(Event *ev){

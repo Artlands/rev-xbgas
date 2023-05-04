@@ -59,6 +59,18 @@ RevProc::RevProc( unsigned Id,
     output->fatal(CALL_INFO, -1,
                   "Error: failed to reset the core resources for core=%d\n", id );
 
+  // initialize extended registers for PE ID and # of PEs
+  // e10 = contains the physical PE id
+  // e11 = contains the number of PEs
+  int pe = mem->ReadPE();
+  int numPEs = mem->ReadNumPEs();
+  if( pe > 0 && numPEs > 0 ) {
+    for (int t=0;  t < _REV_THREAD_COUNT_; t++){
+      RegFile[t].ERV64[10] = (uint64_t)(pe);
+      RegFile[t].ERV64[11] = (uint64_t)(numPEs);
+    }
+  }
+  
   Stats.totalCycles = 0;
   Stats.cyclesBusy = 0;
   Stats.cyclesIdle_Total = 0;
@@ -390,6 +402,7 @@ bool RevProc::Reset(){
     for( unsigned i=0; i<_REV_NUM_REGS_; i++ ){
       RegFile[t].RV32[i] = 0x00l;
       RegFile[t].RV64[i] = 0x00ull;
+      RegFile[t].ERV64[i] = 0x00ull;
       RegFile[t].SPF[i]  = 0.f;
       RegFile[t].DPF[i]  = 0.f;
       RegFile[t].RV32_Scoreboard[i] = false;

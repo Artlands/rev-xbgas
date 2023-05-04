@@ -91,7 +91,13 @@ void RevBasicRmtMemCtrl::init(unsigned int phase){
   xbgas_nic->init(phase);
   id = (int)(xbgas_nic->getAddress());
   numPEs = (int)(xbgas_nic->getNumPEs());
-  // Todo: write id and numPEs to the reserved memory
+  
+  // Write id and numPEs to the xBGAS memory
+  if(!mem->WritePE(id))
+    output->fatal(CALL_INFO, -1, "Error: could not write PE id to xBGAS memory\n");
+  
+  if(!mem->WriteNumPEs(numPEs))
+    output->fatal(CALL_INFO, -1, "Error: could not write number of PEs to xBGAS memory\n");
   
   // Namespece Lookaside Buffer Initialization. Now using a naive implementation
   std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts;

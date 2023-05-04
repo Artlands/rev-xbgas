@@ -219,6 +219,9 @@ namespace SST{
       float SPF[_REV_NUM_REGS_];        ///< RevRegFile: RVxxF register file
       double DPF[_REV_NUM_REGS_];       ///< RevRegFile: RVxxD register file
 
+      // Extended register file
+      uint64_t ERV64[_REV_NUM_REGS_];   ///< RevRegFile: Extended RV64X register file
+
       bool RV32_Scoreboard[_REV_NUM_REGS_]; ///< RevRegFile: Scoreboard for RV32I RF to manage pipeline hazard
       bool RV64_Scoreboard[_REV_NUM_REGS_]; ///< RevRegFile: Scoreboard for RV64I RF to manage pipeline hazard
       bool SPF_Scoreboard[_REV_NUM_REGS_];  ///< RevRegFile: Scoreboard for SPF RF to manage pipeline hazard

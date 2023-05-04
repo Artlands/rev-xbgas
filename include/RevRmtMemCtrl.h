@@ -26,6 +26,10 @@
 #include "RevOpts.h"
 #include "XbgasNIC.h"
 
+#define _XBGAS_MEM_SIZE_                65536       // 64KB
+#define _XBGAS_MY_PE_ADDR               0x0000      // 0
+#define _XBGAS_TOTAL_PES_ADDR            0x0004      // 4
+
 namespace SST::RevCPU {
   class RevMem;
   class RevRmtMemCtrl;

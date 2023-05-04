@@ -14,8 +14,9 @@
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
                 RevMemCtrl *Ctrl, SST::Output *Output )
-  : memSize(MemSize), opts(Opts), ctrl(Ctrl), rmtCtrl(nullptr),
-    output(Output), physMem(nullptr), stacktop(0x00ull) {
+  : physMem(nullptr), xbgasMem(nullptr), 
+    memSize(MemSize), opts(Opts), ctrl(Ctrl), rmtCtrl(nullptr),
+    output(Output),  stacktop(0x00ull) {
   // Note: this constructor assumes the use of the memHierarchy backend
   pageSize = 262144; //Page Size (in Bytes)
   addrShift = int(log(pageSize) / log(2.0));
@@ -32,8 +33,9 @@ RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
 }
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
-  : memSize(MemSize), opts(Opts), ctrl(nullptr), rmtCtrl(nullptr),
-    output(Output), physMem(nullptr), stacktop(0x00ull) {
+  : physMem(nullptr), xbgasMem(nullptr), 
+    memSize(MemSize), opts(Opts), ctrl(nullptr), rmtCtrl(nullptr),
+    output(Output), stacktop(0x00ull) {
 
   // allocate the backing memory
   physMem = new char [memSize];
@@ -62,6 +64,55 @@ RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
 RevMem::~RevMem(){
   if( physMem )
     delete[] physMem;
+}
+
+void RevMem::setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl){
+  rmtCtrl = RmtCtrl;
+
+  // allocate the xBGAS memory
+  xbgasMem = new char [_XBGAS_MEM_SIZE_];
+
+  if( !xbgasMem )
+    output->fatal(CALL_INFO, -1, "Error: could not allocate xBGAS memory\n");
+  
+  // zero the memory
+  for( unsigned long i=0; i<_XBGAS_MEM_SIZE_; i++ ){
+    xbgasMem[i] = 0;
+  }
+}
+
+bool RevMem::WritePE(int PE){
+  if( xbgasMem ){
+    // write the PE to the xBGAS memory
+    *(int *)(xbgasMem + _XBGAS_MY_PE_ADDR) = PE;
+    return true;
+  }
+  return false;
+}
+
+int RevMem::ReadPE(){
+  if( xbgasMem ){
+    // read the PE from the xBGAS memory
+    return *(int *)(xbgasMem + _XBGAS_MY_PE_ADDR);
+  }
+  return -1;
+}
+
+bool RevMem::WriteNumPEs(int NumPEs){
+  if( xbgasMem ){
+    // write the NumPEs to the xBGAS memory
+    *(int *)(xbgasMem + _XBGAS_TOTAL_PES_ADDR) = NumPEs;
+    return true;
+  }
+  return false;
+}
+
+int RevMem::ReadNumPEs(){
+  if( xbgasMem ){
+    // read the NumPEs from the xBGAS memory
+    return *(int *)(xbgasMem + _XBGAS_TOTAL_PES_ADDR);
+  }
+  return -1;
 }
 
 bool RevMem::outstandingRqsts(){
