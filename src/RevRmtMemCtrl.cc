@@ -42,10 +42,11 @@ RevBasicRmtMemCtrl::RevBasicRmtMemCtrl(ComponentId_t id, Params& params)
 
   max_loads = params.find<unsigned>("max_loads", 64);
   max_stores = params.find<unsigned>("max_stores", 64);
-  max_responses = params.find<unsigned>("max_responses", 2);
+  max_responses = params.find<unsigned>("max_responses", 64);
   max_ops = params.find<unsigned>("ops_per_cycle", 2);
 
   rqstQ.reserve(max_ops);
+  respQ.reserve(max_responses);
 
   xbgas_nic = loadUserSubComponent<xbgasNicAPI>("xbgas_nic");
   xbgas_nic->setMsgHandler( new Event::Handler<RevBasicRmtMemCtrl>(this, &RevBasicRmtMemCtrl::rmtMemEventHandler) );
@@ -69,14 +70,14 @@ RevBasicRmtMemCtrl::~RevBasicRmtMemCtrl(){
 void RevBasicRmtMemCtrl::registerStats(){
   stats.push_back(registerStatistic<uint64_t>("RmtReadInFlight"));
   stats.push_back(registerStatistic<uint64_t>("RmtReadPending"));
-  stats.push_back(registerStatistic<uint64_t>("RmtReads"));
+  stats.push_back(registerStatistic<uint64_t>("RmtReadBytes"));
   stats.push_back(registerStatistic<uint64_t>("RmtWriteInFlight"));
   stats.push_back(registerStatistic<uint64_t>("RmtWritePending"));
-  stats.push_back(registerStatistic<uint64_t>("RmtWrites"));
+  stats.push_back(registerStatistic<uint64_t>("RmtWritesBytes"));
 }
 
 void RevBasicRmtMemCtrl::recordStat(RmtMemCtrlStat Stat, uint64_t Data){
-  if( Stat > RevBasicRmtMemCtrl::RmtMemCtrlStat::RmtWrites ) {
+  if( Stat > RevBasicRmtMemCtrl::RmtMemCtrlStat::RmtWritesBytes ) {
     // do nothing
     return;
   }
@@ -147,7 +148,7 @@ bool RevBasicRmtMemCtrl::isRmtMemOpAvail(xbgasNicEvent *ev, unsigned &t_max_load
   return false;
 }
 
-bool RevBasicRmtMemCtrl::sendRmtReadRqst( uint64_t Nmspace, uint64_t Addr, 
+bool RevBasicRmtMemCtrl::sendRmtReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
                                           uint32_t Size, void *Target){
   int Src = (int)(xbgas_nic->getAddress());
   int Dest = findDest(Nmspace);
@@ -159,7 +160,7 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst( uint64_t Nmspace, uint64_t Addr,
   // Build the remote read request
   xbgasNicEvent *RmtEvent= new xbgasNicEvent();
   RmtEvent->setSrc( Src );
-  RmtEvent->buildGetRqst( rqstId, Addr, Size );
+  RmtEvent->buildGetRqst( rqstId, SrcAddr, Size );
 
   // Store the request ID and RmtEvent in the readRqsts and readOutstanding maps, respectively
   readRqsts.push_back(rqstId);
@@ -167,13 +168,14 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst( uint64_t Nmspace, uint64_t Addr,
 
   // Add the request to the request queue
   rqstQ.push_back( std::make_pair(RmtEvent, Dest) );
+  recordStat(RmtMemCtrlStat::RmtReadBytes, Size);
   recordStat(RmtMemCtrlStat::RmtReadPending, 1);
   return true;
 }
 
-bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t Addr, 
+bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
                                               uint32_t Size, uint32_t Nelem, 
-                                              uint32_t Stride, uint64_t BulkAddr ){
+                                              uint32_t Stride, uint64_t DestAddr ){
   int Src = (int)(xbgas_nic->getAddress());
   int Dest = findDest(Nmspace);
   uint64_t rqstId = main_id++;
@@ -185,19 +187,20 @@ bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t Addr,
   // Build the bulk remote read request
   xbgasNicEvent *RmtEvent= new xbgasNicEvent();
   RmtEvent->setSrc( Src );
-  RmtEvent->buildBulkGetRqst( rqstId, Addr, Size, Nelem, Stride );
+  RmtEvent->buildBulkGetRqst( rqstId, SrcAddr, Size, Nelem, Stride );
 
   // Store the request ID and RmtEvent in the bulkReadRqsts and bulkReadOutstanding maps, respectively
   bulkReadRqsts.push_back(rqstId);
-  bulkReadOutstanding[rqstId] = std::make_pair(RmtEvent, BulkAddr);
+  bulkReadOutstanding[rqstId] = std::make_pair(RmtEvent, DestAddr);
 
   // Add the request to the request queue
   rqstQ.push_back( std::make_pair(RmtEvent, Dest) );
+  recordStat(RmtMemCtrlStat::RmtReadBytes, TotalSize);
   recordStat(RmtMemCtrlStat::RmtReadPending, 1);
   return true;
 }
 
-bool RevBasicRmtMemCtrl::sendRmtWriteRqst( uint64_t Nmspace, uint64_t Addr, 
+bool RevBasicRmtMemCtrl::sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
                                            uint32_t Size, uint8_t *Buffer){
   int Src = (int)(xbgas_nic->getAddress());
   int Dest = findDest(Nmspace);
@@ -209,7 +212,7 @@ bool RevBasicRmtMemCtrl::sendRmtWriteRqst( uint64_t Nmspace, uint64_t Addr,
   // Build the remote write request
   xbgasNicEvent *RmtEvent= new xbgasNicEvent();
   RmtEvent->setSrc( Src );
-  RmtEvent->buildPutRqst( rqstId, Addr, Size, Buffer );
+  RmtEvent->buildPutRqst( rqstId, DestAddr, Size, Buffer );
 
   // Store the request ID and RmtEvent in the writeRqsts and writeOutstanding maps, respectively
   writeRqsts.push_back(rqstId);
@@ -217,6 +220,7 @@ bool RevBasicRmtMemCtrl::sendRmtWriteRqst( uint64_t Nmspace, uint64_t Addr,
 
   // Add the request to the request queue
   rqstQ.push_back( std::make_pair(RmtEvent, Dest) );
+  recordStat(RmtMemCtrlStat::RmtWritesBytes, Size);
   recordStat(RmtMemCtrlStat::RmtWritePending, 1);
   return true;
 }
@@ -257,6 +261,7 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst( uint64_t Nmspace, uint64_t DestAd
 
   // Add the request to the request queue
   rqstQ.push_back( std::make_pair(RmtEvent, Dest) );
+  recordStat(RmtMemCtrlStat::RmtWritesBytes, TotalSize);
   recordStat(RmtMemCtrlStat::RmtWritePending, 1);
   delete[] Buffer;
   return true;

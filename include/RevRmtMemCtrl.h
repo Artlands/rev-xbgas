@@ -64,7 +64,7 @@ namespace SST {
       /// RevRmtMemCtrl: send a remote direct memory read request
       virtual bool sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
                                         uint32_t Size, uint32_t Nelem, 
-                                        uint32_t Stride, uint64_t BulkDestAddr ) = 0;
+                                        uint32_t Stride, uint64_t DestAddr ) = 0;
       
       /// RevRmtMemCtrl: send a remote memory write request
       virtual bool sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
@@ -73,7 +73,7 @@ namespace SST {
       /// RevRmtMemCtrl: send a remote direct memory write request
       virtual bool sendRmtBulkWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
                                          uint32_t Size, uint32_t Nelem, 
-                                         uint32_t Stride, uint64_t BulkSrcAddr ) = 0;
+                                         uint32_t Stride, uint64_t SrcAddr ) = 0;
     
     protected:
       SST::Output *output;  ///< RevRmtMemCtrl: sst output object
@@ -95,7 +95,7 @@ namespace SST {
                               { "clock",         "Set the clock frequency of the remote memory controller",      "1Ghz"  },
                               { "max_loads",     "Set the maximum number of outstanding loads",                  "64"},
                               { "max_stores",    "Set the maximum number of outstanding stores",                 "64"},
-                              { "max_responses", "Set the maximum number of outstanding responses per cycle",    "2"},
+                              { "max_responses", "Set the maximum number of outstanding responses per cycle",    "64"},
                               { "ops_per_cycle", "Set the maximum number of operations to issue per cycle",      "2"})
 
       SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS({ "nicIface", "Set the interface to the NIC", "SST::Interfaces::SimpleNetwork" })
@@ -105,19 +105,19 @@ namespace SST {
       SST_ELI_DOCUMENT_STATISTICS(
         { "RmtReadInFlight",  "Counts the number of remote reads in flight",  "count", 1 },
         { "RmtReadPending",   "Counts the number of remote reads pending",    "count", 1 },
-        { "RmtReads",         "Counts the number of bytes of remote reads",   "bytes", 1 },
+        { "RmtReadBytes",     "Counts the number of bytes of remote reads",   "bytes", 1 },
         { "RmtWriteInFlight", "Counts the number of remote writes in flight", "count", 1 },
         { "RmtWritePending",  "Counts the number of remote writes pending",   "count", 1 },
-        { "RmtWrites",        "Counts the number of bytes of remote writes",  "bytes", 1 }
+        { "RmtWritesBytes",   "Counts the number of bytes of remote writes",  "bytes", 1 }
       )
 
       typedef enum{
         RmtReadInFlight  = 0,
         RmtReadPending   = 1,
-        RmtReads         = 2,
+        RmtReadBytes         = 2,
         RmtWriteInFlight = 3,
         RmtWritePending  = 4,
-        RmtWrites        = 5
+        RmtWritesBytes        = 5
       }RmtMemCtrlStat;
 
       /// RevBasicRmtMemCtrl: constructor
@@ -148,7 +148,7 @@ namespace SST {
       /// RevBasicRmtMemCtrl: send a remote bulk memory read request
       virtual bool sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
                                         uint32_t Size, uint32_t Nelem,
-                                        uint32_t Stride, uint64_t BulkDestAddr ) override;
+                                        uint32_t Stride, uint64_t DestAddr ) override;
       
       /// RevBasicRmtMemCtrl: send a remote memory write request
       virtual bool sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
@@ -157,7 +157,7 @@ namespace SST {
       /// RevBasicRmtMemCtrl: send a remote direct memory write request
       virtual bool sendRmtBulkWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
                                          uint32_t Size, uint32_t Nelem, 
-                                         uint32_t Stride, uint64_t BulkSrcAddr ) override;
+                                         uint32_t Stride, uint64_t SrcAddr ) override;
 
     private:
       /// RevBasicRmtMemCtrl: determine if we can instantiate the target remote memory operation
@@ -214,7 +214,7 @@ namespace SST {
       std::map<uint64_t, std::pair<xbgasNicEvent *, void *>> readOutstanding;          ///< RevBasicRmtMemCtrl: map of outstanding read requests, <PktID, <Event, Target>>
       
       std::vector<uint64_t> bulkReadRqsts;                                             ///< RevBasicRmtMemCtrl: outstanding bulk read requests
-      std::map<uint64_t, std::pair<xbgasNicEvent *, uint64_t>> bulkReadOutstanding;    ///< RevBasicRmtMemCtrl: map of outstanding bulk read requests, <PktID, <Event, BulkDestAddr>>
+      std::map<uint64_t, std::pair<xbgasNicEvent *, uint64_t>> bulkReadOutstanding;    ///< RevBasicRmtMemCtrl: map of outstanding bulk read requests, <PktID, <Event, DestAddr>>
 
       std::vector<uint64_t> writeRqsts;                             ///< RevBasicRmtMemCtrl: outstanding write requests
       std::map<uint64_t, xbgasNicEvent *> writeOutstanding;         ///< RevBasicRmtMemCtrl: map of outstanding write requests, <PktID, Event>
