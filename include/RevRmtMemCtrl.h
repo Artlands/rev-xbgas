@@ -62,18 +62,18 @@ namespace SST {
                                     uint32_t Size, void *Target) = 0;
 
       /// RevRmtMemCtrl: send a remote direct memory read request
-      virtual bool sendRmtDmaReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
-                                       uint32_t Size, uint32_t Nelem, 
-                                       uint32_t Stride, uint64_t DmaDestAddr ) = 0;
+      virtual bool sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
+                                        uint32_t Size, uint32_t Nelem, 
+                                        uint32_t Stride, uint64_t BulkDestAddr ) = 0;
       
       /// RevRmtMemCtrl: send a remote memory write request
       virtual bool sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
                                      uint32_t Size, uint8_t *Buffer) = 0;
 
       /// RevRmtMemCtrl: send a remote direct memory write request
-      virtual bool sendRmtDmaWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
-                                        uint32_t Size, uint32_t Nelem, 
-                                        uint32_t Stride, uint64_t DmaSrcAddr ) = 0;
+      virtual bool sendRmtBulkWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
+                                         uint32_t Size, uint32_t Nelem, 
+                                         uint32_t Stride, uint64_t BulkSrcAddr ) = 0;
     
     protected:
       SST::Output *output;  ///< RevRmtMemCtrl: sst output object
@@ -145,19 +145,19 @@ namespace SST {
       virtual bool sendRmtReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
                                     uint32_t Size, void *Target) override;
 
-      /// RevBasicRmtMemCtrl: send a remote direct memory read request
-      virtual bool sendRmtDmaReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
-                                       uint32_t Size, uint32_t Nelem,
-                                       uint32_t Stride, uint64_t DmaDestAddr ) override;
+      /// RevBasicRmtMemCtrl: send a remote bulk memory read request
+      virtual bool sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
+                                        uint32_t Size, uint32_t Nelem,
+                                        uint32_t Stride, uint64_t BulkDestAddr ) override;
       
       /// RevBasicRmtMemCtrl: send a remote memory write request
       virtual bool sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
                                      uint32_t Size, uint8_t *Buffer) override;
 
       /// RevBasicRmtMemCtrl: send a remote direct memory write request
-      virtual bool sendRmtDmaWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
-                                        uint32_t Size, uint32_t Nelem, 
-                                        uint32_t Stride, uint64_t DmaSrcAddr ) override;
+      virtual bool sendRmtBulkWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
+                                         uint32_t Size, uint32_t Nelem, 
+                                         uint32_t Stride, uint64_t BulkSrcAddr ) override;
 
     private:
       /// RevBasicRmtMemCtrl: determine if we can instantiate the target remote memory operation
@@ -171,6 +171,9 @@ namespace SST {
 
       /// RevBasicRmtMemCtrl: handle a read response
       virtual void handleRmtReadResp( xbgasNicEvent *ev );
+
+      /// RevBasicRmtMemCtrl: handle a bulk read response
+      virtual void handleRmtBulkReadResp( xbgasNicEvent *ev );
 
       /// RevBasicRmtMemCtrl: handle a write response
       virtual void handleRmtWriteResp( xbgasNicEvent *ev );
@@ -204,12 +207,18 @@ namespace SST {
       unsigned max_responses;                    ///< RevBasicRmtMemCtrl: maximum number of responses to issue per cycle
       unsigned max_ops;                          ///< RevBasicRmtMemCtrl: maximum number of operations to issue per cycle
 
-
       uint64_t num_read;                         ///< RevBasicRmtMemCtrl: number of remote read requests
       uint64_t num_write;                        ///< RevBasicRmtMemCtrl: number of remote write requests
 
-      std::vector<uint64_t> requests;                               ///< RevBasicRmtMemCtrl: outstanding requests
-      std::map<uint64_t, xbgasNicEvent *> outstanding;              ///< RevBasicRmtMemCtrl: map of outstanding requests, <PktID, Event>
+      std::vector<uint64_t> readRqsts;                                                 ///< RevBasicRmtMemCtrl: outstanding read requests
+      std::map<uint64_t, std::pair<xbgasNicEvent *, void *>> readOutstanding;          ///< RevBasicRmtMemCtrl: map of outstanding read requests, <PktID, <Event, Target>>
+      
+      std::vector<uint64_t> bulkReadRqsts;                                             ///< RevBasicRmtMemCtrl: outstanding bulk read requests
+      std::map<uint64_t, std::pair<xbgasNicEvent *, uint64_t>> bulkReadOutstanding;    ///< RevBasicRmtMemCtrl: map of outstanding bulk read requests, <PktID, <Event, BulkDestAddr>>
+
+      std::vector<uint64_t> writeRqsts;                             ///< RevBasicRmtMemCtrl: outstanding write requests
+      std::map<uint64_t, xbgasNicEvent *> writeOutstanding;         ///< RevBasicRmtMemCtrl: map of outstanding write requests, <PktID, Event>
+      
       std::vector<std::pair<xbgasNicEvent *, int>> rqstQ;           ///< RevBasicRmtMemCtrl: queued remote memory requests to be sent out, <Event, Dest>
       std::vector<std::pair<xbgasNicEvent *, int>> respQ;           ///< RevBasicRmtMemCtrl: queued remote memory responses to be sent out, <Event, Dest>
       std::vector<std::pair<uint64_t, int>> nmspaceLB;              ///< RevBasicRmtMemCtrl: namespace lookaside Buffer; pair<Namespace, Dest>

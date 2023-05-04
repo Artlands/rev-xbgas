@@ -38,12 +38,12 @@ namespace SST {
       typedef enum {
         GetRqst     = 0b0000,     ///< xbgasNicEvent: Get request
         PutRqst     = 0b0001,     ///< xbgasNicEvent: Put request
-        DmaGetRqst  = 0b0010,     ///< xbgasNicEvent: DMA Get request
-        DmaPutRqst  = 0b0011,     ///< xbgasNicEvent: DMA Put request
+        BulkGetRqst  = 0b0010,     ///< xbgasNicEvent: bulk Get request
+        BulkPutRqst  = 0b0011,     ///< xbgasNicEvent: bulk Put request
         GetResp     = 0b0100,     ///< xbgasNicEvent: Get response
         PutResp     = 0b0101,     ///< xbgasNicEvent: Put response
-        DmaGetResp  = 0b0110,     ///< xbgasNicEvent: DMA Get response
-        DmaPutResp  = 0b0111,     ///< xbgasNicEvent: DMA Put response
+        BulkGetResp  = 0b0110,     ///< xbgasNicEvent: bulk Get response
+        BulkPutResp  = 0b0111,     ///< xbgasNicEvent: bulk Put response
         Unknown     = 0b1000      ///< xbgasNicEvent: Unknown operation
       } XbgasOpcode;
 
@@ -51,7 +51,7 @@ namespace SST {
       xbgasNicEvent(std::string name) 
       : Event(), PktId(0), SrcName(name), Src(0),
         Size(0), Nelem(1), Stride(0), 
-        SrcAddr(0), DestAddr(0), Target(nullptr), Opcode(Unknown){ }
+        Addr(0), Opcode(Unknown){ }
 
       /// xbgasNicEvent: rerieve the source name
       std::string getSource() { return SrcName; }
@@ -77,14 +77,8 @@ namespace SST {
       /// xbgasNicEvent: retrieve the stride value
       uint32_t getStride() { return Stride; }
 
-      /// xbgasNicEvent: retrieve the source address (remote memory address if read, local memory address if write)
-      uint64_t getSrcAddr() { return SrcAddr; }
-
-      /// xbgasNicEvent: retrieve the destination address (local memory address if read, remote memory address if write)
-      uint64_t getDestAddr() { return DestAddr; }
-
-      /// xbgasNicEvent: retrieve the target register pointer
-      void *getTarget() { return Target; }
+      /// xbgasNicEvent: retrieve the source/destination address
+      uint64_t getAddr() { return Addr; }
 
       /// xbgasNicEvent: retrieve the packet data
       void getData(uint8_t *Buffer);
@@ -107,14 +101,8 @@ namespace SST {
       /// xbgasNicEvent: set the stride of elements in the packet
       bool setStride(uint32_t Sd) {Stride = Sd; return true; }
 
-      /// xbgasNicEvent: set the source address (remote memory address if read, local memory address if write)
-      bool setSrcAddr(uint64_t SAddr) {SrcAddr = SAddr; return true; }
-
-      /// xbgasNicEvent: set the destination address (local memory address if read, remote memory address if write)
-      bool setDestAddr( uint64_t DAddr ) { DestAddr = DAddr; return true; }
-
-      /// xbgasNicEvent: set the target register pointer
-      bool setTarget(void *T) { Target = T; return true; }
+      /// xbgasNicEvent: set the source/destination address
+      bool setAddr(uint64_t SAddr) {Addr = SAddr; return true; }
 
       /// xbgasNicEvent: set the packet data
       bool setData(uint8_t *Buffer, uint32_t Sz);
@@ -124,34 +112,32 @@ namespace SST {
       // ------------------------------------------------
 
       /// xbgasNicEvent: build a Get request packet
-      bool buildGetRqst(uint64_t PktId, uint64_t SrcAddr, uint32_t Size);
+      bool buildGetRqst(uint64_t PktId, uint64_t Addr, uint32_t Size);
       
-      /// xbgasNicEvent: build a DMA Get request packet
-      bool buildDmaGetRqst(uint64_t PktId, uint64_t SrcAddr, uint32_t Size, 
-                           uint32_t Nelem, uint32_t Stride, uint64_t DmaDestAddr);
+      /// xbgasNicEvent: build a bulk Get request packet
+      bool buildBulkGetRqst(uint64_t PktId, uint64_t Addr, uint32_t Size, 
+                            uint32_t Nelem, uint32_t Stride);
       
       /// xbgasNicEvent: build a Put request packet
-      bool buildPutRqst(uint64_t PktId, uint64_t DestAddr, 
+      bool buildPutRqst(uint64_t PktId, uint64_t Addr, 
                         uint32_t Size, uint8_t *Buffer);
       
-      /// xbgasNicEvent: build a DMA Put request packet
-      bool buildDmaPutRqst(uint64_t PktId, uint64_t DestAddr, 
-                           uint32_t Size, uint8_t *Buffer,
-                           uint32_t Nelem, uint32_t Stride, uint64_t DmaSrcAddr);
+      /// xbgasNicEvent: build a bulk Put request packet
+      bool buildBulkPutRqst(uint64_t PktId, uint64_t Addr, uint32_t Size, 
+                            uint32_t Nelem, uint32_t Stride, uint8_t *Buffer);
       
       /// xbgasNicEvent: build a Get respond packet
       bool buildGetResp(uint64_t PktId, uint32_t Size, uint8_t *Buffer);
 
-      /// xbgasNicEvent: build a DMA Get respond packet
-      bool buildDmaGetResp(uint64_t PktId, uint32_t Size, 
-                           uint32_t Nelem, uint32_t Stride, 
-                           uint64_t DmaDestAddr, uint8_t *Buffer);
+      /// xbgasNicEvent: build a bulk Get respond packet
+      bool buildBulkGetResp(uint64_t PktId, uint32_t Size, 
+                            uint32_t Nelem, uint8_t *Buffer);
       
       /// xbgasNicEvent: build a Put respond packet
       bool buildPutResp(uint64_t PktId);
 
-      /// xbgasNicEvent: build a DMA Put respond packet
-      bool buildDmaPutResp(uint64_t PktId);
+      /// xbgasNicEvent: build a bulk Put respond packet
+      bool buildBulkPutResp(uint64_t PktId);
       
       /// xbgasNicEvent: virtual function to clone an event
       virtual Event* clone(void) override{
@@ -166,9 +152,7 @@ namespace SST {
       uint32_t Size;              ///< xbgasNicEvent: Size of each data element, in bytes
       uint32_t Nelem;             ///< xbgasNicEvent: Number of elements
       uint32_t Stride;            ///< xbgasNicEvent: Stride for bulk transfers
-      uint64_t SrcAddr;           ///< xbgasNicEvent: Source address
-      uint64_t DestAddr;          ///< xbgasNicEvent: Destination address
-      void *Target;               ///< xbgasNicEvent: Target register pointer
+      uint64_t Addr;              ///< xbgasNicEvent: Source/Destination address
       std::vector<uint8_t> Data;  ///< xbgasNicEvent: Data payload
       XbgasOpcode Opcode;         ///< xbgasNicEvent: Operation code 
     public:
@@ -181,13 +165,12 @@ namespace SST {
         ser & PktId;
         ser & SrcName;
         ser & Src;
-        ser & Opcode;
         ser & Size;
         ser & Nelem;
         ser & Stride;
-        ser & SrcAddr;
-        ser & DestAddr;
+        ser & Addr;
         ser & Data;
+        ser & Opcode;
       }
 
       /// xbgasNicEvent: implements the NIC serialization
