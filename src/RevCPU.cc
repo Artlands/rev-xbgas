@@ -34,7 +34,9 @@ const char *pan_splash_msg = "\
 RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id), testStage(0), PrivTag(0), address(-1), PrevAddr(_PAN_RDMA_MAILBOX_),
     EnableNIC(false), EnablePAN(false), EnablePANStats(false), EnableMemH(false),
-    ReadyForRevoke(false), Nic(nullptr), PNic(nullptr), PExec(nullptr), Ctrl(nullptr) {
+    EnableXBGAS(false), EnableXBGASStats(false),
+    ReadyForRevoke(false), Nic(nullptr), PNic(nullptr), XNic(nullptr),
+    PExec(nullptr), Ctrl(nullptr), RmtCtrl(nullptr){
 
   const int Verbosity = params.find<int>("verbose", 0);
 
@@ -191,6 +193,22 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
   EnableXBGAS = params.find<bool>("enable_xbgas", 0);
   EnableXBGASStats = params.find<bool>("enable_xbgas_stats", 0);
 
+  if( EnableXBGAS ){
+    RmtCtrl = loadUserSubComponent<RevRmtMemCtrl>("remote_memory");
+    if ( !RmtCtrl )
+        output.fatal(CALL_INFO, -1, "Error : failed to inintialize the remote memory controller subcomponent\n" );
+
+    XNic = loadUserSubComponent<xbgasNicAPI>("xbgas_nic");
+    if ( !XNic )
+        output.fatal(CALL_INFO, -1, "Error : failed to inintialize the xBGAS NIC subcomponent\n" );
+
+    XNic->setMsgHandler( 
+      new Event::Handler<RevBasicRmtMemCtrl>(static_cast<RevBasicRmtMemCtrl*>(RmtCtrl), 
+                                             &RevBasicRmtMemCtrl::rmtMemEventHandler) 
+    );
+    RmtCtrl->setNic( XNic );
+  }
+
   // Create the memory object
   const unsigned long memSize = params.find<unsigned long>("memSize", 1073741824);
   EnableMemH = params.find<bool>("enable_memH", 0);
@@ -200,10 +218,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
       output.fatal(CALL_INFO, -1, "Error: failed to initialize the memory object\n" );
     
     if( EnableXBGAS ){
-      RmtCtrl = loadUserSubComponent<RevRmtMemCtrl>("remote_memory");
       RmtCtrl->setMem( Mem );
-      if ( !RmtCtrl )
-        output.fatal(CALL_INFO, -1, "Error : failed to inintialize the remote memory controller subcomponent\n" );
       Mem->setRmtMemCtrl( RmtCtrl );
     }    
 
@@ -220,10 +235,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
       output.fatal(CALL_INFO, -1, "Error : failed to initialize the memory object\n" );
 
     if( EnableXBGAS ){
-      RmtCtrl = loadUserSubComponent<RevRmtMemCtrl>("remote_memory");
       RmtCtrl->setMem( Mem );
-      if ( !RmtCtrl )
-        output.fatal(CALL_INFO, -1, "Error : failed to inintialize the remote memory controller subcomponent\n" );
       Mem->setRmtMemCtrl( RmtCtrl );
     }
 
@@ -311,22 +323,35 @@ RevCPU::~RevCPU(){
     delete Procs[i];
   }
 
+  if( Nic )
+    delete Nic;
+  
+  if( PNic )
+    delete PNic;
+
+  if( XNic )
+    delete XNic;
+
   if( PExec )
     delete PExec;
 
   // delete the memory controller if present
   if( Ctrl )
     delete Ctrl;
+  
+  // delete the remote memory controller if present
+  if( RmtCtrl )
+    delete RmtCtrl;
+
+  // delete the options object
+  delete Opts;
 
   // delete the memory object
   delete Mem;
 
   // delete the loader object
-  if( Loader )
-    delete Loader;
+  delete Loader;
 
-  // delete the options object
-  delete Opts;
 }
 
 void RevCPU::DecodeFaultWidth(std::string width){

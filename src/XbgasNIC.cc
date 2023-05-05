@@ -206,6 +206,10 @@ XbgasNIC::XbgasNIC(ComponentId_t id, Params& params)
   int verbosity = params.find<int>("verbose",0);
   output = new SST::Output("", verbosity, 0, SST::Output::STDOUT);
 
+#ifdef _XBGAS_DEBUG_
+  output->output("Creating XbgasNIC...");
+#endif
+
   registerClock("1Ghz", new Clock::Handler<XbgasNIC>(this,&XbgasNIC::clockTick));
 
   // load the SimpleNetwork interfaces

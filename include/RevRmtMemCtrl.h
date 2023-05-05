@@ -24,7 +24,6 @@
 
 // -- RevCPU Headers
 #include "RevOpts.h"
-#include "XbgasNIC.h"
 
 #define _XBGAS_MEM_SIZE_                65536       // 64KB
 #define _XBGAS_MY_PE_ADDR_              0x0000      // 0
@@ -32,6 +31,8 @@
 
 namespace SST::RevCPU {
   class RevMem;
+  class xbgasNicAPI;
+  class xbgasNicEvent;
   class RevRmtMemCtrl;
 }
 
@@ -69,6 +70,9 @@ namespace SST {
 
       /// RevBasicRmtMemCtrl: set the local memory object
       virtual void setMem(RevMem *Mem) = 0;
+
+      /// RevBasicRmtMemCtrl: set the xBGAS NIC interface
+      virtual void setNic(xbgasNicAPI *Nic) = 0;
 
       /// RevRmtMemCtrl: send a remote memory read request
       virtual bool sendRmtReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
@@ -111,9 +115,7 @@ namespace SST {
                               { "max_responses", "Set the maximum number of outstanding responses per cycle",    "64"},
                               { "ops_per_cycle", "Set the maximum number of operations to issue per cycle",      "2"})
 
-      SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
-        {"xbgas_nic", "xBGAS Network interface", "SST::RevCPU::XbgasNIC"},
-      )
+      SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS()
 
       SST_ELI_DOCUMENT_PORTS()
 
@@ -158,6 +160,9 @@ namespace SST {
 
       /// RevBasicRmtMemCtrl: set the local memory object
       void setMem(RevMem *Mem) { mem = Mem; };
+
+      /// RevBasicRmtMemCtrl: set the xBGAS NIC interface
+      void setNic(xbgasNicAPI *Nic) { xbgas_nic = Nic; };
 
       /// RevBasicRmtMemCtrl: remote memory event processing handler
       void rmtMemEventHandler( Event *ev );

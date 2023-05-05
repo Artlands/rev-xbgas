@@ -10,6 +10,7 @@
 
 #include "../include/RevRmtMemCtrl.h"
 #include "../include/RevMem.h"
+#include "../include/XbgasNIC.h"
 
 using namespace SST;
 using namespace RevCPU;
@@ -49,9 +50,6 @@ RevBasicRmtMemCtrl::RevBasicRmtMemCtrl(ComponentId_t id, Params& params)
   rqstQ.reserve(max_ops);
   respQ.reserve(max_responses);
 
-  xbgas_nic = loadUserSubComponent<xbgasNicAPI>("xbgas_nic");
-  xbgas_nic->setMsgHandler( new Event::Handler<RevBasicRmtMemCtrl>(this, &RevBasicRmtMemCtrl::rmtMemEventHandler) );
-
   registerStats();
 
   registerClock(ClockFreq, 
@@ -59,8 +57,6 @@ RevBasicRmtMemCtrl::RevBasicRmtMemCtrl(ComponentId_t id, Params& params)
 }
 
 RevBasicRmtMemCtrl::~RevBasicRmtMemCtrl(){
-  delete mem;
-  delete xbgas_nic;
   rqstQ.clear();
   respQ.clear();
   readOutstanding.clear();
