@@ -84,29 +84,43 @@ void RevBasicRmtMemCtrl::recordStat(RmtMemCtrlStat Stat, uint64_t Data){
 void RevBasicRmtMemCtrl::init(unsigned int phase){
   int id = -1;
   int numPEs = 0;
-  xbgas_nic->init(phase);
+  // xbgas_nic->init(phase);
   id = (int)(xbgas_nic->getAddress());
   numPEs = (int)(xbgas_nic->getNumPEs());
 
   // Write id and numPEs to the xBGAS memory
-  if( !mem->WriteXbgasMem(_XBGAS_MY_PE_ADDR_, 4, (void*)(&id)) )
+  if( !mem->WriteMem(_XBGAS_MY_PE_, 4, (void*)(&id)) )
     output->fatal(CALL_INFO, -1, "Error: could not write PE id to xBGAS memory\n");
   
-  if( !mem->WriteXbgasMem(_XBGAS_TOTAL_PES_ADDR_, 4, (void*)(&numPEs)) )
+  if( !mem->WriteMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs)) )
     output->fatal(CALL_INFO, -1, "Error: could not write number of PEs to xBGAS memory\n");
-  
+
   // Namespece Lookaside Buffer Initialization. Now using a naive implementation
   std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts;
+  uint64_t nmspace = 0;
   xbgasHosts = xbgas_nic->getXbgasHosts();
-  // The first entry is reserved for the local PE
-  nmspaceLB.push_back(std::make_pair(0x0, id));
-  for ( unsigned i = 0; i < xbgasHosts.size(); i++ ) {
-    nmspaceLB.push_back( std::make_pair(i+1, i) );
+
+  if (xbgasHosts.size() != 0) {
+    // The first entry is reserved for the local PE
+    nmspaceLB[nmspace] = id;
+    for ( unsigned i = 1; i < xbgasHosts.size(); i++ ) {
+      nmspace = (uint64_t)(xbgasHosts[i] + 1);
+      nmspaceLB[nmspace] = xbgasHosts[i];
+    }
   }
+
+#ifdef _XBGAS_DEBUG_
+  if( nmspaceLB.size() != 0) {
+    std::cout << "== Init Phase " << phase << ": PE " << id << ":  NLB =="<<  std::endl;
+    for (const auto& kv : nmspaceLB) {
+      std::cout << "|  Namespace = " << kv.first << ", NodeID = " << kv.second << " |"<< std::endl;
+    }
+    std::cout << "==============================" <<std::endl;
+  }
+#endif
 }
 
 void RevBasicRmtMemCtrl::setup(){
-  xbgas_nic->setup();
 }
 
 void RevBasicRmtMemCtrl::finish(){
@@ -122,14 +136,11 @@ bool RevBasicRmtMemCtrl::isFinished(){
 }
 
 int RevBasicRmtMemCtrl::findDest( uint64_t Nmspace ){
-  int rtn = -1;
-  for( unsigned i=0; i<nmspaceLB.size(); i++ ){
-    if( nmspaceLB[i].first == Nmspace ){
-      rtn = nmspaceLB[i].second;
-      break;
-    }
-  }
-  return rtn;
+  auto it = nmspaceLB.find(Nmspace);
+  if( it == nmspaceLB.end() )
+    return -1;
+  else
+    return it->second;
 }
 
 bool RevBasicRmtMemCtrl::isRmtMemOpAvail(xbgasNicEvent *ev, unsigned &t_max_loads, unsigned &t_max_stores){

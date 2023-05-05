@@ -29,8 +29,11 @@
 #include "RevOpts.h"
 #include "RevMemCtrl.h"
 
+// -- xBGAS Common Headers
+#include "../common/include/XbgasAddr.h"
+
 #ifndef _REVMEM_BASE_
-#define _REVMEM_BASE_ 0x00000000
+#define _REVMEM_BASE_ _XBGAS_MEM_END_ //0x00000000
 #endif
 
 #define REVMEM_FLAGS(x) ((StandardMem::Request::flags_t)(x))
@@ -57,7 +60,9 @@ namespace SST {
       ~RevMem();
 
       /// RevMem: set the remote memory controller
-      void setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl);
+      void setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl) { rmtCtrl = RmtCtrl; }
+
+      bool useMemCtrl(){if(ctrl) return true; else return false;}
 
       /// RevMem: determine if there are any outstanding requests
       bool outstandingRqsts();
@@ -116,12 +121,6 @@ namespace SST {
       bool RmtBulkWriteMem( uint64_t Nmspace, uint64_t DestAddr, 
                             uint32_t Size, uint32_t Nelem, 
                             uint32_t Stride, uint64_t SrcAddr );
-
-      /// RevMem: write data to the xBGAS memory
-      bool WriteXbgasMem( uint64_t Addr, size_t Len, void *Data );
-
-      /// RevMem: read data from the xBGAS memory
-      bool ReadXbgasMem( uint64_t Addr, size_t Len, void *Data );
       
       // ----------------------------------------------------
       // ---- Read Memory Interfaces
@@ -213,7 +212,6 @@ namespace SST {
 
     protected:
       char *physMem;                          ///< RevMem: memory container
-      char *xbgasMem;                         ///< RevMem: memory space for storing the xBGAS metadata
 
     private:
       unsigned long memSize;    ///< RevMem: size of the target memory

@@ -25,9 +25,8 @@
 // -- RevCPU Headers
 #include "RevOpts.h"
 
-#define _XBGAS_MEM_SIZE_                65536       // 64KB
-#define _XBGAS_MY_PE_ADDR_              0x0000      // 0
-#define _XBGAS_TOTAL_PES_ADDR_          0x0004      // 4
+// -- xBGAS Common Headers
+#include "../common/include/XbgasAddr.h"
 
 namespace SST::RevCPU {
   class RevMem;
@@ -244,7 +243,7 @@ namespace SST {
       
       std::vector<std::pair<xbgasNicEvent *, int>> rqstQ;           ///< RevBasicRmtMemCtrl: queued remote memory requests to be sent out, <Event, Dest>
       std::vector<std::pair<xbgasNicEvent *, int>> respQ;           ///< RevBasicRmtMemCtrl: queued remote memory responses to be sent out, <Event, Dest>
-      std::vector<std::pair<uint64_t, int>> nmspaceLB;              ///< RevBasicRmtMemCtrl: namespace lookaside Buffer; pair<Namespace, Dest>
+      std::map<uint64_t, int> nmspaceLB;                            ///< RevBasicRmtMemCtrl: namespace lookaside Buffer map; <Namespace, Dest>
       std::vector<Statistic<uint64_t> *> stats;                     ///< RevBasicRmtMemCtrl: statistics vector
       static std::atomic<uint64_t> main_id;                         ///< RevBasicRmtMemCtrl: main request id counter
     }; // class RevBasicRmtMemCtrl

@@ -14,8 +14,8 @@
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
                 RevMemCtrl *Ctrl, SST::Output *Output )
-  : physMem(nullptr), xbgasMem(nullptr), 
-    memSize(MemSize), opts(Opts), ctrl(Ctrl), rmtCtrl(nullptr),
+  : physMem(nullptr), memSize(MemSize), opts(Opts), 
+    ctrl(Ctrl), rmtCtrl(nullptr),
     output(Output),  stacktop(0x00ull) {
   // Note: this constructor assumes the use of the memHierarchy backend
   pageSize = 262144; //Page Size (in Bytes)
@@ -33,8 +33,8 @@ RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
 }
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
-  : physMem(nullptr), xbgasMem(nullptr), 
-    memSize(MemSize), opts(Opts), ctrl(nullptr), rmtCtrl(nullptr),
+  : physMem(nullptr), memSize(MemSize), opts(Opts), 
+    ctrl(nullptr), rmtCtrl(nullptr),
     output(Output), stacktop(0x00ull) {
 
   // allocate the backing memory
@@ -64,45 +64,6 @@ RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
 RevMem::~RevMem(){
   if( physMem )
     delete[] physMem;
-}
-
-void RevMem::setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl){
-  rmtCtrl = RmtCtrl;
-
-  // allocate the xBGAS memory
-  xbgasMem = new char [_XBGAS_MEM_SIZE_];
-
-  if( !xbgasMem )
-    output->fatal(CALL_INFO, -1, "Error: could not allocate xBGAS memory\n");
-  
-  // zero the memory
-  for( unsigned long i=0; i<_XBGAS_MEM_SIZE_; i++ ){
-    xbgasMem[i] = 0;
-  }
-}
-
-bool RevMem::WriteXbgasMem( uint64_t Addr, size_t Len, void *Data ){
-  if( xbgasMem ){
-    char *BaseXbgasMem = &xbgasMem[Addr];
-    char *DataMem = (char *)Data;
-    for( unsigned i=0; i<Len; i++ ){
-      BaseXbgasMem[i] = DataMem[i];
-    }
-    return true;
-  }
-  return false;
-}
-
-bool RevMem::ReadXbgasMem( uint64_t Addr, size_t Len, void *Data ){
-  if( xbgasMem ){
-    char *BaseXbgasMem = &xbgasMem[Addr];
-    char *DataMem = (char *)Data;
-    for( unsigned i=0; i<Len; i++ ){
-      DataMem[i] = BaseXbgasMem[i];
-    }
-    return true;
-  }
-  return false;
 }
 
 bool RevMem::outstandingRqsts(){

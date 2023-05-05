@@ -206,10 +206,6 @@ XbgasNIC::XbgasNIC(ComponentId_t id, Params& params)
   int verbosity = params.find<int>("verbose",0);
   output = new SST::Output("", verbosity, 0, SST::Output::STDOUT);
 
-#ifdef _XBGAS_DEBUG_
-  output->output("Creating XbgasNIC...");
-#endif
-
   registerClock("1Ghz", new Clock::Handler<XbgasNIC>(this,&XbgasNIC::clockTick));
 
   // load the SimpleNetwork interfaces
@@ -258,6 +254,7 @@ void XbgasNIC::init(unsigned int phase){
       req->src = iFace->getEndpointID();
       req->givePayload(ev);
       iFace->sendInitData(req);
+      // Local PE ID
       xbgasHosts.push_back(iFace->getEndpointID());
     }
   }
@@ -266,6 +263,7 @@ void XbgasNIC::init(unsigned int phase){
     xbgasNicEvent *ev = static_cast<xbgasNicEvent*>(req->takePayload());
     numDest++;
     SST::Interfaces::SimpleNetwork::nid_t srcID = req->src;
+    // Remote PE IDs
     xbgasHosts.push_back(srcID);
     output->verbose(CALL_INFO, 6, 0,
                     "%s received init message from %s\n",

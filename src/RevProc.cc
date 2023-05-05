@@ -64,14 +64,18 @@ RevProc::RevProc( unsigned Id,
   // e11 = contains the number of PEs
   int pe = 0;
   int numPEs = 0;
-  mem->ReadXbgasMem(_XBGAS_MY_PE_ADDR_, 4, (void*)(&pe));
-  mem->ReadXbgasMem(_XBGAS_TOTAL_PES_ADDR_, 4, (void*)(&numPEs));
 
-  if( pe > 0 && numPEs > 0 ) {
-    for (int t=0;  t < _REV_THREAD_COUNT_; t++){
-      RegFile[t].ERV64[10] = (uint64_t)(pe);
-      RegFile[t].ERV64[11] = (uint64_t)(numPEs);
-    }
+  if( mem->useMemCtrl()){
+    mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
+    mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
+  } else {
+    mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe));
+    mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs));
+  }
+  
+  for (int t=0;  t < _REV_THREAD_COUNT_; t++){
+    RegFile[t].ERV64[10] = (uint64_t)(pe);
+    RegFile[t].ERV64[11] = (uint64_t)(numPEs);
   }
   
   Stats.totalCycles = 0;

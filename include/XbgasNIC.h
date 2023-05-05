@@ -197,7 +197,7 @@ namespace SST {
       virtual void init(unsigned int phase) = 0;
 
       /// xbgasNicAPI: setup the network
-      virtual void setup() { }
+      virtual void setup() = 0;
 
       /// xbgasNicAPI: send a message on the network
       virtual void send(xbgasNicEvent *ev, int dest) = 0;
@@ -285,6 +285,7 @@ namespace SST {
       SST::Interfaces::SimpleNetwork * iFace; ///< XbgasNIC: SST network interface
       SST::Event::HandlerBase *msgHandler;    ///< XbgasNIC: SST message handler
       bool initBroadcastSent;                 ///< XbgasNIC: has the init bcast been sent?
+      bool isInitialized;                     ///< XbgasNIC: is the NIC initialized?
       int numDest;                            ///< XbgasNIC: number of SST destinations
       std::queue<SST::Interfaces::SimpleNetwork::Request*> sendQ; ///< XbgasNIC: buffered send queue
 
