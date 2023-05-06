@@ -33,7 +33,7 @@
 #include "../common/include/XbgasAddr.h"
 
 #ifndef _REVMEM_BASE_
-#define _REVMEM_BASE_ _XBGAS_MEM_END_ //0x00000000
+#define _REVMEM_BASE_ 0x00000000 //_XBGAS_MEM_END_ //
 #endif
 
 #define REVMEM_FLAGS(x) ((StandardMem::Request::flags_t)(x))
