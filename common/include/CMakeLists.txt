@@ -7,4 +7,5 @@
 #
 set(CommonSrcs 
   PanAddr.h  
+  XbgasAddr.h
 )
