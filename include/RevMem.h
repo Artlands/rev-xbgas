@@ -33,7 +33,7 @@
 #include "../common/include/XbgasAddr.h"
 
 #ifndef _REVMEM_BASE_
-#define _REVMEM_BASE_ 0x00000000 //_XBGAS_MEM_END_ //
+#define _REVMEM_BASE_ 0x00000000
 #endif
 
 #define REVMEM_FLAGS(x) ((StandardMem::Request::flags_t)(x))
@@ -220,7 +220,7 @@ namespace SST {
       RevRmtMemCtrl *rmtCtrl;   ///< RevMem: remote memory controller object
       SST::Output *output;      ///< RevMem: output handler
 
-      uint64_t CalcPhysAddr(uint64_t pageNum, uint64_t Addr);
+      uint64_t CalcPhysAddr(uint64_t Addr);
 
 
       //c++11 should guarentee that these are all zero-initializaed

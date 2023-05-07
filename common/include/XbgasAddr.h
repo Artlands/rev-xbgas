@@ -19,13 +19,13 @@
 #define _XBRTIME_MEM_SLOTS_ 2048
 #endif
 
-#ifndef _XBGAS_PAGE_SIZE_
-#define _XBGAS_PAGE_SIZE_ 65536
-#endif
+#define _REV_MEM_SIZE_                       0x40000000           //1GB 0x100000000      //4GB
+#define _XBGAS_MEM_SIZE_                     65536  // 64KB
+#define _XBGAS_OUTPUT_BUFFER_SIZE_           4096   //i.e. 4KB
 
-#define _XBGAS_MEM_BASE_                     0x00000000
-#define _XBGAS_MEM_END_                      0x00010000  //65536, i.e. 64KB
-#define _XBGAS_OUTPUT_BUFFER_SIZE_           0x00001000  //4096, i.e. 4KB
+#define _REV_HEAP_END_                       _REV_MEM_SIZE_ >> 1   // Half of the simulated memory
+
+#define _XBGAS_MEM_BASE_                     _REV_MEM_SIZE_ - _XBGAS_MEM_SIZE_
 
 #define _XBGAS_MY_PE_                        _XBGAS_MEM_BASE_                       // the physical PE id
 #define _XBGAS_TOTAL_NPE_                    _XBGAS_MY_PE_                 + 8      // the number of PEs

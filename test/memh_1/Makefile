@@ -14,12 +14,17 @@
 
 EXAMPLE=ex1
 CC=riscv64-unknown-elf-gcc
+OBJDUMP=riscv64-unknown-elf-objdump
 ARCH=rv32i
 ABI=ilp32
 
 all: $(EXAMPLE).exe
 $(EXAMPLE).exe: $(EXAMPLE).c
 	$(CC) -march=$(ARCH) -mabi=$(ABI) -o $(EXAMPLE).exe $(EXAMPLE).c
+
+objdump:
+	$(OBJDUMP) -d -t -r $(EXAMPLE).exe > $(EXAMPLE).obj
+	
 clean:
 	rm -Rf $(EXAMPLE).exe
 

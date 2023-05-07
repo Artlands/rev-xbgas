@@ -10,6 +10,8 @@
 
 #include "../include/RevCPU.h"
 
+#define _REV_DEBUG_
+
 const char *splash_msg = "\
 \n\
 *******                   \n\
@@ -215,13 +217,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
   if( !EnableMemH ){
     Mem = new RevMem( memSize, Opts,  &output );
     if( !Mem )
-      output.fatal(CALL_INFO, -1, "Error: failed to initialize the memory object\n" );
-    
-    if( EnableXBGAS ){
-      RmtCtrl->setMem( Mem );
-      Mem->setRmtMemCtrl( RmtCtrl );
-    }    
-
+      output.fatal(CALL_INFO, -1, "Error: failed to initialize the memory object\n" );    
   }else{
     if( EnablePAN )
       output.fatal(CALL_INFO, -1, "Error: PAN does not currently support memHierarchy\n");
@@ -234,13 +230,15 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     if( !Mem )
       output.fatal(CALL_INFO, -1, "Error : failed to initialize the memory object\n" );
 
-    if( EnableXBGAS ){
-      RmtCtrl->setMem( Mem );
-      Mem->setRmtMemCtrl( RmtCtrl );
-    }
-
     if( EnableFaults )
       output.verbose(CALL_INFO, 1, 0, "Warning: memory faults cannot be enabled with memHierarchy support\n");
+  }
+
+  if( EnableXBGAS ){
+    RmtCtrl->setMem( Mem );
+    Mem->setRmtMemCtrl( RmtCtrl );
+    // Reserve the xBGAS memory region
+    Mem->SetStackTop(Mem->GetStackTop() - _XBGAS_MEM_SIZE_);
   }
 
   // Load the binary into memory
