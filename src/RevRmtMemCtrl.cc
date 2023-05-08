@@ -435,7 +435,8 @@ bool RevBasicRmtMemCtrl::handleRmtWriteRqst( xbgasNicEvent *ev ){
   uint64_t TmpAddr = 0;
   for(int32_t i=0; i<Nelem; i++){
     TmpAddr = Addr + i*Stride;
-    mem->WriteMem(TmpAddr, Size, (void *)(&Buffer[i*Size]), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
+    mem->WriteMem(TmpAddr, Size, (void *)(&Buffer[i*Size]));
+    // mem->WriteMem(TmpAddr, Size, (void *)(&Buffer[i*Size]), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
   }
 
   // Build the write response
@@ -466,11 +467,6 @@ void RevBasicRmtMemCtrl::handleRmtReadResp( xbgasNicEvent *ev ) {
     
     xbgasNicEvent *op = std::get<0>(readOutstanding[ev->getPktId()]);
     uint8_t *Target = (uint8_t *)(std::get<1>(readOutstanding[ev->getPktId()]));
-
-    // std::pair<xbgasNicEvent *, void *>& p = readOutstanding[ev->getPktId()];
-
-    // xbgasNicEvent *op = p.first;
-    // uint8_t *Target = (uint8_t *)(p.second);
 
     // Read the data to buffer from the packet
     int32_t Size = op->getSize();
@@ -516,7 +512,8 @@ void RevBasicRmtMemCtrl::handleRmtBulkReadResp( xbgasNicEvent *ev ) {
     uint64_t TmpAddr = 0;
     for(int32_t i=0; i<Nelem; i++){
       TmpAddr = DestAddr + i*Stride;
-      mem->WriteMem(TmpAddr, Size, (void *)(&Buffer[i*Size]), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
+      mem->WriteMem(TmpAddr, Size, (void *)(&Buffer[i*Size]));
+      // mem->WriteMem(TmpAddr, Size, (void *)(&Buffer[i*Size]), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
     }
 
     // remove the request from the outstanding requests list

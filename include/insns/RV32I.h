@@ -14,6 +14,8 @@
 #include "../RevInstTable.h"
 #include "../RevExt.h"
 
+#define _XBGAS_DEBUG_
+
 using namespace SST::RevCPU;
 
 namespace SST{
@@ -456,9 +458,33 @@ namespace SST{
       static bool lw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
         if( F->IsRV32() ){
           //SEXT(R->RV32[Inst.rd],M->ReadU32( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),32);
+
+#ifdef _XBGAS_DEBUG_
+        {
+          std::cout << "BEFORE ld: \tRV32[" << std::dec << +Inst.rd
+                    << "](0x" << std::hex <<R->RV32[Inst.rd]
+                    << ") = RV32[" << std::dec << +Inst.rs1
+                    << "] (0x" << std::hex << R->RV32[Inst.rs1]
+                    << ") + IMM (" << std::dec << (int32_t)(td_u32(Inst.imm, 12))
+                    << ")" << std::endl;
+        }
+#endif
+
           M->ReadVal((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
                      (uint32_t *)(&R->RV32[Inst.rd]),
                      REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT32));
+
+#ifdef _XBGAS_DEBUG_
+        {
+          std::cout << "AFTER lw: \tRV32[" << std::dec << +Inst.rd
+                    << "](0x" << std::hex <<R->RV32[Inst.rd]
+                    << ") = RV32[" << std::dec << +Inst.rs1
+                    << "] (0x" << std::hex << R->RV32[Inst.rs1]
+                    << ") + IMM (" << std::dec << (int32_t)(td_u32(Inst.imm, 12))
+                    << ")" << std::endl;
+        }
+#endif
+
           R->RV32_PC += Inst.instSize;
         }else{
           //SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);

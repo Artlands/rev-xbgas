@@ -221,6 +221,9 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
   }else{
     if( EnablePAN )
       output.fatal(CALL_INFO, -1, "Error: PAN does not currently support memHierarchy\n");
+    
+    if( EnableXBGAS )
+      output.fatal(CALL_INFO, -1, "Error: xBGAS does not currently support memHierarchy\n");
 
     Ctrl = loadUserSubComponent<RevMemCtrl>("memory");
     if( !Ctrl )

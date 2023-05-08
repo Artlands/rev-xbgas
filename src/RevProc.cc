@@ -1961,6 +1961,16 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
       done = false;
     }
 
+    // // Check if the register has been updated
+    // for (int t=0;  t < _REV_THREAD_COUNT_; t++){
+    //   for( unsigned i=0; i<_REV_NUM_REGS_; i++ ){
+    //     if (RegFile[t].RV64_Tag[i] != 0) {
+    //       done = false;
+    //       break;
+    //     }
+    //   }
+    // }
+
     if( done ){
       // we are really done, return
       output->verbose(CALL_INFO,2,0,"Program execution complete\n");
