@@ -29,7 +29,7 @@ import sst
 PROGRAM = "eld.exe"
 MEMSIZE = 1024*1024*1024
 ENABLE_XBGAS = 1
-VERBOSE0 = 6
+VERBOSE0 = 2
 VERBOSE1 = 1
 
 cpu0_params = {

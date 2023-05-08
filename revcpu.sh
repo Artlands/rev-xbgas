@@ -13,7 +13,7 @@ fi
 cd build
 
 # Run cmake command to configure build
-cmake -DCMAKE_BUILD_TYPE=Debug -D_XBGAS_DEBUG_=ON -D_REV_DEBUG_=ON ../
+cmake ../ #-D_XBGAS_DEBUG_=ON -D_REV_DEBUG_=ON ../
 
 # Build the project
 make

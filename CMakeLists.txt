@@ -86,14 +86,6 @@ set(CMAKE_CXX_FLAGS "-O2 -Wall ${CMAKE_CXX_FLAGS} -std=c++11 -I./ ${LDFLAGS} ${R
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall ${REVCPU_COMPILER_MACROS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall ${REVCPU_COMPILER_MACROS}")
 
-if(_XBGAS_DEBUG_)
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_XBGAS_DEBUG_ -g")
-endif()
-
-if(_REV_DEBUG_)
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_REV_DEBUG_ -g")
-endif()
-
 #------------------------------------------------------------------------
 #-- FIND PACKAGES
 #------------------------------------------------------------------------
