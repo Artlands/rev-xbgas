@@ -50,14 +50,14 @@ namespace SST {
       /// xbgasNicEvent: standard constructor
       xbgasNicEvent(std::string name) 
       : Event(), PktId(0), SrcName(name), Src(0),
-        Size(0), Nelem(1), Stride(0), 
+        Size(0), Nelem(0), Stride(0), 
         Addr(0), Opcode(Unknown){ }
 
       /// xbgasNicEvent: rerieve the source name
       std::string getSource() { return SrcName; }
 
       /// xbgasNicEvent: retrieve the packet Id
-      uint64_t getPktId() { return PktId; }
+      int64_t getPktId() { return PktId; }
       
       /// xbgasNicEvent: retrieve the source ID
       int getSrc() { return Src; }
@@ -69,13 +69,13 @@ namespace SST {
       std::string getOpcodeStr();
 
       /// xbgasNicEvent: retrieve the packet size
-      uint32_t getSize() { return Size; }
+      int32_t getSize() { return Size; }
 
       /// xbgasNicEvent: retrieve the # of elements value
-      uint32_t getNelem() { return Nelem; }
+      int32_t getNelem() { return Nelem; }
 
       /// xbgasNicEvent: retrieve the stride value
-      uint32_t getStride() { return Stride; }
+      int32_t getStride() { return Stride; }
 
       /// xbgasNicEvent: retrieve the source/destination address
       uint64_t getAddr() { return Addr; }
@@ -84,60 +84,60 @@ namespace SST {
       void getData(uint8_t *Buffer);
 
       /// xbgasNicEvent: get the number of data blocks for the target size
-      unsigned getNumBlocks(uint32_t Size);
+      unsigned getNumBlocks(int32_t Size);
 
       /// xbgasNicEvent: set the source ID
       bool setSrc(int S) { Src = S; return true; }
 
       /// xbgasNicEvent: set the Id for the target packet
-      bool setPktId(uint64_t PktId) {PktId = PktId; return true; }
+      bool setPktId(int64_t Id) {PktId = Id; return true; }
 
       /// xbgasNicEvent: set the size of each element in the packet
-      bool setSize(uint32_t Sz) {Size = Sz; return true; }
+      bool setSize(int32_t Sz) {Size = Sz; return true; }
 
       /// xbgasNicEvent: set the # of elements in the packet
-      bool setNelem(uint32_t Ne) {Nelem = Ne; return true; }
+      bool setNelem(int32_t Ne) {Nelem = Ne; return true; }
 
       /// xbgasNicEvent: set the stride of elements in the packet
-      bool setStride(uint32_t Sd) {Stride = Sd; return true; }
+      bool setStride(int32_t Sd) {Stride = Sd; return true; }
 
       /// xbgasNicEvent: set the source/destination address
       bool setAddr(uint64_t SAddr) {Addr = SAddr; return true; }
 
       /// xbgasNicEvent: set the packet data
-      bool setData(uint8_t *Buffer, uint32_t Sz);
+      bool setData(uint8_t *Buffer, int32_t Sz);
 
       // ------------------------------------------------
       // Packet Building Functions
       // ------------------------------------------------
 
       /// xbgasNicEvent: build a Get request packet
-      bool buildGetRqst(uint64_t PktId, uint64_t Addr, uint32_t Size);
+      bool buildGetRqst(int64_t PktId, uint64_t Addr, int32_t Size);
       
       /// xbgasNicEvent: build a bulk Get request packet
-      bool buildBulkGetRqst(uint64_t PktId, uint64_t Addr, uint32_t Size, 
-                            uint32_t Nelem, uint32_t Stride);
+      bool buildBulkGetRqst(int64_t PktId, uint64_t Addr, int32_t Size, 
+                            int32_t Nelem, int32_t Stride);
       
       /// xbgasNicEvent: build a Put request packet
-      bool buildPutRqst(uint64_t PktId, uint64_t Addr, 
-                        uint32_t Size, uint8_t *Buffer);
+      bool buildPutRqst(int64_t PktId, uint64_t Addr, 
+                        int32_t Size, uint8_t *Buffer);
       
       /// xbgasNicEvent: build a bulk Put request packet
-      bool buildBulkPutRqst(uint64_t PktId, uint64_t Addr, uint32_t Size, 
-                            uint32_t Nelem, uint32_t Stride, uint8_t *Buffer);
+      bool buildBulkPutRqst(int64_t PktId, uint64_t Addr, int32_t Size, 
+                            int32_t Nelem, int32_t Stride, uint8_t *Buffer);
       
       /// xbgasNicEvent: build a Get respond packet
-      bool buildGetResp(uint64_t PktId, uint32_t Size, uint8_t *Buffer);
+      bool buildGetResp(int64_t PktId, int32_t Size, uint8_t *Buffer);
 
       /// xbgasNicEvent: build a bulk Get respond packet
-      bool buildBulkGetResp(uint64_t PktId, uint32_t Size, 
-                            uint32_t Nelem, uint8_t *Buffer);
+      bool buildBulkGetResp(int64_t PktId, int32_t Size, 
+                            int32_t Nelem, uint8_t *Buffer);
       
       /// xbgasNicEvent: build a Put respond packet
-      bool buildPutResp(uint64_t PktId);
+      bool buildPutResp(int64_t PktId);
 
       /// xbgasNicEvent: build a bulk Put respond packet
-      bool buildBulkPutResp(uint64_t PktId);
+      bool buildBulkPutResp(int64_t PktId);
       
       /// xbgasNicEvent: virtual function to clone an event
       virtual Event* clone(void) override{
@@ -146,12 +146,12 @@ namespace SST {
       }
       
     private:
-      uint64_t PktId;             ///< xbgasNicEvent: Id for the packet
+      int64_t PktId;              ///< xbgasNicEvent: Id for the packet
       std::string SrcName;        ///< xbgasNicEvent: Name of the sending device
       int Src;                    ///< xbgasNicEvent: Source node ID
-      uint32_t Size;              ///< xbgasNicEvent: Size of each data element, in bytes
-      uint32_t Nelem;             ///< xbgasNicEvent: Number of elements
-      uint32_t Stride;            ///< xbgasNicEvent: Stride for bulk transfers
+      int32_t Size;              ///< xbgasNicEvent: Size of each data element, in bytes
+      int32_t Nelem;             ///< xbgasNicEvent: Number of elements
+      int32_t Stride;            ///< xbgasNicEvent: Stride for bulk transfers
       uint64_t Addr;              ///< xbgasNicEvent: Source/Destination address
       std::vector<uint8_t> Data;  ///< xbgasNicEvent: Data payload
       XbgasOpcode Opcode;         ///< xbgasNicEvent: Operation code 

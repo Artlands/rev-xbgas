@@ -12,6 +12,8 @@
 #include "../include/RevRmtMemCtrl.h"
 #include <math.h>
 
+#define _XBGAS_DEBUG_
+
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
                 RevMemCtrl *Ctrl, SST::Output *Output )
   : physMem(nullptr), memSize(MemSize), opts(Opts), 
@@ -167,10 +169,10 @@ uint64_t RevMem::CalcPhysAddr(uint64_t Addr){
     output->fatal(CALL_INFO, -1, "Error: Page allocated multiple times");
   }
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "Addr: 0x" << std::hex << Addr 
-            << ", PhysAddr: 0x" << std::hex << physAddr << std::endl;
-#endif
+// #ifdef _XBGAS_DEBUG_
+//   std::cout << "Addr: 0x" << std::hex << Addr 
+//             << ", PhysAddr: 0x" << std::hex << physAddr << std::endl;
+// #endif
 
   return physAddr;
 }
@@ -557,8 +559,15 @@ void RevMem::WriteDouble( uint64_t Addr, double Value ){
 }
 
 bool RevMem::RmtReadMem( uint64_t Nmspace, uint64_t SrcAddr, 
-                 uint32_t Size, void *Target ){
-  bool rtn = rmtCtrl->sendRmtReadRqst(Nmspace, SrcAddr, Size, Target);
+                         uint32_t Size, void *Target, int *RegisterTag){
+
+#ifdef _XBGAS_DEBUG_
+        std::cout << "Remote Memory Read: Namespace: " << std::dec << Nmspace
+                  << ", Source Addr: " << std::hex << SrcAddr
+                  << ", Size: " << std::dec << Size << std::endl; 
+#endif
+
+  bool rtn = rmtCtrl->sendRmtReadRqst(Nmspace, SrcAddr, Size, Target, RegisterTag);
   return rtn;
 }
 

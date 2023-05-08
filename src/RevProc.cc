@@ -59,24 +59,28 @@ RevProc::RevProc( unsigned Id,
     output->fatal(CALL_INFO, -1,
                   "Error: failed to reset the core resources for core=%d\n", id );
 
-  // initialize extended registers for PE ID and # of PEs
-  // e10 = contains the physical PE id
-  // e11 = contains the number of PEs
-  int pe = 0;
-  int numPEs = 0;
+//   // initialize extended registers for PE ID and # of PEs
+//   // e10 = contains the physical PE id
+//   // e11 = contains the number of PEs
+//   int pe = 0;
+//   int numPEs = 0;
 
-  if( mem->useMemCtrl()){
-    mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
-    mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
-  } else {
-    mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe));
-    mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs));
-  }
-  
-  for (int t=0;  t < _REV_THREAD_COUNT_; t++){
-    RegFile[t].ERV64[10] = (uint64_t)(pe);
-    RegFile[t].ERV64[11] = (uint64_t)(numPEs);
-  }
+//   if( mem->useMemCtrl()){
+//     mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
+//     mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
+//   } else {
+//     mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe));
+//     mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs));
+//   }
+
+// #ifdef _XBGAS_DEBUG_
+//   std::cout << "RevProc Extended Register Setting: PE = " << pe << ", # of PEs = " << numPEs <<  std::endl;
+// #endif
+
+//   for (int t=0;  t < _REV_THREAD_COUNT_; t++){
+//     RegFile[t].ERV64[10] = (uint64_t)(pe);
+//     RegFile[t].ERV64[11] = (uint64_t)(numPEs);
+//   }
   
   Stats.totalCycles = 0;
   Stats.cyclesBusy = 0;
@@ -417,6 +421,7 @@ bool RevProc::Reset(){
       RegFile[t].RV32[i] = 0x00l;
       RegFile[t].RV64[i] = 0x00ull;
       RegFile[t].ERV64[i] = 0x00ull;
+      RegFile[t].RV64_Tag[i] = 0;
       RegFile[t].SPF[i]  = 0.f;
       RegFile[t].DPF[i]  = 0.f;
       RegFile[t].RV32_Scoreboard[i] = false;

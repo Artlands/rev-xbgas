@@ -2431,6 +2431,7 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
 
   // check to see if remote memory operations are completed
   if( EnableXBGAS ) {
+    RmtCtrl->clockTick(currentCycle);
     rtn = RmtCtrl->isFinished();
   }
 

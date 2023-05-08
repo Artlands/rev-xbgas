@@ -15,7 +15,9 @@
 using namespace SST;
 using namespace RevCPU;
 
-std::atomic<uint64_t> SST::RevCPU::RevBasicRmtMemCtrl::main_id(0);
+// #define _XBGAS_DEBUG_
+
+std::atomic<int64_t> SST::RevCPU::RevBasicRmtMemCtrl::main_id(0);
 
 // ----------------------------------------
 // RevRmtMemCtrl
@@ -40,7 +42,7 @@ RevBasicRmtMemCtrl::RevBasicRmtMemCtrl(ComponentId_t id, Params& params)
     max_loads(64), max_stores(64), max_responses(2), max_ops(2),
     num_read(0), num_write(0){
   
-  std::string ClockFreq = params.find<std::string>("clock", "1GHz");
+  // std::string ClockFreq = params.find<std::string>("clock", "1GHz");
 
   max_loads = params.find<unsigned>("max_loads", 64);
   max_stores = params.find<unsigned>("max_stores", 64);
@@ -52,8 +54,8 @@ RevBasicRmtMemCtrl::RevBasicRmtMemCtrl(ComponentId_t id, Params& params)
 
   registerStats();
 
-  registerClock(ClockFreq, 
-                new Clock::Handler<RevBasicRmtMemCtrl>(this, &RevBasicRmtMemCtrl::clockTick) );
+  // registerClock(ClockFreq, 
+  //               new Clock::Handler<RevBasicRmtMemCtrl>(this, &RevBasicRmtMemCtrl::clockTick) );
 }
 
 RevBasicRmtMemCtrl::~RevBasicRmtMemCtrl(){
@@ -167,10 +169,11 @@ bool RevBasicRmtMemCtrl::isRmtMemOpAvail(xbgasNicEvent *ev, unsigned &t_max_load
 }
 
 bool RevBasicRmtMemCtrl::sendRmtReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
-                                          uint32_t Size, void *Target){
+                                          int32_t Size, void *Target, int *RegisterTag){
+
   int Src = (int)(xbgas_nic->getAddress());
   int Dest = findDest(Nmspace);
-  uint64_t rqstId = main_id++;
+  int64_t PktId = main_id++;
   if( Size == 0 || Dest == -1 ){
     return false;
   }
@@ -178,26 +181,38 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst( uint64_t Nmspace, uint64_t SrcAddr,
   // Build the remote read request
   xbgasNicEvent *RmtEvent= new xbgasNicEvent();
   RmtEvent->setSrc( Src );
-  RmtEvent->buildGetRqst( rqstId, SrcAddr, Size );
+  RmtEvent->buildGetRqst( PktId, SrcAddr, Size );
 
   // Store the request ID and RmtEvent in the readRqsts and readOutstanding maps, respectively
-  readRqsts.push_back(rqstId);
-  readOutstanding[rqstId] = std::make_pair(RmtEvent, Target);
+  readRqsts.push_back(PktId);
+  // Set the register tag to -1 indicating it is waiting for the response
+  *RegisterTag = -1;
+  readOutstanding[PktId] = std::make_tuple(RmtEvent, Target, RegisterTag);
 
   // Add the request to the request queue
   rqstQ.push_back( std::make_pair(RmtEvent, Dest) );
   recordStat(RmtMemCtrlStat::RmtReadBytes, Size);
   recordStat(RmtMemCtrlStat::RmtReadPending, 1);
+
+#ifdef _XBGAS_DEBUG_
+        std::cout << "Send a Remote Read Request, "
+                  << ", PktId: " << std::dec << PktId
+                  << ", Dest PE: " << std::dec << Dest
+                  << ", SrcAddr: 0x" << std::hex << SrcAddr
+                  << ", Event: " << RmtEvent->getOpcodeStr()
+                  << std::endl;
+#endif
+
   return true;
 }
 
 bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
-                                              uint32_t Size, uint32_t Nelem, 
-                                              uint32_t Stride, uint64_t DestAddr ){
+                                              int32_t Size, int32_t Nelem, 
+                                              int32_t Stride, uint64_t DestAddr ){
   int Src = (int)(xbgas_nic->getAddress());
   int Dest = findDest(Nmspace);
-  uint64_t rqstId = main_id++;
-  uint32_t TotalSize = Size * Nelem;
+  int64_t PktId = main_id++;
+  int32_t TotalSize = Size * Nelem;
   if( TotalSize == 0 || Dest == -1 ){
     return false;
   }
@@ -205,11 +220,11 @@ bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t SrcAddr
   // Build the bulk remote read request
   xbgasNicEvent *RmtEvent= new xbgasNicEvent();
   RmtEvent->setSrc( Src );
-  RmtEvent->buildBulkGetRqst( rqstId, SrcAddr, Size, Nelem, Stride );
+  RmtEvent->buildBulkGetRqst( PktId, SrcAddr, Size, Nelem, Stride );
 
   // Store the request ID and RmtEvent in the bulkReadRqsts and bulkReadOutstanding maps, respectively
-  bulkReadRqsts.push_back(rqstId);
-  bulkReadOutstanding[rqstId] = std::make_pair(RmtEvent, DestAddr);
+  bulkReadRqsts.push_back(PktId);
+  bulkReadOutstanding[PktId] = std::make_pair(RmtEvent, DestAddr);
 
   // Add the request to the request queue
   rqstQ.push_back( std::make_pair(RmtEvent, Dest) );
@@ -219,10 +234,10 @@ bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t SrcAddr
 }
 
 bool RevBasicRmtMemCtrl::sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
-                                           uint32_t Size, uint8_t *Buffer){
+                                           int32_t Size, uint8_t *Buffer){
   int Src = (int)(xbgas_nic->getAddress());
   int Dest = findDest(Nmspace);
-  uint64_t rqstId = main_id++;
+  int64_t PktId = main_id++;
   if( Size == 0 || Dest == -1 ){
     return false;
   }
@@ -230,11 +245,11 @@ bool RevBasicRmtMemCtrl::sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr,
   // Build the remote write request
   xbgasNicEvent *RmtEvent= new xbgasNicEvent();
   RmtEvent->setSrc( Src );
-  RmtEvent->buildPutRqst( rqstId, DestAddr, Size, Buffer );
+  RmtEvent->buildPutRqst( PktId, DestAddr, Size, Buffer );
 
   // Store the request ID and RmtEvent in the writeRqsts and writeOutstanding maps, respectively
-  writeRqsts.push_back(rqstId);
-  writeOutstanding[rqstId] = RmtEvent;
+  writeRqsts.push_back(PktId);
+  writeOutstanding[PktId] = RmtEvent;
 
   // Add the request to the request queue
   rqstQ.push_back( std::make_pair(RmtEvent, Dest) );
@@ -244,12 +259,12 @@ bool RevBasicRmtMemCtrl::sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr,
 }
 
 bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
-                                               uint32_t Size, uint32_t Nelem, 
-                                               uint32_t Stride, uint64_t SrcAddr ){
+                                               int32_t Size, int32_t Nelem, 
+                                               int32_t Stride, uint64_t SrcAddr ){
   int Src = (int)(xbgas_nic->getAddress());
   int Dest = findDest(Nmspace);
-  uint64_t rqstId = main_id++;
-  uint32_t TotalSize = Size * Nelem;
+  int64_t PktId = main_id++;
+  int32_t TotalSize = Size * Nelem;
   if( TotalSize == 0 || Dest == -1 ){
     return false;
   }
@@ -259,10 +274,10 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst( uint64_t Nmspace, uint64_t DestAd
   uint64_t TmpAddr = 0;
   uint64_t TmpVal = 0;
   uint8_t *Data = (uint8_t *)((void *)(&TmpVal));
-  for(uint32_t i=0; i<Nelem; i++){
+  for(int32_t i=0; i<Nelem; i++){
     TmpAddr = SrcAddr + i*Stride;
     mem->ReadMem(TmpAddr, Size, (void *)(&TmpVal), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
-    for(uint32_t j=0; j<Size; j++){
+    for(int32_t j=0; j<Size; j++){
       Buffer[i*Size+j] = Data[j];
     }
     TmpVal = 0;
@@ -271,11 +286,11 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst( uint64_t Nmspace, uint64_t DestAd
   // Build the bulk remote write request
   xbgasNicEvent *RmtEvent= new xbgasNicEvent();
   RmtEvent->setSrc( Src );
-  RmtEvent->buildBulkPutRqst( rqstId, DestAddr, Size, Nelem, Stride, Buffer);
+  RmtEvent->buildBulkPutRqst( PktId, DestAddr, Size, Nelem, Stride, Buffer);
 
   // Store the request ID and RmtEvent in the writeRqsts and writeOutstanding maps, respectively
-  writeRqsts.push_back(rqstId);
-  writeOutstanding[rqstId] = RmtEvent;
+  writeRqsts.push_back(PktId);
+  writeOutstanding[PktId] = RmtEvent;
 
   // Add the request to the request queue
   rqstQ.push_back( std::make_pair(RmtEvent, Dest) );
@@ -330,6 +345,7 @@ bool RevBasicRmtMemCtrl::sendRmtMemRqsts(unsigned &t_max_loads,
 }
 
 bool RevBasicRmtMemCtrl::sendRmtMemResps(unsigned &t_max_responses) {
+
   if( respQ.size() == 0 ){
     // nothing to do, saturate and exit this cycle
     t_max_responses = max_responses;
@@ -356,23 +372,24 @@ bool RevBasicRmtMemCtrl::sendRmtMemResps(unsigned &t_max_responses) {
 bool RevBasicRmtMemCtrl::handleRmtReadRqst( xbgasNicEvent *ev ){
   int Src = (int)(xbgas_nic->getAddress());
   int Dest = ev->getSrc();
-  uint64_t PktId = ev->getPktId();
-  uint32_t Size = ev->getSize();
-  uint32_t Nelem = ev->getNelem();
-  uint32_t Stride = ev->getStride();
+  int64_t PktId = ev->getPktId();
+  int32_t Size = ev->getSize();
+  int32_t Nelem = ev->getNelem();
+  int32_t Stride = ev->getStride();
   uint64_t Addr = ev->getAddr();
   xbgasNicEvent::XbgasOpcode Opcode = ev->getOpcode();
 
   // Read the data to buffer from the source address
-  uint32_t TotalSize = Size * Nelem;
+  int32_t TotalSize = Size * Nelem;
   uint8_t *Buffer = new uint8_t[TotalSize];
   uint64_t TmpAddr = 0;
   uint64_t TmpVal = 0;
   uint8_t *Data = (uint8_t *)((void *)(&TmpVal));
-  for(uint32_t i=0; i<Nelem; i++){
+  for(int32_t i=0; i<Nelem; i++){
     TmpAddr = Addr + i*Stride;
-    mem->ReadMem(TmpAddr, Size, (void *)(&TmpVal), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
-    for(uint32_t j=0; j<Size; j++){
+    mem->ReadMem(TmpAddr, Size, (void *)(&TmpVal));
+    // mem->ReadMem(TmpAddr, Size, (void *)(&TmpVal), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
+    for(int32_t j=0; j<Size; j++){
       Buffer[i*Size+j] = Data[j];
     }
     TmpVal = 0;
@@ -402,21 +419,21 @@ bool RevBasicRmtMemCtrl::handleRmtReadRqst( xbgasNicEvent *ev ){
 bool RevBasicRmtMemCtrl::handleRmtWriteRqst( xbgasNicEvent *ev ){
   int Src = (int)(xbgas_nic->getAddress());
   int Dest = ev->getSrc();
-  uint64_t PktId = ev->getPktId();
-  uint32_t Size = ev->getSize();
-  uint32_t Nelem = ev->getNelem();
-  uint32_t Stride = ev->getStride();
+  int64_t PktId = ev->getPktId();
+  int32_t Size = ev->getSize();
+  int32_t Nelem = ev->getNelem();
+  int32_t Stride = ev->getStride();
   uint64_t Addr = ev->getAddr();
   xbgasNicEvent::XbgasOpcode Opcode = ev->getOpcode();
 
   // Read the data to buffer from the packet
-  uint32_t TotalSize = Size * Nelem;
+  int32_t TotalSize = Size * Nelem;
   uint8_t *Buffer = new uint8_t[TotalSize];
   ev->getData( Buffer );
 
   // Write the data to the destination address
   uint64_t TmpAddr = 0;
-  for(uint32_t i=0; i<Nelem; i++){
+  for(int32_t i=0; i<Nelem; i++){
     TmpAddr = Addr + i*Stride;
     mem->WriteMem(TmpAddr, Size, (void *)(&Buffer[i*Size]), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
   }
@@ -447,20 +464,28 @@ void RevBasicRmtMemCtrl::handleRmtReadResp( xbgasNicEvent *ev ) {
     // the response is for a pending request, remove the request from the pending requests list
     readRqsts.erase( std::find(readRqsts.begin(), readRqsts.end(), ev->getPktId()) );
     
-    std::pair<xbgasNicEvent *, void *>& p = readOutstanding[ev->getPktId()];
-    xbgasNicEvent *op = p.first;
-    uint8_t *Target = (uint8_t *)(p.second);
+    xbgasNicEvent *op = std::get<0>(readOutstanding[ev->getPktId()]);
+    uint8_t *Target = (uint8_t *)(std::get<1>(readOutstanding[ev->getPktId()]));
+
+    // std::pair<xbgasNicEvent *, void *>& p = readOutstanding[ev->getPktId()];
+
+    // xbgasNicEvent *op = p.first;
+    // uint8_t *Target = (uint8_t *)(p.second);
 
     // Read the data to buffer from the packet
-    uint32_t Size = op->getSize();
+    int32_t Size = op->getSize();
     uint8_t *Buffer = new uint8_t[Size];
     ev->getData( Buffer );
 
     // update the target register
-    for(uint32_t i=0; i < Size; i++){
+    for(int32_t i=0; i < Size; i++){
       *Target = Buffer[i];
       Target++;
     }
+
+    // Set the register tag indicating that the register has been updated
+    int *RegisterTag = (int *)(std::get<2>(readOutstanding[ev->getPktId()]));
+    *RegisterTag = 1;
 
     // remove the request from the outstanding requests list
     readOutstanding.erase(ev->getPktId());
@@ -479,17 +504,17 @@ void RevBasicRmtMemCtrl::handleRmtBulkReadResp( xbgasNicEvent *ev ) {
     xbgasNicEvent *op = p.first;
     uint64_t DestAddr = p.second;
 
-    uint32_t Size = op->getSize();
-    uint32_t Nelem = op->getNelem();
-    uint32_t Stride = op->getStride();
+    int32_t Size = op->getSize();
+    int32_t Nelem = op->getNelem();
+    int32_t Stride = op->getStride();
 
     // Read the data to buffer from the packet
-    uint32_t TotalSize = Size * Nelem;
+    int32_t TotalSize = Size * Nelem;
     uint8_t *Buffer = new uint8_t[TotalSize];
     ev->getData( Buffer );
 
     uint64_t TmpAddr = 0;
-    for(uint32_t i=0; i<Nelem; i++){
+    for(int32_t i=0; i<Nelem; i++){
       TmpAddr = DestAddr + i*Stride;
       mem->WriteMem(TmpAddr, Size, (void *)(&Buffer[i*Size]), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
     }

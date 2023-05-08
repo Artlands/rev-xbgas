@@ -221,6 +221,7 @@ namespace SST{
 
       // Extended register file
       uint64_t ERV64[_REV_NUM_REGS_];   ///< RevRegFile: Extended RV64X register file
+      int RV64_Tag[_REV_NUM_REGS_];    ///< RevRegFile: Tag to indicate if the corresponding GPR is updated
 
       bool RV32_Scoreboard[_REV_NUM_REGS_]; ///< RevRegFile: Scoreboard for RV32I RF to manage pipeline hazard
       bool RV64_Scoreboard[_REV_NUM_REGS_]; ///< RevRegFile: Scoreboard for RV64I RF to manage pipeline hazard

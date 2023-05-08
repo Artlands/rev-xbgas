@@ -45,7 +45,7 @@ std::string xbgasNicEvent::getOpcodeStr(){
   }
 }
 
-// unsigned xbgasNicEvent::getNumBlocks(uint32_t Sz){
+// unsigned xbgasNicEvent::getNumBlocks(int32_t Sz){
 //   unsigned blocks = 0;
 //   if( Sz == 0 ){
 //     blocks = 0;
@@ -61,7 +61,7 @@ std::string xbgasNicEvent::getOpcodeStr(){
 
 // void xbgasNicEvent::getData(uint64_t *Out){
 //   unsigned blocks = 0;
-//   uint32_t TotalSize = Size * Nelem;
+//   int32_t TotalSize = Size * Nelem;
 //   if( TotalSize == 0 )
 //     return;
 //   blocks = getNumBlocks(TotalSize);
@@ -70,7 +70,7 @@ std::string xbgasNicEvent::getOpcodeStr(){
 //   }
 // }
 
-// bool xbgasNicEvent::setData(uint64_t *In, uint32_t Sz){
+// bool xbgasNicEvent::setData(uint64_t *In, int32_t Sz){
 //   unsigned blocks = 0;
 //   if( Sz == 0 )
 //     return true;
@@ -89,7 +89,7 @@ void xbgasNicEvent::getData(uint8_t *Out){
   }
 }
 
-bool xbgasNicEvent::setData(uint8_t *In, uint32_t Sz){
+bool xbgasNicEvent::setData(uint8_t *In, int32_t Sz){
   if( Sz == 0 )
     return true;
   for( unsigned i=0; i<Sz; i++ ){
@@ -98,7 +98,7 @@ bool xbgasNicEvent::setData(uint8_t *In, uint32_t Sz){
   return true;
 }
 
-bool xbgasNicEvent::buildGetRqst( uint64_t PktId, uint64_t Addr, uint32_t Size){
+bool xbgasNicEvent::buildGetRqst( int64_t PktId, uint64_t Addr, int32_t Size){
   Opcode = xbgasNicEvent::GetRqst;
   if( !setPktId(PktId) )
     return false;
@@ -106,11 +106,13 @@ bool xbgasNicEvent::buildGetRqst( uint64_t PktId, uint64_t Addr, uint32_t Size){
     return false;
   if( !setSize(Size) )
     return false;
+  if( !setNelem(1) )
+    return false;
   return true;
 }
 
-bool xbgasNicEvent::buildBulkGetRqst( uint64_t PktId, uint64_t Addr,  uint32_t Size, 
-                                      uint32_t Nelem, uint32_t Stride ){
+bool xbgasNicEvent::buildBulkGetRqst( int64_t PktId, uint64_t Addr,  int32_t Size, 
+                                      int32_t Nelem, int32_t Stride ){
   Opcode = xbgasNicEvent::BulkGetRqst;
   if( !setPktId(PktId) )
     return false;
@@ -125,8 +127,8 @@ bool xbgasNicEvent::buildBulkGetRqst( uint64_t PktId, uint64_t Addr,  uint32_t S
   return true;
 }
 
-bool xbgasNicEvent::buildPutRqst(uint64_t PktId, uint64_t Addr, 
-                                 uint32_t Size, uint8_t *Buffer){
+bool xbgasNicEvent::buildPutRqst(int64_t PktId, uint64_t Addr, 
+                                 int32_t Size, uint8_t *Buffer){
   Opcode = xbgasNicEvent::PutRqst;
   if ( Buffer == nullptr )
     return false;
@@ -141,9 +143,9 @@ bool xbgasNicEvent::buildPutRqst(uint64_t PktId, uint64_t Addr,
   return true;
 }
 
-bool xbgasNicEvent::buildBulkPutRqst(uint64_t PktId, uint64_t Addr, uint32_t Size, 
-                                     uint32_t Nelem, uint32_t Stride, uint8_t *Buffer){
-  uint32_t TotalSize = Size * Nelem;
+bool xbgasNicEvent::buildBulkPutRqst(int64_t PktId, uint64_t Addr, int32_t Size, 
+                                     int32_t Nelem, int32_t Stride, uint8_t *Buffer){
+  int32_t TotalSize = Size * Nelem;
   Opcode = xbgasNicEvent::BulkPutRqst;
   if ( Buffer == nullptr )
     return false;
@@ -162,7 +164,7 @@ bool xbgasNicEvent::buildBulkPutRqst(uint64_t PktId, uint64_t Addr, uint32_t Siz
   return true;
 }
 
-bool xbgasNicEvent::buildGetResp(uint64_t PktId, uint32_t Size, uint8_t *Buffer){
+bool xbgasNicEvent::buildGetResp(int64_t PktId, int32_t Size, uint8_t *Buffer){
   Opcode = xbgasNicEvent::GetResp;
   if ( Buffer == nullptr )
     return false;
@@ -173,9 +175,9 @@ bool xbgasNicEvent::buildGetResp(uint64_t PktId, uint32_t Size, uint8_t *Buffer)
   return true;
 }
 
-bool xbgasNicEvent::buildBulkGetResp(uint64_t PktId, uint32_t Size, 
-                                     uint32_t Nelem, uint8_t *Buffer){
-  uint32_t TotalSize = Size * Nelem;
+bool xbgasNicEvent::buildBulkGetResp(int64_t PktId, int32_t Size, 
+                                     int32_t Nelem, uint8_t *Buffer){
+  int32_t TotalSize = Size * Nelem;
   Opcode = xbgasNicEvent::BulkGetResp;
   if ( Buffer == nullptr )
     return false;
@@ -186,14 +188,14 @@ bool xbgasNicEvent::buildBulkGetResp(uint64_t PktId, uint32_t Size,
   return true;
 }
 
-bool xbgasNicEvent::buildPutResp(uint64_t PktId){
+bool xbgasNicEvent::buildPutResp(int64_t PktId){
   Opcode = xbgasNicEvent::PutResp;
   if( !setPktId(PktId) )
     return false;
   return true;
 }
 
-bool xbgasNicEvent::buildBulkPutResp(uint64_t PktId){
+bool xbgasNicEvent::buildBulkPutResp(int64_t PktId){
   Opcode = xbgasNicEvent::BulkPutResp;
   if( !setPktId(PktId) )
     return false;
