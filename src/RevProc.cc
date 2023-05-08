@@ -422,6 +422,11 @@ bool RevProc::Reset(){
       RegFile[t].RV64[i] = 0x00ull;
       RegFile[t].ERV64[i] = 0x00ull;
       RegFile[t].RV64_Tag[i] = 0;
+
+      // Floating-point register file (updated implementation)
+      RegFile[t].SFP[i] = 0x00l;
+      RegFile[t].DFP[i] = 0x00ull;
+
       RegFile[t].SPF[i]  = 0.f;
       RegFile[t].DPF[i]  = 0.f;
       RegFile[t].RV32_Scoreboard[i] = false;
@@ -1590,14 +1595,18 @@ void RevProc::HandleRegFault(unsigned width){
   if( feature->IsModeEnabled(RV_F) ){
     for( unsigned i=0; i<_REV_NUM_REGS_; i++ ){
       std::string Name = "f" + std::to_string(i);
+      // RRegs.push_back( std::make_pair(Name,
+      //                                 (void *)(&RegFile[threadToExec].SPF[i])));
       RRegs.push_back( std::make_pair(Name,
-                                      (void *)(&RegFile[threadToExec].SPF[i])));
+                                      (void *)(&RegFile[threadToExec].SFP[i])));
     }
   }else if( feature->IsModeEnabled(RV_D) ){
     for( unsigned i=0; i<_REV_NUM_REGS_; i++ ){
       std::string Name = "f" + std::to_string(i);
+      // RRegs.push_back( std::make_pair(Name,
+      //                                 (void *)(&RegFile[threadToExec].DPF[i])));
       RRegs.push_back( std::make_pair(Name,
-                                      (void *)(&RegFile[threadToExec].DPF[i])));
+                                      (void *)(&RegFile[threadToExec].DFP[i])));
     }
   }
 
@@ -1842,14 +1851,16 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
             (Ext->GetName() == "RV32D") ){
           // write an rv32 float rd
           uint32_t rval = rand() % (2^(fault_width));
-          uint32_t tmp = (uint32_t)(RegFile[threadToExec].SPF[Inst.rd]);
+          // uint32_t tmp = (uint32_t)(RegFile[threadToExec].SPF[Inst.rd]);
+          uint32_t tmp = (uint32_t)(RegFile[threadToExec].SFP[Inst.rd]);
           tmp |= rval;
           RegFile[threadToExec].SPF[Inst.rd] = (float)(tmp);
         }else if( (Ext->GetName() == "RV64F") ||
                   (Ext->GetName() == "RV64D") ){
           // write an rv64 float rd
           uint64_t rval = rand() % (2^(fault_width));
-          uint64_t tmp = (uint64_t)(RegFile[threadToExec].DPF[Inst.rd]);
+          // uint64_t tmp = (uint64_t)(RegFile[threadToExec].DPF[Inst.rd]);
+          uint64_t tmp = (uint64_t)(RegFile[threadToExec].DFP[Inst.rd]);
           tmp |= rval;
           RegFile[threadToExec].DPF[Inst.rd] = (double)(tmp);
         }else if( feature->GetXlen() == 32 ){

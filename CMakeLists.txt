@@ -146,6 +146,12 @@ if(NOT SYSCALLS_PATH)
   message(STATUS "SYSCALLS_PATH set to ${SYSCALLS_PATH}")
 endif()
 
+# RevCPU softfp path
+if(NOT SOFTFP_PATH)
+  set(SOFTFP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include/softfp")
+  message(STATUS "SOFTFP_PATH set to ${SOFTFP_PATH}")
+endif()
+
 #------------------------------------------------------------------------
 #-- TESTING
 #------------------------------------------------------------------------

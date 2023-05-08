@@ -24,9 +24,12 @@ set(RevCPUSrcs
   RevRmtMemCtrl.cc
   )
 
+include_directories(${SOFTFP_PATH})
+
 add_library(revcpu SHARED ${RevCPUSrcs})
 target_include_directories(revcpu PRIVATE ${REVCPU_INCLUDE_PATH})
 target_include_directories(revcpu PUBLIC ${SST_INSTALL_DIR}/include)
+target_link_libraries(revcpu softfp)
 
 install(TARGETS revcpu DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 install (CODE "execute_process(COMMAND sst-register revcpu -revcpu_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")

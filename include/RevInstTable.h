@@ -15,6 +15,7 @@
 #include <map>
 #include "RevMem.h"
 #include "RevFeature.h"
+#include "./softfp/softfp.h"
 
 #ifndef _REV_NUM_REGS_
 #define _REV_NUM_REGS_ 32
@@ -223,6 +224,10 @@ namespace SST{
       uint64_t ERV64[_REV_NUM_REGS_];   ///< RevRegFile: Extended RV64X register file
       int RV64_Tag[_REV_NUM_REGS_];    ///< RevRegFile: Tag to indicate if the corresponding GPR is updated
 
+      // Floating-point register file (updated implementation)
+      uint32_t SFP[_REV_NUM_REGS_];
+      uint64_t DFP[_REV_NUM_REGS_];
+
       bool RV32_Scoreboard[_REV_NUM_REGS_]; ///< RevRegFile: Scoreboard for RV32I RF to manage pipeline hazard
       bool RV64_Scoreboard[_REV_NUM_REGS_]; ///< RevRegFile: Scoreboard for RV64I RF to manage pipeline hazard
       bool SPF_Scoreboard[_REV_NUM_REGS_];  ///< RevRegFile: Scoreboard for SPF RF to manage pipeline hazard
@@ -231,6 +236,10 @@ namespace SST{
       uint32_t RV32_PC;                 ///< RevRegFile: RV32 PC
       uint64_t RV64_PC;                 ///< RevRegFile: RV64 PC
       uint64_t FCSR;                    ///< RevRegFile: FCSR
+
+      // For floating-point
+      uint32_t fflags;
+      uint8_t frm;
 
       uint32_t cost;                    ///< RevRegFile: Cost of the instruction
       bool trigger;                     ///< RevRegFile: Has the instruction been triggered?
@@ -294,6 +303,9 @@ namespace SST{
       uint8_t rs1;          ///< RevInst: rs1 value
       uint8_t rs2;          ///< RevInst: rs2 value
       uint8_t rs3;          ///< RevInst: rs3 value
+      uint8_t crd;          ///< RevInst: compressed rd value
+      uint8_t crs1;         ///< RevInst: compressed rs1 value
+      uint8_t crs2;         ///< RevInst: compressed rs2 value
       uint32_t imm;         ///< RevInst: immediate value
       uint8_t fmt;          ///< RevInst: floating point format
       uint8_t rm;           ///< RevInst: floating point rounding mode
@@ -400,8 +412,18 @@ namespace SST{
         bool (*func)(RevFeature *, RevRegFile *, RevMem *, RevInst);
 
         bool compressed;      ///< RevInstEntry: compressed instruction
-      } RevInstEntry;
+    } RevInstEntry;
 
+    /* return -1 if invalid roundind mode */
+    static int get_insn_rm(RevRegFile *R, uint8_t rm)
+    {
+        if (rm == 7)
+            return R->frm;
+        if (rm >= 5)
+            return -1;
+        else
+            return rm;
+    }
 
     template <typename RevInstDefaultsPolicy>
     class RevInstEntryBuilder : public RevInstDefaultsPolicy{
