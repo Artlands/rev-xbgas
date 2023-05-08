@@ -3,3 +3,4 @@ tmp
 src/librevcpu.so
 *.exe
 *.csv
+*.obj
