@@ -5,5 +5,7 @@ src/librevcpu.so
 *.exe
 *.csv
 *.obj
-*.txt
+*.a
+*.o
+*.h.gch
 softfp*

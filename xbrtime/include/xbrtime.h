@@ -22,7 +22,7 @@ extern "C" {
 #include <stdio.h>
 #include <math.h>
 
-#include "../common/include/XbgasAddr.h"
+#include "../../common/include/XbgasAddr.h"
 
 /* ---------------------------------------- REQUIRED HEADERS */
 #include "xbrtime_types.h"
