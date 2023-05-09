@@ -11,6 +11,8 @@
 #include "../include/RevProc.h"
 #include <bitset>
 
+#define _REV_DEBUG_
+
 RevProc::RevProc( unsigned Id,
                   RevOpts *Opts,
                   RevMem *Mem,
@@ -58,29 +60,6 @@ RevProc::RevProc( unsigned Id,
   if( !Reset() )
     output->fatal(CALL_INFO, -1,
                   "Error: failed to reset the core resources for core=%d\n", id );
-
-//   // initialize extended registers for PE ID and # of PEs
-//   // e10 = contains the physical PE id
-//   // e11 = contains the number of PEs
-//   int pe = 0;
-//   int numPEs = 0;
-
-//   if( mem->useMemCtrl()){
-//     mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
-//     mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
-//   } else {
-//     mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe));
-//     mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs));
-//   }
-
-// #ifdef _XBGAS_DEBUG_
-//   std::cout << "RevProc Extended Register Setting: PE = " << pe << ", # of PEs = " << numPEs <<  std::endl;
-// #endif
-
-//   for (int t=0;  t < _REV_THREAD_COUNT_; t++){
-//     RegFile[t].ERV64[10] = (uint64_t)(pe);
-//     RegFile[t].ERV64[11] = (uint64_t)(numPEs);
-//   }
   
   Stats.totalCycles = 0;
   Stats.cyclesBusy = 0;
@@ -212,9 +191,9 @@ bool RevProc::SeedInstTable(){
 
   // I-Extension
   if( feature->IsModeEnabled(RV_I) ){
+    EnableExt(static_cast<RevExt *>(new RV32I(feature,RegFile,mem,output)),false);
     if( feature->GetXlen() == 64 ){
       // load RV32I & RV64; no optional compressed
-      EnableExt(static_cast<RevExt *>(new RV32I(feature,RegFile,mem,output)),false);
       EnableExt(static_cast<RevExt *>(new RV64I(feature,RegFile,mem,output)),false);
     }else{
       // load RV32I w/ optional compressed
@@ -240,16 +219,12 @@ bool RevProc::SeedInstTable(){
 
   // F-Extension
   if( feature->IsModeEnabled(RV_F) ){
-    if( (!feature->IsModeEnabled(RV_D)) && (feature->GetXlen() == 32) ){
-      EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,output)),true);
-    }else{
-      EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,output)),false);
-    }
-#if 0
+    EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,output)),false);
     if( feature->GetXlen() == 64 ){
-      EnableExt(static_cast<RevExt *>(new RV64D(feature,RegFile,mem,output)));
+      EnableExt(static_cast<RevExt *>(new RV64F(feature,RegFile,mem,output)),false);
+    } else {
+      EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,output)),true);
     }
-#endif
   }
 
   // D-Extension
@@ -278,11 +253,11 @@ bool RevProc::SeedInstTable(){
 uint32_t RevProc::CompressCEncoding(RevInstEntry Entry){
   uint32_t Value = 0x00;
 
-  Value |= (uint32_t)(Entry.opcode);
-  Value |= (uint32_t)((uint32_t)(Entry.funct2)<<2);
-  Value |= (uint32_t)((uint32_t)(Entry.funct3)<<4);
-  Value |= (uint32_t)((uint32_t)(Entry.funct4)<<8);
-  Value |= (uint32_t)((uint32_t)(Entry.funct6)<<12);
+  Value |= (uint32_t)(Entry.opcode);                // 2
+  Value |= (uint32_t)((uint32_t)(Entry.funct2)<<2); // 2
+  Value |= (uint32_t)((uint32_t)(Entry.funct3)<<4); // 3
+  Value |= (uint32_t)((uint32_t)(Entry.funct4)<<7); // 4
+  Value |= (uint32_t)((uint32_t)(Entry.funct6)<<11);// 6
 
   return Value;
 }
@@ -291,9 +266,9 @@ uint32_t RevProc::CompressEncoding(RevInstEntry Entry){
   uint32_t Value = 0x00;
 
   Value |= (uint32_t)(Entry.opcode);
-  Value |= (uint32_t)((uint32_t)(Entry.funct3)<<8);
-  Value |= (uint32_t)((uint32_t)(Entry.funct7)<<11);
-  Value |= (uint32_t)((uint32_t)(Entry.imm12)<<18);
+  Value |= (uint32_t)((uint32_t)(Entry.funct3)<<7);
+  Value |= (uint32_t)((uint32_t)(Entry.funct7)<<10);
+  Value |= (uint32_t)((uint32_t)(Entry.imm12) <<17);
 
   return Value;
 }
@@ -427,26 +402,32 @@ bool RevProc::Reset(){
       RegFile[t].SFP[i] = 0x00l;
       RegFile[t].DFP[i] = 0x00ull;
 
-      RegFile[t].SPF[i]  = 0.f;
-      RegFile[t].DPF[i]  = 0.f;
+      // RegFile[t].SPF[i]  = 0.f;
+      // RegFile[t].DPF[i]  = 0.f;
       RegFile[t].RV32_Scoreboard[i] = false;
       RegFile[t].RV64_Scoreboard[i] = false;
       RegFile[t].SPF_Scoreboard[i] = false;
       RegFile[t].DPF_Scoreboard[i] = false;
     }
 
+    RegFile[t].fflags = 0;
+    RegFile[t].frm    = 0;
+
     // initialize all the relevant program registers
-    // -- x2 : stack pointer
-    RegFile[t].RV32[2] = (uint32_t)(mem->GetStackTop());
-    RegFile[t].RV64[2] = mem->GetStackTop();
+    if (feature->IsRV32()) {
+      // -- x2 : stack pointer
+      RegFile[t].RV32[2] = (uint32_t)(mem->GetStackTop());
 
-    // -- x3 : global pointer
-    RegFile[t].RV32[3] = (uint32_t)(loader->GetSymbolAddr("__global_pointer$"));
-    RegFile[t].RV64[3] = loader->GetSymbolAddr("__global_pointer$");
+      // -- x3 : global pointer
+      RegFile[t].RV32[3] = (uint32_t)(loader->GetSymbolAddr("__global_pointer$"));
 
-    // -- x8 : frame pointer
-    RegFile[t].RV32[8] = RegFile[t].RV32[3];
-    RegFile[t].RV64[8] = RegFile[t].RV64[3];
+      // -- x8 : frame pointer
+      RegFile[t].RV32[8] = RegFile[t].RV32[3];
+    } else {
+       RegFile[t].RV64[2] = mem->GetStackTop();
+       RegFile[t].RV64[3] = loader->GetSymbolAddr("__global_pointer$");
+       RegFile[t].RV64[8] = RegFile[t].RV64[3];
+    }
 
     RegFile[t].cost = 0;
 
@@ -509,6 +490,9 @@ RevInst RevProc::DecodeCRInst(uint16_t Inst, unsigned Entry){
   CompInst.rd      = DECODE_RD(Inst);
   CompInst.rs1     = DECODE_RD(Inst);
   CompInst.rs2     = DECODE_LOWER_CRS2(Inst);
+  CompInst.crd     = (Inst >> 7) & (0b111);
+  CompInst.crs1    = (Inst >> 7) & (0b111);
+  CompInst.crs2    = (Inst >> 2) & (0b111);
   CompInst.imm     = 0x00;
 
   CompInst.instSize = 2;
@@ -530,79 +514,45 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry){
   // registers
   CompInst.rd      = DECODE_RD(Inst);
   CompInst.rs1     = DECODE_RD(Inst);
-  CompInst.imm     = DECODE_LOWER_CRS2(Inst);
-  CompInst.imm    |= ((Inst & 0b1000000000000)>>7);
+  CompInst.crd     = (Inst >> 7) & (0b111);
+  CompInst.crs1    = (Inst >> 7) & (0b111);
+  CompInst.imm     = DECODE_LOWER_CRS2(Inst);       // 11111
+  CompInst.imm    |= ((Inst & 0b1000000000000)>>7); //100000 [5], [4:0]
 
-  if((CompInst.opcode == 0b10) &&
-     (CompInst.funct3 == 0b001)){
-    // c.fldsp
-    CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1100000) >> 2);        // [4:3]
-    CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
-    CompInst.imm |= ((Inst & 0b11100) << 4);          // [8:6]
-  }else if( (CompInst.opcode == 0b10) &&
-            (CompInst.funct3 == 0b010) ){
-    // c.lwsp
-    CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1110000) >> 2);        // [4:2]
-    CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
-    CompInst.imm |= ((Inst & 1100) << 4);             // [7:6]
-  }else if( (CompInst.opcode == 0b10) &&
-            (CompInst.funct3 == 0b011) ){
-    CompInst.imm = 0;
-    if( feature->GetXlen() == 64 ){
-      // c.ldsp
-      CompInst.imm =  ((Inst & 0b1100000) >> 2);        // [4:3]
-      CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
-      CompInst.imm |= ((Inst & 0b11100) << 4);          // [8:6]
-    }else{
-      // c.flwsp
-      CompInst.imm =  ((Inst & 0b1110000) >> 2);        // [4:2]
-      CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
-      CompInst.imm |= ((Inst & 1100) << 4);             // [7:6]
-    }
-  }else if( (CompInst.opcode == 0b01) &&
+  if( (CompInst.opcode == 0b01 ) &&
       (CompInst.funct3 == 0b011) &&
-      (CompInst.rd == 2)){
-    // c.addi16sp
+      (CompInst.rd     == 2)){
+    // c.addi16sp [9], [4|6|8:7|5]
     // swizzle: nzimm[4|6|8:7|5] nzimm[9]
-    CompInst.imm = 0;
-    CompInst.imm = ((Inst & 0b1000000) >> 2); // bit 4
-    CompInst.imm |= ((Inst & 0b100) << 3);    // bit 5
-    CompInst.imm |= ((Inst & 0b100000) << 1); // bit 6
-    CompInst.imm |= ((Inst & 0b11000) << 4);  // bit 8:7
-    CompInst.imm |= ((Inst & 0b1000000000000) >> 3);  // bit 9
-    if( (CompInst.imm & 0b1000000000) > 0 ){
-      // sign extend
-      CompInst.imm |= 0b11111111111111111111111000000000;
+    CompInst.imm  = 0;
+    CompInst.imm  = ((Inst & 0b1000000) >> 2);// bit 4                10000
+    CompInst.imm |= ((Inst & 0b100) << 3);    // bit 5               100000
+    CompInst.imm |= ((Inst & 0b100000) << 1); // bit 6              1000000
+    CompInst.imm |= ((Inst & 0b11000) << 4);  // bit 8:7          110000000
+    CompInst.imm |= ((Inst & 0b1000000000000) >> 3);  // bit 9   1000000000
+  } else if (CompInst.opcode == 0b10){
+    if((CompInst.funct3 == 0b001) || 
+      ((feature->GetXlen() == 64) && (CompInst.funct3 == 0b011))) {
+        // c.fldsp, c.ldsp, [5], [4:3|8:6]
+        CompInst.imm = 0;
+        CompInst.imm =  ((Inst & 0b1100000) >> 2);        // [4:3]    11000
+        CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]     100000
+        CompInst.imm |= ((Inst & 0b11100) << 4);          // [8:6]111000000
+    } else if ((CompInst.funct3 == 0b010) || 
+              ((feature->GetXlen() == 32) && (CompInst.funct3 == 0b011))) {
+        // c.lwsp, c.flwsp, [5], [4:2|7:6]
+        CompInst.imm = 0;
+        CompInst.imm =  ((Inst & 0b1110000) >> 2);        // [4:2]   11100
+        CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]    100000
+        CompInst.imm |= ((Inst & 1100) << 4);             // [7:6]11000000
     }
-  }else if( (CompInst.opcode == 0b01) &&
-      (CompInst.funct3 == 0b011)  &&
-      (CompInst.rd != 0) && (CompInst.rd != 2) ){
-    // c.lui
-    CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1111100) << 10);       // [16:12]
-    CompInst.imm |= ((Inst & 0b1000000000000) << 5);  // [17]
-    if( (CompInst.imm & 0b100000000000000000) > 0 ){
-      // sign extend
-      CompInst.imm |= 0b11111111111111000000000000000000;
-    }
-    CompInst.imm >>= 12;  //immd value will be re-aligned on execution
-  }else if( (CompInst.opcode == 0b01) &&
-            (CompInst.funct3 == 0b010) &&
-            (CompInst.rd != 0) ){
-    // c.li
-    CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1111100) >> 2);        // [4:0]
-    CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
-    if( (CompInst.imm & 0b100000) > 0 ){
-      // sign extend
-      CompInst.imm |= 0b11111111111111111111111111000000;
-    }
-  }else if( (CompInst.imm & 0b100000) > 0 ){
-    // sign extend
-    CompInst.imm |= 0b11111111111111111111111111100000;
   }
+  // c.lui is a special case, we decode it as [5][4:0] and then handle in RV32I.h
+
+#if 0
+      std::cout << "CIInst   =  " << std::bitset<16>(Inst) << std::endl;
+      std::cout << "Imm bits =  " << std::bitset<16>(CompInst.imm) << std::endl;
+#endif
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -611,7 +561,7 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry){
 }
 
 RevInst RevProc::DecodeCSSInst(uint16_t Inst, unsigned Entry){
-  RevInst CompInst;
+RevInst CompInst;
 
   // cost
   RegFile[threadToDecode].cost  = InstTable[Entry].cost;
@@ -622,29 +572,19 @@ RevInst RevProc::DecodeCSSInst(uint16_t Inst, unsigned Entry){
 
   // registers
   CompInst.rs2     = DECODE_LOWER_CRS2(Inst);
-  CompInst.imm     = ((Inst & 0b1111110000000) >> 7);
 
-  if( CompInst.funct3 == 0b101 ){
-    // c.fsdsp
+  if((CompInst.funct3 == 0b101) || 
+      ((feature->GetXlen() == 64) && (CompInst.funct3 == 0b111))) {
+    // c.fsdsp, c.sdsp, [5:3|8:6]
     CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1110000000000) >> 7);    // [5:3]
-    CompInst.imm |= ((Inst & 0b1110000000) >> 1);       // [8:6]
-  }else if( CompInst.funct3 == 0b110 ){
-    // c.swsp
-    CompInst.imm = 0;
-    CompInst.imm =  ((Inst & 0b1111000000000) >> 7);    // [5:2]
-    CompInst.imm |= ((Inst & 0b110000000) >> 1);        // [7:6]
-  }else if( CompInst.funct3 == 0b111 ){
-    CompInst.imm = 0;
-    if( feature->GetXlen() == 64 ){
-      // c.sdsp
-      CompInst.imm =  ((Inst & 0b1110000000000) >> 7);    // [5:3]
-      CompInst.imm |= ((Inst & 0b1110000000) >> 1);       // [8:6]
-    }else{
-      // c.fswsp
-      CompInst.imm =  ((Inst & 0b1111000000000) >> 7);    // [5:2]
-      CompInst.imm |= ((Inst & 0b110000000) >> 1);        // [7:6]
-    }
+    CompInst.imm =  ((Inst & 0b1110000000000) >> 7);    // [5:3]    111000
+    CompInst.imm |= ((Inst & 0b1110000000) >> 1);       // [8:6] 111000000
+  } else if ((CompInst.funct3 == 0b110) || 
+              ((feature->GetXlen() == 32) && (CompInst.funct3 == 0b111))) {
+    // c.swsp, c.fswsp, [5:2|7:6]
+    CompInst.imm  = 0;
+    CompInst.imm  = ((Inst & 0b1111000000000) >> 7);    // [5:2]   111100
+    CompInst.imm |= ((Inst & 0b110000000) >> 1);        // [7:6] 11000000
   }
 
   CompInst.instSize = 2;
@@ -664,30 +604,33 @@ RevInst RevProc::DecodeCIWInst(uint16_t Inst, unsigned Entry){
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  CompInst.rd      = ((Inst & 0b11100) >> 2);
+  CompInst.crd     = ((Inst & 0b11100) >> 2);
   CompInst.imm     = ((Inst & 0b1111111100000) >> 5);
 
   //swizzle: nzuimm[5:4|9:6|2|3]
-  std::bitset<32> imm(CompInst.imm);
-  std::bitset<32> tmp(0);
-  tmp[0] = imm[1];
-  tmp[1] = imm[0];
-  tmp[2] = imm[6];
-  tmp[3] = imm[7];
-  tmp[4] = imm[2];
-  tmp[5] = imm[3];
-  tmp[6] = imm[4];
-  tmp[7] = imm[5];
+  std::bitset<16> imm(CompInst.imm);
+  std::bitset<16> tmp(0);
+  tmp.reset();
+  // c.addi4spn
+  tmp[0] = 0;
+  tmp[1] = 0;
+  tmp[3] = imm[0];
+  tmp[2] = imm[1];
+  tmp[6] = imm[2];
+  tmp[7] = imm[3];
+  tmp[8] = imm[4];
+  tmp[9] = imm[5];
+  tmp[4] = imm[6];
+  tmp[5] = imm[7];
 
-  CompInst.imm = tmp.to_ulong();
+  CompInst.imm = (uint16_t)tmp.to_ulong();
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
-
   return CompInst;
 }
 
-RevInst RevProc::DecodeCLInst(uint16_t Inst, unsigned Entry){
+RevInst RevProc::DecodeCLSInst(uint16_t Inst, unsigned Entry){
   RevInst CompInst;
 
   // cost
@@ -698,102 +641,28 @@ RevInst RevProc::DecodeCLInst(uint16_t Inst, unsigned Entry){
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  CompInst.rd      = ((Inst & 0b11100) >> 2);
-  CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
+  CompInst.crd     = (Inst >> 2) & 0b111;
+  CompInst.crs2    = (Inst >> 2) & 0b111;
+  CompInst.crs1    = (Inst >> 7) & 0b111;
 
-  if( CompInst.funct3 == 0b001 ){
-    // c.fld
-    CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6]
-    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-  }else if( CompInst.funct3 == 0b010 ){
-    // c.lw
-    CompInst.imm =  ((Inst & 0b100000) << 1);         // [6]
-    CompInst.imm |= ((Inst & 0b1000000) >> 4);        // [2]
-    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-  }else if( CompInst.funct3 == 0b011 ){
-    if( feature->GetXlen() == 64 ){
-      // c.ld
-      CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6]
-      CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-    }else{
-      // c.flw
-      CompInst.imm =  ((Inst & 0b100000) << 1);         // [6]
-      CompInst.imm |= ((Inst & 0b1000000) >> 4);        // [2]
-      CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-    }
-  }else if( CompInst.funct3 == 0b101 ){
-    // c.fsd
-    CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6]
-    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-  }else if( CompInst.funct3 == 0b110 ){
-    // c.sw
-    CompInst.imm =  ((Inst & 0b100000) << 1);         // [6]
-    CompInst.imm |= ((Inst & 0b1000000) >> 4);        // [2]
-    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-  }else if( CompInst.funct3 == 0b111 ){
-    if( feature->GetXlen() == 64 ){
-      // c.sd
-      CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6]
-      CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-    }else{
-      // c.fsw
-      CompInst.imm =  ((Inst & 0b100000) << 1);         // [6]
-      CompInst.imm |= ((Inst & 0b1000000) >> 4);        // [2]
-      CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]
-    }
+  if( (CompInst.funct3 == 0b001) ||  // c.fld
+      (CompInst.funct3 == 0b101) ||  // c.fsd
+    ( (feature->GetXlen() == 64) &&  // c.ld, c.sd
+    ( (CompInst.funct3 == 0b011) || (CompInst.funct3 == 0b111) )) ) {
+    //c.fld, c.ld, c.fsd, c.sd, [5:3], [7:6]
+    CompInst.imm =  ((Inst & 0b1100000) << 1);        // [7:6] 11000000
+    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3]   111000
+  } else if ( (CompInst.funct3 == 0b010) ||   // c.lw
+              (CompInst.funct3 == 0b110) ||   // c.sw
+            ( (feature->GetXlen() == 32) &&   // c.flw, c.fsw
+            ( (CompInst.funct3 == 0b011) || (CompInst.funct3 == 0b111) ))) {
+    // c.lw, c.flw, c.fsw, c.sw, [5:3], [2|6]
+    CompInst.imm =  ((Inst & 0b100000) << 1);         // [6]  1000000
+    CompInst.imm |= ((Inst & 0b1000000) >> 4);        // [2]      100
+    CompInst.imm |= ((Inst & 0b1110000000000) >> 7);  // [5:3] 111000
+  } else {
+    output->fatal(CALL_INFO, -1, "Error: failed decode this CL/CS type compressed instruction.\n");
   }
-
-
-  CompInst.instSize = 2;
-  CompInst.compressed = true;
-
-  return CompInst;
-}
-
-RevInst RevProc::DecodeCSInst(uint16_t Inst, unsigned Entry){
-  RevInst CompInst;
-
-  // cost
-  RegFile[threadToDecode].cost  = InstTable[Entry].cost;
-
-  // encodings
-  CompInst.opcode  = InstTable[Entry].opcode;
-  CompInst.funct3  = InstTable[Entry].funct3;
-
-  // registers
-  CompInst.rs2     = ((Inst & 0b11100) >> 2);
-  CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
-
-  if(CompInst.funct3 == 0b110){
-    CompInst.imm     = ((Inst & 0b0100000) >> 1);         //offset[6]
-    CompInst.imm    |= ((Inst & 0b1110000000000) >> 6);   //offset[5:3]
-    CompInst.imm    |= ((Inst & 0b1000000) >> 6);          //offset[2]
-  }else{
-    CompInst.imm     = ((Inst & 0b1100000) >> 2);
-    CompInst.imm    |= ((Inst & 0b1110000000000) >> 10);
-  }
-
-  CompInst.instSize = 2;
-  CompInst.compressed = true;
-
-  return CompInst;
-}
-
-RevInst RevProc::DecodeCAInst(uint16_t Inst, unsigned Entry){
-  RevInst CompInst;
-
-  // cost
-  RegFile[threadToDecode].cost  = InstTable[Entry].cost;
-
-  // encodings
-  CompInst.opcode  = InstTable[Entry].opcode;
-  CompInst.funct2  = InstTable[Entry].funct2;
-  CompInst.funct6  = InstTable[Entry].funct6;
-
-  // registers
-  CompInst.rs2     = ((Inst & 0b11100) >> 2);
-  CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
-  CompInst.rd      = ((Inst & 0b1110000000) >> 7);
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -812,37 +681,21 @@ RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry){
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
-  CompInst.offset  = ((Inst & 0b1111100) >> 2);
-  CompInst.offset |= ((Inst & 0b1110000000000) >> 5);
+  CompInst.crd     = (Inst >> 7) & 0b111;
+  CompInst.crs1    = (Inst >> 7) & 0b111;
+  CompInst.offset  = ((Inst & 0b1111100) >> 2);       //   11111
+  CompInst.offset |= ((Inst & 0b1000000000000) >> 7); //  100000
 
-  //swizzle: offset[8|4:3]  offset[7:6|2:1|5]
-  std::bitset<16> tmp(0);
-  std::bitset<16> o(CompInst.offset);
-  tmp[0] = o[1];
-  tmp[1] = o[2];
-  tmp[2] = o[5];
-  tmp[3] = o[6];
-  tmp[4] = o[0];
-  tmp[5] = o[3];
-  tmp[6] = o[4];
-  tmp[7] = o[7];
-
-  CompInst.offset = (uint16_t)tmp.to_ulong();
-
+  // swizzle: offset[8|4:3]  offset[7:6|2:1|5]
   // handle c.beqz/c.bnez offset
-  if( (CompInst.opcode = 0b01) && (CompInst.funct3 >= 0b110) ){
-    CompInst.offset = 0;  // reset it
-    CompInst.offset = ((Inst & 0b11000) >> 2);          // [2:1]
-    CompInst.offset |= ((Inst & 0b110000000000) >> 7);  // [4:3]
-    CompInst.offset |= ((Inst & 0b100) << 3);           // [5]
-    CompInst.offset |= ((Inst & 0b1100000) << 1);       // [7:6]
-    CompInst.offset |= ((Inst & 0b1000000000000) >> 4); // [8]
-
-    if( (CompInst.offset & 0b100000000) > 0 ){
-      // sign extend
-      CompInst.offset |= 0b11111111100000000;
-    }
+  if( (CompInst.funct3 == 0b110) || 
+      (CompInst.funct3 == 0b111) ){
+       CompInst.offset  = 0;  // reset it
+       CompInst.offset  = ((Inst & 0b11000) >> 2);         // [2:1]      110
+       CompInst.offset |= ((Inst & 0b110000000000) >> 7);  // [4:3]    11000
+       CompInst.offset |= ((Inst & 0b100) << 3);           // [5]     100000
+       CompInst.offset |= ((Inst & 0b1100000) << 1);       // [7:6] 11000000
+       CompInst.offset |= ((Inst & 0b1000000000000) >> 4); // [8]  100000000
   }
 
   CompInst.instSize = 2;
@@ -862,25 +715,27 @@ RevInst RevProc::DecodeCJInst(uint16_t Inst, unsigned Entry){
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  uint16_t offset = ((Inst & 0b1111111111100) >> 2);
+  uint16_t offset = (Inst >> 2) & 0b11111111111;
 
+  // c.jal, c.j
   //swizzle bits offset[11|4|9:8|10|6|7|3:1|5]
-  std::bitset<16> offsetBits(offset);
-  std::bitset<16> target;
+  std::bitset<12> offsetBits(offset);
+  std::bitset<12> target(0);
   target.reset();
-  target[0] = offsetBits[1];
-  target[1] = offsetBits[2];
-  target[2] = offsetBits[3];
-  target[3] = offsetBits[9];
-  target[4] = offsetBits[0];
-  target[5] = offsetBits[5];
-  target[6] = offsetBits[4];
-  target[7] = offsetBits[7];
-  target[8] = offsetBits[8];
-  target[9] = offsetBits[6];
-  target[10] = offsetBits[10];
-  CompInst.jumpTarget = ((u_int16_t)target.to_ulong()) << 1;
-  //CompInst.jumpTarget = ((u_int16_t)target.to_ulong());
+  target[0]  = 0;
+  target[5]  = offsetBits[0];
+  target[1]  = offsetBits[1];
+  target[2]  = offsetBits[2];
+  target[3]  = offsetBits[3];
+  target[7]  = offsetBits[4];
+  target[6]  = offsetBits[5];
+  target[10] = offsetBits[6];
+  target[8]  = offsetBits[7];
+  target[9]  = offsetBits[8];
+  target[4]  = offsetBits[9];
+  target[11] = offsetBits[10];
+
+  CompInst.jumpTarget = (uint16_t)target.to_ulong();
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -892,66 +747,72 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
   uint16_t TmpInst = (uint16_t)(Inst&0b1111111111111111);
   RevInst CInst;
   uint8_t opc     = 0;
-  uint8_t funct2  = 0;
-  uint8_t funct3  = 0;
-  uint8_t funct4  = 0;
-  uint8_t funct6  = 0;
+  uint8_t funct2  = 0b0;
+  uint8_t funct3  = 0b0;
+  uint8_t funct4  = 0b0;
+  uint8_t funct6  = 0b0;
   uint8_t l3      = 0;
   uint32_t Enc    = 0x00ul;
   uint64_t PC     = GetPC();
+  uint8_t inst1011;
+  uint8_t rd;
+  uint8_t rs2;
+  uint8_t tmp0;
+  uint8_t tmp1;
 
   // decode the opcode
   opc = (TmpInst & 0b11);
-  l3  = ((TmpInst & 0b1110000000000000)>>13);
+  funct3  = ((TmpInst & 0b1110000000000000)>>13);
+  rd  = (TmpInst >> 7) & 0b11111;
+  rs2 = (TmpInst >> 2) & 0b11111;
+
   if( opc == 0b00 ){
-    // quadrant 0
-    funct3 = l3;
-  }else if( opc == 0b01){
+    // quadrant 0, do nothing
+  } else if ( opc == 0b01 ){
     // quadrant 1
-    if( l3 <= 0b011 ){
-      // upper portion: misc
-      funct3 = l3;
-    }else if( (l3 > 0b011) && (l3 < 0b101) ){
-      // middle portion: arithmetics
-      funct2 = ((TmpInst & 0b110000000000) >> 10);
-      if( funct2 == 0b11 ){
-        funct6 = ((TmpInst & 0b1111110000000000) >> 10);
-        funct2 = 0b00;
-      }else{
-        funct3 = l3;
+    if ( funct3 == 0b100 ){
+      inst1011 = (TmpInst >> 10) & (0b11);
+      // Get funct6
+      if (inst1011 != 0b11 ){
+        funct6 =(funct3 << 3) | inst1011;
+      } else {
+        funct6 = TmpInst >> 10;
+        // Get funct2
+        funct2 = (TmpInst >> 5) & (0b11);
       }
-    }else{
-      // lower power: jumps/branches
-      funct3 = l3;
+    } else if ( funct3 == 0b000 ){
+      if ( rd != 0 )
+        // c.addi
+        funct4 = 0b0001;
+    } else if ( funct3 == 0b011 ){
+      if ( rd == 2 ){
+        // c.addi16sp
+        funct4 = 0b0111;
+      } else{
+        // c.lui
+        funct4 = 0b0110;
+      }
     }
-  }else if( opc == 0b10){
+  } else if ( opc == 0b10 ){
     // quadrant 2
-    if( l3 == 0b000 ){
-      // slli{64}
-      funct3 = l3;
-    }else if( l3 < 0b100 ){
-      // float/double/quad load
-      funct3 = l3;
-    }else if( l3 == 0b100 ){
-      // jump, mv, break, add
-      funct4 = ((TmpInst & 0b1111000000000000) >> 12);
-    }else{
-      // float/double/quad store
-      funct3 = l3;
+    if ( funct3 == 0b100 ) {
+      tmp0 = (rs2 != 0);
+      tmp1 = (rd  != 0);
+      funct6 = ((TmpInst >> 12) << 2) | (tmp1 << 1) | tmp0;
     }
   }
 
-  Enc |= (uint32_t)(opc);
-  Enc |= (uint32_t)(funct2 << 2);
-  Enc |= (uint32_t)(funct3 << 4);
-  Enc |= (uint32_t)(funct4 << 8);
-  Enc |= (uint32_t)(funct6 << 12);
+  Enc |= (uint32_t)(opc);           // 2 bits
+  Enc |= (uint32_t)(funct2 << 2);   // 2 bits
+  Enc |= (uint32_t)(funct3 << 4);   // 3 bits
+  Enc |= (uint32_t)(funct4 << 7);   // 4 bits
+  Enc |= (uint32_t)(funct6 << 11);  // 6 bits
 
   std::map<uint32_t,unsigned>::iterator it = CEncToEntry.find(Enc);
-  if( it == CEncToEntry.end() ){
+  if( it == CEncToEntry.end() ){              
     output->fatal(CALL_INFO, -1,
-                  "Error: failed to decode instruction at PC=0x%" PRIx64 "; Enc=%d\n opc=%x; funct2=%x, funct3=%x, funct4=%x, funct6=%x\n",
-                  PC,
+                  "Error: failed to decode instruction at PC=0x%" PRIx64 "; Inst=0x%" PRIx16 ", Enc=%d\n opc=%x; funct2=%x, funct3=%x, funct4=%x, funct6=%x\n",
+                  PC, TmpInst,
                   Enc, opc, funct2, funct3, funct4, funct6 );
   }
 
@@ -961,7 +822,6 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
                   "Error: no entry in table for instruction at PC=0x%" PRIx64 "\
                   Opcode = %x Funct2 = %x Funct3 = %x Funct4 = %x Funct6 = %x Enc = %x \n", \
                   PC, opc, funct2, funct3, funct4, funct6, Enc );
-
   }
 
   RegFile[threadToDecode].Entry = Entry;
@@ -982,13 +842,8 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
     return DecodeCIWInst(TmpInst,Entry);
     break;
   case RVCTypeCL:
-    return DecodeCLInst(TmpInst,Entry);
-    break;
   case RVCTypeCS:
-    return DecodeCSInst(TmpInst,Entry);
-    break;
-  case RVCTypeCA:
-    return DecodeCAInst(TmpInst,Entry);
+    return DecodeCLSInst(TmpInst,Entry);
     break;
   case RVCTypeCB:
     return DecodeCBInst(TmpInst,Entry);
@@ -1004,313 +859,314 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
 }
 
 RevInst RevProc::DecodeRInst(uint32_t Inst, unsigned Entry){
-  RevInst DInst;
+  RevInst RInst;
 
   // cost
   RegFile[threadToDecode].cost  = InstTable[Entry].cost;
 
   // encodings
-  DInst.opcode  = InstTable[Entry].opcode;
-  DInst.funct3  = InstTable[Entry].funct3;
-  DInst.funct2  = 0x0;
-  DInst.funct7  = InstTable[Entry].funct7;
+  RInst.opcode  = InstTable[Entry].opcode;
+  RInst.funct3  = InstTable[Entry].funct3;
+  RInst.funct2  = 0x0;
+  RInst.funct7  = InstTable[Entry].funct7;
 
   // registers
-  DInst.rd      = 0x0;
-  DInst.rs1     = 0x0;
-  DInst.rs2     = 0x0;
-  DInst.rs3     = 0x0;
+  RInst.rd      = 0x0;
+  RInst.rs1     = 0x0;
+  RInst.rs2     = 0x0;
+  RInst.rs3     = 0x0;
 
   if( InstTable[Entry].rdClass != RegUNKNOWN ){
-    DInst.rd  = DECODE_RD(Inst);
+    RInst.rd  = DECODE_RD(Inst);
   }
   if( InstTable[Entry].rs1Class != RegUNKNOWN ){
-    DInst.rs1  = DECODE_RS1(Inst);
+    RInst.rs1  = DECODE_RS1(Inst);
   }
   if( InstTable[Entry].rs2Class != RegUNKNOWN ){
-    DInst.rs2  = DECODE_RS2(Inst);
+    RInst.rs2  = DECODE_RS2(Inst);
   }
 
   // imm
-  if( (InstTable[Entry].imm == FImm) && (InstTable[Entry].rs2Class == RegUNKNOWN)){
-    DInst.imm  = DECODE_IMM12(Inst) & 0b011111; 
-  }else{
-    DInst.imm     = 0x0;
-  }
+  RInst.imm     = 0x0;
 
   // SP/DP Float
-  DInst.fmt     = 0;
-  DInst.rm      = 0;
+  RInst.fmt     = 0;
+  RInst.rm      = 0;
 
   // Size
-  DInst.instSize  = 4;
+  RInst.instSize  = 4;
 
   // Decode the atomic RL/AQ fields
-  if( DInst.opcode == 0b0101111 ){
-    DInst.rl = DECODE_RL(Inst);
-    DInst.aq = DECODE_AQ(Inst);
+  if( RInst.opcode == 0b0101111 ){
+    RInst.rl = DECODE_RL(Inst);
+    RInst.aq = DECODE_AQ(Inst);
   }
 
   // Decode any ancillary SP/DP float options
   if( IsFloat(Entry) ){
-    DInst.rm = DECODE_FUNCT3(Inst);
+    RInst.rm = DECODE_FUNCT3(Inst);
   }
 
-  DInst.compressed = false;
+  RInst.compressed = false;
 
-  return DInst;
+  return RInst;
 }
 
 RevInst RevProc::DecodeIInst(uint32_t Inst, unsigned Entry){
-  RevInst DInst;
+  RevInst IInst;
 
   // cost
   RegFile[threadToDecode].cost  = InstTable[Entry].cost;
 
   // encodings
-  DInst.opcode  = InstTable[Entry].opcode;
-  DInst.funct3  = InstTable[Entry].funct3;
-  DInst.funct2  = 0x0;
-  DInst.funct7  = 0x0;
+  IInst.opcode  = InstTable[Entry].opcode;
+  IInst.funct3  = InstTable[Entry].funct3;
+  IInst.funct2  = 0x0;
+  IInst.funct7  = InstTable[Entry].funct7;
 
   // registers
-  DInst.rd      = 0x0;
-  DInst.rs1     = 0x0;
-  DInst.rs2     = 0x0;
-  DInst.rs3     = 0x0;
+  IInst.rd      = 0x0;
+  IInst.rs1     = 0x0;
+  IInst.rs2     = 0x0;
+  IInst.rs3     = 0x0;
 
   if( InstTable[Entry].rdClass != RegUNKNOWN ){
-    DInst.rd  = DECODE_RD(Inst);
+    IInst.rd  = DECODE_RD(Inst);
   }
   if( InstTable[Entry].rs1Class != RegUNKNOWN ){
-    DInst.rs1  = DECODE_RS1(Inst);
+    IInst.rs1  = DECODE_RS1(Inst);
   }
 
   // imm
-  DInst.imm     = DECODE_IMM12(Inst);
+  IInst.imm     = DECODE_IMM12(Inst);
 
   // SP/DP Float
-  DInst.fmt     = 0;
-  DInst.rm      = 0;
+  IInst.fmt     = 0;
+  IInst.rm      = 0;
 
   // Size
-  DInst.instSize  = 4;
+  IInst.instSize  = 4;
 
+  // rm does not exist in I instructions.
   // Decode any ancillary SP/DP float options
   if( IsFloat(Entry) ){
-    DInst.rm = DECODE_FUNCT3(Inst);
+    IInst.rm = DECODE_FUNCT3(Inst);
   }
-  DInst.compressed = false;
+  IInst.compressed = false;
 
-  return DInst;
+  return IInst;
 }
 
 RevInst RevProc::DecodeSInst(uint32_t Inst, unsigned Entry){
-  RevInst DInst;
+  RevInst SInst;
 
   // cost
   RegFile[threadToDecode].cost  = InstTable[Entry].cost;
 
   // encodings
-  DInst.opcode  = InstTable[Entry].opcode;
-  DInst.funct3  = InstTable[Entry].funct3;
-  DInst.funct2  = 0x0;
-  DInst.funct7  = 0x0;
+  SInst.opcode  = InstTable[Entry].opcode;
+  SInst.funct3  = InstTable[Entry].funct3;
+  SInst.funct2  = 0x0;
+  SInst.funct7  = 0x0;
 
   // registers
-  DInst.rd      = 0x0;
-  DInst.rs1     = 0x0;
-  DInst.rs2     = 0x0;
-  DInst.rs3     = 0x0;
+  SInst.rd      = 0x0;
+  SInst.rs1     = 0x0;
+  SInst.rs2     = 0x0;
+  SInst.rs3     = 0x0;
 
   if( InstTable[Entry].rs1Class != RegUNKNOWN ){
-    DInst.rs1  = DECODE_RS1(Inst);
+    SInst.rs1  = DECODE_RS1(Inst);
   }
   if( InstTable[Entry].rs2Class != RegUNKNOWN ){
-    DInst.rs2  = DECODE_RS2(Inst);
+    SInst.rs2  = DECODE_RS2(Inst);
   }
 
   // imm
-  DInst.imm     = (DECODE_RD(Inst) | (DECODE_FUNCT7(Inst)<<5));
+  SInst.imm     = ( DECODE_RD(Inst) | (DECODE_FUNCT7(Inst)<<5) );
 
   // SP/DP Float
-  DInst.fmt     = 0;
-  DInst.rm      = 0;
+  SInst.fmt     = 0;
+  SInst.rm      = 0;
 
   // Size
-  DInst.instSize  = 4;
+  SInst.instSize  = 4;
 
+  // rm does not exist in S instructions.
   // Decode any ancillary SP/DP float options
   if( IsFloat(Entry) ){
-    DInst.rm = DECODE_FUNCT3(Inst);
+    SInst.rm = DECODE_FUNCT3(Inst);
   }
 
-  DInst.compressed = false;
-  return DInst;
+  SInst.compressed = false;
+  return SInst;
 }
 
 RevInst RevProc::DecodeUInst(uint32_t Inst, unsigned Entry){
-  RevInst DInst;
+  RevInst UInst;
 
   // cost
   RegFile[threadToDecode].cost  = InstTable[Entry].cost;
 
   // encodings
-  DInst.opcode  = InstTable[Entry].opcode;
-  DInst.funct3  = 0x0;
-  DInst.funct2  = 0x0;
-  DInst.funct7  = 0x0;
+  UInst.opcode  = InstTable[Entry].opcode;
+  UInst.funct3  = 0x0;
+  UInst.funct2  = 0x0;
+  UInst.funct7  = 0x0;
 
   // registers
-  DInst.rd      = 0x0;
-  DInst.rs1     = 0x0;
-  DInst.rs2     = 0x0;
-  DInst.rs3     = 0x0;
+  UInst.rd      = 0x0;
+  UInst.rs1     = 0x0;
+  UInst.rs2     = 0x0;
+  UInst.rs3     = 0x0;
 
   if( InstTable[Entry].rdClass != RegUNKNOWN ){
-    DInst.rd  = DECODE_RD(Inst);
+    UInst.rd  = DECODE_RD(Inst);
   }
 
   // imm
-  DInst.imm     = DECODE_IMM20(Inst);
+  UInst.imm     = DECODE_IMM20(Inst);
 
   // SP/DP Float
-  DInst.fmt     = 0;
-  DInst.rm      = 0;
+  UInst.fmt     = 0;
+  UInst.rm      = 0;
 
   // Size
-  DInst.instSize  = 4;
+  UInst.instSize  = 4;
 
-  DInst.compressed = false;
-  return DInst;
+  UInst.compressed = false;
+  return UInst;
 }
 
 RevInst RevProc::DecodeBInst(uint32_t Inst, unsigned Entry){
-  RevInst DInst;
+  RevInst BInst;
 
   // cost
   RegFile[threadToDecode].cost  = InstTable[Entry].cost;
 
   // encodings
-  DInst.opcode  = InstTable[Entry].opcode;
-  DInst.funct3  = InstTable[Entry].funct3;
-  DInst.funct2  = 0x0;
-  DInst.funct7  = 0x0;
+  BInst.opcode  = InstTable[Entry].opcode;
+  BInst.funct3  = InstTable[Entry].funct3;
+  BInst.funct2  = 0x0;
+  BInst.funct7  = 0x0;
 
   // registers
-  DInst.rd      = 0x0;
-  DInst.rs1     = 0x0;
-  DInst.rs2     = 0x0;
-  DInst.rs3     = 0x0;
+  BInst.rd      = 0x0;
+  BInst.rs1     = 0x0;
+  BInst.rs2     = 0x0;
+  BInst.rs3     = 0x0;
 
   if( InstTable[Entry].rs1Class != RegUNKNOWN ){
-    DInst.rs1  = DECODE_RS1(Inst);
+    BInst.rs1  = DECODE_RS1(Inst);
   }
   if( InstTable[Entry].rs2Class != RegUNKNOWN ){
-    DInst.rs2  = DECODE_RS2(Inst);
+    BInst.rs2  = DECODE_RS2(Inst);
   }
 
-  // imm
-  //DInst.imm     = twos_compl((DECODE_RD(Inst) | (DECODE_FUNCT7(Inst)<<5)),12);
-  DInst.imm =   (uint32_t)((Inst << 4)&0b100000000000)|   // [11]
-                (uint32_t)((Inst & 0b111100000000)>>7)|   // [4:1]
-                (uint32_t)((Inst >> 20)&0b11111100000)|   // [10:5]
-                (uint32_t)((Inst >> 19)&0b1000000000000);  // [12]
+  BInst.imm = ((Inst >> (31 - 12)) & (1 << 12)) |         // imm[12]
+              ((Inst >> (25 - 5)) & 0x7e0) |              // imm[10:5]
+              ((Inst >> (8 - 1)) & 0x1e) |                // imm[4:1]
+              ((Inst << (11 - 7)) & (1 << 11));           // imm[11]
 
   // SP/DP Float
-  DInst.fmt     = 0;
-  DInst.rm      = 0;
+  BInst.fmt     = 0;
+  BInst.rm      = 0;
 
   // Size
-  DInst.instSize  = 4;
+  BInst.instSize  = 4;
 
-  DInst.compressed = false;
-  return DInst;
+  BInst.compressed = false;
+  return BInst;
 }
 
 RevInst RevProc::DecodeJInst(uint32_t Inst, unsigned Entry){
-  RevInst DInst;
+  RevInst JInst;
 
   // cost
   RegFile[threadToDecode].cost  = InstTable[Entry].cost;
 
   // encodings
-  DInst.opcode  = InstTable[Entry].opcode;
-  DInst.funct3  = InstTable[Entry].funct3;
-  DInst.funct2  = 0x0;
-  DInst.funct7  = 0x0;
+  JInst.opcode  = InstTable[Entry].opcode;
+  JInst.funct3  = InstTable[Entry].funct3;
+  JInst.funct2  = 0x0;
+  JInst.funct7  = 0x0;
 
   // registers
-  DInst.rd      = 0x0;
-  DInst.rs1     = 0x0;
-  DInst.rs2     = 0x0;
-  DInst.rs3     = 0x0;
+  JInst.rd      = 0x0;
+  JInst.rs1     = 0x0;
+  JInst.rs2     = 0x0;
+  JInst.rs3     = 0x0;
 
   if( InstTable[Entry].rdClass != RegUNKNOWN ){
-    DInst.rd  = DECODE_RD(Inst);
+    JInst.rd  = DECODE_RD(Inst);
   }
 
   // immA
-  DInst.imm     = 0x00;
-  DInst.imm     = ( (uint32_t)((Inst >> 20) & 0b11111111110) |            // imm[10:1]
-                    (uint32_t)(Inst & 0b11111111000000000000) |           // imm[19:12]
-                    (uint32_t)((Inst >> 9) & 0b100000000000) |            // imm[11]
-                    (uint32_t)((Inst >> 11) & 0b100000000000000000000) ); // imm[20]
+  JInst.imm     = 0x00;
+  JInst.imm = ((Inst >> (31 - 20)) & (1 << 20)) |   // imm[20] 
+              ((Inst >> (21 - 1)) & 0x7fe) |        // imm[10:1]
+              ((Inst >> (20 - 11)) & (1 << 11)) |   // imm[11]
+              (Inst & 0xff000);                     // imm[19:12]
 
   // SP/DP Float
-  DInst.fmt     = 0;
-  DInst.rm      = 0;
+  JInst.fmt     = 0;
+  JInst.rm      = 0;
 
   // Size
-  DInst.instSize  = 4;
+  JInst.instSize  = 4;
 
-  DInst.compressed = false;
-  return DInst;
+  JInst.compressed = false;
+  return JInst;
 }
 
 RevInst RevProc::DecodeR4Inst(uint32_t Inst, unsigned Entry){
-  RevInst DInst;
+  RevInst R4Inst;
 
   // cost
   RegFile[threadToDecode].cost  = InstTable[Entry].cost;
 
   // encodings
-  DInst.opcode  = InstTable[Entry].opcode;
-  DInst.funct3  = InstTable[Entry].funct3;
-  DInst.funct2  = DECODE_FUNCT2(Inst);
-  DInst.funct7  = InstTable[Entry].funct7;
+  R4Inst.opcode  = InstTable[Entry].opcode;
+  R4Inst.funct3  = InstTable[Entry].funct3;
+  R4Inst.funct2  = DECODE_FUNCT2(Inst);
+  R4Inst.funct7  = InstTable[Entry].funct7;
 
   // registers
-  DInst.rd      = 0x0;
-  DInst.rs1     = 0x0;
-  DInst.rs2     = 0x0;
-  DInst.rs3     = 0x0;
+  R4Inst.rd      = 0x0;
+  R4Inst.rs1     = 0x0;
+  R4Inst.rs2     = 0x0;
+  R4Inst.rs3     = 0x0;
 
   if( InstTable[Entry].rdClass != RegUNKNOWN ){
-    DInst.rd  = DECODE_RD(Inst);
+    R4Inst.rd  = DECODE_RD(Inst);
   }
   if( InstTable[Entry].rs1Class != RegUNKNOWN ){
-    DInst.rs1  = DECODE_RS1(Inst);
+    R4Inst.rs1  = DECODE_RS1(Inst);
   }
   if( InstTable[Entry].rs2Class != RegUNKNOWN ){
-    DInst.rs2  = DECODE_RS2(Inst);
+    R4Inst.rs2  = DECODE_RS2(Inst);
   }
   if( InstTable[Entry].rs3Class != RegUNKNOWN ){
-    DInst.rs3  = DECODE_RS3(Inst);
+    R4Inst.rs3  = DECODE_RS3(Inst);
   }
 
   // imm
-  DInst.imm     = 0x0;
+  R4Inst.imm     = 0x0;
 
   // SP/DP Float
-  DInst.fmt     = 0;
-  DInst.rm      = 0;
+  R4Inst.fmt     = 0;
+  R4Inst.rm      = 0;
 
   // Size
-  DInst.instSize  = 4;
+  R4Inst.instSize  = 4;
 
-  DInst.compressed = false;
-  return DInst;
+  // Decode any ancillary SP/DP float options
+  if( IsFloat(Entry) ){
+    R4Inst.rm = DECODE_FUNCT3(Inst);
+  }
+
+  R4Inst.compressed = false;
+  return R4Inst;
 }
 
 bool RevProc::DebugReadReg(unsigned Idx, uint64_t *Value){
@@ -1429,17 +1285,19 @@ RevInst RevProc::DecodeInst(){
 
   // Stage 3: Determine if we have a funct3 field
   uint32_t Funct3 = 0x00ul;
+  const uint32_t inst4  = ((Opcode&0b10000) >> 4);
   const uint32_t inst42 = ((Opcode&0b11100) >> 2);
   const uint32_t inst65 = ((Opcode&0b1100000) >> 5);
+  const uint32_t inst29 = ((Inst >> 29) & 0b001);
 
-  if( (inst42 == 0b011) && (inst65 == 0b11) ){
-    // JAL
+  if( (Opcode == 0b0110111) || (Opcode == 0b0010111) || (Opcode == 0b1101111)){
+    // LUI, AUIPC, JAL
     Funct3 = 0x00ul;
-  }else if( (inst42 == 0b101) && (inst65 == 0b00) ){
-    // AUIPC
+  }else if ((inst65 == 0b10) && (inst4 == 0b0)){
+    // R4
     Funct3 = 0x00ul;
-  }else if( (inst42 == 0b101) && (inst65 == 0b01) ){
-    // LUI
+  }else if ( ((inst65 == 0b10) && (inst42 == 0b100) && (inst29 == 0b000)) ){
+    // Floating-Rtype, Funct3 is rm
     Funct3 = 0x00ul;
   }else{
     // Retrieve the field
@@ -1449,53 +1307,58 @@ RevInst RevProc::DecodeInst(){
   // Stage 4: Determine if we have a funct7 field (R-Type and some specific I-Type)
   uint32_t Funct7 = 0x00ul;
   if( inst65 == 0b01 ) {
-    if( (inst42 == 0b011) || (inst42 == 0b100) || (inst42 == 0b110) ){
+    if( (inst42 == 0b100) || (inst42 == 0b110)){
+      // inst42 == 0b100 for RV32I
+      // inst42 == 0b110 for RV64I
       // R-Type encodings
       Funct7 = ((Inst >> 25) & 0b1111111);
+    } else if (inst42 == 0b011) {
+      // inst42 == 0b011 for Atomic instructions
+      // bit-25, bit-26 are used for rl and aq, respectively.
+      Funct7 = ((Inst >> 25) & 0b1111100);
     }
-  }else if((inst65== 0b10) && (inst42 == 0b100)){
-      // R-Type encodings
-      Funct7 = ((Inst >> 25) & 0b1111111);
-  }else if((inst65 == 0b00) && (inst42 == 0b110) && (Funct3 != 0)){
-      // R-Type encodings
-      Funct7 = ((Inst >> 25) & 0b1111111);
-  }else if((inst65 == 0b00) && (inst42 == 0b100) && (Funct3 == 0b101)){
-      // Special I-Type encoding for SRAI - also, Funct7 is only 6 bits in this case
-      Funct7 = ((Inst >> 26) & 0b1111111);
+  }else if((inst65 == 0b10) && (inst42 == 0b100)){
+    // R-Type encodings
+    Funct7 = ((Inst >> 25) & 0b1111111);
+  }else if (( inst65 == 0b00) && (inst42 == 0b100) && ((Funct3 == 0b001) || (Funct3 == 0b101))) {
+    // SLLI, SRLI, SRAI. 
+    // In RV64, bit-25 is used to shamt[5], we intentionally set the first bit 
+    // of Funct 7 to 0 to match the encoding of Funct7.
+    Funct7 = ((Inst >> 25) & 0b1111110);
+  }else if (( inst65 == 0b00) && (inst42 == 0b110) && ((Funct3 == 0b001) || (Funct3 == 0b101))){
+    // SLLIW, SRLIW, SRAIW. I-Type encodings
+    Funct7 = ((Inst >> 25) & 0b1111111);
+  }else if ((inst65 == 0b10) && (inst4 == 0b0)){
+    // R4
+    Funct7 = ((Inst >> 25) & 0b0000011);
   }
 
   // Stage 5: Determine if we have an imm12 field
   uint32_t Imm12 = 0x00ul;
-  if( (inst42 == 0b100) && (inst65 == 0b11)  && (Funct3 == 0)){
-    Imm12 = ((Inst >> 19) & 0b111111111111);
+  const uint32_t inst30 = ((Funct7&0b0100000) >> 5);
+  if((inst65 == 0b11) && (inst42 == 0b100) && (Funct3 == 0b000)){
+    // ECAL, EBREAK
+    Imm12 = Inst >> 20;
+  } else if ((inst65 == 0b10) && (inst42 == 0b100) && (inst30 == 0b01)) {
+    // F, D
+    Imm12 = Inst >> 20;
   }
 
   // Stage 6: Compress the encoding
-  Enc |= Opcode;
-  Enc |= (Funct3<<8);
-  Enc |= (Funct7<<11);
-  Enc |= (Imm12<<18);
+  Enc |= Opcode;      // 7 bits
+  Enc |= (Funct3<<7); // 3 bits
+  Enc |= (Funct7<<10);// 7 bits
+  Enc |= (Imm12<<17);
 
   // Stage 7: Look up the value in the table
   std::map<uint32_t,unsigned>::iterator it;
   it = EncToEntry.find(Enc);
-   if( it == EncToEntry.end() && ((Funct3 == 7) || (Funct3==1)) && (inst65 == 0b10)){
-    //This is kind of a hack, but we may not have found the instruction becasue
-    //  Funct3 is overloaded with rounding mode, so if this is a RV32F or RV64F
-    //  set Funct3 to zero and check again
-    Enc = 0;
-    Enc |= Opcode;
-    Enc |= (Funct7<<11);
-    Enc |= (Imm12<<18);
-    it = EncToEntry.find(Enc);
-    if( it == EncToEntry.end() ){
-      // failed to decode the instruction
-      output->fatal(CALL_INFO, -1,
-                  "Error: failed to decode instruction at PC=0x%" PRIx64 "; Enc=%d\n",
-                  PC,
-                  Enc );
-    }
-
+  if( it == EncToEntry.end() ){
+    // failed to decode the instruction
+    output->fatal(CALL_INFO, -1,
+                "Error: failed to decode instruction at PC=0x%" PRIx64 "; Enc=%d\n",
+                PC,
+                Enc );
   }
 
   unsigned Entry = it->second;
@@ -1553,6 +1416,9 @@ void RevProc::ResetInst(RevInst *I){
   I->rs1        = ~0;
   I->rs2        = ~0;
   I->rs3        = ~0;
+  I->crd        = 0;
+  I->crs1       = 0;
+  I->crs2       = 0;
   I->imm        = 0;
   I->fmt        = 0;
   I->rm         = 0;
@@ -1742,9 +1608,9 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
   Stats.totalCycles++;
 
 #ifdef _REV_DEBUG_
-  if((currentCycle % 100000000) == 0){
+  // if((currentCycle % 100000000) == 0){
     std::cout << "Current Cycle: " << currentCycle <<  " PC: " << std::hex << ExecPC << std::dec << std::endl;
-  }
+  // }
 #endif
 
   // -- MAIN PROGRAM LOOP --
@@ -1854,7 +1720,8 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
           // uint32_t tmp = (uint32_t)(RegFile[threadToExec].SPF[Inst.rd]);
           uint32_t tmp = (uint32_t)(RegFile[threadToExec].SFP[Inst.rd]);
           tmp |= rval;
-          RegFile[threadToExec].SPF[Inst.rd] = (float)(tmp);
+          // RegFile[threadToExec].SPF[Inst.rd] = (float)(tmp);
+          RegFile[threadToExec].SFP[Inst.rd] = tmp;
         }else if( (Ext->GetName() == "RV64F") ||
                   (Ext->GetName() == "RV64D") ){
           // write an rv64 float rd
@@ -1862,7 +1729,8 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
           // uint64_t tmp = (uint64_t)(RegFile[threadToExec].DPF[Inst.rd]);
           uint64_t tmp = (uint64_t)(RegFile[threadToExec].DFP[Inst.rd]);
           tmp |= rval;
-          RegFile[threadToExec].DPF[Inst.rd] = (double)(tmp);
+          // RegFile[threadToExec].DPF[Inst.rd] = (double)(tmp);
+          RegFile[threadToExec].DFP[Inst.rd] = tmp;
         }else if( feature->GetXlen() == 32 ){
           // write an rv32 gpr rd
           uint32_t rval = rand() % (2^(fault_width));
