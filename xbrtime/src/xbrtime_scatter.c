@@ -11,7 +11,7 @@
  *
  */
 
-#include "xbrtime.h"
+#include "../include/xbrtime.h"
 
 #define XBGAS_SCATTER(_type, _typename)                                                                                                 \
 void xbrtime_##_typename##_scatter_tree(_type *dest, const _type *src, int *pe_msg_sz, int *pe_disp, size_t nelems, int root)           \

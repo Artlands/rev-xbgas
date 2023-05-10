@@ -1,7 +1,7 @@
 #
 # Makefile
 #
-# makefile: xbrtime_xfer_get
+# makefile: init_test_1
 #
 # Copyright (C) 2017-2020 Tactical Computing Laboratories, LLC
 # All Rights Reserved
@@ -13,26 +13,25 @@
 .PHONY: src
 
 SRCS = $(wildcard *.c)
-EXEC = $(SRCS:.c=.exe)
-ASM = $(SRCS:.c=.asm)
+# EXEC = $(SRCS:.c=.exe)
+EXAMPLE=xfer_get
 
 CC=riscv64-unknown-elf-gcc
 # CC=riscv64-unknown-linux-gnu-gcc
 OBJDUMP=riscv64-unknown-elf-objdump
+ARCH=rv64imafd
+XBRTIME_INCLUDE=-I../../include
+XBRTIME_LIB=-L../../ -lxbrtime
 
-ARCH=rv64imafdc
-XBRTIME_INCLUDE=-I../../../src/xbgas_runtime
-XBRTIME_LIB=-L../../../src/xbgas_runtime -lxbrtime
-
-all: $(EXEC)
+all: $(EXAMPLE).exe
 
 %.exe:%.c
-	$(CC) -march=$(ARCH) -mabi=lp64d -std=c11 $(XBRTIME_INCLUDE) -o $@ $< $(XBRTIME_LIB) -lm
+	$(CC) -march=$(ARCH) -mabi=lp64d $(XBRTIME_INCLUDE) -o $@ $< $(XBRTIME_LIB) -lm
 
 objdump:
-	$(OBJDUMP) -d $(EXEC) > $(ASM)
+	$(OBJDUMP) -d $(EXAMPLE).exe > $(EXAMPLE).asm
 
 clean:
-	rm -Rf *.exe *.s *.o *.i *.csv *.asm *.txt
+	rm -Rf *.exe *.s *.o *.i *.csv *.asm
 
 #-- EOF

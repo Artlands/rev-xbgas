@@ -8,7 +8,7 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#include "xbrtime.h"
+#include "../include/xbrtime.h"
 
 extern int xbrtime_decode_pe( int pe ) {
   int raw_pe = 0;

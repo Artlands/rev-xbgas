@@ -11,7 +11,7 @@
  *
  */
 
-#include "xbrtime.h"
+#include "../include/xbrtime.h"
 #include <inttypes.h>
 
 /* ------------------------------------------------- FUNCTION PROTOTYPES */

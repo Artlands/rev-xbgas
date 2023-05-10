@@ -8,7 +8,8 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#include "xbrtime.h"
+#include "../include/xbrtime.h"
+
 
 /* ------------------------------------------------- FUNCTION PROTOTYPES */
 int __xbrtime_asm_get_id();

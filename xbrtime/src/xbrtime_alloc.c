@@ -8,8 +8,8 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#include "xbrtime.h"
-#include "xbrtime_alloc.h"
+#include "../include/xbrtime.h"
+#include "../include/xbrtime_alloc.h"
 
 void *global_base  = NULL;
 // void *rev_heap_top = (void *)(*(uint64_t *)(_REV_HEAP_START_ADDR_));

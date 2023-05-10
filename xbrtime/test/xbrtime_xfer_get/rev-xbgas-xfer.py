@@ -12,6 +12,8 @@
 #
 #  xbgas_host0           xbgas_host1
 #      |                     |
+#  rmt_mem_ctrl0        rmt_mem_ctrl1    
+#      |                     |  
 #     nic0                  nic1
 #      |                     |
 #    iface0 <-> router <-> iface1
@@ -28,7 +30,10 @@ import sst
 sst.setProgramOption("timebase", "1ps")
 sst.setProgramOption("stopAtCycle", "0s")
 
-NPES = 5
+NPES = 2
+PROGRAM = "xfer_get.exe"
+MEMSIZE = 1024*1024*1024
+ENABLE_XBGAS = 1
 
 verb_params = {
   "verbose" : 5,
@@ -54,7 +59,7 @@ router.addParams({
 
 for i in range(0, NPES):
   if (i == 0):
-    verbose = 1
+    verbose = 8
     splash = 1
   else:
     verbose = 1
@@ -63,40 +68,37 @@ for i in range(0, NPES):
   # xBGAS CPUs
   sst.pushNamePrefix("cpu" + str(i))
   xbgas_cpu = sst.Component("xbgas", "revcpu.RevCPU")
-  xbgas_cpu.addParams({
-    "verbose"           : verbose,                              # Verbosity
-    "numCores"          : 1,                                    # Number of cores
-    "clock"             : "1.0GHz",                             # Clock
-    "memSize"           : 1*1024*1024*1024,                     # Memory size in bytes
-    "machine"           : "[0:RV64IMAFDCX]",                    # Core:Config; 
-    "startAddr"         : "[0:0x00000000]",                     # Starting address for core 0
-    "memCost"           : "[0:1:10]",                           # Memory loads required 1-10 cycles
-    "xbgas_nic"         : "revcpu.XbgasNIC",
-    "enable_xbgas"      : 1,
-    "enable_xbgas_stats" :1,
-    "enable_xbgas_test" : 0,                                    # Enable the XBGAS test harness
-    "msgPerCycle"       : 10,
-    "program"           : os.getenv("REV_EXE", "xfer_get.exe"), # Target executable
-    "splash"            : splash                                # Display the splash message
-  })
+  cpu_params = {
+    "verbose" : verbose,                          # Verbosity
+    "clock" : "1.0GHz",                           # Clock
+    "program" : os.getenv("REV_EXE", PROGRAM),    # Target executable
+    "memSize" : MEMSIZE,                          # Memory size in bytes
+    "startAddr" : "[0:0x00000000]",               # Starting address for core 0
+    "machine" : "[0:RV64IMAFDCX]",
+    "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
+    "enable_xbgas" : ENABLE_XBGAS,                # Enable XBGAS support  
+    "splash" : splash                             # Display the splash message
+  }
+  xbgas_cpu.addParams(cpu_params)
+  
   print("Created xBGAS CPU component " + str(i) + ": " + xbgas_cpu.getFullName())
-  xbgas_cpu.enableAllStatistics()
   sst.popNamePrefix()
   
+  # Setup the remote memory controller
+  rmt_mem_ctr = xbgas_cpu.setSubComponent("remote_memory", "revcpu.RevBasicRmtMemCtrl")
+  
   # Setup the NICs
-  nic   = xbgas_cpu.setSubComponent("xbgas_nic", "revcpu.XbgasNIC")
+  nic = xbgas_cpu.setSubComponent("xbgas_nic", "revcpu.XbgasNIC")
+  
   iface = nic.setSubComponent("iface", "merlin.linkcontrol")
+  
   nic.addParams(verb_params)
   iface.addParams(net_params)
 
-  # Setup the links
+  # Setup the links between the NIC and the router
   sst.pushNamePrefix("link" + str(i))
   link = sst.Link("link")
   link.connect( (iface, "rtr_port", "1ms"), (router, f"port{i}", "1ms") )
   sst.popNamePrefix()
-
-# Tell SST what statistics handling we want
-sst.setStatisticLoadLevel(2)
-sst.setStatisticOutput("sst.statOutputCSV")
 
 # EOF

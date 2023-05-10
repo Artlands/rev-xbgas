@@ -21,8 +21,8 @@ CC=riscv64-unknown-elf-gcc
 OBJDUMP=riscv64-unknown-elf-objdump
 
 ARCH=rv64imafdc
-XBRTIME_INCLUDE=-I../../../src/xbgas_runtime
-XBRTIME_LIB=-L../../../src/xbgas_runtime -lxbrtime
+XBRTIME_INCLUDE=-I../../../xbgas_runtime
+XBRTIME_LIB=-L../../../xbgas_runtime -lxbrtime
 
 all: $(EXEC)
 

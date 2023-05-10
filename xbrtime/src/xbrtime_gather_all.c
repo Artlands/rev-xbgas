@@ -11,7 +11,7 @@
  *
  */
 
-#include "xbrtime.h"
+#include "../include/xbrtime.h"
 
 #define XBGAS_GATHER_ALL(_type, _typename)                                                                                          \
 void xbrtime_##_typename##_gather_all_bruck_concat(_type *dest, const _type *src, int *pe_msg_sz, int *pe_disp, size_t nelems)      \

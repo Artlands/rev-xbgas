@@ -11,7 +11,7 @@
  *
  */
 
-#include "xbrtime.h"
+#include "../include/xbrtime.h"
 
 #define XBGAS_ALLTOALL(_type, _typename)                                                                                                \
 void xbrtime_##_typename##_alltoall_shift_exchange(_type *dest, const _type *src, int src_stride, int dest_stride, size_t nelems)       \

@@ -11,7 +11,7 @@
  *
  */
 
- #include "xbrtime.h"
+ #include "../include/xbrtime.h"
 
  #define XBGAS_BROADCAST(_type, _typename)                                                                                  \
  void xbrtime_##_typename##_broadcast_tree(_type *dest, const _type *src, size_t nelems, int stride, int root)              \

@@ -19,12 +19,14 @@ int main( int argc, char **argv ){
   int *ptr = NULL;
   size_t sz = _XBGAS_ALLOC_SIZE_;
 
+  revprintf("Initializing xBGAS Runtime\n");
+  
   // Initializing xBGAS Runtime
   xbrtime_init();
 
   int my_pe = xbrtime_mype();
 	int numpes = xbrtime_num_pes();
-  int target = (my_pe+2)%numpes;
+  int target = 1;
 
   // Allocating sz bytes
   ptr = (int *)(xbrtime_malloc( sz ));

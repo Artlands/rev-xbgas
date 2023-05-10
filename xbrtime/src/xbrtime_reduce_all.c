@@ -11,7 +11,7 @@
  *
  */
 
-#include "xbrtime.h"
+#include "../include/xbrtime.h"
 
 /* For use with min/max reduction */
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))

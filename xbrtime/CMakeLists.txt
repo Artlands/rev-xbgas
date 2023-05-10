@@ -1,43 +1,55 @@
 cmake_minimum_required(VERSION 3.10)
-project(xbrtime C)
 
-set(CMAKE_C_STANDARD 11)
+project(xbrtime C CXX ASM)
+
+# Override the default compiler/assembler
 set(CMAKE_C_COMPILER riscv64-unknown-elf-gcc)
-set(C_FLAGS "-march=rv64imafdc")
+set(CMAKE_ASM_COMPILER riscv64-unknown-elf-gcc)
 
-# specify the source directories
-set(XBRTIME_SOURCE_DIR "src")
-set(XBRTIME_INCLUDE_DIR "include")
-set(XBRTIME_ASM_DIR "asm")
+# Ensure we're using C11
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=rv64imafdc -std=c11")
 
-# set the build directory to ./build
-set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+# Set the output directory for the library
+# set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# add the source, header, and assembly files
-file(GLOB XBRTIME_SOURCES "${XBRTIME_SOURCE_DIR}/*.c")
-file(GLOB XBRTIME_HEADERS "${XBRTIME_INCLUDE_DIR}/*.h")
-file(GLOB XBRTIME_ASM "${XBRTIME_ASM_DIR}/*.s")
+# Set the source directory
+set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-# specify the output directory to ./lib
-set(XBRTIME_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/lib")
+# Find all C source files
+file(GLOB_RECURSE C_SOURCES ${SOURCE_DIR}/src/*.c)
 
-# create the library target
-add_library(xbrtime STATIC ${XBRTIME_SOURCES} ${XBRTIME_HEADERS} ${XBRTIME_ASM})
+# Find all header files
+file(GLOB_RECURSE C_HEADERS ${SOURCE_DIR}/include/*.h)
 
-# set the output name and location of the library
-set_target_properties(xbrtime PROPERTIES 
-    OUTPUT_NAME "xbrtime"
-    ARCHIVE_OUTPUT_DIRECTORY "${XBRTIME_OUTPUT_DIR}"
+# Find all assembly source files
+file(GLOB_RECURSE ASM_SOURCES ${SOURCE_DIR}/asm/*.s)
+
+# Create a static library from the C and assembly source files
+add_library(xbrtime STATIC ${C_SOURCES} ${C_HEADERS} ${ASM_SOURCES})
+
+set_target_properties(xbrtime PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# specify any additional compilation options
-target_compile_options(xbrtime PRIVATE ${C_FLAGS})
+# Add any additional compiler flags you need
+# target_compile_options(xbrtime PRIVATE -Wall -Wextra -Wpedantic)
 
-# add include directories
-target_include_directories(xbrtime PUBLIC ${XBRTIME_INCLUDE_DIR})
-
-# optionally, create an install target to install the library and headers
+# Specify the installation targets
 install(TARGETS xbrtime DESTINATION lib)
-install(FILES ${XBRTIME_HEADERS} DESTINATION include)
+install(FILES ${C_HEADERS} DESTINATION include)
+
+# Define the "debug" target
+add_custom_target(debug
+    COMMAND ${CMAKE_C_COMPILER} -D_XBGAS_DEBUG_ -g -c ${C_SOURCES}
+    DEPENDS xbrtime
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Building debug version of xbrtime"
+)
+
+# Define the "clean" target
+add_custom_target(clean-all
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Cleaning xbrtime build artifacts"
+)
