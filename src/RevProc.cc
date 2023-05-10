@@ -1608,9 +1608,9 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
   Stats.totalCycles++;
 
 #ifdef _REV_DEBUG_
-  // if((currentCycle % 100000000) == 0){
+  if((currentCycle % 100000000) == 0){
     std::cout << "Current Cycle: " << currentCycle <<  " PC: " << std::hex << ExecPC << std::dec << std::endl;
-  // }
+  }
 #endif
 
   // -- MAIN PROGRAM LOOP --

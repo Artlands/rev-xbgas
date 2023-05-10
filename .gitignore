@@ -2,6 +2,7 @@ build
 tmp
 src/librevcpu.so
 *.so
+*.asm
 *.exe
 *.csv
 *.obj
