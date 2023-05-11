@@ -442,6 +442,7 @@ bool RevProc::Reset(){
     output->fatal(CALL_INFO, -1,
                   "Error: failed to init the start address for core=%d\n", id);
   std::string StartSymbol = "main";
+  //std::string StartSymbol = "_start";
   if( StartAddr == 0x00ull ){
     if( !opts->GetStartSymbol( id, StartSymbol ) )
       output->fatal(CALL_INFO, -1,
@@ -452,6 +453,7 @@ bool RevProc::Reset(){
   if( StartAddr == 0x00ull ){
     // load "main" symbol
     StartAddr = loader->GetSymbolAddr("main");
+    //StartAddr = loader->GetSymbolAddr("_start");
     if( StartAddr == 0x00ull ){
       output->fatal(CALL_INFO, -1,
                     "Error: failed to auto discover address for <main> for core=%d\n", id);
@@ -1545,7 +1547,7 @@ bool RevProc::DependencyCheck(uint16_t threadID, RevInst* I){
 }
 
 void RevProc::DependencySet(uint16_t threadID, RevInst* Inst){
-      if(Inst->rd < _REV_NUM_REGS_){
+      if(Inst->rd != 0 && Inst->rd < _REV_NUM_REGS_){
         bool isFloat = IsFloat(Inst->entry);
         if(feature->IsRV32()){
           if(isFloat){
@@ -1662,7 +1664,7 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
     ExecPC = GetPC();
   }
 
-  if( (!RegFile[threadToExec].trigger) && !Halted && (threadToExec != _REV_INVALID_THREAD_ID) && THREAD_CTE[threadToExec]){
+  if( ( (threadToExec != _REV_INVALID_THREAD_ID) && !RegFile[threadToExec].trigger) && !Halted && THREAD_CTE[threadToExec]){
     // trigger the next instruction
     // threadToExec = threadToDecode;
     RegFile[threadToExec].trigger = true;
@@ -1695,6 +1697,27 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
         output->fatal(CALL_INFO, -1,
                     "Error: failed to execute instruction at PC=%" PRIx64 ".", ExecPC );
       }
+      //#define __REV_DEEP_TRACE__
+      #ifdef __REV_DEEP_TRACE__
+      if(feature->IsRV32()){
+        std::cout << "RDT: Executed PC = " << std::hex << ExecPC \
+                                      << " Inst: " << std::setw(23) << InstTable[Inst.entry].mnemonic \ 
+                                      << " r" << std::dec << (uint32_t)Inst.rd  << "= " << std::hex << RegFile[threadToExec].RV32[Inst.rd] \
+                                      << " r" << std::dec << (uint32_t)Inst.rs1 << "= " << std::hex << RegFile[threadToExec].RV32[Inst.rs1] \
+                                      << " r" << std::dec << (uint32_t)Inst.rs2 << "= " << std::hex << RegFile[threadToExec].RV32[Inst.rs2] \
+                                      << " imm = "                << std::hex << Inst.imm \
+                                      << std::endl;
+
+      }else{
+        std::cout << "RDT: Executed PC = " << std::hex << ExecPC \
+                                      << " Inst: " << std::setw(23) << InstTable[Inst.entry].mnemonic \ 
+                                      << " r" << std::dec << (uint32_t)Inst.rd  << "= " << std::hex << RegFile[threadToExec].RV64[Inst.rd] \
+                                      << " r" << std::dec << (uint32_t)Inst.rs1 << "= " << std::hex << RegFile[threadToExec].RV64[Inst.rs1] \
+                                      << " r" << std::dec << (uint32_t)Inst.rs2 << "= " << std::hex << RegFile[threadToExec].RV64[Inst.rs2] \
+                                      << " imm = "                << std::hex << Inst.imm \
+                                      << std::endl;
+      }
+      #endif
 
       Pipeline.push(std::make_pair(threadToExec, Inst));
       bool isFloat = false;
