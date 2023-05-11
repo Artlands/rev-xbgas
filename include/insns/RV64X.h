@@ -196,8 +196,8 @@ namespace SST {
       static bool esd(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
         uint64_t Imm;
         SEXT(Imm, Inst.imm, 12);
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
-        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1] + Imm);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs2]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs2] + Imm);
 
   #ifdef _XBGAS_DEBUG_
         std::cout << " esd: Namespace: " << std::dec << Nmspace
@@ -207,9 +207,9 @@ namespace SST {
   #endif
           
         if( Nmspace != 0x00ull) {
-          M->RmtWriteMem(Nmspace, DestAddr, 8, &R->RV64[Inst.rs2]);
+          M->RmtWriteMem(Nmspace, DestAddr, 8, &R->RV64[Inst.rs1]);
         } else {
-          M->WriteMem(DestAddr, 8, &R->RV64[Inst.rs2]);
+          M->WriteMem(DestAddr, 8, &R->RV64[Inst.rs1]);
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
         R->RV64_PC += Inst.instSize;
@@ -219,12 +219,12 @@ namespace SST {
       static bool esw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
         uint64_t Imm;
         SEXT(Imm, Inst.imm, 12);
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
-        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1] + Imm);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs2]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs2] + Imm);
         if( Nmspace != 0x00ull) {
-          M->RmtWriteMem(Nmspace, DestAddr, 4, &R->RV64[Inst.rs2]);
+          M->RmtWriteMem(Nmspace, DestAddr, 4, &R->RV64[Inst.rs1]);
         } else {
-          M->WriteMem(DestAddr, 4, &R->RV64[Inst.rs2]);
+          M->WriteMem(DestAddr, 4, &R->RV64[Inst.rs1]);
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
         R->RV64_PC += Inst.instSize;
@@ -234,12 +234,12 @@ namespace SST {
       static bool esh(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
         uint64_t Imm;
         SEXT(Imm, Inst.imm, 12);
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
-        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1] + Imm);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs2]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs2] + Imm);
         if( Nmspace != 0x00ull) {
-          M->RmtWriteMem(Nmspace, DestAddr, 2, &R->RV64[Inst.rs2]);
+          M->RmtWriteMem(Nmspace, DestAddr, 2, &R->RV64[Inst.rs1]);
         } else {
-          M->WriteMem(DestAddr, 2, &R->RV64[Inst.rs2]);
+          M->WriteMem(DestAddr, 2, &R->RV64[Inst.rs1]);
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
         R->RV64_PC += Inst.instSize;
@@ -249,12 +249,12 @@ namespace SST {
       static bool esb(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
         uint64_t Imm;
         SEXT(Imm, Inst.imm, 12);
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
-        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1] + Imm);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs2]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs2] + Imm);
         if( Nmspace != 0x00ull) {
-          M->RmtWriteMem(Nmspace, DestAddr, 1, &R->RV64[Inst.rs2]);
+          M->RmtWriteMem(Nmspace, DestAddr, 1, &R->RV64[Inst.rs1]);
         } else {
-          M->WriteMem(DestAddr, 1, &R->RV64[Inst.rs2]);
+          M->WriteMem(DestAddr, 1, &R->RV64[Inst.rs1]);
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
         R->RV64_PC += Inst.instSize;
@@ -264,8 +264,8 @@ namespace SST {
       static bool ese(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
         uint64_t Imm;
         SEXT(Imm, Inst.imm, 12);
-        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1] + Imm);
-        M->WriteMem(DestAddr, 8, &R->ERV64[Inst.rd]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs2] + Imm);
+        M->WriteMem(DestAddr, 8, &R->ERV64[Inst.rs1]);
         R->RV64_PC += Inst.instSize;
         return true;
       }
@@ -432,8 +432,8 @@ namespace SST {
       }
 
       static bool ersd(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs2]);
-        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs2]);
   #ifdef _XBGAS_DEBUG_
         std::cout << " ersd: Namespace: " << std::dec << Nmspace
                   << ", Dest Addr: " << std::hex << DestAddr
@@ -442,9 +442,9 @@ namespace SST {
   #endif
           
         if( Nmspace != 0x00ull) {
-          M->RmtWriteMem(Nmspace, DestAddr, 8, &R->RV64[Inst.rd]);
+          M->RmtWriteMem(Nmspace, DestAddr, 8, &R->RV64[Inst.rs1]);
         } else {
-          M->WriteMem(DestAddr, 8, &R->RV64[Inst.rd]);
+          M->WriteMem(DestAddr, 8, &R->RV64[Inst.rs1]);
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
         R->RV64_PC += Inst.instSize;
@@ -452,12 +452,12 @@ namespace SST {
       }
 
       static bool ersw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs2]);
-        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs2]);
         if( Nmspace != 0x00ull) {
-          M->RmtWriteMem(Nmspace, DestAddr, 4, &R->RV64[Inst.rd]);
+          M->RmtWriteMem(Nmspace, DestAddr, 4, &R->RV64[Inst.rs1]);
         } else {
-          M->WriteMem(DestAddr, 4, &R->RV64[Inst.rd]);
+          M->WriteMem(DestAddr, 4, &R->RV64[Inst.rs1]);
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
         R->RV64_PC += Inst.instSize;
@@ -465,12 +465,12 @@ namespace SST {
       }
 
       static bool ersh(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs2]);
-        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs2]);
         if( Nmspace != 0x00ull) {
-          M->RmtWriteMem(Nmspace, DestAddr, 2, &R->RV64[Inst.rd]);
+          M->RmtWriteMem(Nmspace, DestAddr, 2, &R->RV64[Inst.rs1]);
         } else {
-          M->WriteMem(DestAddr, 2, &R->RV64[Inst.rd]);
+          M->WriteMem(DestAddr, 2, &R->RV64[Inst.rs1]);
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
         R->RV64_PC += Inst.instSize;
@@ -478,12 +478,12 @@ namespace SST {
       }
 
       static bool ersb(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs2]);
-        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs2]);
         if( Nmspace != 0x00ull) {
-          M->RmtWriteMem(Nmspace, DestAddr, 1, &R->RV64[Inst.rd]);
+          M->RmtWriteMem(Nmspace, DestAddr, 1, &R->RV64[Inst.rs1]);
         } else {
-          M->WriteMem(DestAddr, 1, &R->RV64[Inst.rd]);
+          M->WriteMem(DestAddr, 1, &R->RV64[Inst.rs1]);
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
         R->RV64_PC += Inst.instSize;
@@ -491,8 +491,8 @@ namespace SST {
       }
 
       static bool erse(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs2]);
-        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs2]);
 
   #ifdef _XBGAS_DEBUG_
         std::cout << " erse: Namespace: " << std::dec << Nmspace
@@ -502,9 +502,9 @@ namespace SST {
   #endif
           
         if( Nmspace != 0x00ull) {
-          M->RmtWriteMem(Nmspace, DestAddr, 8, &R->ERV64[Inst.rd]);
+          M->RmtWriteMem(Nmspace, DestAddr, 8, &R->ERV64[Inst.rs1]);
         } else {
-          M->WriteMem(DestAddr, 8, &R->ERV64[Inst.rd]);
+          M->WriteMem(DestAddr, 8, &R->ERV64[Inst.rs1]);
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         }
         R->RV64_PC += Inst.instSize;
