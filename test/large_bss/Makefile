@@ -12,14 +12,14 @@
 
 .PHONY: src
 
-EXAMPLE=cache_test1
-CC=riscv64-unknown-elf-gcc
-ARCH=rv32i
-ABI=ilp32
+EXAMPLE=large_bss
+CC=${RVCC}
+#ARCH=rv64g
+ARCH=rv64imafd
 
 all: $(EXAMPLE).exe
 $(EXAMPLE).exe: $(EXAMPLE).c
-	$(CC) -march=$(ARCH) -mabi=$(ABI) -o $(EXAMPLE).exe $(EXAMPLE).c
+	$(CC) -march=$(ARCH) -o $(EXAMPLE).exe $(EXAMPLE).c
 clean:
 	rm -Rf $(EXAMPLE).exe
 
