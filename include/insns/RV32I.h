@@ -449,12 +449,16 @@ namespace SST{
           M->ReadVal((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
                     (uint8_t *)(&R->RV32[Inst.rd]),
                     REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT32));
+          R->RV32[Inst.rd] = R->RV32[Inst.rd] & 0xFF;
+          SEXTI(R->RV32[Inst.rd], 8);
           R->RV32_PC += Inst.instSize;
         }else{
           //SEXT(R->RV64[Inst.rd],M->ReadU8( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
           M->ReadVal((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
                     (uint8_t *)(&R->RV64[Inst.rd]),
                     REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT64));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFF;
+          SEXTI(R->RV64[Inst.rd], 8);
           R->RV64_PC += Inst.instSize;
         }
         // update the cost
@@ -468,12 +472,16 @@ namespace SST{
           M->ReadVal((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
                      (uint16_t *)(&R->RV32[Inst.rd]),
                      REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT32));
+          R->RV32[Inst.rd] = R->RV32[Inst.rd] & 0xFFFF;
+          SEXTI(R->RV32[Inst.rd], 16);
           R->RV32_PC += Inst.instSize;
         }else{
           //SEXT(R->RV64[Inst.rd],M->ReadU16( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
           M->ReadVal((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
                      (uint16_t *)(&R->RV64[Inst.rd]),
                      REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT64));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFFFF;
+          SEXT(R->RV64[Inst.rd], R->RV64[Inst.rd], 16);
           R->RV64_PC += Inst.instSize;
         }
         // update the cost
@@ -487,7 +495,7 @@ namespace SST{
 
 #ifdef _XBGAS_DEBUG_
         {
-          std::cout << "BEFORE ld: \tRV32[" << std::dec << +Inst.rd
+          std::cout << "BEFORE lw: \tRV32[" << std::dec << +Inst.rd
                     << "](0x" << std::hex <<R->RV32[Inst.rd]
                     << ") = RV32[" << std::dec << +Inst.rs1
                     << "] (0x" << std::hex << R->RV32[Inst.rs1]
@@ -499,24 +507,16 @@ namespace SST{
           M->ReadVal((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
                      (uint32_t *)(&R->RV32[Inst.rd]),
                      REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT32));
-
-#ifdef _XBGAS_DEBUG_
-        {
-          std::cout << "AFTER lw: \tRV32[" << std::dec << +Inst.rd
-                    << "](0x" << std::hex <<R->RV32[Inst.rd]
-                    << ") = RV32[" << std::dec << +Inst.rs1
-                    << "] (0x" << std::hex << R->RV32[Inst.rs1]
-                    << ") + IMM (" << std::dec << (int32_t)(td_u32(Inst.imm, 12))
-                    << ")" << std::endl;
-        }
-#endif
-
+          R->RV32[Inst.rd] = R->RV32[Inst.rd] & 0xFFFFFFFF;
+          SEXTI(R->RV32[Inst.rd], 32);
           R->RV32_PC += Inst.instSize;
         }else{
           //SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
           M->ReadVal((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
                      (uint32_t *)(&R->RV64[Inst.rd]),
                      REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT64));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFFFFFFFF;
+          SEXT(R->RV64[Inst.rd], R->RV64[Inst.rd], 32);
           R->RV64_PC += Inst.instSize;
         }
         // update the cost
@@ -531,6 +531,7 @@ namespace SST{
           M->ReadVal((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
                     (uint8_t *)(&R->RV32[Inst.rd]),
                     REVMEM_FLAGS(0));
+          R->RV32[Inst.rd] = R->RV32[Inst.rd] & 0xFF;
           R->RV32_PC += Inst.instSize;
         }else{
           //ZEXT(R->RV64[Inst.rd],M->ReadU8( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
@@ -538,6 +539,7 @@ namespace SST{
           M->ReadVal((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
                     (uint8_t *)(&R->RV64[Inst.rd]),
                     REVMEM_FLAGS(0));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFF;
           R->RV64_PC += Inst.instSize;
         }
         // update the cost
@@ -552,6 +554,7 @@ namespace SST{
           M->ReadVal((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
                     (uint16_t *)(&R->RV32[Inst.rd]),
                     REVMEM_FLAGS(0));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFFFF;
           R->RV32_PC += Inst.instSize;
         }else{
           //ZEXT(R->RV64[Inst.rd],M->ReadU16( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
@@ -559,6 +562,7 @@ namespace SST{
           M->ReadVal((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
                     (uint16_t *)(&R->RV64[Inst.rd]),
                     REVMEM_FLAGS(0));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFFFF;
           R->RV64_PC += Inst.instSize;
         }
         // update the cost
@@ -577,12 +581,18 @@ namespace SST{
         return true;
       }
 
+      // RISCV writes the full 32-bit sign-extended values even though this is a half-word store
       static bool sh(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+        int64_t tmp = 0;
         if( F->IsRV32() ){
-          M->WriteU16((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))), (uint16_t)(R->RV32[Inst.rs2]));
+          tmp =  (uint32_t)(R->RV32[Inst.rs2]);
+          SEXTI(tmp, 16);
+          M->WriteU32((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))), (uint32_t)(tmp));
           R->RV32_PC += Inst.instSize;
         }else{
-          M->WriteU16((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))), (uint16_t)(R->RV64[Inst.rs2]));
+          tmp =  (uint32_t)(R->RV64[Inst.rs2]);
+          SEXTI(tmp, 16);
+          M->WriteU32((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))), (uint32_t)(tmp));
           R->RV64_PC += Inst.instSize;
         }
         return true;
@@ -604,6 +614,9 @@ namespace SST{
           R->RV32[Inst.rd] = dt_u32((int32_t)(td_u32(R->RV32[Inst.rs1],32)) + (int32_t)(td_u32(Inst.imm,12)),32);
           R->RV32_PC += Inst.instSize;
         }else{
+          if(R->RV64_PC == 0x101b0 ){
+            int blah_junk= 0;
+          }
           R->RV64[Inst.rd] = dt_u64(td_u64(R->RV64[Inst.rs1],64) + td_u64(Inst.imm,12),64);
           R->RV64_PC += Inst.instSize;
         }

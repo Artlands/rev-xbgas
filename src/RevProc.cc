@@ -935,6 +935,7 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
         funct2 = ((TmpInst & 0b01100000) >> 5 );
       }else{
         funct3 = l3;
+        funct2 = opSelect;
       }
     }else{
       // lower power: jumps/branches
@@ -1419,9 +1420,17 @@ RevInst RevProc::DecodeInst(){
   }
 #endif
 
-  output->verbose(CALL_INFO, 6, 0,
-                  "Core %d ; Thread %d; PC:InstPayload = 0x%" PRIx64 ":0x%" PRIx32 "\n",
-                  id, threadToDecode, PC, Inst);
+  if(0 != Inst){
+    output->verbose(CALL_INFO, 6, 0,
+                    "Core %d ; Thread %d; PC:InstPayload = 0x%" PRIx64 ":0x%" PRIx32 "\n",
+                    id, threadToDecode, PC, Inst);
+  }else{
+    output->fatal(CALL_INFO, -1,
+                  "Error: Core %d failed to decode instruction at PC=0x%" PRIx64 "; Inst=%d\n",
+                  id,
+                  PC,
+                  Inst );
+  }
 
   // Stage 1a: handle the crack fault injection
   if( CrackFault ){
