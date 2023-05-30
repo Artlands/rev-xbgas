@@ -13,7 +13,7 @@
 #include <math.h>
 #include <mutex>
 
-#define _XBGAS_DEBUG_
+// #define _XBGAS_DEBUG_
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
                 RevMemCtrl *Ctrl, SST::Output *Output )
@@ -70,12 +70,19 @@ RevMem::~RevMem(){
 }
 
 bool RevMem::outstandingRqsts(){
+  bool rtn = false;
+  
   if( ctrl ){
-    return ctrl->outstandingRqsts();
+    // return ctrl->outstandingRqsts();
+    rtn = ctrl->outstandingRqsts();
+  }
+
+  if( rmtCtrl ){
+    return (rtn || (rmtCtrl->outstandingRqsts()));
   }
 
   // RevMemCtrl is not enabled; no outstanding requests
-  return false;
+  return rtn;
 }
 
 void RevMem::HandleMemFault(unsigned width){
@@ -264,7 +271,8 @@ bool RevMem::WriteMem( uint64_t Addr, size_t Len, void *Data,
 }
 
 bool RevMem::WriteMem( uint64_t Addr, size_t Len, void *Data ){
-#ifdef _REV_DEBUG_
+// #ifdef _REV_DEBUG_
+#ifdef _XBGAS_DEBUG_
   std::cout << "Writing " << Len << " Bytes Starting at 0x" << std::hex << Addr << std::dec << std::endl;
 #endif
 
@@ -342,7 +350,8 @@ bool RevMem::WriteMem( uint64_t Addr, size_t Len, void *Data ){
 }
 
 bool RevMem::ReadMem( uint64_t Addr, size_t Len, void *Data ){
-#ifdef _REV_DEBUG_
+// #ifdef _REV_DEBUG_
+#ifdef _XBGAS_DEBUG_
   std::cout << "Reading " << Len << " Bytes Starting at 0x" << std::hex << Addr << std::endl;
 #endif
   uint64_t physAddr = CalcPhysAddr(Addr);
@@ -562,7 +571,7 @@ bool RevMem::RmtReadMem( uint64_t Nmspace, uint64_t SrcAddr,
                          uint32_t Size, void *Target, int *RegisterTag){
 
 #ifdef _XBGAS_DEBUG_
-        std::cout << "Remote Memory Read: Namespace: " << std::dec << Nmspace
+        std::cout << "--> Remote Memory Read: Namespace: " << std::dec << Nmspace
                   << ", Source Addr: " << std::hex << SrcAddr
                   << ", Size: " << std::dec << Size << std::endl; 
 #endif
@@ -573,6 +582,13 @@ bool RevMem::RmtReadMem( uint64_t Nmspace, uint64_t SrcAddr,
 
 bool RevMem::RmtBulkReadMem( uint64_t Nmspace, uint64_t SrcAddr, uint32_t Size, 
                      uint32_t Nelem, uint32_t Stride, uint64_t DestAddr ) {
+#ifdef _XBGAS_DEBUG_
+        std::cout << "--> Remote Bulk Memory Read: Namespace: " << std::dec << Nmspace
+                  << ", Source Addr: " << std::hex << SrcAddr
+                  << ", Size: " << std::dec << Size 
+                  << ", Nelem: "<< std::dec << Nelem
+                  << ", Stride: "<< std::dec << Stride << std::endl; 
+#endif
   bool rtn = rmtCtrl->sendRmtBulkReadRqst(Nmspace, SrcAddr, Size, 
                                           Nelem, Stride, DestAddr);
   return rtn;

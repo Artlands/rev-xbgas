@@ -12,7 +12,7 @@
 
 .PHONY: src
 
-EXAMPLE=eld
+EXAMPLE=ebld
 
 CC=riscv64-unknown-elf-gcc
 OBJDUMP=riscv64-unknown-elf-objdump

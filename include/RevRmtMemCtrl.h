@@ -68,6 +68,9 @@ namespace SST {
       /// RevRmtMemCtrl: check if the remote memory operation is finished
       virtual bool isFinished() = 0;
 
+      /// RevRmtMemCtrl: determines if outstanding requests exist
+      virtual bool outstandingRqsts() = 0;
+
       /// RevRmtMemCtrl: clock tick function
       virtual bool clockTick( Cycle_t cycle ) = 0;
 
@@ -157,6 +160,9 @@ namespace SST {
 
       /// RevBasicRmtMemCtrl: finish function
       virtual bool isFinished() override;
+
+      /// RevBasicRmtMemCtrl: determines if outstanding requests exist
+      bool outstandingRqsts() override;
 
       /// RevBasicRmtMemCtrl: clock tick function
       virtual bool clockTick( Cycle_t cycle );
