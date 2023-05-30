@@ -6,3 +6,4 @@ src/librevcpu.so
 *.obj
 .cache/clangd/index
 .vscode
+/include/softfp/
