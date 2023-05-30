@@ -4,3 +4,5 @@ src/librevcpu.so
 *.exe
 *.csv
 *.obj
+.cache/clangd/index
+.vscode

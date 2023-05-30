@@ -11,6 +11,7 @@
 #include "../include/RevMem.h"
 #include "../include/RevRmtMemCtrl.h"
 #include <math.h>
+#include <mutex>
 
 #define _XBGAS_DEBUG_
 
@@ -130,7 +131,6 @@ bool RevMem::LR(unsigned Hart, uint64_t Addr){
 
 bool RevMem::SC(unsigned Hart, uint64_t Addr){
   // search the LRSC vector for the entry pair
-  std::pair<unsigned,uint64_t> Entry = std::make_pair(Hart,Addr);
   std::vector<std::pair<unsigned,uint64_t>>::iterator it;
 
   for( it = LRSC.begin(); it != LRSC.end(); ++it ){
@@ -591,6 +591,31 @@ bool RevMem::RmtBulkWriteMem( uint64_t Nmspace, uint64_t DestAddr, uint32_t Size
   bool rtn = rmtCtrl->sendRmtBulkWriteRqst(Nmspace, DestAddr, Size, 
                                            Nelem, Stride, SrcAddr);
   return rtn;
+}
+
+/*
+* Func: GetNewThreadPID
+* - This function is used to interact with the global 
+*   PID counter inside of RevMem
+* - When a new RevThreadCtx is created, it is assigned 
+*   the value of PIDCount++
+* - This ensures no collisions because all RevProcs access
+*   the same RevMem instance
+*/
+uint32_t RevMem::GetNewThreadPID(){
+
+  #ifdef _REV_DEBUG_
+  std::cout << "RevMem: New PID being given: " << PIDCount+1 << std::endl; 
+  #endif
+  /*
+  * NOTE: A mutex is acquired solely to prevent race conditions
+  *       if multiple RevProc's create new Ctx objects at the 
+  *       same time
+  */
+  std::unique_lock<std::mutex> lock(m_mtx);
+  PIDCount++;
+  lock.unlock();
+  return PIDCount;
 }
 
 // EOF
