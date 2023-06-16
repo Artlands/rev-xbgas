@@ -5,7 +5,7 @@
 #
 # See LICENSE in the top level directory for licensing details
 #
-# fault-test-9.py
+# rev-test-ex1.py
 #
 
 import os
@@ -22,20 +22,14 @@ max_addr_gb = 1
 # Define the simulation components
 comp_cpu = sst.Component("cpu", "revcpu.RevCPU")
 comp_cpu.addParams({
-	"verbose" : 5,                                # Verbosity
-        "numCores" : 1,                               # Number of cores
+	"verbose" : 4,                                # Verbosity
+        "numCores" : 96,                               # Number of cores
 	"clock" : "1.0GHz",                           # Clock
         "memSize" : 1024*1024*1024,                   # Memory size in bytes
-        "machine" : "[0:RV64G]",                      # Core:Config; RV64I for core 0
+        "machine" : "[CORES:RV64G]",                      # Core:Config; RV64I for core 0
         "startAddr" : "[0:0x00000000]",               # Starting address for core 0
         "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
-        "program" : "fault1.exe",                     # Target executable
-
-        "enable_faults" : 1,                          # Enable the fault interfaces
-        "faults" : "all",                             # Enable all faults
-        "fault_width" : "1",                          # 3 bit flips
-        "fault_range" : 65536,                        # clocks between faults
-
+        "program" : os.getenv("REV_EXE", "many_core.exe"),  # Target executable
         "splash" : 1                                  # Display the splash message
 })
 

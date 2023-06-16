@@ -2117,10 +2117,10 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
         uint32_t CurrPID = ActivePIDs.at(HartToExec);
         uint32_t ParentPID = ThreadTable.at(ActivePIDs.at(HartToExec))->GetParentPID();
         output->verbose(CALL_INFO, 2, 0,
-                      "Thread %u finished execution. Switching to its parent PID = %u\n", CurrPID, ParentPID);
-        if(ParentPID != 0 ){
+                      "Thread %u finished execution. Switching to its parent PID = %u", CurrPID, ParentPID);
+                      "Thread %u completed execution.\n", CurrPID);
           done = false;
-          output->verbose(CALL_INFO, 2, 0, "Switching from thread with PID = %u to PID = %u\n", ActivePIDs.at(HartToExec), ParentPID);
+          output->verbose(CALL_INFO, 2, 0, "Switching from thread with PID = %u to its parent PID = %u\n", ActivePIDs.at(HartToExec), ParentPID);
           CtxSwitchAlert(ParentPID);
           SwapToParent = true;
           ThreadTable.at(ActivePIDs.at(HartToExec))->SetState(ThreadState::Dead);
@@ -2444,7 +2444,12 @@ void RevProc::ECALL_setxattr(){
   size_t size = RegFile->RV64[13];
   uint64_t flags = RegFile->RV64[14];
 
+#ifdef __APPLE__
+  uint32_t position = 0;
+  uint64_t rc = setxattr(path, name, value, size, position, flags);
+#else
   uint64_t rc = setxattr(path, name, value, size, flags);
+#endif
   RegFile->RV64[10] = rc;
   return;
 }
