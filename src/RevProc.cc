@@ -2112,12 +2112,6 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
       done = true;
     }
 
-    // determine if we have any outstanding memory requests
-    if( mem->outstandingRqsts() ){
-      done = false;
-    }
-
-    
     if( HartToExec != _REV_INVALID_HART_ID_ ){
       if( ActivePIDs.size() > HartToExec ) {
         uint32_t CurrPID = ActivePIDs.at(HartToExec);
@@ -2135,6 +2129,12 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
         }
       }
     }
+
+    // determine if we have any outstanding memory requests
+    if( mem->outstandingRqsts() ){
+      done = false;
+    }
+
     if( done ){
       // we are really done, return
       output->verbose(CALL_INFO,2,0,"Program execution complete\n");

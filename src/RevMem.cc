@@ -78,6 +78,8 @@ bool RevMem::outstandingRqsts(){
   }
 
   if( rmtCtrl ){
+    if (!rmtCtrl->outstandingRqsts())
+      output->verbose(CALL_INFO, 2, 0, "REMOTE:MEM: No outstanding remote requests\n");
     return (rtn || (rmtCtrl->outstandingRqsts()));
   }
 
@@ -581,7 +583,7 @@ bool RevMem::RmtReadMem( uint64_t Nmspace, uint64_t SrcAddr,
 }
 
 bool RevMem::RmtBulkReadMem( uint64_t Nmspace, uint64_t SrcAddr, uint32_t Size, 
-                     uint32_t Nelem, uint32_t Stride, uint64_t DestAddr ) {
+                     uint32_t Nelem, uint32_t Stride, uint64_t DestAddr, int *RegisterTag) {
 #ifdef _XBGAS_DEBUG_
         std::cout << "--> Remote Bulk Memory Read: Namespace: " << std::dec << Nmspace
                   << ", Source Addr: " << std::hex << SrcAddr
@@ -590,7 +592,7 @@ bool RevMem::RmtBulkReadMem( uint64_t Nmspace, uint64_t SrcAddr, uint32_t Size,
                   << ", Stride: "<< std::dec << Stride << std::endl; 
 #endif
   bool rtn = rmtCtrl->sendRmtBulkReadRqst(Nmspace, SrcAddr, Size, 
-                                          Nelem, Stride, DestAddr);
+                                          Nelem, Stride, DestAddr, RegisterTag);
   return rtn;
 }
 

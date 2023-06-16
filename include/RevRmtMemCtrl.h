@@ -87,7 +87,7 @@ namespace SST {
       /// RevRmtMemCtrl: send a remote direct memory read request
       virtual bool sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
                                         int32_t Size, int32_t Nelem, 
-                                        int32_t Stride, uint64_t DestAddr ) = 0;
+                                        int32_t Stride, uint64_t DestAddr, int *RegisterTag) = 0;
       
       /// RevRmtMemCtrl: send a remote memory write request
       virtual bool sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
@@ -183,7 +183,7 @@ namespace SST {
       /// RevBasicRmtMemCtrl: send a remote bulk memory read request
       virtual bool sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t SrcAddr, 
                                         int32_t Size, int32_t Nelem,
-                                        int32_t Stride, uint64_t DestAddr ) override;
+                                        int32_t Stride, uint64_t DestAddr, int *RegisterTag) override;
       
       /// RevBasicRmtMemCtrl: send a remote memory write request
       virtual bool sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr, 
@@ -246,7 +246,7 @@ namespace SST {
       std::map<uint64_t, std::tuple<xbgasNicEvent *, void *, int *>> readOutstanding;  ///< RevBasicRmtMemCtrl: map of outstanding read requests, <PktID, <Event, Target, RegisterTag>>
       
       std::vector<uint64_t> bulkReadRqsts;                                             ///< RevBasicRmtMemCtrl: outstanding bulk read requests
-      std::map<uint64_t, std::pair<xbgasNicEvent *, uint64_t>> bulkReadOutstanding;    ///< RevBasicRmtMemCtrl: map of outstanding bulk read requests, <PktID, <Event, DestAddr>>
+      std::map<uint64_t, std::tuple<xbgasNicEvent *, uint64_t, int*>> bulkReadOutstanding;    ///< RevBasicRmtMemCtrl: map of outstanding bulk read requests, <PktID, <Event, DestAddr, RegisterTag>>
 
       std::vector<uint64_t> writeRqsts;                             ///< RevBasicRmtMemCtrl: outstanding write requests
       std::map<uint64_t, xbgasNicEvent *> writeOutstanding;         ///< RevBasicRmtMemCtrl: map of outstanding write requests, <PktID, Event>

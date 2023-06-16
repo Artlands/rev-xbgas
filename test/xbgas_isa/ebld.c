@@ -18,7 +18,7 @@ int main(int argc, char **argv ){
 
   int total_nelem = 1024;
   int nelem = 512;
-  int stride = 16; // stride in bytes
+  int stride = 8; // stride in bytes
 
   /* destination data */
   uint64_t src_array[total_nelem];
@@ -49,7 +49,8 @@ int main(int argc, char **argv ){
 	);
 
   /* EBLD */
-  while(1) {
+  // while(1) 
+  {
     asm volatile
     ( 
       "ebld %[dest], %[src], %[nelem], %[stride] \n\t"

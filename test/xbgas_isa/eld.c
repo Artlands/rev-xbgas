@@ -50,7 +50,7 @@ int main(int argc, char **argv ){
 
   asm volatile
   (
-    " eld x10, 0(x10) "
+    " eld x11, 0(x10) "
   );
 
   return 0;

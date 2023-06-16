@@ -115,7 +115,7 @@ namespace SST {
       /// RevMem: read bulk data from the target remote memory location
       bool RmtBulkReadMem( uint64_t Nmspace, uint64_t SrcAddr, 
                            uint32_t Size, uint32_t Nelem, 
-                           uint32_t Stride, uint64_t DestAddr );
+                           uint32_t Stride, uint64_t DestAddr, int *RegisterTag);
 
       /// RevMem: write data to the target remote memory location
       bool RmtWriteMem( uint64_t Nmspace, uint64_t DestAddr, 
