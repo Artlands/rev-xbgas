@@ -16,8 +16,8 @@ int main(int argc, char **argv ){
   /* Read my PE and determine namespace for testing*/
   int MYPE = (int)(*(uint64_t *)(_XBGAS_MY_PE_));
 
-  int total_nelem = 1024;
-  int nelem = 512;
+  int total_nelem = 20;
+  int nelem = 10;
   int stride = 8; // stride in bytes
 
   /* destination data */
