@@ -38,12 +38,13 @@ namespace SST {
       typedef enum {
         GetRqst     = 0b0000,     ///< xbgasNicEvent: Get request
         PutRqst     = 0b0001,     ///< xbgasNicEvent: Put request
-        BulkGetRqst  = 0b0010,     ///< xbgasNicEvent: bulk Get request
-        BulkPutRqst  = 0b0011,     ///< xbgasNicEvent: bulk Put request
+        BulkGetRqst = 0b0010,     ///< xbgasNicEvent: bulk Get request
+        BulkPutRqst = 0b0011,     ///< xbgasNicEvent: bulk Put request
         GetResp     = 0b0100,     ///< xbgasNicEvent: Get response
         PutResp     = 0b0101,     ///< xbgasNicEvent: Put response
-        BulkGetResp  = 0b0110,     ///< xbgasNicEvent: bulk Get response
-        BulkPutResp  = 0b0111,     ///< xbgasNicEvent: bulk Put response
+        BulkGetResp = 0b0110,     ///< xbgasNicEvent: bulk Get response
+        BulkPutResp = 0b0111,     ///< xbgasNicEvent: bulk Put response
+        Finish      = 0b1111,     ///< xbgasNicEvent: Finish notification
         Unknown     = 0b1000      ///< xbgasNicEvent: Unknown operation
       } XbgasOpcode;
 
@@ -138,6 +139,9 @@ namespace SST {
 
       /// xbgasNicEvent: build a bulk Put respond packet
       bool buildBulkPutResp(int64_t PktId);
+
+      /// xbgasNicEvent: build a Finish notification packet
+      bool buildFinish();
       
       /// xbgasNicEvent: virtual function to clone an event
       virtual Event* clone(void) override{

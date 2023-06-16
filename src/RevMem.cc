@@ -78,8 +78,6 @@ bool RevMem::outstandingRqsts(){
   }
 
   if( rmtCtrl ){
-    if (!rmtCtrl->outstandingRqsts())
-      output->verbose(CALL_INFO, 2, 0, "REMOTE:MEM: No outstanding remote requests\n");
     return (rtn || (rmtCtrl->outstandingRqsts()));
   }
 

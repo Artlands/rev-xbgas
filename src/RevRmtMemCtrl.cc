@@ -98,7 +98,6 @@ void RevBasicRmtMemCtrl::init(unsigned int phase){
     output->fatal(CALL_INFO, -1, "Error: could not write number of PEs to xBGAS memory\n");
 
   // Namespece Lookaside Buffer Initialization. Now using a naive implementation
-  std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts;
   uint64_t nmspace = 0;
   xbgasHosts = xbgas_nic->getXbgasHosts();
 
@@ -110,6 +109,15 @@ void RevBasicRmtMemCtrl::init(unsigned int phase){
       nmspaceLB[nmspace] = xbgasHosts[i];
     }
   }
+
+  // Initialize the PE finished map
+  if (xbgasHosts.size() != 0) {
+    for ( unsigned i = 0; i < xbgasHosts.size(); i++ ) {
+      PeFinished[xbgasHosts[i]] = false;
+    }
+  }
+  
+  complBroadcastSent = false;
 
 #ifdef _XBGAS_DEBUG_
   if( nmspaceLB.size() != 0) {
@@ -126,18 +134,6 @@ void RevBasicRmtMemCtrl::setup(){
 }
 
 void RevBasicRmtMemCtrl::finish(){
-}
-
-bool RevBasicRmtMemCtrl::isFinished(){
-  bool rtn = false;
-  if( rqstQ.empty() && respQ.empty() && 
-      readRqsts.empty() && bulkReadRqsts.empty() && writeRqsts.empty()){
-    rtn = true;
-  }
-  // if( rqstQ.empty() && respQ.empty() ){
-  //   rtn = true;
-  // }
-  return rtn;
 }
 
 bool RevBasicRmtMemCtrl::outstandingRqsts(){
@@ -377,6 +373,14 @@ bool RevBasicRmtMemCtrl::sendRmtMemResps(unsigned &t_max_responses) {
     return true;
   }
 
+// #ifdef _XBGAS_DEBUG_
+//   uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+//   std::cout << "PE " << std::dec << myPE
+//             << " --> Response queue size: " << respQ.size()
+//             << std::endl;
+// #endif
+
+
   // retrieve the next candidate memory response
   for( unsigned i=0; i<respQ.size(); i++ ){
     if( t_max_responses < max_responses ){
@@ -385,6 +389,7 @@ bool RevBasicRmtMemCtrl::sendRmtMemResps(unsigned &t_max_responses) {
       xbgas_nic->send( respQ[i].first, respQ[i].second );
       std::swap(respQ[i], respQ.back());
       respQ.pop_back();
+
       return true;
     }
   }
@@ -593,6 +598,35 @@ void RevBasicRmtMemCtrl::handleRmtWriteResp( xbgasNicEvent *ev ) {
   } 
 }
 
+void RevBasicRmtMemCtrl::handleFinish( xbgasNicEvent *ev ){
+  int pe = ev->getSrc();
+  PeFinished[pe] = true;
+  delete ev;
+  return;
+}
+
+bool RevBasicRmtMemCtrl::isPeFinished(){
+  if( !complBroadcastSent) {
+      complBroadcastSent = true;
+      xbgasNicEvent *ev = new xbgasNicEvent(getName());
+      ev->setSrc( xbgasHosts[0] );
+      ev->buildFinish();
+
+      PeFinished[xbgasHosts[0]] = true;
+      // Iterate over all the PEs and send the finish event
+      for(unsigned int i = 1; i < xbgasHosts.size(); i++){
+        xbgas_nic->send(ev, xbgasHosts[i] );
+      }
+    }
+  // Check if all the PEs have finished
+  for(unsigned int i = 1; i < xbgasHosts.size(); i++){
+    if( !PeFinished[xbgasHosts[i]] ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void RevBasicRmtMemCtrl::rmtMemEventHandler( Event *ev ) {
   xbgasNicEvent *event = static_cast<xbgasNicEvent*>(ev);
   switch(event->getOpcode()){
@@ -613,6 +647,9 @@ void RevBasicRmtMemCtrl::rmtMemEventHandler( Event *ev ) {
     case xbgasNicEvent::PutResp:
     case xbgasNicEvent::BulkPutResp:
       handleRmtWriteResp( event );
+      break;
+    case xbgasNicEvent::Finish:
+      handleFinish( event );
       break;
     default:
       output->fatal(CALL_INFO, -1, "Error : unknown remote memory operation type\n");

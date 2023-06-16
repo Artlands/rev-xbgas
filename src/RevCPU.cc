@@ -2384,10 +2384,10 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   for( unsigned i=0; i<Procs.size(); i++ ){
     if( Enabled[i] ){
       if( !Procs[i]->ClockTick(currentCycle) ){
-         UpdateCoreStatistics(i);
+        UpdateCoreStatistics(i);
         Enabled[i] = false;
-      output.verbose(CALL_INFO, 5, 0, "Closing Processor %d at Cycle: %" PRIu64 "\n",
-                     i, static_cast<uint64_t>(currentCycle));
+        output.verbose(CALL_INFO, 5, 0, "Closing Processor %d at Cycle: %" PRIu64 "\n",
+                      i, static_cast<uint64_t>(currentCycle));
       }
     }
   }
@@ -2431,7 +2431,6 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   // check to see if remote memory operations are completed
   if( EnableXBGAS ) {
     RmtCtrl->clockTick(currentCycle);
-    rtn = RmtCtrl->isFinished();
   }
 
   // check to see if all the processors are completed
@@ -2459,8 +2458,14 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   }
 
   if( rtn ){
-    primaryComponentOKToEndSim();
-    output.verbose(CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
+    // check PEs for completion
+    if( EnableXBGAS )
+      rtn = RmtCtrl->isPeFinished();
+    
+    if ( rtn ) {
+      primaryComponentOKToEndSim();
+      output.verbose(CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
+    }
   }
 
   return rtn;
