@@ -6,3 +6,7 @@ src/librevcpu.so
 *.csv
 *.obj
 softfp*
+.cache/clangd/index
+.vscode
+/include/softfp/
+/xbrtime/

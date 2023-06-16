@@ -71,6 +71,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
   numCores = params.find<unsigned>("numCores", "1");
   if( EnablePANTest )
     numCores = 1; // force the PAN test to use a single core
+  output.verbose(CALL_INFO, 1, 0, "Building Rev with %d cores\n", numCores);
 
   // read the binary executable name
   Exe = params.find<std::string>("program", "a.out");
@@ -1909,9 +1910,6 @@ bool RevCPU::PANProcessRDMAMailbox(){
   unsigned iter = 0;
   uint64_t Addr = PrevAddr;
   uint64_t Payload[3];
-  uint64_t CmdBuf;
-  uint64_t Buf = 0x00ull;
-  panNicEvent *TEvent = nullptr;
 
   while( !done ){
 
@@ -2000,8 +1998,6 @@ void RevCPU::ExecPANTest(){
   int dest = 1;
   uint64_t BASE = 0x00000080ull;
   uint64_t Buf = 0x00ull;
-  uint64_t Addr = _PAN_COMPLETION_ADDR_;
-  uint64_t Payload = 0x01ull;
   panNicEvent *TEvent = nullptr;
 
   switch( testStage ){

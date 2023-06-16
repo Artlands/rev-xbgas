@@ -603,12 +603,20 @@ namespace SST{
         uint32_t Tmp32;
         uint64_t Tmp64;
         if( F->IsRV32() ){
-          SEXT(Tmp32, Inst.imm, 12);
-          SEXT(R->RV32[Inst.rd], M->ReadU8((uint64_t)(R->RV32[Inst.rs1] + Tmp32)), 8);
+          //SEXT(R->RV32[Inst.rd],M->ReadU8( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),32);
+          M->ReadVal((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
+                    (uint8_t *)(&R->RV32[Inst.rd]),
+                    REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT32));
+          R->RV32[Inst.rd] = R->RV32[Inst.rd] & 0xFF;
+          SEXTI(R->RV32[Inst.rd], 8);
           R->RV32_PC += Inst.instSize;
         }else{
-          SEXT(Tmp64, Inst.imm, 12);
-          SEXT(R->RV64[Inst.rd], M->ReadU8((uint64_t)(R->RV64[Inst.rs1] + Tmp64)), 8);
+          //SEXT(R->RV64[Inst.rd],M->ReadU8( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
+          M->ReadVal((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
+                    (uint8_t *)(&R->RV64[Inst.rd]),
+                    REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT64));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFF;
+          SEXTI(R->RV64[Inst.rd], 8);
           R->RV64_PC += Inst.instSize;
         }
         // update the cost
@@ -620,12 +628,20 @@ namespace SST{
         uint32_t Tmp32;
         uint64_t Tmp64;
         if( F->IsRV32() ){
-          SEXT(Tmp32, Inst.imm, 12);
-          SEXT(R->RV32[Inst.rd], M->ReadU16((uint64_t)(R->RV32[Inst.rs1] + Tmp32)), 16);
+          //SEXT(R->RV32[Inst.rd],M->ReadU16( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),32);
+          M->ReadVal((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
+                     (uint16_t *)(&R->RV32[Inst.rd]),
+                     REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT32));
+          R->RV32[Inst.rd] = R->RV32[Inst.rd] & 0xFFFF;
+          SEXTI(R->RV32[Inst.rd], 16);
           R->RV32_PC += Inst.instSize;
         }else{
-          SEXT(Tmp64, Inst.imm, 12);
-          SEXT(R->RV64[Inst.rd], M->ReadU16((uint64_t)(R->RV64[Inst.rs1] + Tmp64)), 16);
+          //SEXT(R->RV64[Inst.rd],M->ReadU16( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
+          M->ReadVal((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
+                     (uint16_t *)(&R->RV64[Inst.rd]),
+                     REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT64));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFFFF;
+          SEXT(R->RV64[Inst.rd], R->RV64[Inst.rd], 16);
           R->RV64_PC += Inst.instSize;
         }
         // update the cost
@@ -637,12 +653,32 @@ namespace SST{
         uint32_t Tmp32;
         uint64_t Tmp64;
         if( F->IsRV32() ){
-          SEXT(Tmp32, Inst.imm, 12);
-          SEXT(R->RV32[Inst.rd], M->ReadU32((uint64_t)(R->RV32[Inst.rs1] + Tmp32)), 32);
+          //SEXT(R->RV32[Inst.rd],M->ReadU32( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),32);
+
+#ifdef _XBGAS_DEBUG_
+        {
+          std::cout << "BEFORE lw: \tRV32[" << std::dec << +Inst.rd
+                    << "](0x" << std::hex <<R->RV32[Inst.rd]
+                    << ") = RV32[" << std::dec << +Inst.rs1
+                    << "] (0x" << std::hex << R->RV32[Inst.rs1]
+                    << ") + IMM (" << std::dec << (int32_t)(td_u32(Inst.imm, 12))
+                    << ")" << std::endl;
+        }
+#endif
+
+          M->ReadVal((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
+                     (uint32_t *)(&R->RV32[Inst.rd]),
+                     REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT32));
+          R->RV32[Inst.rd] = R->RV32[Inst.rd] & 0xFFFFFFFF;
+          SEXTI(R->RV32[Inst.rd], 32);
           R->RV32_PC += Inst.instSize;
         }else{
-          SEXT(Tmp64, Inst.imm, 12);
-          SEXT(R->RV64[Inst.rd], M->ReadU32((uint64_t)(R->RV64[Inst.rs1] + Tmp64)), 32);
+          //SEXT(R->RV64[Inst.rd],M->ReadU32( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
+          M->ReadVal((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
+                     (uint32_t *)(&R->RV64[Inst.rd]),
+                     REVMEM_FLAGS(RevCPU::RevFlag::F_SEXT64));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFFFFFFFF;
+          SEXT(R->RV64[Inst.rd], R->RV64[Inst.rd], 32);
           R->RV64_PC += Inst.instSize;
         }
         // update the cost
@@ -654,12 +690,20 @@ namespace SST{
         uint32_t Tmp32;
         uint64_t Tmp64;
         if( F->IsRV32() ){
-          SEXT(Tmp32, Inst.imm, 12);
-          R->RV32[Inst.rd] = M->ReadU8((uint64_t)(R->RV32[Inst.rs1] + Tmp32));
+          //ZEXT(R->RV32[Inst.rd],M->ReadU8( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),32);
+          //R->RV32[Inst.rd] = M->ReadU8( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
+          M->ReadVal((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
+                    (uint8_t *)(&R->RV32[Inst.rd]),
+                    REVMEM_FLAGS(0));
+          R->RV32[Inst.rd] = R->RV32[Inst.rd] & 0xFF;
           R->RV32_PC += Inst.instSize;
         }else{
-          SEXT(Tmp64, Inst.imm, 12);
-          R->RV64[Inst.rd] = M->ReadU8((uint64_t)(R->RV64[Inst.rs1] + Tmp64));
+          //ZEXT(R->RV64[Inst.rd],M->ReadU8( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
+          //R->RV64[Inst.rd] = M->ReadU8( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
+          M->ReadVal((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
+                    (uint8_t *)(&R->RV64[Inst.rd]),
+                    REVMEM_FLAGS(0));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFF;
           R->RV64_PC += Inst.instSize;
         }
         // update the cost
@@ -671,12 +715,20 @@ namespace SST{
         uint32_t Tmp32;
         uint64_t Tmp64;
         if( F->IsRV32() ){
-          SEXT(Tmp32, Inst.imm, 12);
-          R->RV32[Inst.rd] = M->ReadU16((uint64_t)(R->RV32[Inst.rs1] + Tmp32));            
+          //ZEXT(R->RV32[Inst.rd],M->ReadU16( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),32);
+          //R->RV32[Inst.rd] = M->ReadU16( (uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
+          M->ReadVal((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
+                    (uint16_t *)(&R->RV32[Inst.rd]),
+                    REVMEM_FLAGS(0));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFFFF;
           R->RV32_PC += Inst.instSize;
         }else{
-          SEXT(Tmp64, Inst.imm, 12);
-          R->RV64[Inst.rd] = M->ReadU16((uint64_t)(R->RV64[Inst.rs1] + Tmp64));
+          //ZEXT(R->RV64[Inst.rd],M->ReadU16( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
+          //R->RV64[Inst.rd] = M->ReadU16( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))));
+          M->ReadVal((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
+                    (uint16_t *)(&R->RV64[Inst.rd]),
+                    REVMEM_FLAGS(0));
+          R->RV64[Inst.rd] = R->RV64[Inst.rd] & 0xFFFF;
           R->RV64_PC += Inst.instSize;
         }
         // update the cost
@@ -699,16 +751,16 @@ namespace SST{
         return true;
       }
 
-      static bool sh(RevFeature *F, RevRegFile *R,RevMem *M, RevInst Inst) {
-        uint32_t Tmp32;
-        uint64_t Tmp64;
+      // RISCV writes the full 32-bit sign-extended values even though this is a half-word store
+      static bool sh(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+        int64_t tmp = 0;
         if( F->IsRV32() ){
-          SEXT(Tmp32, Inst.imm, 12);
-          M->WriteU16((uint64_t)(R->RV32[Inst.rs1] + Tmp32), (R->RV32[Inst.rs2] & MASK16));
+          tmp =  (uint16_t)(R->RV32[Inst.rs2]);
+          M->WriteU16((uint64_t)(R->RV32[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))), (uint16_t)(tmp));
           R->RV32_PC += Inst.instSize;
         }else{
-          SEXT(Tmp64, Inst.imm, 12);
-          M->WriteU16((uint64_t)(R->RV64[Inst.rs1] + Tmp64), (R->RV64[Inst.rs2] & MASK16));
+          tmp =  (uint16_t)(R->RV64[Inst.rs2]);
+          M->WriteU16((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))), (uint16_t)(tmp));
           R->RV64_PC += Inst.instSize;
         }
         return true;
@@ -958,7 +1010,8 @@ namespace SST{
           R->RV32[Inst.rd] = R->RV32[Inst.rs1] >> (R->RV32[Inst.rs2] & 0b011111);
           R->RV32_PC += Inst.instSize;
         }else{
-          R->RV64[Inst.rd] = R->RV64[Inst.rs1] >> (R->RV64[Inst.rs2] & 0b111111);
+          ZEXT64(R->RV64[Inst.rd],(R->RV64[Inst.rs1] >> (R->RV64[Inst.rs2]&0b11111)),64);
+          SEXTI(R->RV64[Inst.rd],64);
           R->RV64_PC += Inst.instSize;
         }
         return true;
@@ -1014,18 +1067,33 @@ namespace SST{
         return true;  // temporarily disabled
       }
 
-      static bool ecall(RevFeature *F, RevRegFile *R,RevMem *M, RevInst Inst) {
-        // x17 (a7) is the code for ecall
+      static bool ecall(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst){
+        // Save PC of Ecall to *epc register
         if( F->IsRV32() ){
-          uint32_t code = R->RV32[17];
-          std::cout << "32-bit ECALL CODE: " + std::to_string(code) << std::endl;
+          R->RV32_SEPC = R->RV32_PC; // Save PC of instruction that raised exception
+          R->RV32_STVAL = 0; // MTVAL/STVAL unused for ecall and is set to 0 
+          R->RV32_SCAUSE = EXCEPTION_CAUSE::ECALL_USER_MODE; // MTVAL/STVAL unused for ecall and is set to 0 
           R->RV32_PC += Inst.instSize;
         }
-        else{ // F->IsRV64
-          uint64_t code = R->RV64[17];
-          std::cout << "64-Bit ECALL CODE: " + std::to_string(code) << std::endl;
+        else {
+          /* 
+          * In reality this should be getting/setting a LOT of bits inside the 
+          * CSRs however because we are only concerned with ecall right now it's 
+          * not a concern.
+          * NOTE: Normally you would have to check if you are currently executing in 
+          *       Supervisor mode already and set RV64_MEPC instead but we don't need 
+          *       to worry about machine mode with the ecalls we are supporting
+          */
+          // R->RV64_PC += Inst.instSize; // TODO: Verify this needs to happen
+          R->RV64_SEPC = R->RV64_PC; // Save PC of instruction that raised exception
+          R->RV64_STVAL = 0; // MTVAL/STVAL unused for ecall and is set to 0 
+          R->RV64_SCAUSE = EXCEPTION_CAUSE::ECALL_USER_MODE; // MTVAL/STVAL unused for ecall and is set to 0 
+          /*
+           * Trap Handler is not implemented because we only have one exception 
+           * So we don't have to worry about setting `mtvec` reg
+           */
           R->RV64_PC += Inst.instSize;
-        }
+        } 
         return true;
       }
 

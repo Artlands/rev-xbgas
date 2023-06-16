@@ -26,11 +26,11 @@
 import os
 import sst
 
-PROGRAM = "eld.exe"
+PROGRAM = "ebld.exe"
 MEMSIZE = 1024*1024*1024
 ENABLE_XBGAS = 1
 VERBOSE0 = 2
-VERBOSE1 = 1
+VERBOSE1 = 2
 
 cpu0_params = {
   "verbose" : VERBOSE0,                                # Verbosity
