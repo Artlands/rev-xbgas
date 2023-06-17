@@ -2052,8 +2052,8 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
         uint32_t CurrPID = ActivePIDs.at(HartToExec);
         uint32_t ParentPID = ThreadTable.at(ActivePIDs.at(HartToExec))->GetParentPID();
         output->verbose(CALL_INFO, 2, 0,
-                      "Thread %u finished execution. Switching to its parent PID = %u", CurrPID, ParentPID);
                       "Thread %u completed execution.\n", CurrPID);
+        if(ParentPID != 0 ){
           done = false;
           output->verbose(CALL_INFO, 2, 0, "Switching from thread with PID = %u to its parent PID = %u\n", ActivePIDs.at(HartToExec), ParentPID);
           CtxSwitchAlert(ParentPID);
@@ -2069,7 +2069,7 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
     if( mem->outstandingRqsts() ){
       done = false;
     }
-
+    
     if( done ){
       // we are really done, return
       output->verbose(CALL_INFO,2,0,"Program execution complete\n");
@@ -2084,14 +2084,13 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
                                       mem->memStats.floatsRead, \
                                       mem->memStats.doublesRead, \
                                       Stats.floatsExec,
-                                      Retired);
+                                      Retired);      
       return false;
     }
   }
 
   return rtn;
 }
-
 
 /* System Call & Thread Stuff Below */
 uint32_t RevProc::HartToExecPID(){

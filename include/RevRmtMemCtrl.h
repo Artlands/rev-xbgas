@@ -22,6 +22,7 @@
 #include <sst/core/sst_config.h>
 #include <sst/core/output.h>
 #include <sst/core/subcomponent.h>
+#include <sst/core/interfaces/simpleNetwork.h>
 
 // -- RevCPU Headers
 #include "RevOpts.h"
@@ -65,8 +66,8 @@ namespace SST {
       /// RevRmtMemCtrl: finish function
       virtual void finish() = 0;
 
-      /// RevRmtMemCtrl: check if the remote memory operation is finished
-      virtual bool isFinished() = 0;
+      /// RevBasicRmtMemCtrl: PEs finish function
+      virtual bool isPeFinished() = 0;
 
       /// RevRmtMemCtrl: determines if outstanding requests exist
       virtual bool outstandingRqsts() = 0;
@@ -158,8 +159,8 @@ namespace SST {
       /// RevBasicRmtMemCtrl: finish function
       virtual void finish() override;
 
-      /// RevBasicRmtMemCtrl: finish function
-      virtual bool isFinished() override;
+      /// RevBasicRmtMemCtrl: PEs finish function
+      virtual bool isPeFinished() override;
 
       /// RevBasicRmtMemCtrl: determines if outstanding requests exist
       bool outstandingRqsts() override;
@@ -213,6 +214,9 @@ namespace SST {
       /// RevBasicRmtMemCtrl: handle a write response
       virtual void handleRmtWriteResp( xbgasNicEvent *ev );
 
+      /// RevBasicRmtMemCtrl: handle a finish response
+      virtual void handleFinish( xbgasNicEvent *ev );
+
       /// RevBasicRmtMemCtrl: Namespace Lookaside Buffer translation
       int findDest( uint64_t Nmspace );
 
@@ -233,7 +237,11 @@ namespace SST {
       // -- private data members
       RevMem *mem;                               ///< RevBasicRmtMemCtrl: pointer to the memory object
       xbgasNicAPI *xbgas_nic;                    ///< RevBasicRmtMemCtrl: xBGAS NIC interface
-      
+      std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts; ///< RevBasicRmtMemCtrl: xbgas hosts list
+      std::map<SST::Interfaces::SimpleNetwork::nid_t, bool> PeFinished;  ///< RevBasicRmtMemCtrl: PE finished map
+      bool complBroadcastSent;                   ///< RevBasicRmtMemCtrl: has the complete bcast been sent?
+
+
       unsigned max_loads;                        ///< RevBasicRmtMemCtrl: maximum number of outstanding loads
       unsigned max_stores;                       ///< RevBasicRmtMemCtrl: maximum number of outstanding stores
       unsigned max_responses;                    ///< RevBasicRmtMemCtrl: maximum number of responses to issue per cycle
