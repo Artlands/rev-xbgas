@@ -16,19 +16,13 @@
 #include <math.h>
 
 int main(int argc, char **argv){
-  int num_pe;
-  int64_t i = 0;
-
-  num_pe = 4;
-  // i = (int)(log(num_pe)/log(2));
+  int num_pe = 4;
 
   int64_t iter = (int64_t)(log(num_pe)/log(2));
   
-  if (iter < log(num_pe)/log(2))
-		iter++;
-
-  while (i < iter) {
-    i++;
+  if (iter != 2) {
+    while(1) {
+    }
   }
 
   return 0;
