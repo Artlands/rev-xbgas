@@ -343,8 +343,14 @@ namespace SST{
       /// RevProc: decode a compressed CIW-type isntruction
       RevInst DecodeCIWInst(uint16_t Inst, unsigned Entry);
 
-      /// RevProc: decode a compressed CL-type and CS-type isntruction
-      RevInst DecodeCLSInst(uint16_t Inst, unsigned Entry);
+      /// RevProc: decode a compressed CL-type isntruction
+      RevInst DecodeCLInst(uint16_t Inst, unsigned Entry);
+
+      /// RevProc: decode a compressed CS-type isntruction
+      RevInst DecodeCSInst(uint16_t Inst, unsigned Entry);
+
+      /// RevProc: decode a compressed CA-type isntruction
+      RevInst DecodeCAInst(uint16_t Inst, unsigned Entry);
 
       /// RevProc: decode a compressed CB-type isntruction
       RevInst DecodeCBInst(uint16_t Inst, unsigned Entry);

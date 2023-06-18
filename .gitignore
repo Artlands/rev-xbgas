@@ -5,8 +5,6 @@ src/librevcpu.so
 *.exe
 *.csv
 *.obj
-softfp*
 .cache/clangd/index
 .vscode
-/include/softfp/
 /xbrtime/

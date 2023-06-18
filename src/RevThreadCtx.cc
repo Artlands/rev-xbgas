@@ -42,13 +42,17 @@ bool RevThreadCtx::DuplicateRegFile(RevRegFile& regToDup){
   for( unsigned i=0; i<_REV_NUM_REGS_; i++ ){
     RegFile.RV32[i] = regToDup.RV32[i];
     RegFile.RV64[i] = regToDup.RV64[i];
-    RegFile.SPF[i] = regToDup.SPF[i];
-    RegFile.DPF[i] = regToDup.DPF[i];
+    RegFile.SFP[i] = regToDup.SFP[i];
+    RegFile.DFP[i] = regToDup.DFP[i];
+    // RegFile.SPF[i] = regToDup.SPF[i];
+    // RegFile.DPF[i] = regToDup.DPF[i];
 
     RegFile.RV32_Scoreboard[i] = regToDup.RV32_Scoreboard[i];
     RegFile.RV64_Scoreboard[i] = regToDup.RV64_Scoreboard[i];
-    RegFile.SPF_Scoreboard[i] = regToDup.SPF_Scoreboard[i];
-    RegFile.DPF_Scoreboard[i] = regToDup.DPF_Scoreboard[i];
+    RegFile.SFP_Scoreboard[i] = regToDup.SFP_Scoreboard[i];
+    RegFile.DFP_Scoreboard[i] = regToDup.DFP_Scoreboard[i];
+    // RegFile.SPF_Scoreboard[i] = regToDup.SPF_Scoreboard[i];
+    // RegFile.DPF_Scoreboard[i] = regToDup.DPF_Scoreboard[i];
   }
 
   RegFile.RV64_SSTATUS = regToDup.RV64_SSTATUS;

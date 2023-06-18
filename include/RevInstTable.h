@@ -253,8 +253,8 @@ namespace SST{
       uint64_t RV64[_REV_NUM_REGS_];    ///< RevRegFile: RV64I register file
       // float SPF[_REV_NUM_REGS_];        ///< RevRegFile: RVxxF register file
       // double DPF[_REV_NUM_REGS_];       ///< RevRegFile: RVxxD register file
-      float SPF[_REV_NUM_REGS_];        ///< RevRegFile: RVxxF register file
-      double DPF[_REV_NUM_REGS_];       ///< RevRegFile: RVxxD register file
+      // float SPF[_REV_NUM_REGS_];        ///< RevRegFile: RVxxF register file
+      // double DPF[_REV_NUM_REGS_];       ///< RevRegFile: RVxxD register file
   
       // uint32_t RV32_CSR[_REV_NUM_REGS_];    ///< RevRegFile: RV32 CSR register file (Incomplete)
       // uint64_t RV64_CSR[_REV_NUM_REGS_];    ///< RevRegFile: RV64 CSR register file (Incomplete)
@@ -284,8 +284,10 @@ namespace SST{
 
       bool RV32_Scoreboard[_REV_NUM_REGS_]; ///< RevRegFile: Scoreboard for RV32I RF to manage pipeline hazard
       bool RV64_Scoreboard[_REV_NUM_REGS_]; ///< RevRegFile: Scoreboard for RV64I RF to manage pipeline hazard
-      bool SPF_Scoreboard[_REV_NUM_REGS_];  ///< RevRegFile: Scoreboard for SPF RF to manage pipeline hazard
-      bool DPF_Scoreboard[_REV_NUM_REGS_];  ///< RevRegFile: Scoreboard for DPF RF to manage pipeline hazard
+      bool SFP_Scoreboard[_REV_NUM_REGS_];  ///< RevRegFile: Scoreboard for SPF RF to manage pipeline hazard
+      bool DFP_Scoreboard[_REV_NUM_REGS_];  ///< RevRegFile: Scoreboard for DPF RF to manage pipeline hazard
+      // bool SPF_Scoreboard[_REV_NUM_REGS_];  ///< RevRegFile: Scoreboard for SPF RF to manage pipeline hazard
+      // bool DPF_Scoreboard[_REV_NUM_REGS_];  ///< RevRegFile: Scoreboard for DPF RF to manage pipeline hazard
 
       uint32_t RV32_PC;                 ///< RevRegFile: RV32 PC
       uint64_t RV64_PC;                 ///< RevRegFile: RV64 PC

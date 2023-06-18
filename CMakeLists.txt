@@ -12,7 +12,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif()
 
 cmake_minimum_required(VERSION 3.0)
-project(revcpu CXX)
+project(revcpu CXX C)
 
 
 #---------------------------------------------------------------------------
@@ -159,6 +159,7 @@ endif()
 option(REV_ENABLE_TESTING "Enable Testing")
 enable_testing()
 
+add_subdirectory(include/softfp)
 
 add_subdirectory(src)
 add_subdirectory(include)
