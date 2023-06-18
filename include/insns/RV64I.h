@@ -55,13 +55,11 @@ namespace SST{
 
       static bool csd(RevFeature *F, RevRegFile *R, RevMem *M,   RevInst Inst) {
         // c.sd rs2, rs1, $imm = sd rs2, $imm(rs1)
-        uint64_t Tmp64;
-        Inst.rs2 = CRegMap[Inst.crs2];
-        Inst.rs1 = CRegMap[Inst.crs1];
-        ZEXT(Tmp64, Inst.imm, 8);
-        M->WriteU64((uint64_t)(R->RV64[Inst.rs1] + Tmp64), (uint64_t)(R->RV64[Inst.rs2]));
-        R->RV64_PC += Inst.instSize;
-        return true;
+        Inst.rs2 = CRegMap[Inst.rs2];
+        Inst.rs1 = CRegMap[Inst.rs1];
+        Inst.imm = (Inst.imm&0b11111111); //imm is 8-bits, zero extended, decoder pre-aligns bits, no scaling needed
+
+        return sd(F,R,M,Inst);
       }
 
       static bool caddiw(RevFeature *F, RevRegFile *R, RevMem *M,   RevInst Inst) {
@@ -92,10 +90,15 @@ namespace SST{
       }
 
       // Standard instructions
-      static bool lwu(RevFeature *F, RevRegFile *R,RevMem *M, RevInst Inst){
-        uint64_t Tmp64;
-        SEXT(Tmp64, Inst.imm, 12);
-        ZEXT(R->RV64[Inst.rd], M->ReadU32((uint64_t)(R->RV64[Inst.rs1] + Tmp64)), 32);
+      static bool lwu(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst){
+        //ZEXT(R->RV64[Inst.rd],M->ReadU64( (uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12)))),64);
+        uint32_t val = 0;
+        M->ReadVal((uint64_t)(R->RV64[Inst.rs1]+(int32_t)(td_u32(Inst.imm,12))),
+                    &val,
+                    REVMEM_FLAGS(RevCPU::RevFlag::F_ZEXT64));
+        R->RV64[Inst.rd] = 0x00ULL;
+        R->RV64[Inst.rd] |= (uint64_t)(val);
+        //ZEXT64(R->RV64[Inst.rd], (uint64_t)val, 64);
         R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
         R->RV64_PC += Inst.instSize;
         return true;
@@ -136,10 +139,22 @@ namespace SST{
         return true;
       }
 
-      static bool srliw(RevFeature *F, RevRegFile *R,RevMem *M, RevInst Inst) {
-        uint64_t Tmp;
-        Tmp = R->RV64[Inst.rs1] >> (Inst.imm & 0b011111);
-        SEXT(R->RV64[Inst.rd], Tmp & MASK32, 32);
+      static bool srliw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+        // catch the special case where IMM == 0x00; RD = RS1
+        if( (Inst.imm&0b111111) == 0x00 ){
+          R->RV64[Inst.rd] = 0x00ULL;
+          R->RV64[Inst.rd] |= (R->RV64[Inst.rs1]&0xffffffff);
+          SEXTI64(R->RV64[Inst.rd],32);
+          R->RV64_PC += Inst.instSize;
+          return true;
+        }
+
+        uint32_t srcTrunc = R->RV64[Inst.rs1] & MASK32;  //Force operation on 32-bit unsigned value
+        uint32_t dest = (srcTrunc >> (Inst.imm&0b111111));
+        R->RV64[Inst.rd] = 0x00ULL;
+        R->RV64[Inst.rd] |= (uint64_t)(dest);
+        //ZEXT64(R->RV64[Inst.rd],(srcTrunc >> (Inst.imm&0b111111))&MASK32,64);
+        //SEXTI64(R->RV64[Inst.rd],32);
         R->RV64_PC += Inst.instSize;
         return true;
       }

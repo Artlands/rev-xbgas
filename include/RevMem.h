@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <random>
+#include <mutex>
 
 // -- SST Headers
 #include <sst/core/sst_config.h>
@@ -114,7 +115,7 @@ namespace SST {
       /// RevMem: read bulk data from the target remote memory location
       bool RmtBulkReadMem( uint64_t Nmspace, uint64_t SrcAddr, 
                            uint32_t Size, uint32_t Nelem, 
-                           uint32_t Stride, uint64_t DestAddr );
+                           uint32_t Stride, uint64_t DestAddr, int *RegisterTag);
 
       /// RevMem: write data to the target remote memory location
       bool RmtWriteMem( uint64_t Nmspace, uint64_t DestAddr, 
@@ -201,6 +202,9 @@ namespace SST {
       /// RevMem: Randomly assign a memory cost
       unsigned RandCost( unsigned Min, unsigned Max );
 
+      uint32_t GetNewThreadPID();
+      uint64_t DefaultThreadMemSize = 4*1024*1024;    ///< RevMem: default memory size allocated to new threads
+
     class RevMemStats {
     public:
       uint32_t floatsRead;
@@ -225,6 +229,8 @@ namespace SST {
 
       uint64_t CalcPhysAddr(uint64_t Addr);
 
+      std::mutex m_mtx;         ///< RevMem: used for incrementing ThreadCtx PID counter
+      uint32_t PIDCount = 1023; ///< RevMem: Monotonically increasing PID counter for assigning new PIDs without conflicts
 
       //c++11 should guarentee that these are all zero-initializaed
       std::map<uint64_t, std::pair<uint32_t, bool>> pageMap;   ///< RevMem: map of logical to pair<physical addresses, allocated>

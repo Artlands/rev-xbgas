@@ -10,3 +10,6 @@ src/librevcpu.so
 *.o
 *.h.gch
 softfp*
+.cache/clangd/index
+.vscode
+/xbrtime/

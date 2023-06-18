@@ -11,8 +11,9 @@
 #include "../include/RevMem.h"
 #include "../include/RevRmtMemCtrl.h"
 #include <math.h>
+#include <mutex>
 
-#define _XBGAS_DEBUG_
+// #define _XBGAS_DEBUG_
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
                 RevMemCtrl *Ctrl, SST::Output *Output )
@@ -69,12 +70,19 @@ RevMem::~RevMem(){
 }
 
 bool RevMem::outstandingRqsts(){
+  bool rtn = false;
+  
   if( ctrl ){
-    return ctrl->outstandingRqsts();
+    // return ctrl->outstandingRqsts();
+    rtn = ctrl->outstandingRqsts();
+  }
+
+  if( rmtCtrl ){
+    return (rtn || (rmtCtrl->outstandingRqsts()));
   }
 
   // RevMemCtrl is not enabled; no outstanding requests
-  return false;
+  return rtn;
 }
 
 void RevMem::HandleMemFault(unsigned width){
@@ -130,7 +138,6 @@ bool RevMem::LR(unsigned Hart, uint64_t Addr){
 
 bool RevMem::SC(unsigned Hart, uint64_t Addr){
   // search the LRSC vector for the entry pair
-  std::pair<unsigned,uint64_t> Entry = std::make_pair(Hart,Addr);
   std::vector<std::pair<unsigned,uint64_t>>::iterator it;
 
   for( it = LRSC.begin(); it != LRSC.end(); ++it ){
@@ -264,7 +271,8 @@ bool RevMem::WriteMem( uint64_t Addr, size_t Len, void *Data,
 }
 
 bool RevMem::WriteMem( uint64_t Addr, size_t Len, void *Data ){
-#ifdef _REV_DEBUG_
+// #ifdef _REV_DEBUG_
+#ifdef _XBGAS_DEBUG_
   std::cout << "Writing " << Len << " Bytes Starting at 0x" << std::hex << Addr << std::dec << std::endl;
 #endif
 
@@ -342,7 +350,8 @@ bool RevMem::WriteMem( uint64_t Addr, size_t Len, void *Data ){
 }
 
 bool RevMem::ReadMem( uint64_t Addr, size_t Len, void *Data ){
-#ifdef _REV_DEBUG_
+// #ifdef _REV_DEBUG_
+#ifdef _XBGAS_DEBUG_
   std::cout << "Reading " << Len << " Bytes Starting at 0x" << std::hex << Addr << std::endl;
 #endif
   uint64_t physAddr = CalcPhysAddr(Addr);
@@ -562,7 +571,7 @@ bool RevMem::RmtReadMem( uint64_t Nmspace, uint64_t SrcAddr,
                          uint32_t Size, void *Target, int *RegisterTag){
 
 #ifdef _XBGAS_DEBUG_
-        std::cout << "Remote Memory Read: Namespace: " << std::dec << Nmspace
+        std::cout << "--> Remote Memory Read: Namespace: " << std::dec << Nmspace
                   << ", Source Addr: " << std::hex << SrcAddr
                   << ", Size: " << std::dec << Size << std::endl; 
 #endif
@@ -572,9 +581,16 @@ bool RevMem::RmtReadMem( uint64_t Nmspace, uint64_t SrcAddr,
 }
 
 bool RevMem::RmtBulkReadMem( uint64_t Nmspace, uint64_t SrcAddr, uint32_t Size, 
-                     uint32_t Nelem, uint32_t Stride, uint64_t DestAddr ) {
+                     uint32_t Nelem, uint32_t Stride, uint64_t DestAddr, int *RegisterTag) {
+#ifdef _XBGAS_DEBUG_
+        std::cout << "--> Remote Bulk Memory Read: Namespace: " << std::dec << Nmspace
+                  << ", Source Addr: " << std::hex << SrcAddr
+                  << ", Size: " << std::dec << Size 
+                  << ", Nelem: "<< std::dec << Nelem
+                  << ", Stride: "<< std::dec << Stride << std::endl; 
+#endif
   bool rtn = rmtCtrl->sendRmtBulkReadRqst(Nmspace, SrcAddr, Size, 
-                                          Nelem, Stride, DestAddr);
+                                          Nelem, Stride, DestAddr, RegisterTag);
   return rtn;
 }
 
@@ -591,6 +607,31 @@ bool RevMem::RmtBulkWriteMem( uint64_t Nmspace, uint64_t DestAddr, uint32_t Size
   bool rtn = rmtCtrl->sendRmtBulkWriteRqst(Nmspace, DestAddr, Size, 
                                            Nelem, Stride, SrcAddr);
   return rtn;
+}
+
+/*
+* Func: GetNewThreadPID
+* - This function is used to interact with the global 
+*   PID counter inside of RevMem
+* - When a new RevThreadCtx is created, it is assigned 
+*   the value of PIDCount++
+* - This ensures no collisions because all RevProcs access
+*   the same RevMem instance
+*/
+uint32_t RevMem::GetNewThreadPID(){
+
+  #ifdef _REV_DEBUG_
+  std::cout << "RevMem: New PID being given: " << PIDCount+1 << std::endl; 
+  #endif
+  /*
+  * NOTE: A mutex is acquired solely to prevent race conditions
+  *       if multiple RevProc's create new Ctx objects at the 
+  *       same time
+  */
+  std::unique_lock<std::mutex> lock(m_mtx);
+  PIDCount++;
+  lock.unlock();
+  return PIDCount;
 }
 
 // EOF

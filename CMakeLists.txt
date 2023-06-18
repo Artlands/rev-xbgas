@@ -12,7 +12,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif()
 
 cmake_minimum_required(VERSION 3.0)
-project(revcpu CXX)
+project(revcpu CXX C)
 
 
 #---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ message (LDFLAGS="${LDFLAGS}")
 #------------------------------------------------------------------------
 #-- COMPILER OPTIONS
 #------------------------------------------------------------------------
-set(CMAKE_CXX_FLAGS "-O2 -Wall ${CMAKE_CXX_FLAGS} -std=c++11 -I./ ${LDFLAGS} ${REVCPU_COMPILER_MACROS}")
+set(CMAKE_CXX_FLAGS "-O2 -Wall ${CMAKE_CXX_FLAGS} -std=c++17 -I./ ${LDFLAGS} ${REVCPU_COMPILER_MACROS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall ${REVCPU_COMPILER_MACROS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall ${REVCPU_COMPILER_MACROS}")
 
@@ -159,6 +159,7 @@ endif()
 option(REV_ENABLE_TESTING "Enable Testing")
 enable_testing()
 
+add_subdirectory(include/softfp)
 
 add_subdirectory(src)
 add_subdirectory(include)

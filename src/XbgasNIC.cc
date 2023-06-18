@@ -202,6 +202,11 @@ bool xbgasNicEvent::buildBulkPutResp(int64_t PktId){
   return true;
 }
 
+bool xbgasNicEvent::buildFinish(){
+  Opcode = xbgasNicEvent::Finish;
+  return true;
+}
+
 XbgasNIC::XbgasNIC(ComponentId_t id, Params& params)
   : xbgasNicAPI(id, params) {
   // setup the initial logging functions

@@ -18,6 +18,7 @@ set(RevCPUSrcs
   RevNIC.cc
   RevOpts.cc
   RevProc.cc
+  RevThreadCtx.cc
   librevcpu.cc
   RevPrefetcher.cc
   XbgasNIC.cc
@@ -26,7 +27,7 @@ set(RevCPUSrcs
 
 
 add_library(revcpu SHARED ${RevCPUSrcs})
-target_link_libraries(revcpu PRIVATE ${CMAKE_SOURCE_DIR}/include/softfp/softfp.o)
+target_link_libraries(revcpu PRIVATE softfp)
 
 target_include_directories(revcpu PRIVATE ${REVCPU_INCLUDE_PATH})
 target_include_directories(revcpu PUBLIC ${SST_INSTALL_DIR}/include)

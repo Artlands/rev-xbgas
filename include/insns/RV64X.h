@@ -13,7 +13,10 @@
 
 #include "../RevInstTable.h"
 
-#define _XBGAS_DEBUG_
+// -- xBGAS Common Headers
+#include "../../common/include/XbgasAddr.h"
+
+// #define _XBGAS_DEBUG_
 
 using namespace SST::RevCPU;
 
@@ -536,23 +539,203 @@ namespace SST {
       }
 
       static bool ebld(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rd]);
         uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
         uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
         uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
-
+        uint64_t myPE = M->ReadU64(_XBGAS_MY_PE_);
+        if( R->RV64_Tag[Inst.rd] == 0) {
   #ifdef _XBGAS_DEBUG_
-          std::cout << "Before ebld: Namespace: " << std::dec << Nmspace
+          std::cout << "PE " << std::dec << myPE
+                    << ": ebld: Namespace: " << std::dec << Nmspace
+                    << ", Dest Addr: " << std::hex << DestAddr
                     << ", Source Addr: " << std::hex << SrcAddr
                     << ", Nelem: " << std::dec << (int)(Nelem)
                     << ", Stride: " << std::dec << (int)(Stride)
                     << std::endl;
-  #endif
-          if( Nmspace != 0x00ull) {
-            M->RmtBulkReadMem(Nmspace, SrcAddr, 8, Nelem, Stride, R->RV64[Inst.rd]);
+          
+          std::cout << "PE " << std::dec << myPE
+                    << ": Original array: ";
+          uint64_t TmpAddr;
+          // Iterate through the source array
+          for(uint32_t i=0; i<Nelem; i++){
+            TmpAddr = DestAddr + (i*Stride);
+            uint64_t TmpData;
+            M->ReadMem(TmpAddr, 8, &TmpData);
+            std::cout << "[" << i
+                      << "] = " << std::hex << TmpData
+                      << ", ";
           }
+          std::cout << std::endl;
+  #endif
+          if( Nmspace != 0x00ull)
+            M->RmtBulkReadMem(Nmspace, SrcAddr, 8, Nelem, Stride, R->RV64[Inst.rd], &R->RV64_Tag[Inst.rd]);
+        } else if (R->RV64_Tag[Inst.rd] == 1) {
           R->RV64_PC += Inst.instSize;
+          R->RV64_Tag[Inst.rd] = 0;
+  #ifdef _XBGAS_DEBUG_
+          std::cout << "PE " << std::dec << myPE << ": ebld retires" << std::endl;
+          std::cout << "PE " << std::dec << myPE
+                    << ": Updated array: ";
+          uint64_t TmpAddr;
+          // Iterate through the source array
+          for(uint32_t i=0; i<Nelem; i++){
+            TmpAddr = DestAddr + (i*Stride);
+            uint64_t TmpData;
+            M->ReadMem(TmpAddr, 8, &TmpData);
+            std::cout << "[" << i
+                      << "] = " << std::hex << TmpData
+                      << ", ";
+          }
+          std::cout << std::endl;
+  #endif
+        } else {
+          // Do nothing. Waiting for the remote memory response
+        }
 
+        return true;
+      }
+
+      static bool eblw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
+        uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
+        if( R->RV64_Tag[Inst.rd] == 0) {
+          if( Nmspace != 0x00ull)
+            M->RmtBulkReadMem(Nmspace, SrcAddr, 4, Nelem, Stride, R->RV64[Inst.rd], &R->RV64_Tag[Inst.rd]);
+        } else if (R->RV64_Tag[Inst.rd] == 1) {
+          R->RV64_PC += Inst.instSize;
+          R->RV64_Tag[Inst.rd] = 0;
+        } else {
+          // Do nothing. Waiting for the remote memory response
+        }
+
+        return true;
+      }
+
+      static bool eblh(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
+        uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
+        if( R->RV64_Tag[Inst.rd] == 0) {
+          if( Nmspace != 0x00ull)
+            M->RmtBulkReadMem(Nmspace, SrcAddr, 2, Nelem, Stride, R->RV64[Inst.rd], &R->RV64_Tag[Inst.rd]);
+        } else if (R->RV64_Tag[Inst.rd] == 1) {
+          R->RV64_PC += Inst.instSize;
+          R->RV64_Tag[Inst.rd] = 0;
+        } else {
+          // Do nothing. Waiting for the remote memory response
+        }
+
+        return true;
+      }
+
+      static bool eblhu(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
+        uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
+        if( R->RV64_Tag[Inst.rd] == 0) {
+          if( Nmspace != 0x00ull)
+            M->RmtBulkReadMem(Nmspace, SrcAddr, 2, Nelem, Stride, R->RV64[Inst.rd], &R->RV64_Tag[Inst.rd]);
+        } else if (R->RV64_Tag[Inst.rd] == 1) {
+          R->RV64_PC += Inst.instSize;
+          R->RV64_Tag[Inst.rd] = 0;
+        } else {
+          // Do nothing. Waiting for the remote memory response
+        }
+
+        return true;
+      }
+
+      static bool eblb(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
+        uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
+        if( R->RV64_Tag[Inst.rd] == 0) {
+          if( Nmspace != 0x00ull)
+            M->RmtBulkReadMem(Nmspace, SrcAddr, 1, Nelem, Stride, R->RV64[Inst.rd], &R->RV64_Tag[Inst.rd]);
+        } else if (R->RV64_Tag[Inst.rd] == 1) {
+          R->RV64_PC += Inst.instSize;
+          R->RV64_Tag[Inst.rd] = 0;
+        } else {
+          // Do nothing. Waiting for the remote memory response
+        }
+
+        return true;
+      }
+
+      static bool eblbu(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
+        uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
+        if( R->RV64_Tag[Inst.rd] == 0) {
+          if( Nmspace != 0x00ull)
+            M->RmtBulkReadMem(Nmspace, SrcAddr, 1, Nelem, Stride, R->RV64[Inst.rd], &R->RV64_Tag[Inst.rd]);
+        } else if (R->RV64_Tag[Inst.rd] == 1) {
+          R->RV64_PC += Inst.instSize;
+          R->RV64_Tag[Inst.rd] = 0;
+        } else {
+          // Do nothing. Waiting for the remote memory response
+        }
+
+        return true;
+      }
+
+      static bool ebsd(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
+        uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
+        if( Nmspace != 0x00ull){
+          M->RmtBulkWriteMem(Nmspace, DestAddr, 8, Nelem, Stride, R->RV64[Inst.rd]);
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
+        R->RV64_PC += Inst.instSize;
+        return true;
+      }
+
+      static bool ebsw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
+        uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
+        if( Nmspace != 0x00ull){
+          M->RmtBulkWriteMem(Nmspace, DestAddr, 4, Nelem, Stride, R->RV64[Inst.rd]);
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
+        R->RV64_PC += Inst.instSize;
+        return true;
+      }
+
+      static bool ebsh(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
+        uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
+        if( Nmspace != 0x00ull){
+          M->RmtBulkWriteMem(Nmspace, DestAddr, 2, Nelem, Stride, R->RV64[Inst.rd]);
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
+        R->RV64_PC += Inst.instSize;
+        return true;
+      }
+
+      static bool ebsb(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs1]);
+        uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
+        uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
+        if( Nmspace != 0x00ull){
+          M->RmtBulkWriteMem(Nmspace, DestAddr, 1, Nelem, Stride, R->RV64[Inst.rd]);
+          R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+        }
+        R->RV64_PC += Inst.instSize;
         return true;
       }
 
@@ -609,8 +792,18 @@ namespace SST {
         {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eaddix %extd, %ext1, $imm" ).SetCost(1).SetOpcode(0b0000011).SetFunct3(0b111).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegUNKNOWN).Setrs3Class(RegUNKNOWN).Setimm12(0b0).Setimm(FImm).SetFormat(RVTypeI).SetImplFunc( &eaddix).InstEntry},
 
         // Bulk Load instruction is encoded in the R4-type format
-        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ebld %rd, %rs1, %rs2, %rs3").SetCost(1).SetOpcode(0b1000011).SetFunct2(0b11).SetFunct3(0b011).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegGPR    ).SetFormat(RVTypeR4).SetImplFunc(&ebld ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ebld  %rd, %rs1, %rs2, %rs3").SetCost(1).SetOpcode(0b1000011).SetFunct2(0b11).SetFunct3(0b011).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegGPR    ).SetFormat(RVTypeR4).SetImplFunc(&ebld ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eblw  %rd, %rs1, %rs2, %rs3").SetCost(1).SetOpcode(0b1000011).SetFunct2(0b11).SetFunct3(0b010).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegGPR    ).SetFormat(RVTypeR4).SetImplFunc(&eblw ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eblh  %rd, %rs1, %rs2, %rs3").SetCost(1).SetOpcode(0b1000011).SetFunct2(0b11).SetFunct3(0b001).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegGPR    ).SetFormat(RVTypeR4).SetImplFunc(&eblh ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eblhu %rd, %rs1, %rs2, %rs3").SetCost(1).SetOpcode(0b1000011).SetFunct2(0b11).SetFunct3(0b101).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegGPR    ).SetFormat(RVTypeR4).SetImplFunc(&eblhu).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eblb  %rd, %rs1, %rs2, %rs3").SetCost(1).SetOpcode(0b1000011).SetFunct2(0b11).SetFunct3(0b000).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegGPR    ).SetFormat(RVTypeR4).SetImplFunc(&eblb ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("eblbu %rd, %rs1, %rs2, %rs3").SetCost(1).SetOpcode(0b1000011).SetFunct2(0b11).SetFunct3(0b100).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegGPR    ).SetFormat(RVTypeR4).SetImplFunc(&eblbu).InstEntry},
 
+        // Bulk Store instruction is encoded in the R4-type format
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ebsd  %rd, %rs1, %rs2, %rs3").SetCost(1).SetOpcode(0b1000011).SetFunct2(0b10).SetFunct3(0b011).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegGPR    ).SetFormat(RVTypeR4).SetImplFunc(&ebsd ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ebsw  %rd, %rs1, %rs2, %rs3").SetCost(1).SetOpcode(0b1000011).SetFunct2(0b10).SetFunct3(0b010).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegGPR    ).SetFormat(RVTypeR4).SetImplFunc(&ebsw ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ebsh  %rd, %rs1, %rs2, %rs3").SetCost(1).SetOpcode(0b1000011).SetFunct2(0b10).SetFunct3(0b001).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegGPR    ).SetFormat(RVTypeR4).SetImplFunc(&ebsh ).InstEntry},
+        {RevInstEntryBuilder<RevInstDefaults>().SetMnemonic("ebsb  %rd, %rs1, %rs2, %rs3").SetCost(1).SetOpcode(0b1000011).SetFunct2(0b10).SetFunct3(0b000).SetFunct7(0b0      ).SetrdClass(RegGPR    ).Setrs1Class(RegGPR    ).Setrs2Class(RegGPR    ).Setrs3Class(RegGPR    ).SetFormat(RVTypeR4).SetImplFunc(&ebsb ).InstEntry},
       };
 
     public:

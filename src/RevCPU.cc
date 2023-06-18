@@ -71,6 +71,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
   numCores = params.find<unsigned>("numCores", "1");
   if( EnablePANTest )
     numCores = 1; // force the PAN test to use a single core
+  output.verbose(CALL_INFO, 1, 0, "Building Rev with %d cores\n", numCores);
 
   // read the binary executable name
   Exe = params.find<std::string>("program", "a.out");
@@ -1909,9 +1910,6 @@ bool RevCPU::PANProcessRDMAMailbox(){
   unsigned iter = 0;
   uint64_t Addr = PrevAddr;
   uint64_t Payload[3];
-  uint64_t CmdBuf;
-  uint64_t Buf = 0x00ull;
-  panNicEvent *TEvent = nullptr;
 
   while( !done ){
 
@@ -2000,8 +1998,6 @@ void RevCPU::ExecPANTest(){
   int dest = 1;
   uint64_t BASE = 0x00000080ull;
   uint64_t Buf = 0x00ull;
-  uint64_t Addr = _PAN_COMPLETION_ADDR_;
-  uint64_t Payload = 0x01ull;
   panNicEvent *TEvent = nullptr;
 
   switch( testStage ){
@@ -2388,10 +2384,10 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   for( unsigned i=0; i<Procs.size(); i++ ){
     if( Enabled[i] ){
       if( !Procs[i]->ClockTick(currentCycle) ){
-         UpdateCoreStatistics(i);
+        UpdateCoreStatistics(i);
         Enabled[i] = false;
-      output.verbose(CALL_INFO, 5, 0, "Closing Processor %d at Cycle: %" PRIu64 "\n",
-                     i, static_cast<uint64_t>(currentCycle));
+        output.verbose(CALL_INFO, 5, 0, "Closing Processor %d at Cycle: %" PRIu64 "\n",
+                      i, static_cast<uint64_t>(currentCycle));
       }
     }
   }
@@ -2435,7 +2431,6 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   // check to see if remote memory operations are completed
   if( EnableXBGAS ) {
     RmtCtrl->clockTick(currentCycle);
-    rtn = RmtCtrl->isFinished();
   }
 
   // check to see if all the processors are completed
@@ -2463,8 +2458,14 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   }
 
   if( rtn ){
-    primaryComponentOKToEndSim();
-    output.verbose(CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
+    // check PEs for completion
+    if( EnableXBGAS )
+      rtn = RmtCtrl->isPeFinished();
+    
+    if ( rtn ) {
+      primaryComponentOKToEndSim();
+      output.verbose(CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
+    }
   }
 
   return rtn;
