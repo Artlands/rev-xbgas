@@ -473,7 +473,7 @@ namespace SST{
         return true;
       }
 
-      static bool beq(RevFeature *F, RevRegFile *R,RevMem *M, RevInst Inst) {
+      static bool beq(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
         uint32_t Tmp32;
         uint64_t Tmp64;
         if( F->IsRV32() ){
