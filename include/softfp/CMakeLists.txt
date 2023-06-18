@@ -3,8 +3,6 @@ set(SOFTFP_SOURCES
     softfp.c
 )
 
-set_source_files_properties(${SOFTFP_SOURCES} PROPERTIES LANGUAGE C)
-
 # Build the softfp library as a C library target
 add_library(softfp STATIC ${SOFTFP_SOURCES})
 
