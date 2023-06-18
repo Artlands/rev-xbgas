@@ -340,15 +340,19 @@ namespace SST{
       }
 
       static bool beq(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
+        uint32_t Tmp32;
+        uint64_t Tmp64;
         if( F->IsRV32() ){
           if( R->RV32[Inst.rs1] == R->RV32[Inst.rs2] ){
-            R->RV32_PC = R->RV32_PC + (int32_t)(td_u32(Inst.imm,12));
+            SEXT(Tmp32, Inst.imm, 13);
+            R->RV32_PC = R->RV32_PC + Tmp32;
           }else{
             R->RV32_PC = R->RV32_PC + Inst.instSize;
           }
         }else{
           if( R->RV64[Inst.rs1] == R->RV64[Inst.rs2] ){
-            R->RV64_PC = R->RV64_PC + (int64_t)(td_u64(Inst.imm,12));
+            SEXT(Tmp64, Inst.imm, 13);
+            R->RV64_PC = R->RV64_PC + Tmp64;
           }else{
             R->RV64_PC = R->RV64_PC + Inst.instSize;
           }
