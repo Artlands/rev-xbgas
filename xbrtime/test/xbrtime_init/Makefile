@@ -19,9 +19,9 @@ ASM = $(SRCS:.c=.asm)
 CC=riscv64-unknown-elf-gcc
 OBJDUMP=riscv64-unknown-elf-objdump
 
-ARCH=rv64imafdc
-XBRTIME_INCLUDE=-I../../../src/xbgas_runtime
-XBRTIME_LIB=-L../../../src/xbgas_runtime -lxbrtime
+ARCH=rv64imafd
+XBRTIME_INCLUDE=-I../../include
+XBRTIME_LIB=-L../../ -lxbrtime
 
 all: $(EXEC)
 

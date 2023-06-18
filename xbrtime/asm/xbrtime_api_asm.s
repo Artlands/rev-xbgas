@@ -58,8 +58,7 @@ __xbrtime_get_u1_seq:
   .type __xbrtime_get_u1_agg, @function
 __xbrtime_get_u1_agg:
   eaddie e10, a2, 0       # set the extended register of x10
-  eag a1, a3, a4          # enable aggregation request.
-  elbu a1, 0(a0)         # remote load unsigned bytes from [e10+x10]
+  eblbu a1, a0, a3, a4    # bulk transfer request
   ret
   .size __xbrtime_get_u1_agg, .-__xbrtime_get_u1_agg
 
@@ -86,8 +85,7 @@ __xbrtime_get_u2_seq:
   .type __xbrtime_get_u2_agg, @function
 __xbrtime_get_u2_agg:
   eaddie e10, a2, 0
-  eag a1, a3, a4
-  elhu a1, 0(a0)
+  eblb a1, a0, a3, a4    # bulk transfer request.
   ret
   .size __xbrtime_get_u2_agg, .-__xbrtime_get_u2_agg
 
@@ -114,8 +112,7 @@ __xbrtime_get_u4_seq:
   .type __xbrtime_get_u4_agg, @function
 __xbrtime_get_u4_agg:
   eaddie e10, a2, 0
-  eag a1, a3, a4
-  elw a1, 0(a0)
+  eblw a1, a0, a3, a4
   ret
   .size __xbrtime_get_u4_agg, .-__xbrtime_get_u4_agg
 
@@ -142,8 +139,7 @@ __xbrtime_get_u8_seq:
   .type __xbrtime_get_u8_agg, @function
 __xbrtime_get_u8_agg:
   eaddie e10, a2, 0
-  eag a1, a3, a4
-  eld a1, 0(a0)
+  ebld a1, a0, a3, a4
   ret
   .size __xbrtime_get_u8_agg, .-__xbrtime_get_u8_agg
 
@@ -170,8 +166,7 @@ __xbrtime_get_s1_seq:
   .type __xbrtime_get_s1_agg, @function
 __xbrtime_get_s1_agg:
   eaddie e10, a2, 0
-  eag a1, a3, a4
-  elb a1, 0(a0)
+  eblb a1, a0, a3, a4
   ret
   .size __xbrtime_get_s1_agg, .-__xbrtime_get_s1_agg
 
@@ -198,8 +193,7 @@ __xbrtime_get_s2_seq:
   .type __xbrtime_get_s2_agg, @function
 __xbrtime_get_s2_agg:
   eaddie e10, a2, 0
-  eag a1, a3, a4
-  elh a1, 0(a0)
+  eblh a1, a0, a3, a4
   ret
   .size __xbrtime_get_s2_agg, .-__xbrtime_get_s2_agg
 
@@ -226,8 +220,7 @@ __xbrtime_get_s4_seq:
   .type __xbrtime_get_s4_agg, @function
 __xbrtime_get_s4_agg:
   eaddie e10, a2, 0
-  eag a1, a3, a4
-  elw a1, 0(a0)
+  eblw a1, a0, a3, a4
   ret
   .size __xbrtime_get_s4_agg, .-__xbrtime_get_s4_agg
 
@@ -254,8 +247,7 @@ __xbrtime_get_s8_seq:
   .type __xbrtime_get_s8_agg, @function
 __xbrtime_get_s8_agg:
   eaddie e10, a2, 0
-  eag a1, a3, a4
-  eld a1, 0(a0)
+  ebld a1, a0, a3, a4
   ret
   .size __xbrtime_get_s8_agg, .-__xbrtime_get_s8_agg
 
@@ -282,8 +274,7 @@ __xbrtime_put_u1_seq:
   .type __xbrtime_put_u1_agg, @function
 __xbrtime_put_u1_agg:
   eaddie e11, a2, 0
-  eag a0, a3, a4
-  esb a0, 0(a1)
+  ebsb a0, a1, a3, a4
   ret
   .size __xbrtime_put_u1_agg, .-__xbrtime_put_u1_agg
 
@@ -310,8 +301,7 @@ __xbrtime_put_u2_seq:
   .type __xbrtime_put_u2_agg, @function
 __xbrtime_put_u2_agg:
   eaddie e11, a2, 0
-  eag a0, a3, a4
-  esh a0, 0(a1)
+  ebsh a0, a1, a3, a4
   ret
   .size __xbrtime_put_u2_agg, .-__xbrtime_put_u2_agg
 
@@ -338,8 +328,7 @@ __xbrtime_put_u4_seq:
   .type __xbrtime_put_u4_agg, @function
 __xbrtime_put_u4_agg:
   eaddie e11, a2, 0
-  eag a0, a3, a4
-  esw a0, 0(a1)
+  ebsw a0, a1, a3, a4
   ret
   .size __xbrtime_put_u4_agg, .-__xbrtime_put_u4_agg
 
@@ -366,8 +355,7 @@ __xbrtime_put_u8_seq:
   .type __xbrtime_put_u8_agg, @function
 __xbrtime_put_u8_agg:
   eaddie e11, a2, 0
-  eag a0, a3, a4
-  esd a0, 0(a1)
+  ebsd a0, a1, a3, a4
   ret
   .size __xbrtime_put_u8_agg, .-__xbrtime_put_u8_agg
 
@@ -394,8 +382,7 @@ __xbrtime_put_s1_seq:
   .type __xbrtime_put_s1_agg, @function
 __xbrtime_put_s1_agg:
   eaddie e11, a2, 0
-  eag a0, a3, a4
-  esb a0, 0(a1)
+  ebsb a0, a1, a3, a4
   ret
   .size __xbrtime_put_s1_agg, .-__xbrtime_put_s1_agg
 
@@ -422,8 +409,7 @@ __xbrtime_put_s2_seq:
   .type __xbrtime_put_s2_agg, @function
 __xbrtime_put_s2_agg:
   eaddie e11, a2, 0
-  eag a0, a3, a4
-  esh a0, 0(a1)
+  ebsh a0, a1, a3, a4
   ret
   .size __xbrtime_put_s2_agg, .-__xbrtime_put_s2_agg
 
@@ -450,8 +436,7 @@ __xbrtime_put_s4_seq:
   .type __xbrtime_put_s4_agg, @function
 __xbrtime_put_s4_agg:
   eaddie e11, a2, 0
-  eag a0, a3, a4
-  esw a0, 0(a1)
+  ebsw a0, a1, a3, a4
   ret
   .size __xbrtime_put_s4_agg, .-__xbrtime_put_s4_agg
 
@@ -478,8 +463,7 @@ __xbrtime_put_s8_seq:
   .type __xbrtime_put_s8_agg, @function
 __xbrtime_put_s8_agg:
   eaddie e11, a2, 0
-  eag a0, a3, a4
-  esd a0, 0(a1)
+  ebsd a0, a1, a3, a4
   ret
   .size __xbrtime_put_s8_agg, .-__xbrtime_put_s8_agg
 

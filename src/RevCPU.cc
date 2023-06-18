@@ -2375,8 +2375,25 @@ void RevCPU::UpdateCoreStatistics(uint16_t coreNum){
   FloatsExec[coreNum]->addData(stats.floatsExec);
 }
 
+void RevCPU::PrintBuffer(){
+  int length = (int)(Mem->ReadU64(_XBGAS_OUTPUT_BUFFER_LENGTH_));
+
+  if (length > 0) {
+    /* Read data from the output buffer */
+    Mem->ReadMem(_XBGAS_OUTPUT_BUFFER_START_, length, buffer);
+    std::cout << buffer;
+
+    /* Reset the buffer */
+    memset(buffer, 0, _XBGAS_OUTPUT_BUFFER_SIZE_);
+    Mem->WriteU64(_XBGAS_OUTPUT_BUFFER_LENGTH_, 0x00ul);
+    Mem->WriteMem(_XBGAS_OUTPUT_BUFFER_START_, _XBGAS_OUTPUT_BUFFER_SIZE_, buffer);
+  }
+}
+
 bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   bool rtn = true;
+
+  PrintBuffer();
 
   output.verbose(CALL_INFO, 8, 0, "Cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
 

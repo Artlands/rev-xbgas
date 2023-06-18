@@ -7,7 +7,14 @@ set(CMAKE_C_COMPILER riscv64-unknown-elf-gcc)
 set(CMAKE_ASM_COMPILER riscv64-unknown-elf-gcc)
 
 # Ensure we're using C11
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=rv64imafdc -std=c11")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=rv64imafd_zicsr_zifencei -std=c11")
+
+# Set the build type to debug by default
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_XBGAS_DEBUG_")
 
 # Set the output directory for the library
 # set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -38,14 +45,6 @@ set_target_properties(xbrtime PROPERTIES
 # Specify the installation targets
 install(TARGETS xbrtime DESTINATION lib)
 install(FILES ${C_HEADERS} DESTINATION include)
-
-# Define the "debug" target
-add_custom_target(debug
-    COMMAND ${CMAKE_C_COMPILER} -D_XBGAS_DEBUG_ -g -c ${C_SOURCES}
-    DEPENDS xbrtime
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Building debug version of xbrtime"
-)
 
 # Define the "clean" target
 add_custom_target(clean-all

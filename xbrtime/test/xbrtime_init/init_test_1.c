@@ -17,7 +17,6 @@ int main( int argc, char **argv ){
   int *array_1, *array_2, *array_3, *array_4;
 
   xbrtime_init();
-  
   array_1 = (int*) xbrtime_malloc(24);
   array_2 = (int*) xbrtime_malloc(56);
   array_3 = (int*) xbrtime_malloc(124);

@@ -40,6 +40,7 @@
 
 // -- PAN Common Headers
 #include "../common/include/PanAddr.h"
+#include "../common/include/XbgasAddr.h"
 
 #define _MAX_PAN_TEST_ 11
 
@@ -231,6 +232,7 @@ namespace SST {
 
       bool EnableXBGAS;                   ///< RevCPU: Enable xBGAS
       bool EnableXBGASStats;              ///< RevCPU: Enable xBGAS statistics
+      char buffer[_XBGAS_OUTPUT_BUFFER_SIZE_];     ///< RevCPU: Output buffer
 
       bool EnableFaults;                  ///< RevCPU: Enable fault injection logic
       bool EnableCrackFaults;             ///< RevCPU: Enable Crack+Decode Faults
@@ -334,6 +336,9 @@ namespace SST {
       //-------------------------------------------------------
       // -- FUNCTIONS
       //-------------------------------------------------------
+
+      /// RevCPU: Print output buffer
+      void PrintBuffer();
 
       /// RevCPU: initializes the PAN NIC tables
       void initNICMem();
