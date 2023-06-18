@@ -1486,6 +1486,7 @@ RevInst RevProc::DecodeInst(){
 
   // Stage 3: Determine if we have a funct3 field
   uint32_t Funct3 = 0x00ul;
+  uint32_t Funct2 = DECODE_FUNCT2(Inst);
   const uint32_t inst4  = ((Opcode&0b10000) >> 4);
   const uint32_t inst42 = ((Opcode&0b11100) >> 2);
   const uint32_t inst65 = ((Opcode&0b1100000) >> 5);
@@ -1494,8 +1495,8 @@ RevInst RevProc::DecodeInst(){
   if( (Opcode == 0b0110111) || (Opcode == 0b0010111) || (Opcode == 0b1101111)){
     // LUI, AUIPC, JAL
     Funct3 = 0x00ul;
-  }else if ((inst65 == 0b10) && (inst4 == 0b0)){
-    // R4
+  }else if ((inst65 == 0b10) && (inst4 == 0b0) && ((Funct2 == 0b00) || (Funct2 == 0b01))){
+    // F/D R4
     Funct3 = 0x00ul;
   }else if ( ((inst65 == 0b10) && (inst42 == 0b100) && (inst29 == 0b000)) ){
     // Floating-Rtype, Funct3 is rm
@@ -1529,8 +1530,8 @@ RevInst RevProc::DecodeInst(){
   }else if (( inst65 == 0b00) && (inst42 == 0b110) && ((Funct3 == 0b001) || (Funct3 == 0b101))){
     // SLLIW, SRLIW, SRAIW. I-Type encodings
     Funct7 = ((Inst >> 25) & 0b1111111);
-  }else if ((inst65 == 0b10) && (inst4 == 0b0)){
-    // R4
+  }else if ((inst65 == 0b10) && (inst4 == 0b0) && ((Funct2 == 0b00) || (Funct2 == 0b01))){
+    // F/D R4
     Funct7 = ((Inst >> 25) & 0b0000011);
   }
 
