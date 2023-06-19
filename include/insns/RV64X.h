@@ -224,6 +224,23 @@ namespace SST {
         SEXT(Imm, Inst.imm, 12);
         uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs2]);
         uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rs2] + Imm);
+
+  #ifdef _XBGAS_DEBUG_
+        std::cout << " esw: Namespace: " << std::dec << Nmspace
+                  << ", Dest Addr: " << std::hex << DestAddr
+                  << ", RV64[" << std::dec << (int)(Inst.rs2) << "] = " 
+                  << std::dec << R->RV64[Inst.rs2] << std::endl;
+        // std::cout << "|---- Register file -----|" << std::endl;
+        // for(int i=10; i<16; i++) {
+        //   std::cout << "|e" <<std::dec << +i
+        //             << ": 0x" << std::hex << R->ERV64[i]
+        //             << "\t|x" <<std::dec << +i
+        //             << ": 0x" << std::hex << R->RV64[i]
+        //             << std::endl;
+        // }
+        // std::cout << "|----- Register file -----|" << std::endl;
+  #endif
+
         if( Nmspace != 0x00ull) {
           M->RmtWriteMem(Nmspace, DestAddr, 4, &R->RV64[Inst.rs1]);
         } else {
