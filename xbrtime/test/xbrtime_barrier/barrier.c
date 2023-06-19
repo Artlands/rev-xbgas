@@ -24,9 +24,6 @@ int main( int argc, char **argv ){
   // perform a barrier
   xbrtime_barrier();
 
-  // perform a barrier
-  xbrtime_barrier();
-
   // Closing xBGAS
   xbrtime_close();
   return rtn;

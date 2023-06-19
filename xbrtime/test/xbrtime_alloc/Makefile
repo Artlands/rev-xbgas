@@ -13,23 +13,23 @@
 .PHONY: src
 
 SRCS = $(wildcard *.c)
-# EXEC = $(SRCS:.c=.exe)
-EXAMPLE=alloc_test_1
+EXEC = $(SRCS:.c=.exe)
+ASM = $(SRCS:.c=.asm)
 
 CC=riscv64-unknown-elf-gcc
-# CC=riscv64-unknown-linux-gnu-gcc
 OBJDUMP=riscv64-unknown-elf-objdump
-ARCH=rv64imafd
-XBRTIME_INCLUDE=-I../../../src/xbgas_runtime
-XBRTIME_LIB=-L../../../src/xbgas_runtime -lxbrtime
 
-all: $(EXAMPLE).exe
+ARCH=rv64imafd
+XBRTIME_INCLUDE=-I../../include
+XBRTIME_LIB=-L../../ -lxbrtime
+
+all: $(EXEC)
 
 %.exe:%.c
 	$(CC) -march=$(ARCH) -mabi=lp64d $(XBRTIME_INCLUDE) -o $@ $< $(XBRTIME_LIB)
 
 objdump:
-	$(OBJDUMP) -d $(EXAMPLE).exe > $(EXAMPLE).asm
+	$(OBJDUMP) -d $(EXEC) > $(ASM)
 
 clean:
 	rm -Rf *.exe *.s *.o *.i *.csv *.asm

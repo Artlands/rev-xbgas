@@ -27,9 +27,7 @@ int main( int argc, char **argv ){
 
   xbrtime_free( ptr );
 
-  // printf( "xBGAS is Initialized; Closing xBGAS\n" );
   xbrtime_close();
-  // printf( "xBGAS is Closed\n" );
 
   return rtn;
 }

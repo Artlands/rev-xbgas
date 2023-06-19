@@ -23,6 +23,8 @@ int main( int argc, char **argv ){
 
   xbrtime_free( array_1 );
   xbrtime_free( array_2 );
+  xbrtime_free( array_3 );
+
 
   array_4 = (int*) xbrtime_malloc(241);
 

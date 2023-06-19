@@ -108,6 +108,8 @@ bool xbgasNicEvent::buildGetRqst( int64_t PktId, uint64_t Addr, int32_t Size){
     return false;
   if( !setNelem(1) )
     return false;
+  if( !setStride(0) )
+    return false;
   return true;
 }
 
@@ -137,6 +139,10 @@ bool xbgasNicEvent::buildPutRqst(int64_t PktId, uint64_t Addr,
   if( !setAddr(Addr) )
     return false;
   if( !setSize(Size) )
+    return false;
+  if( !setNelem(1) )
+    return false;
+  if( !setStride(0) )
     return false;
   if( !setData(Buffer, Size) )
     return false;

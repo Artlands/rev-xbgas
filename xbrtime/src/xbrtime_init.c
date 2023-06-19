@@ -12,8 +12,8 @@
 
 
 /* ------------------------------------------------- FUNCTION PROTOTYPES */
-int __xbrtime_asm_get_id();
-int __xbrtime_asm_get_npes();
+// int __xbrtime_asm_get_id();
+// int __xbrtime_asm_get_npes();
 size_t __xbrtime_asm_get_memsize();
 uint64_t __xbrtime_asm_get_startaddr();
 void __xbrtime_asm_fence();
@@ -21,23 +21,21 @@ void __xbrtime_asm_fence();
 extern int xbrtime_init(){
   /* vars */
   int i = 0;
-  int my_pe = __xbrtime_asm_get_id();
-  int npes  = __xbrtime_asm_get_npes();
+  // my_pe and npes have been initialized in the in the firmware via remote memory controller
+  int my_pe = (int)(*(uint64_t*)(_XBGAS_MY_PE_));
+  int npes  = (int)(*(uint64_t*)(_XBGAS_TOTAL_NPE_));
+
   /* initialize xbrtime configuration in the firmware */
-  *((uint64_t*)(_XBGAS_MY_PE_))                 = (uint64_t)(my_pe);
-  *((uint64_t*)(_XBGAS_TOTAL_NPE_))             = (uint64_t)(npes);
   *((uint64_t*)(_XBGAS_SHARED_MEM_SIZE_))       = 0x00ull;
   *((uint64_t*)(_XBGAS_SHARED_MEM_START_ADDR_)) = 0x00ull;
-  *((uint64_t*)(_XBGAS_SENSE_))                 = 0x01ull;
 
-  if((int64_t)(*(uint64_t*)(_XBGAS_TOTAL_NPE_)) > _XBRTIME_MAX_PE_ ){
+  if((int)(*(uint64_t*)(_XBGAS_TOTAL_NPE_)) > _XBRTIME_MAX_PE_ ){
     return -1;
   }
 
   // MAX_PE_NUM = 1024, thus, MAX_Barrier buffer space = log2^1024 = 10
   for( i = 0; i < 10; i++ ){
     *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)(i * 8)))      = 0xfffffffffull;
-    *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((i+10) * 8))) = 0xaaaaaaaaaull;
   }
 
   /* init the memory allocation slots */
@@ -78,11 +76,11 @@ extern void xbrtime_close(){
 }
 
 extern int xbrtime_mype(){
-  return *(uint64_t*)(_XBGAS_MY_PE_);
+  return (int)(*(uint64_t*)(_XBGAS_MY_PE_));
 }
 
 extern int xbrtime_num_pes(){
-  return *(uint64_t*)(_XBGAS_TOTAL_NPE_);
+  return (int)(*(uint64_t*)(_XBGAS_TOTAL_NPE_));
 }
 
 /* EOF */

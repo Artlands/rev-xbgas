@@ -14,7 +14,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_XBGAS_DEBUG_")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_XBGAS_DEBUG_ -lm")
 
 # Set the output directory for the library
 # set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

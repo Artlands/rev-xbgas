@@ -15,7 +15,7 @@
 using namespace SST;
 using namespace RevCPU;
 
-#define _XBGAS_DEBUG_
+// #define _XBGAS_DEBUG_
 
 std::atomic<int64_t> SST::RevCPU::RevBasicRmtMemCtrl::main_id(0);
 
@@ -201,7 +201,7 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst( uint64_t Nmspace, uint64_t SrcAddr,
 #ifdef _XBGAS_DEBUG_
   uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
   std::cout << "PE " << std::dec << myPE
-            << " --> Send a Remote Read Request, "
+            << " --> Send a Remote Read Request"
             << ", PktId: " << std::dec << PktId
             << ", Dest PE: " << std::dec << Dest
             << ", SrcAddr: 0x" << std::hex << SrcAddr
@@ -276,6 +276,17 @@ bool RevBasicRmtMemCtrl::sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr,
   rqstQ.push_back( std::make_pair(RmtEvent, Dest) );
   recordStat(RmtMemCtrlStat::RmtWritesBytes, Size);
   recordStat(RmtMemCtrlStat::RmtWritePending, 1);
+
+#ifdef _XBGAS_DEBUG_
+  uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+  std::cout << "PE " << std::dec << myPE
+            << " --> Send a Remote Write Request"
+            << ", PktId: " << std::dec << PktId
+            << ", Dest PE: " << std::dec << Dest
+            << ", Event: " << RmtEvent->getOpcodeStr()
+            << std::endl;
+#endif
+
   return true;
 }
 
@@ -469,6 +480,20 @@ bool RevBasicRmtMemCtrl::handleRmtWriteRqst( xbgasNicEvent *ev ){
   int32_t Stride = ev->getStride();
   uint64_t Addr = ev->getAddr();
   xbgasNicEvent::XbgasOpcode Opcode = ev->getOpcode();
+
+#ifdef _XBGAS_DEBUG_
+  uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+  std::cout << "PE " << std::dec << myPE
+            << " --> Handle a Remote Write Request"
+            << ", PktId: " << std::dec << PktId
+            << ", Src PE: " << std::dec << Dest
+            << ", DestAddr: 0x" << std::hex << Addr
+            << ", Size: " << std::dec << Size
+            << ", Nelem: " << std::dec << Nelem
+            << ", Stride: " << std::dec << Stride
+            << ", Event: " << ev->getOpcodeStr()
+            << std::endl;
+#endif
 
   // Read the data to buffer from the packet
   int32_t TotalSize = Size * Nelem;

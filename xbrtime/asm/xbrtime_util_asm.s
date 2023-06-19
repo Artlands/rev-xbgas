@@ -19,19 +19,19 @@
   .text
   .align 1
 
-  .global __xbrtime_asm_get_id
-  .type __xbrtime_asm_get_id, @function
-__xbrtime_asm_get_id:
-  eaddi a0,e10,0
-  ret
-  .size __xbrtime_asm_get_id, .-__xbrtime_asm_get_id
+;   .global __xbrtime_asm_get_id
+;   .type __xbrtime_asm_get_id, @function
+; __xbrtime_asm_get_id:
+;   eaddi a0,e10,0
+;   ret
+;   .size __xbrtime_asm_get_id, .-__xbrtime_asm_get_id
 
-  .global __xbrtime_asm_get_npes
-  .type __xbrtime_asm_get_npes, @function
-__xbrtime_asm_get_npes:
-  eaddi a0,e11,0
-  ret
-  .size __xbrtime_asm_get_npes, .-__xbrtime_asm_get_npes
+;   .global __xbrtime_asm_get_npes
+;   .type __xbrtime_asm_get_npes, @function
+; __xbrtime_asm_get_npes:
+;   eaddi a0,e11,0
+;   ret
+;   .size __xbrtime_asm_get_npes, .-__xbrtime_asm_get_npes
 
   .global __xbrtime_asm_get_memsize
   .type __xbrtime_asm_get_memsize, @function

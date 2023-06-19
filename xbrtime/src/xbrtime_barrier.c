@@ -20,7 +20,6 @@ extern void xbrtime_barrier() {
   int64_t stride              = 1;
   uint64_t target         = 0x00ull;
   uint64_t addr           = 0x00ull;
-  volatile uint64_t sense = *((uint64_t*)(_XBGAS_SENSE_));
 
   int64_t num_pe = xbrtime_num_pes();
 
@@ -54,11 +53,11 @@ extern void xbrtime_barrier() {
 #endif
 
     target = (uint64_t)(xbrtime_decode_pe((int)(target)));
-    addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8));
+    addr = (uint64_t)(_XBGAS_BARRIER_ + (uint64_t)(i * 8));
 
     __xbrtime_remote_touch(addr, target, (uint64_t)stride);
 
-    while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) != stride ) {
+    while( *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)(i * 8))) != stride ) {
       // debug
     }
 
@@ -71,11 +70,8 @@ extern void xbrtime_barrier() {
 #endif
   /* reset the sense */
   for( i = 0; i < iter; i++ ) {
-    *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)((sense*10 + i) * 8))) = 0xdeadbeefull;
+     *((uint64_t*)(_XBGAS_BARRIER_ + (uint64_t)(i * 8))) = 0xdeadbeefull;
   }
-
-  // Flip the sense
-   *((uint64_t*)(_XBGAS_SENSE_)) = 1 - sense;
 
 }
 

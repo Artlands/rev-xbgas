@@ -31,9 +31,8 @@
 #define _XBGAS_TOTAL_NPE_                    _XBGAS_MY_PE_                 + 8      // the number of PEs
 #define _XBGAS_SHARED_MEM_SIZE_              _XBGAS_TOTAL_NPE_             + 8      // the size of the shared memory region
 #define _XBGAS_SHARED_MEM_START_ADDR_        _XBGAS_SHARED_MEM_SIZE_       + 8      // the starting address of the physical shared memory region
-#define _XBGAS_SENSE_                        _XBGAS_SHARED_MEM_START_ADDR_ + 8
-#define _XBGAS_BARRIER_                      _XBGAS_SENSE_                 + 8
-#define _XBGAS_BARRIER_END_                  _XBGAS_BARRIER_               + 20 * 8  // MAX_PE_NUM = 1024, thus, MAX_Barrier buffer space = log2^1024 = 10
+#define _XBGAS_BARRIER_                      _XBGAS_SHARED_MEM_START_ADDR_ + 8
+#define _XBGAS_BARRIER_END_                  _XBGAS_BARRIER_               + 10 * 8  // MAX_PE_NUM = 1024, thus, MAX_Barrier buffer space = log2^1024 = 10
 #define _XBGAS_MMAP_                         _XBGAS_BARRIER_END_
 #define _XBGAS_MMAP_END_                     _XBGAS_MMAP_ + _XBRTIME_MEM_SLOTS_ * 16
 

@@ -13,6 +13,8 @@
 #include <filesystem>
 #include <sys/xattr.h>
 
+// #define _XBGAS_DEBUG_
+
 RevProc::RevProc( unsigned Id,
                   RevOpts *Opts,
                   RevMem *Mem,
@@ -72,27 +74,33 @@ RevProc::RevProc( unsigned Id,
     output->fatal(CALL_INFO, -1,
                   "Error: failed to reset the core resources for core=%d\n", id );
 
-//   // initialize extended registers for PE ID and # of PEs
-//   // e10 = contains the physical PE id
-//   // e11 = contains the number of PEs
-//   int pe = 0;
-//   int numPEs = 0;
 
-//   if( mem->useMemCtrl()){
-//     mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
-//     mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
-//   } else {
-//     mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe));
-//     mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs));
-//   }
+//   if (mem->useRmtMemCtrl()) {
+//     // initialize extended registers for PE ID and # of PEs
+//     // e10 = contains the physical PE id
+//     // e11 = contains the number of PEs
+//     int pe = 0;
+//     int numPEs = 0;
+
+//     if( mem->useMemCtrl()){
+//       output->fatal(CALL_INFO, -1,
+//                     "Error: xBGAS currently does not support MemHierarchy\n");
+//       // mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
+//       // mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
+//     } else {
+//       mem->ReadMem(_XBGAS_MY_PE_, 4, (void*)(&pe));
+//       mem->ReadMem(_XBGAS_TOTAL_NPE_, 4, (void*)(&numPEs));
+//     }
+
+//     for (int t=0;  t < _REV_HART_COUNT_; t++){
+//       RevRegFile* regFile = GetRegFile(t);
+//       regFile->ERV64[10] = (uint64_t)(pe);
+//       regFile->ERV64[11] = (uint64_t)(numPEs);
+//     }
 
 // #ifdef _XBGAS_DEBUG_
-//   std::cout << "RevProc Extended Register Setting: PE = " << pe << ", # of PEs = " << numPEs <<  std::endl;
+//     std::cout << "RevProc Extended Register Setting: PE = " << pe << ", # of PEs = " << numPEs <<  std::endl;
 // #endif
-
-//   for (int t=0;  t < _REV_THREAD_COUNT_; t++){
-//     RegFile[t].ERV64[10] = (uint64_t)(pe);
-//     RegFile[t].ERV64[11] = (uint64_t)(numPEs);
 //   }
   
   Stats.totalCycles = 0;

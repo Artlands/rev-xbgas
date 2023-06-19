@@ -63,6 +63,8 @@ namespace SST {
       /// RevMem: set the remote memory controller
       void setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl) { rmtCtrl = RmtCtrl; }
 
+      bool useRmtMemCtrl(){if(rmtCtrl) return true; else return false;}
+
       bool useMemCtrl(){if(ctrl) return true; else return false;}
 
       /// RevMem: determine if there are any outstanding requests
