@@ -140,21 +140,26 @@ namespace SST{
       }
 
       static bool srliw(RevFeature *F, RevRegFile *R,RevMem *M,RevInst Inst) {
-        // catch the special case where IMM == 0x00; RD = RS1
-        if( (Inst.imm&0b111111) == 0x00 ){
-          R->RV64[Inst.rd] = 0x00ULL;
-          R->RV64[Inst.rd] |= (R->RV64[Inst.rs1]&0xffffffff);
-          SEXTI64(R->RV64[Inst.rd],32);
-          R->RV64_PC += Inst.instSize;
-          return true;
-        }
+        // // catch the special case where IMM == 0x00; RD = RS1
+        // if( (Inst.imm&0b111111) == 0x00 ){
+        //   R->RV64[Inst.rd] = 0x00ULL;
+        //   R->RV64[Inst.rd] |= (R->RV64[Inst.rs1]&0xffffffff);
+        //   SEXTI64(R->RV64[Inst.rd],32);
+        //   R->RV64_PC += Inst.instSize;
+        //   return true;
+        // }
 
-        uint32_t srcTrunc = R->RV64[Inst.rs1] & MASK32;  //Force operation on 32-bit unsigned value
-        uint32_t dest = (srcTrunc >> (Inst.imm&0b111111));
-        R->RV64[Inst.rd] = 0x00ULL;
-        R->RV64[Inst.rd] |= (uint64_t)(dest);
-        //ZEXT64(R->RV64[Inst.rd],(srcTrunc >> (Inst.imm&0b111111))&MASK32,64);
-        //SEXTI64(R->RV64[Inst.rd],32);
+        // uint32_t srcTrunc = R->RV64[Inst.rs1] & MASK32;  //Force operation on 32-bit unsigned value
+        // uint32_t dest = (srcTrunc >> (Inst.imm&0b111111));
+        // R->RV64[Inst.rd] = 0x00ULL;
+        // R->RV64[Inst.rd] |= (uint64_t)(dest);
+        // //ZEXT64(R->RV64[Inst.rd],(srcTrunc >> (Inst.imm&0b111111))&MASK32,64);
+        // //SEXTI64(R->RV64[Inst.rd],32);
+        // R->RV64_PC += Inst.instSize;
+        // return true;
+        uint64_t Tmp;
+        Tmp = R->RV64[Inst.rs1] >> (Inst.imm & 0b011111);
+        SEXT(R->RV64[Inst.rd], Tmp & MASK32, 32);
         R->RV64_PC += Inst.instSize;
         return true;
       }

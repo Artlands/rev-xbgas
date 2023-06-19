@@ -15,7 +15,7 @@
 using namespace SST;
 using namespace RevCPU;
 
-// #define _XBGAS_DEBUG_
+#define _XBGAS_DEBUG_
 
 std::atomic<int64_t> SST::RevCPU::RevBasicRmtMemCtrl::main_id(0);
 
@@ -534,11 +534,13 @@ void RevBasicRmtMemCtrl::handleRmtReadResp( xbgasNicEvent *ev ) {
     // the response is for a pending request, remove the request from the pending requests list
     readRqsts.erase( std::find(readRqsts.begin(), readRqsts.end(), ev->getPktId()) );
 
-// #ifdef _XBGAS_DEBUG_
-//         std::cout << " --> Handle a Remote Read Response"
-//                   << ", PktId: " << std::dec << ev->getPktId()
-//                   << std::endl;
-// #endif
+#ifdef _XBGAS_DEBUG_
+    uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+    std::cout << "PE " << std::dec << myPE
+              << " --> Handle a Remote Read Response"
+              << ", PktId: " << std::dec << ev->getPktId()
+              << std::endl;
+#endif
 
     xbgasNicEvent *op = std::get<0>(readOutstanding[ev->getPktId()]);
     uint8_t *Target = (uint8_t *)(std::get<1>(readOutstanding[ev->getPktId()]));
@@ -614,7 +616,15 @@ void RevBasicRmtMemCtrl::handleRmtWriteResp( xbgasNicEvent *ev ) {
   if( std::find(writeRqsts.begin(), writeRqsts.end(), ev->getPktId()) != writeRqsts.end() ){
     // the response is for a pending request, remove the request from the pending requests list
     writeRqsts.erase( std::find(writeRqsts.begin(), writeRqsts.end(), ev->getPktId()) );
-    
+
+// #ifdef _XBGAS_DEBUG_
+//     uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+//     std::cout << "PE " << std::dec << myPE
+//               << " --> Handle a Remote Write Response"
+//               << ", PktId: " << std::dec << ev->getPktId()
+//               << std::endl;
+// #endif
+
     // remove the request from the outstanding requests list
     writeOutstanding.erase(ev->getPktId());
     delete ev;

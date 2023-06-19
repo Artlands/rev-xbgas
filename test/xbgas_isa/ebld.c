@@ -43,7 +43,7 @@ int main(int argc, char **argv ){
   /* EADDIE */
   asm volatile // Set the remote namespace
 	(
-		" eaddie e15, %[x], 0 \n\t"
+		" eaddie e14, %[x], 0 \n\t"
 		:
 		: [x] 	"r"  (NMSPACE)
 	);

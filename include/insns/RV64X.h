@@ -539,7 +539,7 @@ namespace SST {
       }
 
       static bool ebld(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rd]);
         uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
         uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
@@ -598,7 +598,8 @@ namespace SST {
       }
 
       static bool eblw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
+        uint64_t DestAddr = (uint64_t)(R->RV64[Inst.rd]);
         uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
         uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
         uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
@@ -616,7 +617,7 @@ namespace SST {
       }
 
       static bool eblh(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
         uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
         uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
@@ -634,7 +635,7 @@ namespace SST {
       }
 
       static bool eblhu(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
         uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
         uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
@@ -652,7 +653,7 @@ namespace SST {
       }
 
       static bool eblb(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
         uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
         uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);
@@ -670,7 +671,7 @@ namespace SST {
       }
 
       static bool eblbu(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rd]);
+        uint64_t Nmspace = (uint64_t)(R->ERV64[Inst.rs1]);
         uint64_t SrcAddr = (uint64_t)(R->RV64[Inst.rs1]);
         uint32_t Nelem = (uint32_t)(R->RV64[Inst.rs2]);
         uint32_t Stride = (uint32_t)(R->RV64[Inst.rs3]);

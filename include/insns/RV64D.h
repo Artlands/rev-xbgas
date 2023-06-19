@@ -96,7 +96,7 @@ namespace SST{
 
 
     public:
-      /// RV364D: standard constructor
+      /// RV64D: standard constructor
       RV64D( RevFeature *Feature,
              RevRegFile *RegFile,
              RevMem *RevMem,
@@ -105,10 +105,10 @@ namespace SST{
           this->SetTable(RV64DTable);
         }
 
-      /// RV364D: standard destructor
+      /// RV64D: standard destructor
       ~RV64D() { }
 
-    }; // end class RV32I
+    }; // end class RV64I
   } // namespace RevCPU
 } // namespace SST
 
