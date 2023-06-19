@@ -313,9 +313,10 @@ uint32_t RevProc::CompressEncoding(RevInstEntry Entry){
   uint32_t Value = 0x00;
 
   Value |= (uint32_t)(Entry.opcode);
-  Value |= (uint32_t)((uint32_t)(Entry.funct3)<<8);
-  Value |= (uint32_t)((uint32_t)(Entry.funct7)<<11);
-  Value |= (uint32_t)((uint32_t)(Entry.imm12)<<18);
+  Value |= (uint32_t)((uint32_t)(Entry.funct2)<<7);
+  Value |= (uint32_t)((uint32_t)(Entry.funct3)<<9);
+  Value |= (uint32_t)((uint32_t)(Entry.funct7)<<12);
+  Value |= (uint32_t)((uint32_t)(Entry.imm12)<<19);
 
   return Value;
 }
@@ -1543,6 +1544,14 @@ RevInst RevProc::DecodeInst(){
     Funct7 = ((Inst >> 25) & 0b0000011);
   }
 
+  // Funct2 field is only used to differentiate between bulk transfer instructions
+  // all other instructions have a funct2 field of 0
+  if ((inst65 == 0b10) && (inst4 == 0b0) && ((Funct2 == 0b11) || (Funct2 == 0b10))){
+    // Bulk transfer R4
+  } else {
+    Funct2 = 0x00ul;
+  }
+
   // Stage 5: Determine if we have an imm12 field
   uint32_t Imm12 = 0x00ul;
   const uint32_t inst30 = ((Funct7&0b0100000) >> 5);
@@ -1556,9 +1565,10 @@ RevInst RevProc::DecodeInst(){
 
   // Stage 6: Compress the encoding
   Enc |= Opcode;
-  Enc |= (Funct3<<8);
-  Enc |= (Funct7<<11);
-  Enc |= (Imm12<<18);
+  Enc |= (Funct2<<7);
+  Enc |= (Funct3<<9);
+  Enc |= (Funct7<<12);
+  Enc |= (Imm12<<19);
 
   /// Stage 7: Look up the value in the table
   std::map<uint32_t,unsigned>::iterator it;

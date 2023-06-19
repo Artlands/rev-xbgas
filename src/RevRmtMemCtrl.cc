@@ -15,7 +15,7 @@
 using namespace SST;
 using namespace RevCPU;
 
-#define _XBGAS_DEBUG_
+// #define _XBGAS_DEBUG_
 
 std::atomic<int64_t> SST::RevCPU::RevBasicRmtMemCtrl::main_id(0);
 
@@ -119,15 +119,15 @@ void RevBasicRmtMemCtrl::init(unsigned int phase){
   
   complBroadcastSent = false;
 
-#ifdef _XBGAS_DEBUG_
-  if( nmspaceLB.size() != 0) {
-    std::cout << "== Init Phase " << phase << ": PE " << id << ":  NLB =="<<  std::endl;
-    for (const auto& kv : nmspaceLB) {
-      std::cout << "|  Namespace = " << kv.first << ", NodeID = " << kv.second << " |"<< std::endl;
-    }
-    std::cout << "==============================" <<std::endl;
-  }
-#endif
+// #ifdef _XBGAS_DEBUG_
+//   if( nmspaceLB.size() != 0) {
+//     std::cout << "== Init Phase " << phase << ": PE " << id << ":  NLB =="<<  std::endl;
+//     for (const auto& kv : nmspaceLB) {
+//       std::cout << "|  Namespace = " << kv.first << ", NodeID = " << kv.second << " |"<< std::endl;
+//     }
+//     std::cout << "==============================" <<std::endl;
+//   }
+// #endif
 }
 
 void RevBasicRmtMemCtrl::setup(){
@@ -198,16 +198,16 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst( uint64_t Nmspace, uint64_t SrcAddr,
   recordStat(RmtMemCtrlStat::RmtReadBytes, Size);
   recordStat(RmtMemCtrlStat::RmtReadPending, 1);
 
-// #ifdef _XBGAS_DEBUG_
-//   uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
-//   std::cout << "PE " << std::dec << myPE
-//             << " --> Send a Remote Read Request"
-//             << ", PktId: " << std::dec << PktId
-//             << ", Dest PE: " << std::dec << Dest
-//             << ", SrcAddr: 0x" << std::hex << SrcAddr
-//             << ", Event: " << RmtEvent->getOpcodeStr()
-//             << std::endl;
-// #endif
+#ifdef _XBGAS_DEBUG_
+  uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+  std::cout << "PE " << std::dec << myPE
+            << " --> Send a Remote Read Request"
+            << ", PktId: " << std::dec << PktId
+            << ", Dest PE: " << std::dec << Dest
+            << ", SrcAddr: 0x" << std::hex << SrcAddr
+            << ", Event: " << RmtEvent->getOpcodeStr()
+            << std::endl;
+#endif
 
   return true;
 }
@@ -240,16 +240,16 @@ bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst( uint64_t Nmspace, uint64_t SrcAddr
   recordStat(RmtMemCtrlStat::RmtReadBytes, TotalSize);
   recordStat(RmtMemCtrlStat::RmtReadPending, 1);
 
-// #ifdef _XBGAS_DEBUG_
-//   uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
-//   std::cout << "PE " << std::dec << myPE
-//             << " --> Send a Remote Bulk Read Request"
-//             << ", PktId: " << std::dec << PktId
-//             << ", Dest PE: " << std::dec << Dest
-//             << ", SrcAddr: 0x" << std::hex << SrcAddr
-//             << ", Event: " << RmtEvent->getOpcodeStr()
-//             << std::endl;
-// #endif
+#ifdef _XBGAS_DEBUG_
+  uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+  std::cout << "PE " << std::dec << myPE
+            << " --> Send a Remote Bulk Read Request"
+            << ", PktId: " << std::dec << PktId
+            << ", Dest PE: " << std::dec << Dest
+            << ", SrcAddr: 0x" << std::hex << SrcAddr
+            << ", Event: " << RmtEvent->getOpcodeStr()
+            << std::endl;
+#endif
 
   return true;
 }
@@ -277,15 +277,15 @@ bool RevBasicRmtMemCtrl::sendRmtWriteRqst( uint64_t Nmspace, uint64_t DestAddr,
   recordStat(RmtMemCtrlStat::RmtWritesBytes, Size);
   recordStat(RmtMemCtrlStat::RmtWritePending, 1);
 
-// #ifdef _XBGAS_DEBUG_
-//   uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
-//   std::cout << "PE " << std::dec << myPE
-//             << " --> Send a Remote Write Request"
-//             << ", PktId: " << std::dec << PktId
-//             << ", Dest PE: " << std::dec << Dest
-//             << ", Event: " << RmtEvent->getOpcodeStr()
-//             << std::endl;
-// #endif
+#ifdef _XBGAS_DEBUG_
+  uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+  std::cout << "PE " << std::dec << myPE
+            << " --> Send a Remote Write Request"
+            << ", PktId: " << std::dec << PktId
+            << ", Dest PE: " << std::dec << Dest
+            << ", Event: " << RmtEvent->getOpcodeStr()
+            << std::endl;
+#endif
 
   return true;
 }
@@ -420,19 +420,19 @@ bool RevBasicRmtMemCtrl::handleRmtReadRqst( xbgasNicEvent *ev ){
   uint64_t Addr = ev->getAddr();
   xbgasNicEvent::XbgasOpcode Opcode = ev->getOpcode();
 
-// #ifdef _XBGAS_DEBUG_
-//   uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
-//   std::cout << "PE " << std::dec << myPE
-//             << " --> Handle a Remote Read Request"
-//             << ", PktId: " << std::dec << PktId
-//             << ", Dest PE: " << std::dec << Dest
-//             << ", SrcAddr: 0x" << std::hex << Addr
-//             << ", Size: " << std::dec << Size
-//             << ", Nelem: " << std::dec << Nelem
-//             << ", Stride: " << std::dec << Stride
-//             << ", Event: " << ev->getOpcodeStr()
-//             << std::endl;
-// #endif
+#ifdef _XBGAS_DEBUG_
+  uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+  std::cout << "PE " << std::dec << myPE
+            << " --> Handle a Remote Read Request"
+            << ", PktId: " << std::dec << PktId
+            << ", Dest PE: " << std::dec << Dest
+            << ", SrcAddr: 0x" << std::hex << Addr
+            << ", Size: " << std::dec << Size
+            << ", Nelem: " << std::dec << Nelem
+            << ", Stride: " << std::dec << Stride
+            << ", Event: " << ev->getOpcodeStr()
+            << std::endl;
+#endif
 
   // Read the data to buffer from the source address
   int32_t TotalSize = Size * Nelem;
@@ -481,19 +481,19 @@ bool RevBasicRmtMemCtrl::handleRmtWriteRqst( xbgasNicEvent *ev ){
   uint64_t Addr = ev->getAddr();
   xbgasNicEvent::XbgasOpcode Opcode = ev->getOpcode();
 
-// #ifdef _XBGAS_DEBUG_
-//   uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
-//   std::cout << "PE " << std::dec << myPE
-//             << " --> Handle a Remote Write Request"
-//             << ", PktId: " << std::dec << PktId
-//             << ", Src PE: " << std::dec << Dest
-//             << ", DestAddr: 0x" << std::hex << Addr
-//             << ", Size: " << std::dec << Size
-//             << ", Nelem: " << std::dec << Nelem
-//             << ", Stride: " << std::dec << Stride
-//             << ", Event: " << ev->getOpcodeStr()
-//             << std::endl;
-// #endif
+#ifdef _XBGAS_DEBUG_
+  uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+  std::cout << "PE " << std::dec << myPE
+            << " --> Handle a Remote Write Request"
+            << ", PktId: " << std::dec << PktId
+            << ", Src PE: " << std::dec << Dest
+            << ", DestAddr: 0x" << std::hex << Addr
+            << ", Size: " << std::dec << Size
+            << ", Nelem: " << std::dec << Nelem
+            << ", Stride: " << std::dec << Stride
+            << ", Event: " << ev->getOpcodeStr()
+            << std::endl;
+#endif
 
   // Read the data to buffer from the packet
   int32_t TotalSize = Size * Nelem;
@@ -534,13 +534,13 @@ void RevBasicRmtMemCtrl::handleRmtReadResp( xbgasNicEvent *ev ) {
     // the response is for a pending request, remove the request from the pending requests list
     readRqsts.erase( std::find(readRqsts.begin(), readRqsts.end(), ev->getPktId()) );
 
-// #ifdef _XBGAS_DEBUG_
-//     uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
-//     std::cout << "PE " << std::dec << myPE
-//               << " --> Handle a Remote Read Response"
-//               << ", PktId: " << std::dec << ev->getPktId()
-//               << std::endl;
-// #endif
+#ifdef _XBGAS_DEBUG_
+    uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+    std::cout << "PE " << std::dec << myPE
+              << " --> Handle a Remote Read Response"
+              << ", PktId: " << std::dec << ev->getPktId()
+              << std::endl;
+#endif
 
     xbgasNicEvent *op = std::get<0>(readOutstanding[ev->getPktId()]);
     uint8_t *Target = (uint8_t *)(std::get<1>(readOutstanding[ev->getPktId()]));
@@ -573,13 +573,13 @@ void RevBasicRmtMemCtrl::handleRmtBulkReadResp( xbgasNicEvent *ev ) {
     // the response is for a pending request, remove the request from the pending requests list
     bulkReadRqsts.erase( std::find(bulkReadRqsts.begin(), bulkReadRqsts.end(), ev->getPktId()) );
 
-// #ifdef _XBGAS_DEBUG_
-//     uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
-//     std::cout << "PE " << std::dec << myPE
-//               << " --> Handle a Remote Bulk Read Response"
-//               << ", PktId: " << std::dec << ev->getPktId()
-//               << std::endl;
-// #endif
+#ifdef _XBGAS_DEBUG_
+    uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+    std::cout << "PE " << std::dec << myPE
+              << " --> Handle a Remote Bulk Read Response"
+              << ", PktId: " << std::dec << ev->getPktId()
+              << std::endl;
+#endif
 
     xbgasNicEvent *op = std::get<0>(bulkReadOutstanding[ev->getPktId()]);
     uint64_t DestAddr = std::get<1>(bulkReadOutstanding[ev->getPktId()]);
@@ -617,13 +617,13 @@ void RevBasicRmtMemCtrl::handleRmtWriteResp( xbgasNicEvent *ev ) {
     // the response is for a pending request, remove the request from the pending requests list
     writeRqsts.erase( std::find(writeRqsts.begin(), writeRqsts.end(), ev->getPktId()) );
 
-// #ifdef _XBGAS_DEBUG_
-//     uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
-//     std::cout << "PE " << std::dec << myPE
-//               << " --> Handle a Remote Write Response"
-//               << ", PktId: " << std::dec << ev->getPktId()
-//               << std::endl;
-// #endif
+#ifdef _XBGAS_DEBUG_
+    uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+    std::cout << "PE " << std::dec << myPE
+              << " --> Handle a Remote Write Response"
+              << ", PktId: " << std::dec << ev->getPktId()
+              << std::endl;
+#endif
 
     // remove the request from the outstanding requests list
     writeOutstanding.erase(ev->getPktId());
