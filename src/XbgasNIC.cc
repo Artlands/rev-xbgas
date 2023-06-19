@@ -278,9 +278,9 @@ void XbgasNIC::init(unsigned int phase){
     SST::Interfaces::SimpleNetwork::nid_t srcID = req->src;
     // Remote PE IDs
     xbgasHosts.push_back(srcID);
-    output->verbose(CALL_INFO, 6, 0,
-                    "%s received init message from %s\n",
-                    getName().c_str(), ev->getSource().c_str());
+    // output->verbose(CALL_INFO, 6, 0,
+    //                 "%s received init message from %s\n",
+    //                 getName().c_str(), ev->getSource().c_str());
   }
 }
 

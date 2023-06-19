@@ -243,6 +243,11 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     Mem->setRmtMemCtrl( RmtCtrl );
     // Reserve the xBGAS memory region
     Mem->SetStackTop(Mem->GetStackTop() - _XBGAS_MEM_SIZE_);
+
+    // Reset the output buffer
+    memset(buffer, 0, _XBGAS_OUTPUT_BUFFER_SIZE_);
+    Mem->WriteU64(_XBGAS_OUTPUT_BUFFER_LENGTH_, 0x00ul);
+    Mem->WriteMem(_XBGAS_OUTPUT_BUFFER_START_, _XBGAS_OUTPUT_BUFFER_SIZE_, buffer);
   }
 
   // Load the binary into memory
