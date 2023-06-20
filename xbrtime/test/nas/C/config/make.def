@@ -89,8 +89,7 @@ FLINKFLAGS =
 # linking is done with       $(CLINK) $(CSHMEM_LIB) $(CMPI_LIB) $(CLINKFLAGS)
 #---------------------------------------------------------------------------
 
-RISCV  = /home/bwilliams/xbgas-tools
-XBGAS_RUNTIME = /home/li29729/SST/rev-xbgas/src/xbgas_runtime
+XBGAS_RUNTIME = /home/li29729/SST/rev-xbgas/xbrtime
 
 #---------------------------------------------------------------------------
 # This is the C compiler used for MPI programs
@@ -107,7 +106,7 @@ CSHMEM_LIB  = -L$(XBGAS_RUNTIME)-lxbrtime -lm
 #---------------------------------------------------------------------------
 # These macros are passed to the compiler to help find 'shmem.h'
 #---------------------------------------------------------------------------
-CSHMEM_INC = -I$(XBGAS_RUNTIME)
+CSHMEM_INC = -I$(XBGAS_RUNTIME)/include
 
 #---------------------------------------------------------------------------
 # These macros are passed to the linker to help link with MPI correctly
@@ -117,7 +116,7 @@ CMPI_LIB = -L$(XBGAS_RUNTIME) -lxbrtime -lm
 #---------------------------------------------------------------------------
 # These macros are passed to the compiler to help find 'mpi.h'
 #---------------------------------------------------------------------------
-CMPI_INC = -I$(XBGAS_RUNTIME)
+CMPI_INC = -I$(XBGAS_RUNTIME)/include
 
 #---------------------------------------------------------------------------
 # Global *compile time* flags for C programs

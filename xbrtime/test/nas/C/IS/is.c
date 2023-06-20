@@ -172,7 +172,7 @@
 /* Enable separate communication,  */
 /* computation timing and printout */
 /***********************************/
-#define  TIMING_ENABLED
+// #define  TIMING_ENABLED
 
 
 /*************************************/

@@ -10,7 +10,7 @@ OBJS = is.o ${COMMON}/c_print_results.o ${COMMON}/c_timers.o
 ARCH=rv64imafdc
 
 ${PROGRAM}: config ${OBJS}
-	${CLINK} -march=$(ARCH) -mabi=lp64d -o ${PROGRAM} ${OBJS} ${CMPI_LIB} ${C_LINK_FLAGS}
+	${CLINK} -march=$(ARCH) -mabi=lp64d $(XBRTIME_INCLUDE) -o ${PROGRAM} ${OBJS} ${CMPI_LIB} ${C_LINK_FLAGS} $(XBRTIME_LIB)
 
 .c.o:
 	${CCOMPILE} $<
