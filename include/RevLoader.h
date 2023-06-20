@@ -31,8 +31,15 @@
 // -- RevCPU Headers
 #include "RevMem.h"
 
+// -- xBGAS Common Headers
+#include "../common/include/XbgasAddr.h"
+
 #ifndef PT_LOAD
 #define PT_LOAD 1
+#endif
+
+#ifndef ET_DYN
+#define ET_DYN 3
 #endif
 
 #ifndef SHT_NOBITS

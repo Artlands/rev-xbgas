@@ -82,6 +82,18 @@ namespace SST {
       /// RevMem: set the stack_top address
       void SetStackTop(uint64_t Addr) { stacktop = Addr; }
 
+      uint64_t GetBrk() { return brk; }
+
+      uint64_t GetBrkMin() { return brk_min; }
+
+      uint64_t GetBrkMax() { return brk_max; }
+
+      void SetBrk( uint64_t addr ) { brk = addr; };
+
+      void SetBrkMin( uint64_t addr ){ brk_min = addr; };
+
+      void SetBrkMax( uint64_t addr ) { brk_max = addr; };
+
       /// RevMem: initiate a memory fence
       bool FenceMem();
 
@@ -242,7 +254,10 @@ namespace SST {
                                                                     /// nextPage * pageSize into physMem
 
       uint64_t stacktop;        ///< RevMem: top of the stack
-
+      uint64_t brk;             
+      uint64_t brk_min;
+      uint64_t brk_max;
+      
       std::vector<uint64_t> FutureRes;  ///< RevMem: future operation reservations
 
       std::vector<std::pair<unsigned,uint64_t>> LRSC;   ///< RevMem: load reserve/store conditional vector

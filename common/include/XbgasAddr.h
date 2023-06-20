@@ -19,6 +19,10 @@
 #define _XBRTIME_MEM_SLOTS_ 2048
 #endif
 
+#ifndef _XBGAS_PAGE_SIZE_
+#define _XBGAS_PAGE_SIZE_ 4096
+#endif
+
 #define _REV_MEM_SIZE_                       0x40000000           //1GB 0x100000000      //4GB
 #define _XBGAS_MEM_SIZE_                     65536  // 64KB
 #define _XBGAS_OUTPUT_BUFFER_SIZE_           4096   //i.e. 4KB

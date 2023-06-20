@@ -19,9 +19,10 @@ RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
                 RevMemCtrl *Ctrl, SST::Output *Output )
   : physMem(nullptr), memSize(MemSize), opts(Opts), 
     ctrl(Ctrl), rmtCtrl(nullptr),
-    output(Output),  stacktop(0x00ull) {
+    output(Output),  stacktop(0x00ull),
+    brk(0x00ull), brk_min(0x00ull), brk_max(_REV_HEAP_END_) {
   // Note: this constructor assumes the use of the memHierarchy backend
-  pageSize = 4096; //262144; //Page Size (in Bytes)
+  pageSize = _XBGAS_PAGE_SIZE_; //262144; //Page Size (in Bytes)
   addrShift = int(log(pageSize) / log(2.0));
   nextPage = 0;
 
@@ -38,11 +39,12 @@ RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
   : physMem(nullptr), memSize(MemSize), opts(Opts), 
     ctrl(nullptr), rmtCtrl(nullptr),
-    output(Output), stacktop(0x00ull) {
+    output(Output), stacktop(0x00ull),
+    brk(0x00ull), brk_min(0x00ull), brk_max(_REV_HEAP_END_) {
 
   // allocate the backing memory
   physMem = new char [memSize];
-  pageSize = 4096; //262144; //Page Size (in Bytes)
+  pageSize = _XBGAS_PAGE_SIZE_; //262144; //Page Size (in Bytes)
   addrShift = int(log(pageSize) / log(2.0));
   nextPage = 0;
 

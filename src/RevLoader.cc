@@ -235,9 +235,16 @@ bool RevLoader::LoadElf64(char *membuf, size_t sz){
   WriteCacheLine(sp,elfinfo.phdr_size,(void *)(ph));
   mem->SetStackTop(sp);
 
+  uint64_t bias = 0;
+  if( eh->e_type == ET_DYN)
+    bias = _XBGAS_PAGE_SIZE_;
 
   for( unsigned i=0; i<eh->e_phnum; i++ ){
     if( ph[i].p_type == PT_LOAD && ph[i].p_memsz ){
+      uint64_t vaddr = ph[i].p_vaddr + bias;
+      if((vaddr + ph[i].p_memsz) > mem->GetBrkMin())
+        mem->SetBrkMin(vaddr + ph[i].p_memsz);
+
       if( ph[i].p_filesz ){
         if( sz < ph[i].p_offset + ph[i].p_filesz )
           output->fatal(CALL_INFO, -1, "Error: RV64 Elf is unrecognizable\n" );
@@ -261,6 +268,10 @@ bool RevLoader::LoadElf64(char *membuf, size_t sz){
                     &zeros[0]);
     }
   }
+
+  // Write brk to _REV_HEAP_START_ADDR_
+  uint64_t heap_start = mem->GetBrkMin();
+  mem->WriteU64(_REV_HEAP_START_ADDR_, heap_start);
 
   Elf64_Shdr* sh = (Elf64_Shdr*)(membuf + eh->e_shoff);
   if( sz < eh->e_shoff + eh->e_shnum * sizeof(*sh) )
