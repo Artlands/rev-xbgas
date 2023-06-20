@@ -36,7 +36,7 @@ int main( int argc, char **argv ){
   revprintf("Pre-Get - PE:%d Val: %d\n", my_pe, ptr[0]);
 
   // perform a barrier
-  xbrtime_barrier();
+  // xbrtime_barrier();
 
   if( xbrtime_mype() == 0 ){
     // perform an operation

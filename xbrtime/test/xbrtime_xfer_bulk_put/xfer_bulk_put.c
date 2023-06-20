@@ -16,11 +16,8 @@
 #define _XBGAS_ALLOC_SIZE_ 8
 
 int main( int argc, char **argv ){
-  int src_array[6] = {2, 2, 2, 2, 2, 2};
-  // int *src_array = NULL;
-  int *dst_array = NULL;
-
-  revprintf("Initializing xBGAS Runtime\n");
+  int dst_array[6] = {2, 2, 2, 2, 2, 2};
+  int *src_array = NULL;
   
   // Initializing xBGAS Runtime
   xbrtime_init();
@@ -29,26 +26,26 @@ int main( int argc, char **argv ){
 	int numpes = xbrtime_num_pes();
   int target = 1;
   
-  // src_array = (int *)(xbrtime_malloc( 6 * sizeof(int) ));
-  dst_array = (int *)(xbrtime_malloc( 6 * sizeof(int) ));
+  src_array = (int *)(xbrtime_malloc( 6 * sizeof(int) ));
 
   for(int i = 0; i < 6; i++) {
-    // src_array[i] = my_pe;
-    dst_array[i] = my_pe + i;
+    src_array[i] = my_pe + i;
   }
 
-  // revprintf("Pre-Bulk Put - PE:%d - ", my_pe);
-  // for (int i = 0; i < 6; i++) {
-  //   revprintf("[%d] = %d ", i, dst_array[i]);
-  // }
-  // revprintf("\n");
-
   // perform a barrier
-  xbrtime_barrier();
+  // xbrtime_barrier();
+
+  if (my_pe == 1) {
+    revprintf("Pre-Bulk Put - PE:%d DstArray = [%d, %d, %d, %d, %d, %d]\n", 
+              my_pe, dst_array[0], dst_array[1], dst_array[2], dst_array[3], dst_array[4], dst_array[5]);
+  } else {
+    revprintf("Pre-Bulk Put - PE:%d SrcArray = [%d, %d, %d, %d, %d, %d]\n", 
+              my_pe, src_array[0], src_array[1], src_array[2], src_array[3], src_array[4], src_array[5]);
+  }
 
   if( xbrtime_mype() == 0 ){
     // perform an operation
-    revprintf("PE %d Puts values to PE %d\n", xbrtime_mype(), target);
+    revprintf("PE %d PUTs values to PE %d\n", xbrtime_mype(), target);
 
     // xbrtime_ulonglong_get((unsigned long long *)(ptr),
     //                       (unsigned long long *)(ptr),
@@ -57,19 +54,18 @@ int main( int argc, char **argv ){
     //                       target );
     xbrtime_int_put(dst_array,
                     src_array,
-                    3,
-                    2,
+                    6,
+                    1,
                     target );
   }
 
   // perform a barrier
   xbrtime_barrier();
 
-  revprintf("Post-Bulk Put - PE:%d -", my_pe);
-  for (int i = 0; i < 6; i++) {
-    revprintf("[%d] = %d ", i, dst_array[i]);
+  if (my_pe == 1) {
+    revprintf("Post-Bulk Put - PE:%d DstArray = [%d, %d, %d, %d, %d, %d]\n", 
+              my_pe, dst_array[0], dst_array[1], dst_array[2], dst_array[3], dst_array[4], dst_array[5]);
   }
-  revprintf("\n");
 
   xbrtime_free(src_array);
   // Closing xBGAS

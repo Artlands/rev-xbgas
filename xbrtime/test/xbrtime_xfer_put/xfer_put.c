@@ -34,7 +34,7 @@ int main( int argc, char **argv ){
   revprintf("Pre-Put - PE:%d Val: %d\n", my_pe, ptr[0]);
 
   // perform a barrier
-  xbrtime_barrier();
+  // xbrtime_barrier();
 
   if( my_pe == 0 ){
     revprintf("PE %d PUTs %d to PE %d\n", xbrtime_mype(), ptr[0], target);

@@ -21,8 +21,8 @@ int main( int argc, char **argv ){
   
   my_pe = xbrtime_mype();
   numpes = xbrtime_num_pes();
-  nelems = 8;
-  stride = 1;
+  nelems = 4;
+  stride = 2;
 
   total_nelems = nelems * stride;
 

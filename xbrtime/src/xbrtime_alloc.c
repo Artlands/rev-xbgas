@@ -22,6 +22,8 @@ void __xbrtime_asm_quiet_fence();
 
 extern void *revmalloc( size_t size ){
   int32_t heap_end = (int32_t)(_REV_HEAP_END_);
+  // revprintf("revmalloc: heap_end: 0x%x\n", heap_end);
+
   mem_block *current_block, *new_block;
   
   if ( global_base ) {
@@ -156,6 +158,8 @@ void *__xbrtime_shared_malloc( size_t sz ){
   *(uint64_t *)(_XBGAS_SHARED_MEM_SIZE_) = (uint64_t)((int64_t)sz + tmp);
   *(uint64_t *)(_XBGAS_SHARED_MEM_START_ADDR_) = (uint64_t)(ptr);
 
+  // revprintf("malloc: 0x%x, size: %d\n", ptr, sz);
+  // revprintf("shared memory size: %d\n", *(uint64_t *)(_XBGAS_SHARED_MEM_SIZE_));
   return ptr;
 }
 
@@ -199,6 +203,7 @@ extern void *xbrtime_malloc( size_t sz ){
   ptr = __xbrtime_shared_malloc( sz );
   __xbrtime_asm_quiet_fence();
 
+  // revprintf("xbrtime_malloc: 0x%x\n", ptr);
   return ptr;
 }
 

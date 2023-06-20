@@ -18,8 +18,6 @@
 int main( int argc, char **argv ){
   int dst_array[6] = {2, 2, 2, 2, 2, 2};
   int *src_array = NULL;
-
-  revprintf("Initializing xBGAS Runtime\n");
   
   // Initializing xBGAS Runtime
   xbrtime_init();
@@ -34,14 +32,16 @@ int main( int argc, char **argv ){
     src_array[i] = my_pe + i;
   }
 
-  // revprintf("Pre-Bulk Get - PE:%d - ", my_pe);
-  // for (int i = 0; i < 6; i++) {
-  //   revprintf("[%d] = %d ", i, dst_array[i]);
-  // }
-  // revprintf("\n");
-
   // perform a barrier
-  xbrtime_barrier();
+  // xbrtime_barrier();
+
+  if (my_pe == 0) {
+    revprintf("Pre-Bulk Get - PE:%d DstArray = [%d, %d, %d, %d, %d, %d]\n", 
+              my_pe, dst_array[0], dst_array[1], dst_array[2], dst_array[3], dst_array[4], dst_array[5]);
+  } else {
+    revprintf("Pre-Bulk Get - PE:%d SrcArray = [%d, %d, %d, %d, %d, %d]\n", 
+              my_pe, src_array[0], src_array[1], src_array[2], src_array[3], src_array[4], src_array[5]);
+  }
 
   if( xbrtime_mype() == 0 ){
     // perform an operation
@@ -62,11 +62,10 @@ int main( int argc, char **argv ){
   // perform a barrier
   xbrtime_barrier();
 
-  revprintf("Post-Bulk Get - PE:%d -", my_pe);
-  for (int i = 0; i < 6; i++) {
-    revprintf("[%d] = %d ", i, dst_array[i]);
+  if (my_pe == 0) {
+    revprintf("Post-Bulk Get - PE:%d DstArray = [%d, %d, %d, %d, %d, %d]\n", 
+              my_pe, dst_array[0], dst_array[1], dst_array[2], dst_array[3], dst_array[4], dst_array[5]);
   }
-  revprintf("\n");
 
   xbrtime_free(src_array);
   // Closing xBGAS
