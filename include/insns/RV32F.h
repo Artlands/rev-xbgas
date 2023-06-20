@@ -14,10 +14,6 @@
 #include "../RevInstTable.h"
 #include "../RevExt.h"
 
-#include "../softfp/cutils.h"
-#include "../softfp/softfloat.h"
-#include "../softfp/softfp.h"
-
 using namespace SST::RevCPU;
 
 namespace SST{
