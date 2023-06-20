@@ -32,8 +32,6 @@ MEMSIZE = 1024*1024*1024
 ENABLE_XBGAS = 1
 VERBOSE = 2
 
-# Does not work correctly with stride > 1
-
 verb_params = {
   "verbose" : 5,
 }
