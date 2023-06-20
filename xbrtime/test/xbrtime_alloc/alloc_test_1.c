@@ -20,13 +20,14 @@ int main( int argc, char **argv ){
   void *ptr = NULL;
   size_t sz = _XBGAS_ALLOC_SIZE_;
 
-  // printf( "Initializing xBGAS Runtime\n" );
+  revprintf( "Initializing xBGAS Runtime\n" );
   rtn = xbrtime_init();
 
   ptr = xbrtime_malloc( sz );
 
   xbrtime_free( ptr );
 
+  revprintf( "Closing xBGAS Runtime\n" );
   xbrtime_close();
 
   return rtn;

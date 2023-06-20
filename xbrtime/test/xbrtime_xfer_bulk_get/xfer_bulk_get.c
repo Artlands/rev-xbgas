@@ -16,8 +16,8 @@
 #define _XBGAS_ALLOC_SIZE_ 8
 
 int main( int argc, char **argv ){
-  int *ptr = NULL;
-  size_t sz = _XBGAS_ALLOC_SIZE_;
+  int dst_array[6] = {2, 2, 2, 2, 2, 2};
+  int *src_array = NULL;
 
   revprintf("Initializing xBGAS Runtime\n");
   
@@ -27,29 +27,34 @@ int main( int argc, char **argv ){
   int my_pe = xbrtime_mype();
 	int numpes = xbrtime_num_pes();
   int target = 1;
+  
+  src_array = (int *)(xbrtime_malloc( 6 * sizeof(int) ));
 
-  // Allocating sz bytes
-  ptr = (int *)(xbrtime_malloc( sz ));
-  // Putting a value in the first element
-  ptr[0] = (int)(my_pe + 10);
+  for(int i = 0; i < 6; i++) {
+    src_array[i] = my_pe + i;
+  }
 
-  revprintf("Pre-Get - PE:%d Val: %d\n", my_pe, ptr[0]);
+  // revprintf("Pre-Bulk Get - PE:%d - ", my_pe);
+  // for (int i = 0; i < 6; i++) {
+  //   revprintf("[%d] = %d ", i, dst_array[i]);
+  // }
+  // revprintf("\n");
 
   // perform a barrier
   xbrtime_barrier();
 
   if( xbrtime_mype() == 0 ){
     // perform an operation
-    revprintf("PE %d GETs a value from PE %d\n", xbrtime_mype(), target);
+    revprintf("PE %d GETs values from PE %d\n", xbrtime_mype(), target);
 
     // xbrtime_ulonglong_get((unsigned long long *)(ptr),
     //                       (unsigned long long *)(ptr),
     //                       1,
     //                       1,
     //                       target );
-    xbrtime_int_get((int *)(ptr),
-                    (int *)(ptr),
-                    1,
+    xbrtime_int_get(dst_array,
+                    src_array,
+                    6,
                     1,
                     target );
   }
@@ -57,10 +62,13 @@ int main( int argc, char **argv ){
   // perform a barrier
   xbrtime_barrier();
 
-  revprintf("Post-Get - PE:%d Val: %d\n", my_pe, ptr[0]);
+  revprintf("Post-Bulk Get - PE:%d -", my_pe);
+  for (int i = 0; i < 6; i++) {
+    revprintf("[%d] = %d ", i, dst_array[i]);
+  }
+  revprintf("\n");
 
-  xbrtime_free( ptr );
-
+  xbrtime_free(src_array);
   // Closing xBGAS
   xbrtime_close();
 }

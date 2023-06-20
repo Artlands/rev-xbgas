@@ -726,6 +726,17 @@ namespace SST {
         if( Nmspace != 0x00ull){
           M->RmtBulkWriteMem(Nmspace, DestAddr, 4, Nelem, Stride, R->RV64[Inst.rd]);
           R->cost += M->RandCost(F->GetMinCost(),F->GetMaxCost());
+
+  #ifdef _XBGAS_DEBUG_
+          uint64_t myPE = M->ReadU64(_XBGAS_MY_PE_);
+          std::cout << "PE " << std::dec << myPE
+                    << ": ebsw: Namespace: " << std::dec << Nmspace
+                    << ", Dest Addr: " << std::hex << DestAddr
+                    << ", Nelem: " << std::dec << (int)(Nelem)
+                    << ", Stride: " << std::dec << (int)(Stride)
+                    << std::endl;
+  #endif
+
         }
         R->RV64_PC += Inst.instSize;
         return true;

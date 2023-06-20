@@ -29,7 +29,7 @@ int main( int argc, char **argv ){
 
   for(i = 0; i < (numpes*nelems); i++) {
     src_array[i] = (int) my_pe;
-    dest_array[i] = 99;
+    dest_array[i] = 10;
   }
 
   revprintf("Pre-AlltoAll - PE: %d src_array: %d %d %d %d %d, dest_array: %d %d %d %d %d\n",

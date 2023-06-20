@@ -27,10 +27,9 @@ import os
 import sst
 
 NPES = 5
-PROGRAM = "xfer_gather.exe"
+PROGRAM = "xfer_alltoall.exe"
 MEMSIZE = 1024*1024*1024
 ENABLE_XBGAS = 1
-VERBOSE0 = 4
 VERBOSE = 2
 
 verb_params = {
@@ -58,16 +57,14 @@ router.addParams({
 for i in range(0, NPES):
   if (i == 0):
     splash = 1
-    verbose = VERBOSE0
   else:
     splash = 0
-    verbose = VERBOSE
     
   # xBGAS CPUs
   sst.pushNamePrefix("cpu" + str(i))
   xbgas_cpu = sst.Component("xbgas", "revcpu.RevCPU")
   xbgas_cpu.addParams({
-    "verbose" : verbose,                                # Verbosity
+    "verbose" : VERBOSE,                                # Verbosity
     "clock" : "1.0GHz",                           # Clock
     "program" : os.getenv("REV_EXE", PROGRAM),    # Target executable
     "memSize" : MEMSIZE,                          # Memory size in bytes

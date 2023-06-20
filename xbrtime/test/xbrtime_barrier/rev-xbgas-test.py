@@ -26,88 +26,77 @@
 import os
 import sst
 
+NPES = 2
 PROGRAM = "barrier.exe"
 MEMSIZE = 1024*1024*1024
 ENABLE_XBGAS = 1
-VERBOSE0 = 2
-VERBOSE1 = 2
+VERBOSE = 2
 
-cpu0_params = {
-  "verbose" : VERBOSE0,                                # Verbosity
-  "clock" : "1.0GHz",                           # Clock
-  "program" : os.getenv("REV_EXE", PROGRAM),    # Target executable
-  "memSize" : MEMSIZE,                          # Memory size in bytes
-  "startAddr" : "[0:0x00000000]",               # Starting address for core 0
-  "machine" : "[0:RV64IMAFDX]",
-  "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
-  "enable_xbgas" : ENABLE_XBGAS,                           # Enable XBGAS support  
-  "splash" : 1                                  # Display the splash message
+verb_params = {
+  "verbose" : 5,
 }
 
-cpu1_params = {
-  "verbose" : VERBOSE1,                                # Verbosity
-  "clock" : "1.0GHz",                           # Clock
-  "program" : os.getenv("REV_EXE", PROGRAM),    # Target executable
-  "memSize" : MEMSIZE,                          # Memory size in bytes
-  "startAddr" : "[0:0x00000000]",               # Starting address for core 0
-  "machine" : "[0:RV64IMAFDX]",
-  "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
-  "enable_xbgas" : ENABLE_XBGAS,                           # Enable XBGAS support  
-  "splash" : 0                                  # Display the splash message
-} 
+net_params = {
+  "input_buf_size" : "512B",
+  "output_buf_size" : "512B",
+  "link_bw" : "10GB/s"
+}
 
-# Define the simulation components
-xbgas_cpu0 = sst.Component("cpu0", "revcpu.RevCPU")
-xbgas_cpu0.addParams(cpu0_params)
+# setup the router
+router = sst.Component("router", "merlin.hr_router")
+router.setSubComponent("topology", "merlin.singlerouter")
+router.addParams(net_params)
 
-xbgas_cpu1 = sst.Component("cpu1", "revcpu.RevCPU")
-xbgas_cpu1.addParams(cpu1_params)
+router.addParams({
+    "xbar_bw" : "10GB/s",
+    "flit_size" : "32B",
+    "num_ports" : str(NPES),
+    "id" : 0
+})
 
-if( ENABLE_XBGAS == 1 ):
+for i in range(0, NPES):
+  if (i == 0):
+    splash = 1
+  else:
+    splash = 0
+    
+  # xBGAS CPUs
+  sst.pushNamePrefix("cpu" + str(i))
+  xbgas_cpu = sst.Component("xbgas", "revcpu.RevCPU")
+  xbgas_cpu.addParams({
+    "verbose" : VERBOSE,                                # Verbosity
+    "clock" : "1.0GHz",                           # Clock
+    "program" : os.getenv("REV_EXE", PROGRAM),    # Target executable
+    "memSize" : MEMSIZE,                          # Memory size in bytes
+    "startAddr" : "[0:0x00000000]",               # Starting address for core 0
+    "machine" : "[0:RV64IMAFDX]",
+    "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
+    "enable_xbgas" : ENABLE_XBGAS,                # Enable XBGAS support  
+    "splash" : splash                             # Display the splash message
+  })
+  # print("Created xBGAS CPU component " + str(i) + ": " + xbgas_cpu.getFullName())
+  
+  xbgas_cpu.enableAllStatistics()
+  sst.popNamePrefix()
+  
   # setup the remote memory controllers
-  rmt_mem_ctr0 = xbgas_cpu0.setSubComponent("remote_memory", "revcpu.RevBasicRmtMemCtrl")
-  rmt_mem_ctr1 = xbgas_cpu1.setSubComponent("remote_memory", "revcpu.RevBasicRmtMemCtrl")
+  rmt_mem_ctrl = xbgas_cpu.setSubComponent("remote_memory", "revcpu.RevBasicRmtMemCtrl")
 
   # setup the xBGAS NICs
-  nic0 = xbgas_cpu0.setSubComponent("xbgas_nic", "revcpu.XbgasNIC")
-  nic1 = xbgas_cpu1.setSubComponent("xbgas_nic", "revcpu.XbgasNIC")
+  nic = xbgas_cpu.setSubComponent("xbgas_nic", "revcpu.XbgasNIC")
+  iface = nic.setSubComponent("iface", "merlin.linkcontrol")
+  nic.addParams(verb_params)
+  iface.addParams(net_params)
+  
+  # Setup the links
+  sst.pushNamePrefix("link" + str(i))
+  link = sst.Link("link")
+  link.connect( (iface, "rtr_port", "25us"), (router, f"port{i}", "25us") )
+  sst.popNamePrefix()
 
-  iface0 = nic0.setSubComponent("iface", "merlin.linkcontrol")
-  iface1 = nic1.setSubComponent("iface", "merlin.linkcontrol")
 
-  # setup the router
-  router = sst.Component("router", "merlin.hr_router")
-  router.setSubComponent("topology", "merlin.singlerouter")
-
-  verb_params = {
-    "verbose" : 6,
-  }
-
-  net_params = {
-    "input_buf_size" : "512B",
-    "output_buf_size" : "512B",
-    "link_bw" : "10GB/s"
-  }
-
-  nic0.addParams(verb_params)
-  nic1.addParams(verb_params)
-
-  iface0.addParams(net_params)
-  iface1.addParams(net_params)
-  router.addParams(net_params)
-
-  router.addParams({
-      "xbar_bw" : "10GB/s",
-      "flit_size" : "32B",
-      "num_ports" : "2",
-      "id" : 0
-  })
-
-  # setup the links
-  link0 = sst.Link("link0")
-  link0.connect( (iface0, "rtr_port", "2us"), (router, "port0", "2us") )
-
-  link1 = sst.Link("link1")
-  link1.connect( (iface1, "rtr_port", "2us"), (router, "port1", "2us") )
+# Tell SST what statistics handling we want
+# sst.setStatisticLoadLevel(2)
+# sst.setStatisticOutput("sst.statOutputCSV")
 
 # EOF

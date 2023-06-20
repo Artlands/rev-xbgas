@@ -308,12 +308,19 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst( uint64_t Nmspace, uint64_t DestAd
   uint8_t *Data = (uint8_t *)((void *)(&TmpVal));
   for(int32_t i=0; i<Nelem; i++){
     TmpAddr = SrcAddr + i*Stride;
-    mem->ReadMem(TmpAddr, Size, (void *)(&TmpVal), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
+    mem->ReadMem(TmpAddr, Size, (void *)(&TmpVal));
+    // mem->ReadMem(TmpAddr, Size, (void *)(&TmpVal), REVMEM_FLAGS(RevCPU::RevFlag::F_NONCACHEABLE));
+    // std::cout << "TmpVal: " << std::dec << TmpVal << std::endl;
     for(int32_t j=0; j<Size; j++){
       Buffer[i*Size+j] = Data[j];
     }
     TmpVal = 0;
   }
+
+  // // print values in the buffer
+  // for(int32_t i=0; i<TotalSize; i++){
+  //   std::cout << "Buffer[" << std::dec << i << "]: " << std::hex << (int)Buffer[i] << std::endl;
+  // }
 
   // Build the bulk remote write request
   xbgasNicEvent *RmtEvent= new xbgasNicEvent();
@@ -323,6 +330,18 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst( uint64_t Nmspace, uint64_t DestAd
   // Store the request ID and RmtEvent in the writeRqsts and writeOutstanding maps, respectively
   writeRqsts.push_back(PktId);
   writeOutstanding[PktId] = RmtEvent;
+
+#ifdef _XBGAS_DEBUG_
+  uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+  std::cout << "PE " << std::dec << myPE
+            << " --> Send a Remote Bulk Write Request"
+            << ", PktId: " << std::dec << PktId
+            << ", Dest PE: " << std::dec << Dest
+            << ", SrcAddr: 0x" << std::hex << SrcAddr
+            << ", Stride: " << std::dec << Stride
+            << ", Event: " << RmtEvent->getOpcodeStr()
+            << std::endl;
+#endif
 
   // Add the request to the request queue
   rqstQ.push_back( std::make_pair(RmtEvent, Dest) );
@@ -481,8 +500,9 @@ bool RevBasicRmtMemCtrl::handleRmtWriteRqst( xbgasNicEvent *ev ){
   uint64_t Addr = ev->getAddr();
   xbgasNicEvent::XbgasOpcode Opcode = ev->getOpcode();
 
-#ifdef _XBGAS_DEBUG_
   uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
+
+#ifdef _XBGAS_DEBUG_
   std::cout << "PE " << std::dec << myPE
             << " --> Handle a Remote Write Request"
             << ", PktId: " << std::dec << PktId

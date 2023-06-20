@@ -91,7 +91,7 @@ void xbrtime_float_put(float *dest, const float *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -113,7 +113,7 @@ void xbrtime_float_put_nb(float *dest, const float *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -134,7 +134,7 @@ void xbrtime_double_put(double *dest, const double *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -156,7 +156,7 @@ void xbrtime_double_put_nb(double *dest, const double *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -177,7 +177,7 @@ void xbrtime_longdouble_put(long double *dest, const long double *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -199,7 +199,7 @@ void xbrtime_longdouble_put_nb(long double *dest, const long double *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -220,7 +220,7 @@ void xbrtime_schar_put(signed char *dest, const signed char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s1_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -242,7 +242,7 @@ void xbrtime_schar_put_nb(signed char *dest, const signed char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s1_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -263,7 +263,7 @@ void xbrtime_char_put(char *dest, const char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u1_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -285,7 +285,7 @@ void xbrtime_char_put_nb(char *dest, const char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u1_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -306,7 +306,7 @@ void xbrtime_short_put(short *dest, const short *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s2_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -328,7 +328,7 @@ void xbrtime_short_put_nb(short *dest, const short *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s2_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -349,7 +349,7 @@ void xbrtime_int_put(int *dest, const int *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -371,7 +371,7 @@ void xbrtime_int_put_nb(int *dest, const int *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -392,7 +392,7 @@ void xbrtime_long_put(long *dest, const long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -414,7 +414,7 @@ void xbrtime_long_put_nb(long *dest, const long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -435,7 +435,7 @@ void xbrtime_longlong_put(long long *dest, const long long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -457,7 +457,7 @@ void xbrtime_longlong_put_nb(long long *dest, const long long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -478,7 +478,7 @@ void xbrtime_uchar_put(unsigned char *dest, const unsigned char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u1_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -500,7 +500,7 @@ void xbrtime_uchar_put_nb(unsigned char *dest, const unsigned char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u1_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -521,7 +521,7 @@ void xbrtime_ushort_put(unsigned short *dest, const unsigned short *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u2_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -543,7 +543,7 @@ void xbrtime_ushort_put_nb(unsigned short *dest, const unsigned short *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u2_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -564,7 +564,7 @@ void xbrtime_uint_put(unsigned int *dest, const unsigned int *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -586,7 +586,7 @@ void xbrtime_uint_put_nb(unsigned int *dest, const unsigned int *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -607,7 +607,7 @@ void xbrtime_ulong_put(unsigned long *dest, const unsigned long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -629,7 +629,7 @@ void xbrtime_ulong_put_nb(unsigned long *dest, const unsigned long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -650,7 +650,7 @@ void xbrtime_ulonglong_put(unsigned long long *dest, const unsigned long long *s
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -672,7 +672,7 @@ void xbrtime_ulonglong_put_nb(unsigned long long *dest, const unsigned long long
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -693,7 +693,7 @@ void xbrtime_int8_put(int8_t *dest, const int8_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s1_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -715,7 +715,7 @@ void xbrtime_int8_put_nb(int8_t *dest, const int8_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s1_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -736,7 +736,7 @@ void xbrtime_int16_put(int16_t *dest, const int16_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s2_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -758,7 +758,7 @@ void xbrtime_int16_put_nb(int16_t *dest, const int16_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s2_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -779,7 +779,7 @@ void xbrtime_int32_put(int32_t *dest, const int32_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -801,7 +801,7 @@ void xbrtime_int32_put_nb(int32_t *dest, const int32_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -822,7 +822,7 @@ void xbrtime_int64_put(int64_t *dest, const int64_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -844,7 +844,7 @@ void xbrtime_int64_put_nb(int64_t *dest, const int64_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -865,7 +865,7 @@ void xbrtime_uint8_put(uint8_t *dest, const uint8_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u1_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -887,7 +887,7 @@ void xbrtime_uint8_put_nb(uint8_t *dest, const uint8_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u1_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -908,7 +908,7 @@ void xbrtime_uint16_put(uint16_t *dest, const uint16_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u2_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -930,7 +930,7 @@ void xbrtime_uint16_put_nb(uint16_t *dest, const uint16_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u2_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -951,7 +951,7 @@ void xbrtime_uint32_put(uint32_t *dest, const uint32_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -973,7 +973,7 @@ void xbrtime_uint32_put_nb(uint32_t *dest, const uint32_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -994,7 +994,7 @@ void xbrtime_uint64_put(uint64_t *dest, const uint64_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -1016,7 +1016,7 @@ void xbrtime_uint64_put_nb(uint64_t *dest, const uint64_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u8_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -1037,7 +1037,7 @@ void xbrtime_size_put(size_t *dest, const size_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -1059,7 +1059,7 @@ void xbrtime_size_put_nb(size_t *dest, const size_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_u4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -1080,7 +1080,7 @@ void xbrtime_ptrdiff_put(ptrdiff_t *dest, const ptrdiff_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -1102,7 +1102,7 @@ void xbrtime_ptrdiff_put_nb(ptrdiff_t *dest, const ptrdiff_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_put_s4_seq((uint64_t)(src),
                          __xbrtime_ltor((uint64_t)(dest),pe),
@@ -1123,7 +1123,7 @@ void xbrtime_float_get(float *dest, const float *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1145,7 +1145,7 @@ void xbrtime_float_get_nb(float *dest, const float *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1166,7 +1166,7 @@ void xbrtime_double_get(double *dest, const double *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1188,7 +1188,7 @@ void xbrtime_double_get_nb(double *dest, const double *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1209,7 +1209,7 @@ void xbrtime_longdouble_get(long double *dest, const long double *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1231,7 +1231,7 @@ void xbrtime_longdouble_get_nb(long double *dest, const long double *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1252,7 +1252,7 @@ void xbrtime_schar_get(signed char *dest, const signed char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s1_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1274,7 +1274,7 @@ void xbrtime_schar_get_nb(signed char *dest, const signed char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s1_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1295,7 +1295,7 @@ void xbrtime_char_get(char *dest, const char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* aggregate requests */
     __xbrtime_get_u1_agg(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1310,7 +1310,7 @@ void xbrtime_char_get_nb(char *dest, const char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u1_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1331,7 +1331,7 @@ void xbrtime_short_get(short *dest, const short *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s2_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1353,7 +1353,7 @@ void xbrtime_short_get_nb(short *dest, const short *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s2_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1374,7 +1374,7 @@ void xbrtime_int_get(int *dest, const int *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1 ){
     /* sequential execution */
     __xbrtime_get_s4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1396,7 +1396,7 @@ void xbrtime_int_get_nb(int *dest, const int *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1 ){
     /* sequential execution */
     __xbrtime_get_s4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1417,7 +1417,7 @@ void xbrtime_long_get(long *dest, const long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1439,7 +1439,7 @@ void xbrtime_long_get_nb(long *dest, const long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1460,7 +1460,7 @@ void xbrtime_longlong_get(long long *dest, const long long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1482,7 +1482,7 @@ void xbrtime_longlong_get_nb(long long *dest, const long long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1503,7 +1503,7 @@ void xbrtime_uchar_get(unsigned char *dest, const unsigned char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u1_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1525,7 +1525,7 @@ void xbrtime_uchar_get_nb(unsigned char *dest, const unsigned char *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u1_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1546,7 +1546,7 @@ void xbrtime_ushort_get(unsigned short *dest, const unsigned short *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u2_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1568,7 +1568,7 @@ void xbrtime_ushort_get_nb(unsigned short *dest, const unsigned short *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u2_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1589,7 +1589,7 @@ void xbrtime_uint_get(unsigned int *dest, const unsigned int *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1611,7 +1611,7 @@ void xbrtime_uint_get_nb(unsigned int *dest, const unsigned int *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1632,7 +1632,7 @@ void xbrtime_ulong_get(unsigned long *dest, const unsigned long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1654,7 +1654,7 @@ void xbrtime_ulong_get_nb(unsigned long *dest, const unsigned long *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1675,7 +1675,7 @@ void xbrtime_ulonglong_get(unsigned long long *dest, const unsigned long long *s
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1697,7 +1697,7 @@ void xbrtime_ulonglong_get_nb(unsigned long long *dest, const unsigned long long
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1718,7 +1718,7 @@ void xbrtime_int8_get(int8_t *dest, const int8_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s1_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1740,7 +1740,7 @@ void xbrtime_int8_get_nb(int8_t *dest, const int8_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s1_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1761,7 +1761,7 @@ void xbrtime_int16_get(int16_t *dest, const int16_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s2_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1783,7 +1783,7 @@ void xbrtime_int16_get_nb(int16_t *dest, const int16_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s2_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1804,7 +1804,7 @@ void xbrtime_int32_get(int32_t *dest, const int32_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1826,7 +1826,7 @@ void xbrtime_int32_get_nb(int32_t *dest, const int32_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1847,7 +1847,7 @@ void xbrtime_int64_get(int64_t *dest, const int64_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1869,7 +1869,7 @@ void xbrtime_int64_get_nb(int64_t *dest, const int64_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1890,7 +1890,7 @@ void xbrtime_uint8_get(uint8_t *dest, const uint8_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u1_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1912,7 +1912,7 @@ void xbrtime_uint8_get_nb(uint8_t *dest, const uint8_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u1_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1933,7 +1933,7 @@ void xbrtime_uint16_get(uint16_t *dest, const uint16_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u2_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1955,7 +1955,7 @@ void xbrtime_uint16_get_nb(uint16_t *dest, const uint16_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u2_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1976,7 +1976,7 @@ void xbrtime_uint32_get(uint32_t *dest, const uint32_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -1998,7 +1998,7 @@ void xbrtime_uint32_get_nb(uint32_t *dest, const uint32_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -2019,7 +2019,7 @@ void xbrtime_uint64_get(uint64_t *dest, const uint64_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -2041,7 +2041,7 @@ void xbrtime_uint64_get_nb(uint64_t *dest, const uint64_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u8_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -2062,7 +2062,7 @@ void xbrtime_size_get(size_t *dest, const size_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -2084,7 +2084,7 @@ void xbrtime_size_get_nb(size_t *dest, const size_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_u4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -2105,7 +2105,7 @@ void xbrtime_ptrdiff_get(ptrdiff_t *dest, const ptrdiff_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
@@ -2127,7 +2127,7 @@ void xbrtime_ptrdiff_get_nb(ptrdiff_t *dest, const ptrdiff_t *src,
                      size_t nelems, int stride, int pe){
   if(nelems == 0){
     return;
-  }else if( (stride != 1) || (nelems == 1)){
+  }else if( nelems == 1){
     /* sequential execution */
     __xbrtime_get_s4_seq(__xbrtime_ltor((uint64_t)(src),pe),
                          (uint64_t)(dest),
