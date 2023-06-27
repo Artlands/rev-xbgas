@@ -26,8 +26,8 @@
 import os
 import sst
 
-NPES = 4
-PROGRAM = "is.S.4"
+NPES = 64
+PROGRAM = "is.S.64"
 MEMSIZE = 1024*1024*1024
 ENABLE_XBGAS = 1
 VERBOSE0 = 4

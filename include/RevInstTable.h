@@ -407,6 +407,7 @@ namespace SST{
       RevImmFunc  imm;
       RevInstF    format;
       bool        compressed;
+      uint8_t     fpcvtOp;
 
       RevInstDefaults(){
         opcode    = 0b00000000;
@@ -426,6 +427,7 @@ namespace SST{
         imm       = FUnk;
         format    = RVTypeR;
         compressed = false;
+        fpcvtOp  = 0b00000;    // overloaded rs2 field for R-type FP instructions
       }
     };
 
@@ -508,6 +510,7 @@ namespace SST{
         InstEntry.imm       = RevInstDefaultsPolicy::imm;
         InstEntry.format    = RevInstDefaultsPolicy::format;
         InstEntry.compressed= false;
+        InstEntry.fpcvtOp  = RevInstDefaultsPolicy::fpcvtOp;
       }
 
       // Begin Set() functions to allow call chaining - all Set() must return *this
@@ -528,7 +531,8 @@ namespace SST{
       RevInstEntryBuilder& Setimm12(uint16_t imm12)     {InstEntry.imm12 = imm12;   return *this;};
       RevInstEntryBuilder& Setimm(RevImmFunc imm)       {InstEntry.imm = imm;       return *this;};
       RevInstEntryBuilder& SetFormat(RevInstF format)   {InstEntry.format = format; return *this;};
-      RevInstEntryBuilder& SetCompressed(bool c)        {InstEntry.compressed = c; return *this;};
+      RevInstEntryBuilder& SetCompressed(bool c)        {InstEntry.compressed = c;  return *this;};
+      RevInstEntryBuilder& SetfpcvtOp(uint8_t op)       {InstEntry.fpcvtOp = op;    return *this;};
 
       RevInstEntryBuilder& SetImplFunc(bool (*func)(RevFeature *,
                                                     RevRegFile *,

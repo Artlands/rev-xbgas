@@ -20,7 +20,7 @@ int main( int argc, char **argv ){
   
   my_pe = xbrtime_mype();
   numpes = xbrtime_num_pes();
-  root_pe = 0;
+  root_pe = 2;
 
   nelems = 10;
   dest_array = (int*) xbrtime_malloc(nelems * sizeof(int));

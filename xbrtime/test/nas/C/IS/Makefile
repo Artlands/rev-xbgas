@@ -7,7 +7,7 @@ include ../config/make.def
 include ../sys/make.common
 
 OBJS = is.o ${COMMON}/c_print_results.o ${COMMON}/c_timers.o
-ARCH=rv64imafdc
+ARCH=rv64imafd
 
 ${PROGRAM}: config ${OBJS}
 	${CLINK} -march=$(ARCH) -mabi=lp64d $(XBRTIME_INCLUDE) -o ${PROGRAM} ${OBJS} ${CMPI_LIB} ${C_LINK_FLAGS} $(XBRTIME_LIB)

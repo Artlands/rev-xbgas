@@ -33,7 +33,7 @@ int main( int argc, char **argv ){
   }
 
   // perform a barrier
-  // xbrtime_barrier();
+  xbrtime_barrier();
 
   if (my_pe == 1) {
     revprintf("Pre-Bulk Put - PE:%d DstArray = [%d, %d, %d, %d, %d, %d]\n", 
@@ -47,11 +47,6 @@ int main( int argc, char **argv ){
     // perform an operation
     revprintf("PE %d PUTs values to PE %d\n", xbrtime_mype(), target);
 
-    // xbrtime_ulonglong_get((unsigned long long *)(ptr),
-    //                       (unsigned long long *)(ptr),
-    //                       1,
-    //                       1,
-    //                       target );
     xbrtime_int_put(dst_array,
                     src_array,
                     6,

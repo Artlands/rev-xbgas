@@ -266,6 +266,8 @@ bool RevProc::SeedInstTable(){
       EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,output)),true);
     }else{
       EnableExt(static_cast<RevExt *>(new RV32F(feature,RegFile,mem,output)),false);
+      EnableExt(static_cast<RevExt *>(new RV64F(feature,RegFile,mem,output)),false);
+
     }
 #if 0
     if( feature->GetXlen() == 64 ){
@@ -945,6 +947,13 @@ RevInst RevProc::DecodeCompressed(uint32_t Inst){
   uint64_t PC     = GetPC();
   RevInst TInst;
 
+  if( !feature->HasCompressed() ){
+    output->fatal(CALL_INFO, -1,
+                  "Error: failed to decode instruction at PC=0x%" PRIx64 "; Compressed instructions not enabled!\n",
+                  PC);
+
+  }
+
   ResetInst(&TInst);
 
   // decode the opcode
@@ -1550,6 +1559,12 @@ RevInst RevProc::DecodeInst(){
     // Bulk transfer R4
   } else {
     Funct2 = 0x00ul;
+  }
+
+  uint32_t fcvtOp = 0;
+  //Special encodings for FCVT instructions
+  if( (0b1010011 == Opcode) && ((0b1100000 == Funct7) || (0b1101000 == Funct7)) ){
+      fcvtOp =  DECODE_RS2(Inst);
   }
 
   // Stage 5: Determine if we have an imm12 field
@@ -2448,10 +2463,10 @@ void RevProc::InitEcallTable(){
     {49,  &RevProc::ECALL_chdir},          
     {54,  &RevProc::ECALL_fchownat},        // Not implemented
     {55,  &RevProc::ECALL_fchown},          // Not implemented
+    {56,  &RevProc::ECALL_openat},          
     {57,  &RevProc::ECALL_close},           // Not implemented
     {63,  &RevProc::ECALL_read},            // Not implemented
     {64,  &RevProc::ECALL_write},          
-    {65,  &RevProc::ECALL_openat},          
     {77,  &RevProc::ECALL_tee},             // Not implemented
     {81,  &RevProc::ECALL_sync},            // Not implemented
     {82,  &RevProc::ECALL_fsync},           // Not implemented
@@ -2965,7 +2980,6 @@ void RevProc::ECALL_openat(){
     filename = filename + filenameChar;
     i++;
   } while( filename.back() != '\0');
-  std::cout << filename << std::endl;
 
   dfd = open(std::filesystem::current_path().c_str(), O_RDONLY);
 
@@ -3139,5 +3153,4 @@ void RevProc::ExecEcall(){
   }
 }
 
-// EOF
 // EOF

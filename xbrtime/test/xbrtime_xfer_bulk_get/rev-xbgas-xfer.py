@@ -33,10 +33,6 @@ ENABLE_XBGAS = 1
 VERBOSE0 = 2
 VERBOSE = 2
 
-verb_params = {
-  "verbose" : 5,
-}
-
 net_params = {
   "input_buf_size" : "512B",
   "output_buf_size" : "512B",
@@ -65,10 +61,11 @@ for i in range(0, NPES):
     
   # xBGAS CPUs
   sst.pushNamePrefix("cpu" + str(i))
+  
   xbgas_cpu = sst.Component("xbgas", "revcpu.RevCPU")
   xbgas_cpu.addParams({
     "verbose" : verbose,                                # Verbosity
-    "clock" : "1.0GHz",                           # Clock
+    "clock" : "2.5GHz",                           # Clock
     "program" : os.getenv("REV_EXE", PROGRAM),    # Target executable
     "memSize" : MEMSIZE,                          # Memory size in bytes
     "startAddr" : "[0:0x00000000]",               # Starting address for core 0
@@ -78,8 +75,8 @@ for i in range(0, NPES):
     "splash" : splash                             # Display the splash message
   })
   # print("Created xBGAS CPU component " + str(i) + ": " + xbgas_cpu.getFullName())
+  # xbgas_cpu.enableAllStatistics()
   
-  xbgas_cpu.enableAllStatistics()
   sst.popNamePrefix()
   
   # setup the remote memory controllers
@@ -88,13 +85,12 @@ for i in range(0, NPES):
   # setup the xBGAS NICs
   nic = xbgas_cpu.setSubComponent("xbgas_nic", "revcpu.XbgasNIC")
   iface = nic.setSubComponent("iface", "merlin.linkcontrol")
-  nic.addParams(verb_params)
   iface.addParams(net_params)
   
   # Setup the links
   sst.pushNamePrefix("link" + str(i))
   link = sst.Link("link")
-  link.connect( (iface, "rtr_port", "25us"), (router, f"port{i}", "25us") )
+  link.connect( (iface, "rtr_port", "40us"), (router, f"port{i}", "40us") )
   sst.popNamePrefix()
 
 

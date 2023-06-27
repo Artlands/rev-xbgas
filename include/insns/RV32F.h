@@ -13,6 +13,7 @@
 
 #include "../RevInstTable.h"
 #include "../RevExt.h"
+#include <cmath>
 
 using namespace SST::RevCPU;
 

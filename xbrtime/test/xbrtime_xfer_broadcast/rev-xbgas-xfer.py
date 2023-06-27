@@ -26,7 +26,7 @@
 import os
 import sst
 
-NPES = 4
+NPES = 64
 PROGRAM = "xfer_broadcast.exe"
 MEMSIZE = 1024*1024*1024
 ENABLE_XBGAS = 1
@@ -65,7 +65,7 @@ for i in range(0, NPES):
   xbgas_cpu = sst.Component("xbgas", "revcpu.RevCPU")
   xbgas_cpu.addParams({
     "verbose" : VERBOSE,                                # Verbosity
-    "clock" : "1.0GHz",                           # Clock
+    "clock" : "2.5GHz",                           # Clock
     "program" : os.getenv("REV_EXE", PROGRAM),    # Target executable
     "memSize" : MEMSIZE,                          # Memory size in bytes
     "startAddr" : "[0:0x00000000]",               # Starting address for core 0
@@ -91,7 +91,7 @@ for i in range(0, NPES):
   # Setup the links
   sst.pushNamePrefix("link" + str(i))
   link = sst.Link("link")
-  link.connect( (iface, "rtr_port", "25us"), (router, f"port{i}", "25us") )
+  link.connect( (iface, "rtr_port", "40us"), (router, f"port{i}", "40us") )
   sst.popNamePrefix()
 
 
