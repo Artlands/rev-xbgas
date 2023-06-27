@@ -469,6 +469,8 @@ namespace SST{
         bool (*func)(RevFeature *, RevRegFile *, RevMem *, RevInst);
 
         bool compressed;      ///< RevInstEntry: compressed instruction
+
+        uint8_t fpcvtOp;      ///<RenInstEntry: Stores the overloaded rs2 field in R-type instructions
     } RevInstEntry;
 
     /* return -1 if invalid roundind mode */
@@ -509,7 +511,7 @@ namespace SST{
         InstEntry.imm       = RevInstDefaultsPolicy::imm;
         InstEntry.format    = RevInstDefaultsPolicy::format;
         InstEntry.compressed= false;
-        InstEntry.fpcvtOp  = RevInstDefaultsPolicy::fpcvtOp;
+        InstEntry.fpcvtOp   = RevInstDefaultsPolicy::fpcvtOp;
       }
 
       // Begin Set() functions to allow call chaining - all Set() must return *this

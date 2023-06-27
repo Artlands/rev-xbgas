@@ -75,7 +75,7 @@ switch between the different build systems, first uinstall Rev from your SST env
 
   $ sst-register -u revcpu
 
-## Building Compatible Compilers
+## Building xBGAS-Compatible Compilers
 
 As mentioned above, the Rev SST model supports standard ELF binary 
 payloads as input to the model.  As a result, we need a cross compilation 
@@ -92,6 +92,17 @@ using the ``multilib`` option.  This is analogous to the following:
     $ git submodule update --init --recursive
     $ ./configure --prefix=/opt/riscv --enable-multilib
     $ make -j
+
+To build **xBGAS-compatible** compilers, you will need to use [xbgas-gnu-toolchain](https://github.com/artlands/riscv-gnu-toolchain-xbgas.git) and use the same option as above.
+
+    $ git clone https://github.com/artlands/riscv-gnu-toolchain-xbgas.git
+    $ cd riscv-gnu-toolchain-xbgas
+    $ git checkout xbgas
+    $ git submodule update --init --recursive
+    $ ./configure --prefix=/opt/riscv --enable-multilib
+    $ make -j
+
+To compile and use the xBGAS runtime library, please checkout the README.md under ``xbrtime``.
 
 ## Example Execution
 
