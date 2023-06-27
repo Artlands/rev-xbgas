@@ -26,7 +26,7 @@
 import os
 import sst
 
-NPES = 64
+NPES = 4
 PROGRAM = "xfer_broadcast.exe"
 MEMSIZE = 1024*1024*1024
 ENABLE_XBGAS = 1
