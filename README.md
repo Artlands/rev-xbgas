@@ -102,7 +102,7 @@ To build **xBGAS-compatible** compilers, you will need to use [xbgas-gnu-toolcha
     $ ./configure --prefix=/opt/riscv --enable-multilib
     $ make -j
 
-To compile and use the xBGAS runtime library, please checkout the README.md under ``xbrtime``.
+To compile and use the xBGAS runtime library, please checkout the [README.md](https://github.com/Artlands/rev-xbgas/blob/refactor-xbrtime/xbrtime/README.md) under ``xbrtime``.
 
 ## Example Execution
 
