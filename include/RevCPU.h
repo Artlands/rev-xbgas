@@ -493,6 +493,7 @@ namespace SST {
       ///         Does not push onto the send mailbox
       void PANBuildBasicSuccess(panNicEvent *event, panNicEvent *rtn);
 
+      /// RevCPU: updates sst statistics on a per core basis
       void UpdateCoreStatistics(uint16_t coreNum);
 
     }; // class RevCPU
