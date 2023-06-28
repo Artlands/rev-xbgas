@@ -93,13 +93,13 @@ using the ``multilib`` option.  This is analogous to the following:
     $ ./configure --prefix=/opt/riscv --enable-multilib
     $ make -j
 
-To build **xBGAS-compatible** compilers, you will need to use [xbgas-gnu-toolchain](https://github.com/artlands/riscv-gnu-toolchain-xbgas.git) and use the same option as above.
+To build **xBGAS-compatible** compilers, you will need to use [xbgas-gnu-toolchain](https://github.com/artlands/riscv-gnu-toolchain-xbgas.git). You may need to disable the `compressed` option (as specified by `--with-arch=rv64imafd`) to avoid bugs in the current version of REV-CPU:
 
     $ git clone https://github.com/artlands/riscv-gnu-toolchain-xbgas.git
     $ cd riscv-gnu-toolchain-xbgas
     $ git checkout xbgas
     $ git submodule update --init --recursive
-    $ ./configure --prefix=/opt/riscv --enable-multilib
+    $ ./configure --prefix=/opt/riscv --enable-multilib --with-arch=rv64imafd
     $ make -j
 
 To compile and use the xBGAS runtime library, please checkout the [README.md](https://github.com/Artlands/rev-xbgas/blob/refactor-xbrtime/xbrtime/README.md) under ``xbrtime``.

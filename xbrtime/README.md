@@ -3,8 +3,8 @@ The xBGAS runtime library is a set of C and assembly language routines that prov
 
 ## Prerequisites
 The xBGAS runtime library requires the following softwares to be installed on the system:
-* [RISC-V xBGAS GNU Toolchain](https://github.com/rrtlands/riscv-gnu-toolchain-xbgas/tree/xbgas)
-* [REV xBGAS SST Component](https://github.com/Artlands/rev-xbgas/tree/refactor-xbrtime)
+* [RISC-V xBGAS GNU Toolchain](https://github.com/artlands/riscv-gnu-toolchain-xbgas/tree/xbgas)
+* [REV xBGAS SST Component](https://github.com/artlands/rev-xbgas/tree/refactor-xbrtime)
 
 ## Building
 The xBGAS runtime library can be built by running the following commands (CMake is required):

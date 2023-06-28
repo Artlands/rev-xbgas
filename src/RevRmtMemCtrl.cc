@@ -671,6 +671,9 @@ bool RevBasicRmtMemCtrl::isPeFinished(){
         ev->setSrc( xbgasHosts[0] );
         ev->buildFinish();
         xbgas_nic->send(ev, xbgasHosts[i] );
+        std::cout << "PE " << std::dec << xbgasHosts[0]
+                  << " --> Send a finish event to PE " << std::dec << xbgasHosts[i]
+                  << std::endl;
       }
     }
   // Check if all the PEs have finished

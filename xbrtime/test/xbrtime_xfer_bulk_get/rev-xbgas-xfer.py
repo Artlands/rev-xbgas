@@ -26,7 +26,7 @@
 import os
 import sst
 
-NPES = 2
+NPES = 4
 PROGRAM = "xfer_bulk_get.exe"
 MEMSIZE = 1024*1024*1024
 ENABLE_XBGAS = 1
