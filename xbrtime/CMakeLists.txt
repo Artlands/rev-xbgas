@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project(xbrtime C CXX ASM)
 
+
 # Override the default compiler/assembler
 set(CMAKE_C_COMPILER riscv64-unknown-elf-gcc)
 set(CMAKE_ASM_COMPILER riscv64-unknown-elf-gcc)
