@@ -500,9 +500,8 @@ bool RevBasicRmtMemCtrl::handleRmtWriteRqst( xbgasNicEvent *ev ){
   uint64_t Addr = ev->getAddr();
   xbgasNicEvent::XbgasOpcode Opcode = ev->getOpcode();
 
-  uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
-
 #ifdef _XBGAS_DEBUG_
+  uint64_t myPE = mem->ReadU64(_XBGAS_MY_PE_);
   std::cout << "PE " << std::dec << myPE
             << " --> Handle a Remote Write Request"
             << ", PktId: " << std::dec << PktId

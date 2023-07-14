@@ -92,7 +92,7 @@ void xbgasNicEvent::getData(uint8_t *Out){
 bool xbgasNicEvent::setData(uint8_t *In, int32_t Sz){
   if( Sz == 0 )
     return true;
-  for( unsigned i=0; i<Sz; i++ ){
+  for( int i=0; i<Sz; i++ ){
     Data.push_back(In[i]);
   }
   return true;
@@ -273,7 +273,7 @@ void XbgasNIC::init(unsigned int phase){
   }
 
   while( SST::Interfaces::SimpleNetwork::Request * req = iFace->recvInitData() ) {
-    xbgasNicEvent *ev = static_cast<xbgasNicEvent*>(req->takePayload());
+    // xbgasNicEvent *ev = static_cast<xbgasNicEvent*>(req->takePayload());
     numDest++;
     SST::Interfaces::SimpleNetwork::nid_t srcID = req->src;
     // Remote PE IDs
