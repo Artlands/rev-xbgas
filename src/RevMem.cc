@@ -35,6 +35,7 @@ RevMem::RevMem( unsigned long MemSize, RevOpts *Opts,
 
 RevMem::RevMem( unsigned long MemSize, RevOpts *Opts, SST::Output *Output )
   : physMem(nullptr), memSize(MemSize), opts(Opts), ctrl(nullptr), output(Output),
+    rmtCtrl(nullptr),
     stacktop(0x00ull) {
 
   // allocate the backing memory
@@ -582,6 +583,34 @@ void RevMem::WriteDouble( uint64_t Addr, double Value ){
   memStats.doublesWritten++;
   if( !WriteMem(Addr,8,(void *)(&Tmp)) )
     output->fatal(CALL_INFO, -1, "Error: could not write memory (DOUBLE)");
+}
+
+bool RevMem::RmtReadMem( uint64_t Nmspace, uint64_t SrcAddr, 
+                         uint32_t Size, void *Target, int *RegisterTag){
+  bool rtn = rmtCtrl->sendRmtReadRqst(Nmspace, SrcAddr, Size, Target, RegisterTag);
+  return rtn;
+}
+
+bool RevMem::RmtBulkReadMem( uint64_t Nmspace, uint64_t SrcAddr, uint32_t Size, 
+                     uint32_t Nelem, uint32_t Stride, uint64_t DestAddr, int *RegisterTag) {
+  bool rtn = rmtCtrl->sendRmtBulkReadRqst(Nmspace, SrcAddr, Size, 
+                                          Nelem, Stride, DestAddr, RegisterTag);
+  return rtn;
+}
+
+bool RevMem::RmtWriteMem( uint64_t Nmspace, uint64_t DestAddr, uint32_t Size, void *Data ){
+  uint8_t *Buffer = new uint8_t[Size];
+  std::memcpy(Buffer, Data, Size);
+  bool rtn = rmtCtrl->sendRmtWriteRqst(Nmspace, DestAddr, Size, Buffer);
+  delete [] Buffer;
+  return rtn;
+}
+
+bool RevMem::RmtBulkWriteMem( uint64_t Nmspace, uint64_t DestAddr, uint32_t Size, 
+                      uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr ) {
+  bool rtn = rmtCtrl->sendRmtBulkWriteRqst(Nmspace, DestAddr, Size, 
+                                           Nelem, Stride, SrcAddr);
+  return rtn;
 }
 
 /*

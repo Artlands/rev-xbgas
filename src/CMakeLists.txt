@@ -15,12 +15,14 @@ set(RevCPUSrcs
   RevLoader.cc
   RevMem.cc
   RevMemCtrl.cc
+  RevRmtMemCtrl.cc
   RevNIC.cc
   RevOpts.cc
   RevProc.cc
   RevThreadCtx.cc
   librevcpu.cc
   RevPrefetcher.cc
+  XbgasNIC.cc
   )
 
 add_library(revcpu SHARED ${RevCPUSrcs})

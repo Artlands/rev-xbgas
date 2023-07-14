@@ -29,6 +29,7 @@
 // -- RevCPU Headers
 #include "RevOpts.h"
 #include "RevMemCtrl.h"
+#include "RevRmtMemCtrl.h"
 
 #ifndef _REVMEM_BASE_
 #define _REVMEM_BASE_ 0x00000000
@@ -37,6 +38,11 @@
 #define REVMEM_FLAGS(x) ((StandardMem::Request::flags_t)(x))
 
 #define _INVALID_ADDR_ 0xFFFFFFFFFFFFFFFF
+
+namespace SST::RevCPU {
+  class RevRmtMemCtrl;
+  class RevMem;
+}
 
 using namespace SST::RevCPU;
 
@@ -53,6 +59,9 @@ namespace SST {
 
       /// RevMem: standard destructor
       ~RevMem();
+
+      /// RevMem: set the remote memory controller
+      void setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl) { rmtCtrl = RmtCtrl; }
 
       /// RevMem: determine if there are any outstanding requests
       bool outstandingRqsts();
@@ -75,6 +84,27 @@ namespace SST {
       /// RevMem: retrieves the cache line size.  Returns 0 if no cache is configured
       unsigned getLineSize(){ if( ctrl ){return ctrl->getLineSize();}else{return 64;} }
 
+      // ----------------------------------------------------
+      // ---- Remote Memory Interfaces
+      // ----------------------------------------------------
+      /// RevMem: read data from the target remote memory location
+      bool RmtReadMem( uint64_t Nmspace, uint64_t SrcAddr, 
+                       uint32_t Size, void *Target, int *RegisterTag);
+      
+      /// RevMem: read bulk data from the target remote memory location
+      bool RmtBulkReadMem( uint64_t Nmspace, uint64_t SrcAddr, 
+                           uint32_t Size, uint32_t Nelem, 
+                           uint32_t Stride, uint64_t DestAddr, int *RegisterTag);
+
+      /// RevMem: write data to the target remote memory location
+      bool RmtWriteMem( uint64_t Nmspace, uint64_t DestAddr, 
+                        uint32_t Size, void *Data );
+      
+      /// RevMem: write bulk data to the target remote memory location
+      bool RmtBulkWriteMem( uint64_t Nmspace, uint64_t DestAddr, 
+                            uint32_t Size, uint32_t Nelem, 
+                            uint32_t Stride, uint64_t SrcAddr );
+      
       // ----------------------------------------------------
       // ---- Base Memory Interfaces
       // ----------------------------------------------------
@@ -204,6 +234,8 @@ namespace SST {
       RevMemCtrl *ctrl;             ///< RevMem: memory controller object
       SST::Output *output;          ///< RevMem: output handler
 
+      RevRmtMemCtrl *rmtCtrl;       ///< RevMem: remote memory controller object
+      
       uint64_t SearchTLB(uint64_t vAddr);                       ///< RevMem: Used to check the TLB for an entry
       void AddToTLB(uint64_t vAddr, uint64_t physAddr);         ///< RevMem: Used to add a new entry to TLB & LRUQueue
       void FlushTLB();                                          ///< RevMem: Used to flush the TLB & LRUQueue

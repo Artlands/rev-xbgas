@@ -6,5 +6,6 @@
 # See LICENSE in the top level directory for licensing details
 #
 set(CommonSrcs 
-  PanAddr.h  
+  PanAddr.h
+  XbgasAddr.h  
 )

@@ -34,6 +34,7 @@ const char *pan_splash_msg = "\
 RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id), testStage(0), PrivTag(0), address(-1), PrevAddr(_PAN_RDMA_MAILBOX_),
     EnableNIC(false), EnablePAN(false), EnablePANStats(false), EnableMemH(false),
+    EnableXBGAS(false), EnableXBGASStats(false),
     ReadyForRevoke(false), Nic(nullptr), PNic(nullptr), PExec(nullptr), Ctrl(nullptr) {
 
   const int Verbosity = params.find<int>("verbose", 0);
@@ -188,6 +189,26 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     FaultCntr = fault_width;
   }
 
+  // See if we should load the xBGAS subcomponent
+  EnableXBGAS = params.find<bool>("enable_xbgas", 0);
+  EnableXBGASStats = params.find<bool>("enable_xbgas_stats", 0);
+
+  if( EnableXBGAS ){
+    RmtCtrl = loadUserSubComponent<RevRmtMemCtrl>("remote_memory");
+    if ( !RmtCtrl )
+        output.fatal(CALL_INFO, -1, "Error : failed to inintialize the remote memory controller subcomponent\n" );
+
+    XNic = loadUserSubComponent<xbgasNicAPI>("xbgas_nic");
+    if ( !XNic )
+        output.fatal(CALL_INFO, -1, "Error : failed to inintialize the xBGAS NIC subcomponent\n" );
+
+    XNic->setMsgHandler( 
+      new Event::Handler<RevBasicRmtMemCtrl>(static_cast<RevBasicRmtMemCtrl*>(RmtCtrl), 
+                                             &RevBasicRmtMemCtrl::rmtMemEventHandler) 
+    );
+    RmtCtrl->setNic( XNic );
+  }
+
   // Create the memory object
   const unsigned long memSize = params.find<unsigned long>("memSize", 1073741824);
   EnableMemH = params.find<bool>("enable_memH", 0);
@@ -199,6 +220,9 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
     if( EnablePAN )
       output.fatal(CALL_INFO, -1, "Error: PAN does not currently support memHierarchy\n");
 
+    if( EnableXBGAS )
+      output.fatal(CALL_INFO, -1, "Error: xBGAS does not currently support memHierarchy\n");
+
     Ctrl = loadUserSubComponent<RevMemCtrl>("memory");
     if( !Ctrl )
       output.fatal(CALL_INFO, -1, "Error : failed to inintialize the memory controller subcomponent\n");
@@ -209,6 +233,18 @@ RevCPU::RevCPU( SST::ComponentId_t id, SST::Params& params )
 
     if( EnableFaults )
       output.verbose(CALL_INFO, 1, 0, "Warning: memory faults cannot be enabled with memHierarchy support\n");
+  }
+
+  if( EnableXBGAS ){
+    RmtCtrl->setMem( Mem );
+    Mem->setRmtMemCtrl( RmtCtrl );
+    // Reserve the xBGAS memory region
+    // Mem->SetStackTop(Mem->GetStackTop() - _XBGAS_MEM_SIZE_);
+
+    // Reset the output buffer
+    // memset(buffer, 0, _XBGAS_OUTPUT_BUFFER_SIZE_);
+    // Mem->WriteU64(_XBGAS_OUTPUT_BUFFER_LENGTH_, 0x00ul);
+    // Mem->WriteMem(_XBGAS_OUTPUT_BUFFER_START_, _XBGAS_OUTPUT_BUFFER_SIZE_, buffer);
   }
 
   // Set TLB Size
@@ -2408,8 +2444,14 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   }
 
   if( rtn ){
-    primaryComponentOKToEndSim();
-    output.verbose(CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
+    // check PEs for completion
+    if( EnableXBGAS )
+      rtn = RmtCtrl->isPeFinished();
+    
+    if ( rtn ) {
+      primaryComponentOKToEndSim();
+      output.verbose(CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
+    }
   }
 
   return rtn;
