@@ -180,6 +180,16 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
     output.fatal(CALL_INFO, -1, "Error: enabling PAN tests requires a pan_nic");
   }
 
+  /************** xBGAS **************/
+  // See if we should load the xBGAS
+  EnableXBGAS = params.find<bool>("enable_xbgas", 0);
+  EnableXBGASStats = params.find<bool>("enable_xbgas_stats", 0);
+
+  if( EnableXBGAS ){
+    // load the remote memory controller subcomponent
+  }
+  /************** xBGAS **************/
+
   // Look for the fault injection logic
   EnableFaults = params.find<bool>("enable_faults", 0);
   if( EnableFaults ){
