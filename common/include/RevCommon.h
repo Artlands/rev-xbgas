@@ -11,16 +11,54 @@
 #ifndef __REV_COMMON__
 #define __REV_COMMON__
 
-#include <functional>
+#include <cstddef>
 #include <cstdint>
+#include <functional>
+#include <type_traits>
+
+#ifndef _REV_NUM_REGS_
+#define _REV_NUM_REGS_ 32
+#endif
 
 #ifndef _REV_INVALID_HART_ID_
-#define _REV_INVALID_HART_ID_ (uint16_t(~0))
+#define _REV_INVALID_HART_ID_ (unsigned(~0))
 #endif
 
 #define _INVALID_ADDR_ (~uint64_t{0})
 
+#define _INVALID_TID_ (uint32_t{0})
+
+#define _MAX_HARTS_ 65536
+
 namespace SST::RevCPU{
+
+/// Zero-extend value of bits size
+template<typename T>
+constexpr auto ZeroExt(T val, size_t bits){
+  return static_cast<std::make_unsigned_t<T>>(val) & ~(~std::make_unsigned_t<T>{0} << bits);
+}
+
+/// Sign-extend value of bits size
+template<typename T>
+constexpr auto SignExt(T val, size_t bits){
+  auto signbit = std::make_unsigned_t<T>{1} << (bits-1);
+  return static_cast<std::make_signed_t<T>>((ZeroExt(val, bits) ^ signbit) - signbit);
+}
+
+/// Base-2 logarithm of integers
+template<typename T>
+constexpr int lg(T x){
+  static_assert(std::is_integral_v<T>);
+
+  // We select the __builtin_clz which takes integers no smaller than x
+  if constexpr(sizeof(x) <= sizeof(int)){
+    return x ? 8*sizeof(int)-1 - __builtin_clz(x) : -1;
+  }else if constexpr(sizeof(x) <= sizeof(long)){
+    return x ? 8*sizeof(long)-1 - __builtin_clzl(x) : -1;
+  }else{
+    return x ? 8*sizeof(long long)-1 - __builtin_clzll(x) : -1;
+  }
+}
 
 enum class RevRegClass : uint8_t { ///< Rev CPU Register Classes
   RegUNKNOWN  = 0,           ///< RevRegClass: Unknown register file
@@ -51,13 +89,13 @@ struct MemReq{
   MemReq() = default;
 
   MemReq(uint64_t addr, uint16_t dest, RevRegClass regclass,
-         uint16_t hart, MemOp req, bool outstanding, std::function<void(MemReq)> func) :
+         unsigned hart, MemOp req, bool outstanding, std::function<void(MemReq)> func) :
     Addr(addr), DestReg(dest), RegType(regclass), Hart(hart),
     ReqType(req), isOutstanding(outstanding), MarkLoadComplete(func)
   {
   }
 
-  void Set(uint64_t addr, uint16_t dest, RevRegClass regclass, uint16_t hart, MemOp req, bool outstanding,
+  void Set(uint64_t addr, uint16_t dest, RevRegClass regclass, unsigned hart, MemOp req, bool outstanding,
            std::function<void(MemReq)> func)
   {
     Addr = addr; DestReg = dest; RegType = regclass; Hart = hart;
@@ -68,7 +106,7 @@ struct MemReq{
   uint64_t    Addr          = _INVALID_ADDR_;
   uint16_t    DestReg       = 0;
   RevRegClass RegType       = RevRegClass::RegUNKNOWN;
-  uint16_t    Hart          = _REV_INVALID_HART_ID_;
+  unsigned    Hart          = _REV_INVALID_HART_ID_;
   MemOp       ReqType       = MemOp::MemOpCUSTOM;
   bool        isOutstanding = false;
 

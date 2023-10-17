@@ -11,7 +11,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(FATAL_ERROR "DO NOT BUILD in-tree.")
 endif()
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.19)
 project(revcpu CXX)
 
 
@@ -147,12 +147,6 @@ endif()
 if(NOT INSTRUCTIONS_PATH)
   set(INSTRUCTIONS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include/insns")
   message(STATUS "INSTRUCTIONS_PATH set to ${INSTRUCTIONS_PATH}")
-endif()
-
-# RevCPU syscalls path
-if(NOT SYSCALLS_PATH)
-  set(SYSCALLS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include/syscalls")
-  message(STATUS "SYSCALLS_PATH set to ${SYSCALLS_PATH}")
 endif()
 
 #------------------------------------------------------------------------

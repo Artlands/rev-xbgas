@@ -136,6 +136,9 @@ public:
   /// RevMemOp: retrieve the memory buffer
   std::vector<uint8_t> getBuf() const { return membuf; }
 
+  /// RevMemOp: retrieve the temporary target buffer
+  std::vector<uint8_t> getTempT() const { return tempT; }
+
   /// RevMemOp: retrieve the memory operation flags
   StandardMem::Request::flags_t getFlags() const { return flags; }
 
@@ -154,8 +157,11 @@ public:
   /// RevMemOp: set the hart
   void setHart(unsigned H) { Hart = H ;}
 
-  ///RevMemOp: set the originating memory request
+  /// RevMemOp: set the originating memory request
   void setMemReq(const MemReq& req) { procReq = req;}
+
+  /// RevMemOp: set the temporary target buffer
+  void setTempT(std::vector<uint8_t> T);
 
   /// RevMemOp: retrieve the invalidate flag
   bool getInv() const { return Inv; }
@@ -185,6 +191,7 @@ private:
   unsigned CustomOpc; ///< RevMemOp: custom memory opcode
   unsigned SplitRqst; ///< RevMemOp: number of split cache line requests
   std::vector<uint8_t> membuf;          ///< RevMemOp: buffer
+  std::vector<uint8_t> tempT;           ///< RevMemOp: temporary target buffer for R-M-W ops
   StandardMem::Request::flags_t flags;  ///< RevMemOp: request flags
   void *target;                         ///< RevMemOp: target register pointer
   MemReq procReq;                       ///< RevMemOp: original request from RevProc
@@ -312,7 +319,7 @@ public:
                                 SST_ELI_ELEMENT_VERSION(1, 0, 0),
                                 "RISC-V Rev basic memHierachy controller",
                                 SST::RevCPU::RevMemCtrl
-                                )
+    )
 
   SST_ELI_DOCUMENT_PARAMS({ "verbose",        "Set the verbosity of output for the memory controller",    "0" },
                           { "clock",          "Sets the clock frequency of the memory conroller",         "1Ghz" },
@@ -324,54 +331,54 @@ public:
                           { "max_writeunlock", "Sets the maximum number of outstanding writeunlock events", "64"},
                           { "max_custom",     "Sets the maximum number of outstanding custom events",     "64"},
                           { "ops_per_cycle",  "Sets the maximum number of operations to issue per cycle", "2" },
-                          )
+    )
 
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS({ "memIface", "Set the interface to memory", "SST::Interfaces::StandardMem" })
 
   SST_ELI_DOCUMENT_PORTS()
 
   SST_ELI_DOCUMENT_STATISTICS(
-                              {"ReadInFlight",        "Counts the number of reads in flight",             "count", 1},
-                              {"ReadPending",         "Counts the number of reads pending",               "count", 1},
-                              {"ReadBytes",           "Counts the number of bytes read",                  "bytes", 1},
-                              {"WriteInFlight",       "Counts the number of writes in flight",            "count", 1},
-                              {"WritePending",        "Counts the number of writes pending",              "count", 1},
-                              {"WriteBytes",          "Counts the number of bytes written",               "bytes", 1},
-                              {"FlushInFlight",       "Counts the number of flushes in flight",           "count", 1},
-                              {"FlushPending",        "Counts the number of flushes pending",             "count", 1},
-                              {"ReadLockInFlight",    "Counts the number of readlocks in flight",         "count", 1},
-                              {"ReadLockPending",     "Counts the number of readlocks pending",           "count", 1},
-                              {"ReadLockBytes",       "Counts the number of readlock bytes read",         "bytes", 1},
-                              {"WriteUnlockInFlight", "Counts the number of write unlocks in flight",     "count", 1},
-                              {"WriteUnlockPending",  "Counts the number of write unlocks pending",       "count", 1},
-                              {"WriteUnlockBytes",    "Counts the number of write unlock bytes written",  "bytes", 1},
-                              {"LoadLinkInFlight",    "Counts the number of loadlinks in flight",         "count", 1},
-                              {"LoadLinkPending",     "Counts the number of loadlinks pending",           "count", 1},
-                              {"StoreCondInFlight",   "Counts the number of storeconds in flight",        "count", 1},
-                              {"StoreCondPending",    "Counts the number of storeconds pending",          "count", 1},
-                              {"CustomInFlight",      "Counts the number of custom commands in flight",   "count", 1},
-                              {"CustomPending",       "Counts the number of custom commands pending",     "count", 1},
-                              {"CustomBytes",         "Counts the number of bytes in custom transactions", "bytes", 1},
-                              {"FencePending",        "Counts the number of fence operations pending",    "count", 1},
-                              {"AMOAddBytes",         "Counts the number of bytes in AMOAdd transactions", "bytes", 1},
-                              {"AMOAddPending",       "Counts the number of AMOAdd operations pending",   "count", 1},
-                              {"AMOXorBytes",         "Counts the number of bytes in AMOXor transactions", "bytes", 1},
-                              {"AMOXorPending",       "Counts the number of AMOXor operations pending",   "count", 1},
-                              {"AMOAndBytes",         "Counts the number of bytes in AMOAnd transactions", "bytes", 1},
-                              {"AMOAndPending",       "Counts the number of AMOAnd operations pending",   "count", 1},
-                              {"AMOOrBytes",          "Counts the number of bytes in AMOOr transactions", "bytes", 1},
-                              {"AMOOrPending",        "Counts the number of AMOOr operations pending",    "count", 1},
-                              {"AMOMinBytes",         "Counts the number of bytes in AMOMin transactions", "bytes", 1},
-                              {"AMOMinPending",       "Counts the number of AMOMin operations pending",   "count", 1},
-                              {"AMOMaxBytes",         "Counts the number of bytes in AMOMax transactions", "bytes", 1},
-                              {"AMOMaxPending",       "Counts the number of AMOMax operations pending",   "count", 1},
-                              {"AMOMinuBytes",        "Counts the number of bytes in AMOMinu transactions", "bytes", 1},
-                              {"AMOMinuPending",      "Counts the number of AMOMinu operations pending",   "count", 1},
-                              {"AMOMaxuBytes",        "Counts the number of bytes in AMOMaxu transactions", "bytes", 1},
-                              {"AMOMaxuPending",      "Counts the number of AMOMaxu operations pending",   "count", 1},
-                              {"AMOSwapBytes",        "Counts the number of bytes in AMOSwap transactions", "bytes", 1},
-                              {"AMOSwapPending",      "Counts the number of AMOSwap operations pending",   "count", 1},
-                              )
+    {"ReadInFlight",        "Counts the number of reads in flight",             "count", 1},
+    {"ReadPending",         "Counts the number of reads pending",               "count", 1},
+    {"ReadBytes",           "Counts the number of bytes read",                  "bytes", 1},
+    {"WriteInFlight",       "Counts the number of writes in flight",            "count", 1},
+    {"WritePending",        "Counts the number of writes pending",              "count", 1},
+    {"WriteBytes",          "Counts the number of bytes written",               "bytes", 1},
+    {"FlushInFlight",       "Counts the number of flushes in flight",           "count", 1},
+    {"FlushPending",        "Counts the number of flushes pending",             "count", 1},
+    {"ReadLockInFlight",    "Counts the number of readlocks in flight",         "count", 1},
+    {"ReadLockPending",     "Counts the number of readlocks pending",           "count", 1},
+    {"ReadLockBytes",       "Counts the number of readlock bytes read",         "bytes", 1},
+    {"WriteUnlockInFlight", "Counts the number of write unlocks in flight",     "count", 1},
+    {"WriteUnlockPending",  "Counts the number of write unlocks pending",       "count", 1},
+    {"WriteUnlockBytes",    "Counts the number of write unlock bytes written",  "bytes", 1},
+    {"LoadLinkInFlight",    "Counts the number of loadlinks in flight",         "count", 1},
+    {"LoadLinkPending",     "Counts the number of loadlinks pending",           "count", 1},
+    {"StoreCondInFlight",   "Counts the number of storeconds in flight",        "count", 1},
+    {"StoreCondPending",    "Counts the number of storeconds pending",          "count", 1},
+    {"CustomInFlight",      "Counts the number of custom commands in flight",   "count", 1},
+    {"CustomPending",       "Counts the number of custom commands pending",     "count", 1},
+    {"CustomBytes",         "Counts the number of bytes in custom transactions", "bytes", 1},
+    {"FencePending",        "Counts the number of fence operations pending",    "count", 1},
+    {"AMOAddBytes",         "Counts the number of bytes in AMOAdd transactions", "bytes", 1},
+    {"AMOAddPending",       "Counts the number of AMOAdd operations pending",   "count", 1},
+    {"AMOXorBytes",         "Counts the number of bytes in AMOXor transactions", "bytes", 1},
+    {"AMOXorPending",       "Counts the number of AMOXor operations pending",   "count", 1},
+    {"AMOAndBytes",         "Counts the number of bytes in AMOAnd transactions", "bytes", 1},
+    {"AMOAndPending",       "Counts the number of AMOAnd operations pending",   "count", 1},
+    {"AMOOrBytes",          "Counts the number of bytes in AMOOr transactions", "bytes", 1},
+    {"AMOOrPending",        "Counts the number of AMOOr operations pending",    "count", 1},
+    {"AMOMinBytes",         "Counts the number of bytes in AMOMin transactions", "bytes", 1},
+    {"AMOMinPending",       "Counts the number of AMOMin operations pending",   "count", 1},
+    {"AMOMaxBytes",         "Counts the number of bytes in AMOMax transactions", "bytes", 1},
+    {"AMOMaxPending",       "Counts the number of AMOMax operations pending",   "count", 1},
+    {"AMOMinuBytes",        "Counts the number of bytes in AMOMinu transactions", "bytes", 1},
+    {"AMOMinuPending",      "Counts the number of AMOMinu operations pending",   "count", 1},
+    {"AMOMaxuBytes",        "Counts the number of bytes in AMOMaxu transactions", "bytes", 1},
+    {"AMOMaxuPending",      "Counts the number of AMOMaxu operations pending",   "count", 1},
+    {"AMOSwapBytes",        "Counts the number of bytes in AMOSwap transactions", "bytes", 1},
+    {"AMOSwapPending",      "Counts the number of AMOSwap operations pending",   "count", 1},
+    )
 
   enum MemCtrlStats : uint32_t {
     ReadInFlight        = 0,
@@ -633,7 +640,7 @@ private:
 
   std::vector<StandardMem::Request::id_t> requests;               ///< outstanding StandardMem requests
   std::vector<RevMemOp *> rqstQ;                                  ///< queued memory requests
-  std::map<StandardMem::Request::id_t, RevMemOp *> outstanding;    ///< map of outstanding requests
+  std::map<StandardMem::Request::id_t, RevMemOp *> outstanding;   ///< map of outstanding requests
 
 #define AMOTABLE_HART   0
 #define AMOTABLE_BUFFER 1

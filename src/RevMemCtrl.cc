@@ -84,6 +84,12 @@ RevMemOp::RevMemOp(unsigned Hart, uint64_t Addr, uint64_t PAddr,
   }
 }
 
+void RevMemOp::setTempT(std::vector<uint8_t> T){
+  for( auto i : T ){
+    tempT.push_back(i);
+  }
+}
+
 // ---------------------------------------------------------------
 // RevMemCtrl
 // ---------------------------------------------------------------
@@ -138,7 +144,7 @@ RevBasicMemCtrl::RevBasicMemCtrl(ComponentId_t id, const Params& params)
   registerStats();
 
   registerClock( ClockFreq,
-              new Clock::Handler<RevBasicMemCtrl>(this, &RevBasicMemCtrl::clockTick));
+                 new Clock::Handler<RevBasicMemCtrl>(this, &RevBasicMemCtrl::clockTick));
 }
 
 RevBasicMemCtrl::~RevBasicMemCtrl(){
@@ -995,9 +1001,9 @@ bool RevBasicMemCtrl::buildRawMemRqst(RevMemOp *op,
     break;
   case MemOp::MemOpSTORECOND:
     rqst = new Interfaces::StandardMem::StoreConditional(op->getAddr(),
-                                                        (uint64_t)(op->getSize()),
-                                                        op->getBuf(),
-                                                        TmpFlags);
+                                                         (uint64_t)(op->getSize()),
+                                                         op->getBuf(),
+                                                         TmpFlags);
     requests.push_back(rqst->getID());
     outstanding[rqst->getID()] = op;
     memIface->send(rqst);
@@ -1215,25 +1221,25 @@ bool RevBasicMemCtrl::processNextRqst(unsigned &t_max_loads,
 }
 
 void RevBasicMemCtrl::handleFlagResp(RevMemOp *op){
-   StandardMem::Request::flags_t flags = op->getFlags();
-   unsigned bits = 8 * op->getSize();
+  StandardMem::Request::flags_t flags = op->getFlags();
+  unsigned bits = 8 * op->getSize();
 
-   if( flags & uint32_t(RevCPU::RevFlag::F_SEXT32) ){
-     uint32_t *target = static_cast<uint32_t*>(op->getTarget());
-     *target = SignExt(*target, bits);
-   }else if( flags & uint32_t(RevCPU::RevFlag::F_SEXT64) ){
-     uint64_t *target = static_cast<uint64_t*>(op->getTarget());
-     *target = SignExt(*target, bits);
-   }else if( flags & uint32_t(RevCPU::RevFlag::F_ZEXT32) ){
-     uint32_t *target = static_cast<uint32_t*>(op->getTarget());
-     *target = ZeroExt(*target, bits);
-   }else if( flags & uint32_t(RevCPU::RevFlag::F_ZEXT64) ){
-     uint64_t *target = static_cast<uint64_t*>(op->getTarget());
-     *target = ZeroExt(*target, bits);
-   }else if( flags & uint32_t(RevCPU::RevFlag::F_BOXNAN) ){
-     double *target = static_cast<double*>(op->getTarget());
-     BoxNaN(target, target);
-   }
+  if( flags & uint32_t(RevCPU::RevFlag::F_SEXT32) ){
+    uint32_t *target = static_cast<uint32_t*>(op->getTarget());
+    *target = SignExt(*target, bits);
+  }else if( flags & uint32_t(RevCPU::RevFlag::F_SEXT64) ){
+    uint64_t *target = static_cast<uint64_t*>(op->getTarget());
+    *target = SignExt(*target, bits);
+  }else if( flags & uint32_t(RevCPU::RevFlag::F_ZEXT32) ){
+    uint32_t *target = static_cast<uint32_t*>(op->getTarget());
+    *target = ZeroExt(*target, bits);
+  }else if( flags & uint32_t(RevCPU::RevFlag::F_ZEXT64) ){
+    uint64_t *target = static_cast<uint64_t*>(op->getTarget());
+    *target = ZeroExt(*target, bits);
+  }else if( flags & uint32_t(RevCPU::RevFlag::F_BOXNAN) ){
+    double *target = static_cast<double*>(op->getTarget());
+    BoxNaN(target, target);
+  }
 }
 
 unsigned RevBasicMemCtrl::getNumSplitRqsts(RevMemOp *op){
@@ -1293,7 +1299,7 @@ void RevBasicMemCtrl::handleReadResp(StandardMem::ReadResp* ev){
           handleAMO(op);
         }
         const MemReq& r = op->getMemReq();
-        if(MemOp::MemOpAMO != r.ReqType){
+        if( !isAMO ){
           r.MarkLoadComplete(r);
         }
         delete op;
@@ -1317,8 +1323,7 @@ void RevBasicMemCtrl::handleReadResp(StandardMem::ReadResp* ev){
     }
 
     const MemReq& r = op->getMemReq();
-    //if this is an AMO op then we cleared the load in the handleAMO() function, so do not clear again
-    if(MemOp::MemOpAMO != r.ReqType){
+    if( !isAMO ){
       r.MarkLoadComplete(r);
     }
     delete op;
@@ -1330,7 +1335,12 @@ void RevBasicMemCtrl::handleReadResp(StandardMem::ReadResp* ev){
   num_read--;
 }
 
-void RevBasicMemCtrl::performAMO(std::tuple<unsigned, char *, void *, StandardMem::Request::flags_t, RevMemOp *, bool> Entry){
+void RevBasicMemCtrl::performAMO(std::tuple<unsigned,
+                                 char *,
+                                 void *,
+                                 StandardMem::Request::flags_t,
+                                 RevMemOp *,
+                                 bool> Entry){
   RevMemOp *Tmp = std::get<AMOTABLE_MEMOP>(Entry);
   if( Tmp == nullptr ){
     output->fatal(CALL_INFO, -1, "Error : AMOTable entry is null\n" );
@@ -1339,6 +1349,13 @@ void RevBasicMemCtrl::performAMO(std::tuple<unsigned, char *, void *, StandardMe
 
   StandardMem::Request::flags_t flags = Tmp->getFlags();
   std::vector<uint8_t> buffer = Tmp->getBuf();
+  std::vector<uint8_t> tempT;
+
+  tempT.clear();
+  uint8_t *TmpBuf8 = static_cast<uint8_t *>(Target);
+  for( size_t i = 0; i < Tmp->getSize(); i++ ){
+    tempT.push_back(TmpBuf8[i]);
+  }
 
   if( Tmp->getSize() == 4 ){
     // 32-bit (W) AMOs
@@ -1358,7 +1375,6 @@ void RevBasicMemCtrl::performAMO(std::tuple<unsigned, char *, void *, StandardMe
 
   // copy the target data over to the buffer and build the memory request
   buffer.clear();
-  uint8_t *TmpBuf8 = static_cast<uint8_t *>(Target);
   for( size_t i = 0; i < Tmp->getSize(); i++ ){
     buffer.push_back(TmpBuf8[i]);
   }
@@ -1368,9 +1384,17 @@ void RevBasicMemCtrl::performAMO(std::tuple<unsigned, char *, void *, StandardMe
                               buffer,
                               MemOp::MemOpWRITE,
                               Tmp->getFlags());
+  Op->setTempT(tempT);
+  for( unsigned i = 0; i < Op->getSize(); i++ ){
+    TmpBuf8[i] = tempT[i];
+  }
 
+  // Retrieve the memory request object, but DO NOT mark the load
+  // as complete.  The actual write response from the read-modify-write
+  // process will mark the load as complete.  At this point, copy the
+  // MemReq object to the new request
   const MemReq& r = Tmp->getMemReq();
-  r.MarkLoadComplete(r);
+  Op->setMemReq(r);
 
   // insert a new entry into the AMO Table
   auto NewEntry = std::make_tuple(Op->getHart(),
@@ -1409,6 +1433,7 @@ void RevBasicMemCtrl::handleWriteResp(StandardMem::WriteResp* ev){
 
     // walk the AMOTable and clear any matching AMO ops
     // note that we must match on both the target address and the RevMemOp pointer
+    bool isAMO = false;
     auto range = AMOTable.equal_range(op->getAddr());
     for( auto i = range.first; i != range.second; ){
       auto Entry = i->second;
@@ -1416,6 +1441,7 @@ void RevBasicMemCtrl::handleWriteResp(StandardMem::WriteResp* ev){
       // then delete it
       if( std::get<AMOTABLE_MEMOP>(Entry) == op ){
         AMOTable.erase(i++);
+        isAMO = true;
       }else{
         ++i;
       }
@@ -1427,8 +1453,8 @@ void RevBasicMemCtrl::handleWriteResp(StandardMem::WriteResp* ev){
       if( getNumSplitRqsts(op) == 1 ){
         // this was the last request to service, delete the op
         const MemReq& r = op->getMemReq();
-        if(MemOp::MemOpAMO == r.ReqType){
-            r.MarkLoadComplete(r);
+        if( isAMO ){
+          r.MarkLoadComplete(r);
         }
         delete op;
       }
@@ -1441,8 +1467,10 @@ void RevBasicMemCtrl::handleWriteResp(StandardMem::WriteResp* ev){
     // no split request exists; handle as normal
     // this was a write request for an AMO, clear the hazard
     const MemReq& r = op->getMemReq();
-    if(MemOp::MemOpAMO == r.ReqType){
-        r.MarkLoadComplete(r);
+    if( isAMO ){
+      // write the target
+      std::vector<uint8_t> tempT = op->getTempT();
+      r.MarkLoadComplete(r);
     }
     delete op;
     outstanding.erase(ev->getID());
@@ -1543,7 +1571,7 @@ void RevBasicMemCtrl::handleInvResp(StandardMem::InvNotify* ev){
 
 uint64_t RevBasicMemCtrl::getTotalRqsts(){
   return num_read + num_write + num_llsc +
-         num_readlock + num_writeunlock + num_custom;
+    num_readlock + num_writeunlock + num_custom;
 }
 
 bool RevBasicMemCtrl::outstandingRqsts(){
