@@ -249,6 +249,11 @@ bool RevProc::SeedInstTable(){
     EnableExt(new RV64P(feature, mem, output), false);
   }
 
+  // xBGAS Extension
+  if( feature->IsModeEnabled(RV_XBGAS) ){
+    EnableExt(new RV64X(feature, mem, output), false);
+  }
+
   return true;
 }
 

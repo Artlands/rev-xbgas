@@ -40,6 +40,7 @@ const char pan_splash_msg[] = "\
 RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
   : SST::Component(id), testStage(0), PrivTag(0), address(-1), PrevAddr(_PAN_RDMA_MAILBOX_),
     EnableNIC(false), EnablePAN(false), EnablePANStats(false), EnableMemH(false),
+    EnableXBGAS(false), EnableXBGASStats(false),
     ReadyForRevoke(false), Nic(nullptr), PNic(nullptr), PExec(nullptr), Ctrl(nullptr),
     ClockHandler(nullptr) {
 
@@ -190,16 +191,6 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
     output.fatal(CALL_INFO, -1, "Error: enabling PAN tests requires a pan_nic");
   }
 
-  /************** xBGAS **************/
-  // See if we should load the xBGAS
-  EnableXBGAS = params.find<bool>("enable_xbgas", 0);
-  EnableXBGASStats = params.find<bool>("enable_xbgas_stats", 0);
-
-  if( EnableXBGAS ){
-    // load the remote memory controller subcomponent
-  }
-  /************** xBGAS **************/
-
   // Look for the fault injection logic
   EnableFaults = params.find<bool>("enable_faults", 0);
   if( EnableFaults ){
@@ -246,6 +237,17 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
   // Set max heap size
   const uint64_t maxHeapSize = params.find<unsigned long>("maxHeapSize", memSize/4);
   Mem->SetMaxHeapSize(maxHeapSize);
+
+  // See if we should load the xBGAS
+  EnableXBGAS = params.find<bool>("enable_xbgas", 0);
+  EnableXBGASStats = params.find<bool>("enable_xbgas_stats", 0);
+
+  if( EnableXBGAS ) {
+    // Load remote memory controller subcomponent
+    // Set memory object for xBGAS
+    // Set remote memory controller for Mem
+    // Reserve the xBGAS memory region
+  }
 
   // Load the binary into memory
   // TODO: Use std::nothrow to return null instead of throwing std::bad_alloc
@@ -562,6 +564,9 @@ void RevCPU::setup(){
   if( EnableMemH ){
     Ctrl->setup();
   }
+  if( EnableXBGAS ){
+    // setup NIC and remote controller
+  }
 }
 
 void RevCPU::finish(){
@@ -574,6 +579,9 @@ void RevCPU::init( unsigned int phase ){
     PNic->init(phase);
   if( EnableMemH )
     Ctrl->init(phase);
+  if( EnableXBGAS ){
+    // init NIC and remote controller
+  }
 }
 
 void RevCPU::handleMessage(Event *ev){
@@ -2472,6 +2480,10 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
     }else{
       FaultCntr--;
     }
+  }
+
+  if( EnableXBGAS ){
+    // Clock tick remote memory controller
   }
 
   // check to see if all the processors are completed

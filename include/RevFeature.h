@@ -43,6 +43,7 @@ enum RevFeatureType : uint32_t {
   RV_ZAM      = 1<<17,  ///< RevFeatureType: Zam-extension
   RV_ZTSO     = 1<<18,  ///< RevFeatureType: Ztso-extension
   RV_ZFA      = 1<<19,  ///< RevFeatureType: Zfa-extension
+  RV_XBGAS    = 1<<20,  ///< RevFeatureType: xBGAS-extension
 };
 
 class RevFeature{

@@ -185,6 +185,42 @@ bool fstore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
   return true;
 }
 
+/// xBGAS remote load template
+template<typename T>
+bool eload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  return true;
+}
+
+/// xBGAS remote store template
+template<typename T>
+bool estore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  return true;
+}
+
+/// xBGAS remote raw load template
+template<typename T>
+bool erload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  return true;
+}
+
+/// xBGAS remote raw store template
+template<typename T>
+bool erstore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  return true;
+}
+
+/// xBGAS remote bulk load template
+template<typename T>
+bool ebload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  return true;
+}
+
+/// xBGAS remote bulk store template
+template<typename T>
+bool ebstore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  return true;
+}
+
 /// Floating-point operation template
 template<typename T, template<class> class OP>
 bool foper(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {

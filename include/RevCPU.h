@@ -293,12 +293,11 @@ private:
   bool EnablePANStats;                ///< RevCPU: Flag for enabling PAN statistics
   bool EnableRDMAMBox;                ///< RevCPU: Enable the RDMA Mailbox
 
-  /************** xBGAS **************/
+  bool EnableMemH;                    ///< RevCPU: Enable memHierarchy
+
   bool EnableXBGAS;                   ///< RevCPU: Enable xBGAS
   bool EnableXBGASStats;              ///< RevCPU: Enable xBGAS statistics
-  /************** xBGAS **************/
 
-  bool EnableMemH;                    ///< RevCPU: Enable memHierarchy
   bool EnableCoProc;                  ///< RevCPU: Enable a co-processor attached to all cores
 
   bool EnableFaults;                  ///< RevCPU: Enable fault injection logic
