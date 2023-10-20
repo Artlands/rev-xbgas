@@ -50,6 +50,8 @@
 
 namespace SST::RevCPU{
 
+class RevRmtMemCtrl;
+
 class RevMem{
 public:
   /// RevMem: standard constructor
@@ -62,6 +64,9 @@ public:
   ~RevMem(){
     delete[] physMem;
   }
+
+  /// RevMem: set the remote memory controller for xBGAS
+  void setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl) { rmtCtrl = RmtCtrl; }
 
   /* Virtual Memory Blocks  */
   class MemSegment {
@@ -163,6 +168,35 @@ public:
   }
 
   // ----------------------------------------------------
+  // ---- xBGAS Remote Memory Interfaces
+  // ----------------------------------------------------
+
+  /// RevMem: read data from the target remote memory location
+  bool RmtReadMem( unsigned Hart, uint64_t Nmspace, 
+                   uint64_t SrcAddr, size_t Size, 
+                   void *Target,
+                   const MemReq& req, 
+                   StandardMem::Request::flags_t flags );
+
+  /// RevMem: read bulk data from the target remote memory location
+  bool RmtBulkReadMem( unsigned Hart, uint64_t Nmspace, 
+                       uint64_t SrcAddr, size_t Size, 
+                       uint32_t Nelem, uint32_t Stride, 
+                       uint64_t DestAddr,
+                       const MemReq& req, 
+                       StandardMem::Request::flags_t flags );
+
+  /// RevMem: write data to the target remote memory location
+  bool RmtWriteMem( unsigned Hart, uint64_t Nmspace, 
+                    uint64_t DestAddr, size_t Size, const void *Data );
+  
+  /// RevMem: write bulk data to the target remote memory location
+  bool RmtBulkWriteMem( unsigned Hart, uint64_t Nmspace, 
+                        uint64_t DestAddr, size_t Size, 
+                        uint32_t Nelem, uint32_t Stride,
+                        uint64_t SrcAddr );
+
+  // ----------------------------------------------------
   // ---- Read Memory Interfaces
   // ----------------------------------------------------
   /// RevMem: template read memory interface
@@ -214,6 +248,60 @@ public:
                     "Error: could not write memory (FP%zu)\n" :
                     "Error: could not write memory (U%zu)\n",
                     sizeof(T) * 8);
+    }
+  }
+
+  // ----------------------------------------------------
+  // ---- xBGAS Remote Read Memory Interfaces
+  // ----------------------------------------------------
+  /// RevMem: template remote read memory interface
+  template <typename T>
+  bool RmtReadVal( unsigned Hart, uint64_t Nmspace, 
+                   uint64_t SrcAddr,
+                   void *Target,
+                   const MemReq& req, 
+                   StandardMem::Request::flags_t flags ){
+    return RmtReadMem(Hart, Nmspace, SrcAddr, sizeof(T), Target, req, flags);
+  }
+
+  /// RevMem: template remote bulk read memory interface
+  template <typename T>
+  bool RmtBulkReadVal( unsigned Hart, uint64_t Nmspace, 
+                       uint64_t SrcAddr,
+                       uint32_t Nelem, uint32_t Stride, 
+                       uint64_t DestAddr,
+                       const MemReq& req, 
+                       StandardMem::Request::flags_t flags ){
+    return RmtBulkReadMem(Hart, Nmspace, SrcAddr, sizeof(T), 
+                          Nelem, Stride, DestAddr, req, flags);
+  }
+
+  // ----------------------------------------------------
+  // ---- xBGAS Remote Write Memory Interfaces
+  // ----------------------------------------------------
+  /// RevMem: template remote write memory interface
+  template <typename T>
+  void RmtWrite(unsigned Hart, uint64_t Nmspace, 
+                uint64_t DestAddr, T Value ) {
+    if( !RmtWriteMem(Hart, Nmspace, DestAddr, sizeof(T), &Value) ) {
+      output->fatal(CALL_INFO, -1, std::is_floating_point_v<T> ?
+                    "Error: could not write remote memory (FP%zu)\n" :
+                    "Error: could not write remote memory (U%zu)\n",
+                    sizeof(T) * 8);
+    }
+  }
+
+  /// RevMem: template remote bulk write memory interface
+  template <typename T>
+  void RmtBulkWrite(unsigned Hart, uint64_t Nmspace, 
+                    uint64_t DestAddr, uint32_t Nelem, uint32_t Stride,
+                    uint64_t SrcAddr ) {
+    if( !RmtBulkWriteMem(Hart, Nmspace, DestAddr, sizeof(T), 
+                         Nelem, Stride, SrcAddr) ) {
+      output->fatal(CALL_INFO, -1, std::is_floating_point_v<T> ?
+                    "Error: could not bulk write remote memory (FP%zu)\n" :
+                    "Error: could not bulk write remote memory (U%zu)\n",
+                    sizeof(T) * 8 * Nelem);
     }
   }
 
@@ -332,6 +420,7 @@ private:
   std::list<uint64_t> LRUQueue; ///< RevMem: List ordered by last access for implementing LRU policy when TLB fills up
   RevOpts *opts;                ///< RevMem: options object
   RevMemCtrl *ctrl;             ///< RevMem: memory controller object
+  RevRmtMemCtrl *rmtCtrl;       ///< RevMem: remote memory controller object for xBGAS
   SST::Output *output;          ///< RevMem: output handler
 
 

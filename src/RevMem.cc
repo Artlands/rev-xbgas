@@ -855,7 +855,35 @@ bool RevMem::ReadMem(unsigned Hart, uint64_t Addr, size_t Len, void *Target,
   return true;
 }
 
+// xBGAS remote memory operations
+bool RevMem::RmtReadMem( unsigned Hart, uint64_t Nmspace, 
+                         uint64_t SrcAddr, size_t Size, 
+                         void *Target,
+                         const MemReq& req, 
+                         StandardMem::Request::flags_t flags ){
+  return true;
+}
 
+bool RevMem::RmtBulkReadMem( unsigned Hart, uint64_t Nmspace, 
+                             uint64_t SrcAddr, size_t Size, 
+                             uint32_t Nelem, uint32_t Stride, 
+                             uint64_t DestAddr,
+                             const MemReq& req, 
+                             StandardMem::Request::flags_t flags ){
+  return true;
+}
+
+bool RevMem::RmtWriteMem( unsigned Hart, uint64_t Nmspace, 
+                          uint64_t DestAddr, size_t Size, const void *Data ){
+  return true;
+}
+
+bool RevMem::RmtBulkWriteMem( unsigned Hart, uint64_t Nmspace, 
+                              uint64_t DestAddr, size_t Size, 
+                              uint32_t Nelem, uint32_t Stride,
+                              uint64_t SrcAddr ){
+  return true;
+}
 
 // This function is used to remove/shrink a memory segment
 // You *must* deallocate a chunk of memory that STARTS on a previously
