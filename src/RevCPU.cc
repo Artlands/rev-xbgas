@@ -41,6 +41,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
   : SST::Component(id), testStage(0), PrivTag(0), address(-1), PrevAddr(_PAN_RDMA_MAILBOX_),
     EnableNIC(false), EnablePAN(false), EnablePANStats(false), EnableMemH(false),
     EnableXBGAS(false), EnableXBGASStats(false),
+    DisableCoprocClock(false),
     ReadyForRevoke(false), Nic(nullptr), PNic(nullptr), PExec(nullptr), Ctrl(nullptr),
     ClockHandler(nullptr) {
 
@@ -74,14 +75,16 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
   // If the PAN tests are enabled, override the number cores and force them to '0'
   numCores = params.find<unsigned>("numCores", "1");
   numHarts = params.find<uint16_t>("numHarts", "1");
-  
+
   // Make sure someone isn't trying to have more than 65536 harts per core
   if( numHarts > _MAX_HARTS_ ){
     output.fatal(CALL_INFO, -1, "Error: number of harts must be <= %" PRIu32 "\n", _MAX_HARTS_);
   }
   if( EnablePANTest )
     numCores = 1; // force the PAN test to use a single core
-  output.verbose(CALL_INFO, 1, 0, "Building Rev with %" PRIu32 " cores and %" PRIu32 " hart(s) on each core \n", numCores, numHarts);
+  output.verbose(CALL_INFO, 1, 0,
+                 "Building Rev with %" PRIu32 " cores and %" PRIu32 " hart(s) on each core \n",
+                 numCores, numHarts);
 
   // read the binary executable name
   Exe = params.find<std::string>("program", "a.out");
@@ -284,6 +287,30 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
     }
   }
 
+  #ifndef NO_REV_TRACER
+  // Configure tracer and assign to each core
+  if (output.getVerboseLevel()>=5) {
+    for( unsigned i=0; i<numCores; i++ ){
+      // Each core gets its very own tracer
+      RevTracer* trc = new RevTracer(getName(), &output);
+      std::string diasmType;
+      Opts->GetMachineModel(0,diasmType); // TODO first param is core
+      if (trc->SetDisassembler(diasmType))
+        output.verbose(CALL_INFO, 1, 0, "Warning: tracer could not find disassembler. Using REV default\n");
+      
+      trc->SetTraceSymbols(Loader->GetTraceSymbols());
+
+      // tracer user controls - cycle on and off. Ignored unless > 0
+      trc->SetStartCycle(params.find<uint64_t>("trcStartCycle",0));
+      trc->SetCycleLimit(params.find<uint64_t>("trcLimit",0));
+      trc->SetCmdTemplate(params.find<std::string>("trcOp", TRC_OP_DEFAULT).c_str());
+
+      trc->Reset();
+      Procs[i]->SetTracer(trc);
+    }
+  }
+  #endif
+
   // Initial thread setup
   uint32_t MainThreadID = id+1; // Prevents having MainThreadID == 0 which is reserved for INVALID
 
@@ -367,6 +394,8 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
     TLBMissesPerCore.push_back( registerStatistic<uint64_t>("TLBMissesPerCore", "core_" + std::to_string(s)));
   }
 
+  // determine whether we need to enable/disable manual coproc clocking
+  DisableCoprocClock = params.find<bool>("independentCoprocClock", 0);
 
   // setup the PAN execution contexts
   if( EnablePAN ){
@@ -430,10 +459,6 @@ RevCPU::~RevCPU(){
 
   // delete the options object
   delete Opts;
-
-  // delete the clock handler object
-  delete ClockHandler;
-
 }
 
 void RevCPU::DecodeFaultWidth(const std::string& width){
@@ -2451,7 +2476,9 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
         output.verbose(CALL_INFO, 5, 0, "Closing Processor %zu at Cycle: %" PRIu64 "\n",
                        i, currentCycle);
       }
-      if(EnableCoProc && !CoProcs[i]->ClockTick(currentCycle)){
+      if(EnableCoProc &&
+         !CoProcs[i]->ClockTick(currentCycle) &&
+         !DisableCoprocClock){
         output.verbose(CALL_INFO, 5, 0, "Closing Co-Processor %zu at Cycle: %" PRIu64 "\n",
                        i, currentCycle);
 
