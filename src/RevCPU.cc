@@ -2616,8 +2616,14 @@ void RevCPU::AssignThread(uint32_t ThreadID, uint32_t ProcID){
   // Point the regfile of this thread's LSQ to the Proc's LSQ
   Thread->GetRegFile()->SetLSQueue( Procs[ProcID]->GetLSQueue() );
 
+  // Point the regfile of this thread's RmtLSQ to the Proc's RmtLSQ
+  Thread->GetRegFile()->SetRmtLSQueue( Procs[ProcID]->GetRmtLSQueue() );
+
   // Point thread's regfile to this proc's MarkLoadComplete
   Thread->GetRegFile()->SetMarkLoadComplete([proc = Procs[ProcID]](const MemReq& req){ proc->MarkLoadComplete(req); });
+
+  // Point thread's regfile to this proc's MarkRmtLoadComplete
+  Thread->GetRegFile()->SetMarkRmtLoadComplete([proc = Procs[ProcID]](const RmtMemReq& req){ proc->MarkRmtLoadComplete(req); });
 
   // Put the thread in the Proc's assigned threads list
   AssignedThreads.at(ProcID).emplace(ThreadID, Thread);

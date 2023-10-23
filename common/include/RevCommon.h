@@ -117,6 +117,58 @@ struct MemReq{
   // add lambda that clears the dependency bit directly so we don't need to search the hash
 };//struct MemReq
 
+struct RmtMemReq {
+  RmtMemReq() = default;
+
+  RmtMemReq(uint64_t nmspace, uint64_t addr, uint16_t dest, 
+            RevRegClass regclass, unsigned hart, MemOp req, 
+            bool outstanding, std::function<void(RmtMemReq)> func) :
+    Nmspace(nmspace), Addr(addr), DestReg(dest), RegType(regclass), Hart(hart),
+    ReqType(req), isOutstanding(outstanding), MarkRmtLoadComplete(func)
+  {
+  }
+
+  RmtMemReq(uint64_t nmspace, uint64_t saddr, uint32_t nelem, uint32_t stride,
+            uint64_t daddr, RevRegClass regclass, unsigned hart, MemOp req, 
+            bool outstanding, std::function<void(RmtMemReq)> func) :
+    Nmspace(nmspace), Addr(saddr), Nelem(nelem), Stride(stride), DestAddr(daddr), 
+    RegType(regclass), Hart(hart), ReqType(req), isOutstanding(outstanding), 
+    MarkRmtLoadComplete(func)
+  {
+  }
+
+  void SetRmt(uint64_t nmspace, uint64_t addr, uint16_t dest, 
+              RevRegClass regclass, unsigned hart, MemOp req, bool outstanding,
+              std::function<void(RmtMemReq)> func)
+  {
+    Nmspace = nmspace; Addr = addr; DestReg = dest; 
+    RegType = regclass; Hart = hart; ReqType = req; isOutstanding = outstanding;
+    MarkRmtLoadComplete = func;
+  }
+
+  void SetRmt(uint64_t nmspace, uint64_t saddr, uint32_t nelem, uint32_t stride,
+              uint64_t daddr, RevRegClass regclass, unsigned hart, MemOp req, 
+              bool outstanding, std::function<void(RmtMemReq)> func)
+  {
+    Nmspace = nmspace; Addr = saddr; Nelem = nelem; Stride = stride;
+    DestAddr = daddr; RegType = regclass; Hart = hart; ReqType = req; 
+    isOutstanding = outstanding; MarkRmtLoadComplete = func;
+  }
+
+  uint64_t    Nmspace       = 0;
+  uint64_t    Addr          = _INVALID_ADDR_;
+  uint32_t    Nelem         = 1;
+  uint32_t    Stride        = 0;
+  uint16_t    DestReg       = 0;
+  uint64_t    DestAddr      = _INVALID_ADDR_;
+  RevRegClass RegType       = RevRegClass::RegUNKNOWN;
+  unsigned    Hart          = _REV_INVALID_HART_ID_;
+  MemOp       ReqType       = MemOp::MemOpCUSTOM;
+  bool        isOutstanding = false;
+
+  std::function<void(RmtMemReq)> MarkRmtLoadComplete = nullptr;
+}; //struct RmtMemReq
+
 }//namespace SST::RevCPU
 
 #endif

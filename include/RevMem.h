@@ -182,7 +182,7 @@ public:
   bool RmtReadMem( unsigned Hart, uint64_t Nmspace, 
                    uint64_t SrcAddr, size_t Size, 
                    void *Target,
-                   const MemReq& req, 
+                   const RmtMemReq& req, 
                    StandardMem::Request::flags_t flags );
 
   /// RevMem: read bulk data from the target remote memory location
@@ -190,7 +190,7 @@ public:
                        uint64_t SrcAddr, size_t Size, 
                        uint32_t Nelem, uint32_t Stride, 
                        uint64_t DestAddr,
-                       const MemReq& req, 
+                       const RmtMemReq& req, 
                        StandardMem::Request::flags_t flags );
 
   /// RevMem: write data to the target remote memory location
@@ -265,8 +265,8 @@ public:
   template <typename T>
   bool RmtReadVal( unsigned Hart, uint64_t Nmspace, 
                    uint64_t SrcAddr,
-                   void *Target,
-                   const MemReq& req, 
+                   T *Target,
+                   const RmtMemReq& req, 
                    StandardMem::Request::flags_t flags ){
     return RmtReadMem(Hart, Nmspace, SrcAddr, sizeof(T), Target, req, flags);
   }
@@ -277,7 +277,7 @@ public:
                        uint64_t SrcAddr,
                        uint32_t Nelem, uint32_t Stride, 
                        uint64_t DestAddr,
-                       const MemReq& req, 
+                       const RmtMemReq& req, 
                        StandardMem::Request::flags_t flags ){
     return RmtBulkReadMem(Hart, Nmspace, SrcAddr, sizeof(T), 
                           Nelem, Stride, DestAddr, req, flags);

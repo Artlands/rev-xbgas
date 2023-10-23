@@ -95,6 +95,10 @@ private:
   std::shared_ptr<std::unordered_map<uint64_t, MemReq>> LSQueue{};
   std::function<void(const MemReq&)> MarkLoadCompleteFunc{};
 
+  // xBGAS load-store queue
+  std::shared_ptr<std::unordered_map<uint64_t, RmtMemReq>> RmtLSQueue{};
+  std::function<void(const RmtMemReq&)> MarkRmtLoadCompleteFunc{};
+
   union{  // Anonymous union. We zero-initialize the largest member
     uint32_t RV32[_REV_NUM_REGS_];      ///< RevRegFile: RV32I register file
     uint64_t RV64[_REV_NUM_REGS_]{};    ///< RevRegFile: RV64I register file
@@ -103,6 +107,10 @@ private:
   union{  // Anonymous union. We zero-initialize the largest member
     float SPF[_REV_NUM_REGS_];          ///< RevRegFile: RVxxF register file
     double DPF[_REV_NUM_REGS_]{};       ///< RevRegFile: RVxxD register file
+  };
+
+  union{  // Anonymous union. We zero-initialize the largest member
+    uint64_t ERV64[_REV_NUM_REGS_]{};    ///< RevRegFile: xBGAS RV64 extended register file
   };
 
   std::bitset<_REV_NUM_REGS_> RV_Scoreboard{}; ///< RevRegFile: Scoreboard for RV32/RV64 RF to manage pipeline hazard
@@ -196,6 +204,34 @@ public:
     MarkLoadCompleteFunc(req);
   }
 
+  /// Get the xBGAS Remote Load/Store Queue
+  const auto& GetRmtLSQueue() const { return RmtLSQueue; }
+
+  /// Set the xBGAS Remote Load/Store Queue
+  void SetRmtLSQueue(std::shared_ptr<std::unordered_map<uint64_t, RmtMemReq>> lsq){
+    RmtLSQueue = std::move(lsq);
+  }
+
+  /// Insert an item in the xBGAS Remote Load/Store Queue
+  void RmtLSQueueInsert(std::pair<uint64_t, RmtMemReq> item){
+    RmtLSQueue->insert(std::move(item));
+  }
+
+  /// Get the xBGAS MarkRmtLoadComplete function
+  const std::function<void(const RmtMemReq&)>& GetMarkRmtLoadComplete() const {
+    return MarkRmtLoadCompleteFunc;
+  }
+
+  /// Set the xBGAS MarkRmtLoadComplete function
+  void SetMarkRmtLoadComplete(std::function<void(const RmtMemReq&)> func){
+    MarkRmtLoadCompleteFunc = std::move(func);
+  }
+
+  /// Invoke the xBGAS MarkRmtLoadComplete function
+  void MarkRmtLoadComplete(const RmtMemReq& req) const {
+    MarkRmtLoadCompleteFunc(req);
+  }
+
   /// Return the Floating-Point Rounding Mode
   FRMode GetFPRound() const{
     return static_cast<FRMode>(fcsr.frm);
@@ -242,6 +278,14 @@ public:
       res = RevReg(rs) != RevReg::zero ? T(RV64[size_t(rs)]) : 0;
       TRACE_REG_READ(size_t(rs),uint64_t(res));
     }
+    return res;
+  }
+
+  /// GetE: Get the Extended E register for xBGAS
+  template<typename U>
+  uint64_t GetE(U rs) const {
+    uint64_t res;
+    res = RevReg(rs) != RevReg::zero ? (uint64_t)(ERV64[size_t(rs)]) : 0;
     return res;
   }
 
@@ -335,6 +379,25 @@ public:
 
   template<typename T>
   friend bool fstore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+
+  // xBGAS
+  template<typename T>
+  friend bool eload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+
+  template<typename T>
+  friend bool estore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+
+  template<typename T>
+  friend bool erload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+
+  template<typename T>
+  friend bool erstore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+
+  template<typename T>
+  friend bool ebload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+
+  template<typename T>
+  friend bool ebstore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
 
   template<typename T, template<class> class OP>
   friend bool foper(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);

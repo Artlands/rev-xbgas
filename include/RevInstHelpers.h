@@ -192,6 +192,29 @@ bool fstore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
 /// xBGAS remote load template
 template<typename T>
 bool eload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  RmtMemReq req{};
+  static constexpr auto flags = sizeof(T) < sizeof(int64_t) ?
+    REVMEM_FLAGS(std::is_signed_v<T> ? RevCPU::RevFlag::F_SEXT64 : RevCPU::RevFlag::F_ZEXT64) :
+    REVMEM_FLAGS(0);
+  uint64_t Nmspace = R->GetE(Inst.rs1);
+  uint64_t SrcAddr = R->GetX<uint64_t>(Inst.rs1) + Inst.ImmSignExt(12);
+  req.SetRmt(Nmspace, SrcAddr,
+             Inst.rd, RevRegClass::RegGPR,
+             F->GetHartToExec(),
+             MemOp::MemOpREAD,
+             true,
+             R->GetMarkRmtLoadComplete());
+  R->RmtLSQueueInsert({make_lsq_hash(Inst.rd, RevRegClass::RegGPR, F->GetHartToExec()), req});
+  M->RmtReadVal(F->GetHartToExec(),
+                Nmspace, SrcAddr,
+                reinterpret_cast<std::make_unsigned_t<T>*>(&R->RV64[Inst.rd]),
+                req,
+                flags);
+  R->SetX(Inst.rd, static_cast<T>(R->RV64[Inst.rd]));
+
+  // update the cost
+  R->cost += M->RandCost(F->GetMinCost(), F->GetMaxCost());
+  R->AdvancePC(Inst);
   return true;
 }
 

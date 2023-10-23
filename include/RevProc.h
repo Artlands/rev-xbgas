@@ -163,8 +163,14 @@ public:
   ///< RevProc: Mark a current request as complete
   void MarkLoadComplete(const MemReq& req);
 
+  ///< RevProc: Mark a current xBGAS remote request as complete
+  void MarkRmtLoadComplete(const RmtMemReq& req);
+
   ///< RevProc: Get pointer to Load / Store queue used to track memory operations
   std::shared_ptr<std::unordered_map<uint64_t, MemReq>> GetLSQueue(){ return LSQueue; }
+
+  ///< RevProc: Get pointer to remote Load / Store queue used to track xBGAS remote memory operations
+  std::shared_ptr<std::unordered_map<uint64_t, RmtMemReq>> GetRmtLSQueue(){ return RmtLSQueue; }
 
   ///< RevProc: Add a co-processor to the RevProc
   void SetCoProc(RevCoProc* coproc);
@@ -239,6 +245,7 @@ private:
   std::unique_ptr<RevPrefetcher> sfetch; ///< RevProc: stream instruction prefetcher
 
   std::shared_ptr<std::unordered_map<uint64_t, MemReq>> LSQueue; ///< RevProc: Load / Store queue used to track memory operations. Currently only tracks outstanding loads.
+  std::shared_ptr<std::unordered_map<uint64_t, RmtMemReq>> RmtLSQueue; ///< RevProc: Remote Load / Store queue used to track xBGAS remote memory operations. Currently only tracks outstanding loads.
 
   RevRegFile* RegFile = nullptr; ///< RevProc: Initial pointer to HartToDecode RegFile
 

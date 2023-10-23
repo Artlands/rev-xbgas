@@ -8,8 +8,8 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#ifndef _SST_REVNIC_H_
-#define _SST_REVNIC_H_
+#ifndef _SST_XBGASNIC_H_
+#define _SST_XBGASNIC_H_
 
 // -- Standard Headers
 #include <vector>
@@ -24,35 +24,37 @@
 
 namespace SST::RevCPU{
 
+using namespace SST::Interfaces;
+
+enum class XbgasOpcode: uint8_t {
+  GetRqst     = 0b0000,     ///< xbgasNicEvent: Get request
+  PutRqst     = 0b0001,     ///< xbgasNicEvent: Put request
+  BulkGetRqst = 0b0010,     ///< xbgasNicEvent: bulk Get request
+  BulkPutRqst = 0b0011,     ///< xbgasNicEvent: bulk Put request
+  GetResp     = 0b0100,     ///< xbgasNicEvent: Get response
+  PutResp     = 0b0101,     ///< xbgasNicEvent: Put response
+  BulkGetResp = 0b0110,     ///< xbgasNicEvent: bulk Get response
+  BulkPutResp = 0b0111,     ///< xbgasNicEvent: bulk Put response
+  Finish      = 0b1111,     ///< xbgasNicEvent: Finish notification
+  Unknown     = 0b1000      ///< xbgasNicEvent: Unknown operation
+}; 
+
 /**
  * xbgasNicEvent : inherited class to handle the individual network events for XbgasNIC
  */
 class xbgasNicEvent : public SST::Event{
 public:
-  typedef enum {
-    GetRqst     = 0b0000,     ///< xbgasNicEvent: Get request
-    PutRqst     = 0b0001,     ///< xbgasNicEvent: Put request
-    BulkGetRqst = 0b0010,     ///< xbgasNicEvent: bulk Get request
-    BulkPutRqst = 0b0011,     ///< xbgasNicEvent: bulk Put request
-    GetResp     = 0b0100,     ///< xbgasNicEvent: Get response
-    PutResp     = 0b0101,     ///< xbgasNicEvent: Put response
-    BulkGetResp = 0b0110,     ///< xbgasNicEvent: bulk Get response
-    BulkPutResp = 0b0111,     ///< xbgasNicEvent: bulk Put response
-    Finish      = 0b1111,     ///< xbgasNicEvent: Finish notification
-    Unknown     = 0b1000      ///< xbgasNicEvent: Unknown operation
-  } XbgasOpcode;
-
   /// xbgasNicEvent: standard constructor
   explicit xbgasNicEvent(std::string name) : 
     Event(), PktId(0), SrcName(std::move(name)),
     Src(0), Addr(0), Size(0), Nelem(0), Stride(0), 
-    Data(), Opcode(Unknown) { }
+    Data(), Opcode(XbgasOpcode::Unknown), Flags(0) { }
 
   /// xbgasNicEvent: extended constructor
   xbgasNicEvent(std::string name, std::vector<uint8_t> data):
     Event(), PktId(0), SrcName(std::move(name)),
     Src(0), Addr(0), Size(0), Nelem(0), Stride(0), 
-    Data(std::move(data)), Opcode(Unknown) { }
+    Data(std::move(data)), Opcode(XbgasOpcode::Unknown), Flags(0) { }
 
   /// xbgasNicEvent: retrieve the packet Id
   uint64_t getPktId() { return PktId; }
@@ -75,6 +77,9 @@ public:
   /// xbgasNicEvent: retrieve the stride value
   uint32_t getStride() { return Stride; }
 
+  /// xbgasNicEvent: retrieve the flags
+  StandardMem::Request::flags_t getFlags() { return Flags; }
+
   /// xbgasNicEvent: set the packet Id
   bool setPktId(uint64_t Id) { PktId = Id; return true; }
 
@@ -92,6 +97,9 @@ public:
 
   /// xbgasNicEvent: set the stride value
   bool setStride(uint32_t Sd) { Stride = Sd; return true; }
+
+  /// xbgasNicEvent: set the flags
+  bool setFlags(StandardMem::Request::flags_t Fl) { Flags = Fl; return true; }
 
   // ------------------------------------------------
   // Packet Building Functions
@@ -130,15 +138,16 @@ public:
   }
 
 private:
-  uint64_t PktId;             ///< xbgasNicEvent: Id for the packet
-  std::string SrcName;        ///< xbgasNicEvent: Name of the sending device
-  uint32_t Src;               ///< xbgasNicEvent: Source node ID
-  uint64_t Addr;              ///< xbgasNicEvent: Remote memory address
-  size_t Size;                ///< xbgasNicEvent: Size of each data elements
-  uint32_t Nelem;             ///< xbgasNicEvent: Number of elements
-  uint32_t Stride;            ///< xbgasNicEvent: Stride for bulk transfers
-  std::vector<uint8_t> Data;  ///< xbgasNicEvent: Data payload
-  XbgasOpcode Opcode;         ///< xbgasNicEvent: Operation code
+  uint64_t PktId;                       ///< xbgasNicEvent: Id for the packet
+  std::string SrcName;                  ///< xbgasNicEvent: Name of the sending device
+  uint32_t Src;                         ///< xbgasNicEvent: Source node ID
+  uint64_t Addr;                        ///< xbgasNicEvent: Remote memory address
+  size_t Size;                          ///< xbgasNicEvent: Size of each data elements
+  uint32_t Nelem;                       ///< xbgasNicEvent: Number of elements
+  uint32_t Stride;                      ///< xbgasNicEvent: Stride for bulk transfers
+  std::vector<uint8_t> Data;            ///< xbgasNicEvent: Data payload
+  XbgasOpcode Opcode;                   ///< xbgasNicEvent: Operation code
+  StandardMem::Request::flags_t Flags;  ///< xbgasNicEvent: Memory request flags
 public:
   /// xbgasNicEvent: secondary constructor
   xbgasNicEvent() : Event() {}
@@ -155,6 +164,7 @@ public:
     ser & Stride;
     ser & Data;
     ser & Opcode;
+    ser & Flags;
   }
 
   /// xbgasNicEvent: implements the NIC serialization
@@ -274,6 +284,6 @@ protected:
 
 } // namespace SST::RevCPU
 
-#endif // _SST_REVNIC_H_
+#endif // _SST_XBGASNIC_H_
 
 // EOF

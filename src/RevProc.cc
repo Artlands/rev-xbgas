@@ -1638,6 +1638,19 @@ void RevProc::MarkLoadComplete(const MemReq& req){
   }
 }
 
+void RevProc::MarkRmtLoadComplete(const RmtMemReq& req){
+
+  auto it = RmtLSQueue->find(make_lsq_hash(req.DestReg, req.RegType, req.Hart));
+  if( it != RmtLSQueue->end()){
+    DependencyClear(it->second.Hart, it->second.DestReg, (it->second.RegType == RevRegClass::RegFLOAT));
+    RmtLSQueue->erase(it);
+  }else if(0 != req.DestReg){ //instruction pre-fetch fills target x0, we can ignore these
+    output->fatal(CALL_INFO, -1,
+                  "Core %" PRIu32 "; Hart %" PRIu32 "; Cannot find outstanding remote load for reg %" PRIu32 " from address %" PRIx64 "\n",
+                  id, req.Hart, req.DestReg, req.Addr);
+  }
+}
+
 bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
   RevInst Inst;
 

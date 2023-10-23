@@ -14,7 +14,7 @@ using namespace SST;
 using namespace RevCPU;
 
 bool xbgasNicEvent::buildGetRqst( uint64_t PktId, uint64_t Addr, size_t Size){
-  Opcode = xbgasNicEvent::GetRqst;
+  Opcode = XbgasOpcode::GetRqst;
   if( !setPktId(PktId) )
     return false;
   if( !setAddr(Addr) )
@@ -30,7 +30,7 @@ bool xbgasNicEvent::buildGetRqst( uint64_t PktId, uint64_t Addr, size_t Size){
 
 bool xbgasNicEvent::buildBulkGetRqst( uint64_t PktId, uint64_t Addr,  size_t Size, 
                                       uint32_t Nelem, uint32_t Stride ){
-  Opcode = xbgasNicEvent::BulkGetRqst;
+  Opcode = XbgasOpcode::BulkGetRqst;
   if( !setPktId(PktId) )
     return false;
   if( !setAddr(Addr) )
@@ -45,7 +45,7 @@ bool xbgasNicEvent::buildBulkGetRqst( uint64_t PktId, uint64_t Addr,  size_t Siz
 }
 
 bool xbgasNicEvent::buildPutRqst(uint64_t PktId, uint64_t Addr, size_t Size){
-  Opcode = xbgasNicEvent::PutRqst;
+  Opcode = XbgasOpcode::PutRqst;
   if( !setPktId(PktId) )
     return false;
   if( !setAddr(Addr) )
@@ -61,7 +61,7 @@ bool xbgasNicEvent::buildPutRqst(uint64_t PktId, uint64_t Addr, size_t Size){
 
 bool xbgasNicEvent::buildBulkPutRqst(uint64_t PktId, uint64_t Addr, size_t Size, 
                                      uint32_t Nelem, uint32_t Stride){
-  Opcode = xbgasNicEvent::BulkPutRqst;
+  Opcode = XbgasOpcode::BulkPutRqst;
   if( !setPktId(PktId) )
     return false;
   if( !setAddr(Addr) )
@@ -76,28 +76,28 @@ bool xbgasNicEvent::buildBulkPutRqst(uint64_t PktId, uint64_t Addr, size_t Size,
 }
 
 bool xbgasNicEvent::buildGetResp(uint64_t PktId, size_t Size){
-  Opcode = xbgasNicEvent::GetResp;
+  Opcode = XbgasOpcode::GetResp;
   if( !setPktId(PktId) )
     return false;
   return true;
 }
 
 bool xbgasNicEvent::buildBulkGetResp(uint64_t PktId, size_t Size, uint32_t Nelem){
-  Opcode = xbgasNicEvent::BulkGetResp;
+  Opcode = XbgasOpcode::BulkGetResp;
   if( !setPktId(PktId) )
     return false;
   return true;
 }
 
 bool xbgasNicEvent::buildPutResp(uint64_t PktId){
-  Opcode = xbgasNicEvent::PutResp;
+  Opcode = XbgasOpcode::PutResp;
   if( !setPktId(PktId) )
     return false;
   return true;
 }
 
 bool xbgasNicEvent::buildBulkPutResp(uint64_t PktId){
-  Opcode = xbgasNicEvent::BulkPutResp;
+  Opcode = XbgasOpcode::BulkPutResp;
   if( !setPktId(PktId) )
     return false;
   return true;
