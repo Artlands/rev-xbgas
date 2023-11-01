@@ -103,66 +103,61 @@ bool xbgasNicEvent::buildBulkPutResp(uint64_t PktId){
   return true;
 }
 
-XbgasNIC::XbgasNIC(ComponentId_t id, Params& params)
-  : xbgasNicAPI(id, params) {
+XbgasNIC::XbgasNIC(ComponentId_t id, Params& params, TimeConverter* tc, Event::HandlerBase *handler)
+  : xbgasNicAPI(id, params, tc, handler) {
   // setup the initial logging functions
   int verbosity = params.find<int>("verbose", 0);
   output = new SST::Output("", verbosity, 0, SST::Output::STDOUT);
 
-  const std::string nicClock = params.find<std::string>("clock", "1GHz");
-  registerClock(nicClock, new Clock::Handler<XbgasNIC>(this, &XbgasNIC::clockTick));
-
   // load the SimpleNetwork interfaces
-  iFace = loadUserSubComponent<SST::Interfaces::SimpleNetwork>("iface", ComponentInfo::SHARE_NONE, 1);
-  if( !iFace ){
+  link_control = loadUserSubComponent<SimpleNetwork>("linkcontrol", ComponentInfo::SHARE_NONE, 1);
+  if( !link_control ){
     // load the anonymous nic
     Params netparams;
-    netparams.insert("port_name", params.find<std::string>("port", "network"));
-    netparams.insert("in_buf_size", "256B");
-    netparams.insert("out_buf_size", "256B");
-    netparams.insert("link_bw", "40GiB/s");
-    iFace = loadAnonymousSubComponent<SST::Interfaces::SimpleNetwork>("merlin.linkcontrol",
-                                                                      "iface",
-                                                                      0,
-                                                                      ComponentInfo::SHARE_PORTS | ComponentInfo::INSERT_STATS,
-                                                                      netparams,
-                                                                      1);
+    netparams.insert("port_name", params.find<std::string>("port", "port"));
+    netparams.insert("input_buf_size", params.find<std::string>("network_input_buffer_size", "1KiB"));
+    netparams.insert("output_buf_size", params.find<std::string>("network_output_buffer_size", "1KiB"));
+    netparams.insert("link_bw", params.find<std::string>("network_bw", "80GiB/s"));
+    link_control = loadAnonymousSubComponent<SST::Interfaces::SimpleNetwork>("merlin.linkcontrol",
+                                                                             "linkcontrol",
+                                                                             0,
+                                                                             ComponentInfo::SHARE_PORTS | ComponentInfo::INSERT_STATS,
+                                                                             netparams,
+                                                                             1);
   }
 
-  iFace->setNotifyOnReceive(new SST::Interfaces::SimpleNetwork::Handler<XbgasNIC>(this, &XbgasNIC::msgNotify));
+  link_control->setNotifyOnReceive(new SST::Interfaces::SimpleNetwork::Handler<XbgasNIC>(this, &XbgasNIC::msgNotify));
+
+  registerClock(tc, new Clock::Handler<XbgasNIC>(this, &XbgasNIC::clockTick));
 
   initBroadcastSent = false;
 
   numDest = 0;
 
-  msgHandler = nullptr;
+  msgHandler = handler;
 }
 
 XbgasNIC::~XbgasNIC(){
   delete output;
 }
 
-void XbgasNIC::setMsgHandler(Event::HandlerBase* handler){
-  msgHandler = handler;
-}
-
 void XbgasNIC::init(unsigned int phase){
-  iFace->init(phase);
+  link_control->init(phase);
 
-  if( iFace->isNetworkInitialized() ){
+  if( link_control->isNetworkInitialized() ){
     if( !initBroadcastSent) {
       initBroadcastSent = true;
       xbgasNicEvent *ev = new xbgasNicEvent(getName());
 
       SST::Interfaces::SimpleNetwork::Request * req = new SST::Interfaces::SimpleNetwork::Request();
       req->dest = SST::Interfaces::SimpleNetwork::INIT_BROADCAST_ADDR;
-      req->src = iFace->getEndpointID();
+      req->src = link_control->getEndpointID();
       req->givePayload(ev);
-      iFace->sendInitData(req);
+      link_control->sendInitData(req);
     }
   }
 
-  while( SST::Interfaces::SimpleNetwork::Request * req = iFace->recvInitData() ) {
+  while( SST::Interfaces::SimpleNetwork::Request * req = link_control->recvInitData() ) {
     xbgasNicEvent *ev = static_cast<xbgasNicEvent*>(req->takePayload());
     numDest++;
     output->verbose(CALL_INFO, 1, 0,
@@ -179,8 +174,11 @@ void XbgasNIC::setup(){
   }
 }
 
+void XbgasNIC::finish(){
+}
+
 bool XbgasNIC::msgNotify(int vn){
-  SST::Interfaces::SimpleNetwork::Request* req = iFace->recv(0);
+  SST::Interfaces::SimpleNetwork::Request* req = link_control->recv(0);
   if( req != nullptr ){
     if( req != nullptr ){
       xbgasNicEvent *ev = static_cast<xbgasNicEvent*>(req->takePayload());
@@ -194,7 +192,7 @@ bool XbgasNIC::msgNotify(int vn){
 void XbgasNIC::send(xbgasNicEvent* event, int destination){
   SST::Interfaces::SimpleNetwork::Request *req = new SST::Interfaces::SimpleNetwork::Request();
   req->dest = destination;
-  req->src = iFace->getEndpointID();
+  req->src = link_control->getEndpointID();
   req->givePayload(event);
   sendQ.push(req);
 }
@@ -204,12 +202,12 @@ int XbgasNIC::getNumDestinations(){
 }
 
 SST::Interfaces::SimpleNetwork::nid_t XbgasNIC::getAddress(){
-  return iFace->getEndpointID();
+  return link_control->getEndpointID();
 }
 
 bool XbgasNIC::clockTick(Cycle_t cycle){
   while( !sendQ.empty() ){
-    if( iFace->spaceToSend(0, 512) && iFace->send(sendQ.front(), 0)) {
+    if( link_control->spaceToSend(0, 512) && link_control->send(sendQ.front(), 0)) {
       sendQ.pop();
     }else{
       break;

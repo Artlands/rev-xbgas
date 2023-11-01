@@ -177,22 +177,24 @@ public:
  */
 class xbgasNicAPI: public SST::SubComponent{
 public:
-  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::RevCPU::xbgasNicAPI)
+  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::RevCPU::xbgasNicAPI, TimeConverter*, Event::HandlerBase *)
+
+  SST_ELI_DOCUMENT_PARAMS( {"verbose", "Verbosity for output (0 = nothing)", "0"} )
 
   /// xbgasNicEvent: constructor
-  xbgasNicAPI(ComponentId_t id, Params& params) : SubComponent(id) { }
+  xbgasNicAPI( ComponentId_t id, Params& params, TimeConverter* tc, Event::HandlerBase *handler) : SubComponent(id) { }
 
   /// xbgasNicEvent: default destructor
-  virtual ~xbgasNicAPI() = default;
-
-  /// xbgasNicEvent: registers the event handler with the core
-  virtual void setMsgHandler(Event::HandlerBase* handler) = 0;
+  virtual ~xbgasNicAPI() {}
 
   /// xbgasNicEvent: initializes the network
   virtual void init(unsigned int phase) = 0;
 
   /// xbgasNicEvent: setup the network
-  virtual void setup() { }
+  virtual void setup() = 0;
+
+  /// xbgasNicEvent: finish function
+  virtual void finish() = 0;
 
   /// xbgasNicEvent: send a message on the network
   virtual void send(xbgasNicEvent *ev, int dest) = 0;
@@ -202,14 +204,16 @@ public:
 
   /// xbgasNicEvent: returns the NIC's network address
   virtual SST::Interfaces::SimpleNetwork::nid_t getAddress() = 0;
+
+protected:
+  SST::Output *output;                    ///< xbgasNicEvent: SST output object
 }; /// end xbgasNicAPI
 
-/**
- * XbgasNIC: the Rev network interface controller subcomponent
- */
+// ----------------------------------------
+// XbgasNIC: the Rev network interface controller subcomponent
+// ----------------------------------------
 class XbgasNIC : public xbgasNicAPI {
 public:
-
   // Register with the SST Core
   SST_ELI_REGISTER_SUBCOMPONENT(
     XbgasNIC,
@@ -223,54 +227,53 @@ public:
   // Register the parameters
   SST_ELI_DOCUMENT_PARAMS(
     {"clock", "Clock frequency of the NIC", "1Ghz"},
-    {"port", "Port to use, if loaded as an anonymous subcomponent", "network"},
     {"verbose", "Verbosity for output (0 = nothing)", "0"},
   )
 
   // Register the ports
   SST_ELI_DOCUMENT_PORTS(
-    {"network", "Port to network", {"simpleNetworkExample.xbgasNicEvent"} }
+    {"port", "Link to network", {"RevCPU.xbgasNicEvent"} }
   )
 
   // Register the subcomponent slots
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
-    {"iface", "SimpleNetwork interface to a network", "SST::Interfaces::SimpleNetwork"}
+    {"linkcontrol", "Network interface", "SST::Interfaces::SimpleNetwork"}
   )
 
   /// XbgasNIC: constructor
-  XbgasNIC(ComponentId_t id, Params& params);
+  XbgasNIC(ComponentId_t id, Params& params, TimeConverter* tc, Event::HandlerBase *handler);
 
   /// XbgasNIC: destructor
-  virtual ~XbgasNIC();
-
-  /// XbgasNIC: Callback to parent on received messages
-  virtual void setMsgHandler(Event::HandlerBase* handler);
+  ~XbgasNIC();
 
   /// XbgasNIC: initialization function
-  virtual void init(unsigned int phase);
+  void init(unsigned int phase) override;
 
   /// XbgasNIC: setup function
-  virtual void setup();
+  void setup() override;
+
+  /// XbgasNIC: finish function
+  void finish() override;
 
   /// XbgasNIC: send event to the destination id
-  virtual void send(xbgasNicEvent *ev, int dest);
+  void send(xbgasNicEvent *ev, int dest) override;
 
   /// XbgasNIC: retrieve the number of destinations
-  virtual int getNumDestinations();
+  int getNumDestinations() override;
 
   /// XbgasNIC: get the endpoint's network address
-  virtual SST::Interfaces::SimpleNetwork::nid_t getAddress();
+  SST::Interfaces::SimpleNetwork::nid_t getAddress() override;
 
   /// XbgasNIC: callback function for the SimpleNetwork interface
   bool msgNotify(int virtualNetwork);
 
   /// XbgasNIC: clock function
-  virtual bool clockTick(Cycle_t cycle);
+  bool clockTick(Cycle_t cycle);
 
 protected:
   SST::Output *output;                    ///< XbgasNIC: SST output object
 
-  SST::Interfaces::SimpleNetwork * iFace; ///< XbgasNIC: SST network interface
+  SST::Interfaces::SimpleNetwork* link_control; ///< XbgasNIC: SST network interface
 
   SST::Event::HandlerBase *msgHandler;    ///< XbgasNIC: SST message handler
 
