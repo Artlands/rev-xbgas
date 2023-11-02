@@ -7,8 +7,6 @@
 #
 
 set(RevCPUSrcs
-  PanExec.cc
-  PanNet.cc
   RevCPU.cc
   RevExt.cc
   RevFeature.cc
@@ -28,6 +26,7 @@ set(RevCPUSrcs
   RevRmtMemCtrl.cc
   )
 
+add_subdirectory(../common common)
 add_library(revcpu SHARED ${RevCPUSrcs})
 target_include_directories(revcpu PRIVATE ${REVCPU_INCLUDE_PATH} PUBLIC ${SST_INSTALL_DIR}/include)
 
