@@ -24,49 +24,58 @@
 // -- RevCPU Headers
 #include "RevOpts.h"
 #include "../common/include/RevCommon.h"
+#include "RevMemCtrl.h"
+#include "XbgasNIC.h"
 
 namespace SST::RevCPU{
 
 class RevMem;
-class xbgasNicAPI;
-class xbgasNicEvent;
 
 // ----------------------------------------
 // RevRmtMemOp
 // ----------------------------------------
-class RevRmtMemOp : public RevMemOp{
+class RevRmtMemOp {
 public:
 
   /// RevRmtMemOp: constructor
-  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t Addr, size_t Size, 
+  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, 
                MemOp Op, StandardMem::Request::flags_t Flags );
 
   /// RevRmtMemOp: overloaded constructor - read
-  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t Addr, size_t Size, 
+  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, 
                void *target, MemOp Op, StandardMem::Request::flags_t Flags );
   
   /// RevRmtMemOp: overloaded constructor - bulk read
-  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SAddr, size_t Size,
-               uint32_t Nelem, uint32_t Stride, uint64_t DAddr, 
+  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size,
+               uint32_t Nelem, uint32_t Stride, uint64_t DstAddr, 
                MemOp Op, StandardMem::Request::flags_t Flags );
   
   /// RevRmtMemOp: overloaded constructor - write
-  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t Addr, size_t Size, 
+  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DstAddr, size_t Size, 
                char *buffer, MemOp Op, StandardMem::Request::flags_t Flags );
 
   /// RevRmtMemOp: overloaded constructor - bulk write
-  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DAddr, size_t Size,
-               uint32_t Nelem, uint32_t Stride, uint64_t SAddr, 
-               MemOp Op, StandardMem::Request::flags_t Flags );
+  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DstAddr, size_t Size,
+               uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr, 
+               char *buffer, MemOp Op, StandardMem::Request::flags_t Flags );
 
   /// RevRmtMemOp: destructor
   ~RevRmtMemOp() = default;
 
+  /// RevRmtMemOp: retrieve the hart id
+  unsigned getHart() const { return Hart; }
+
   /// RevRmtMemOp: retrieve the target namespace
   uint64_t getNmspace() const { return Nmspace; }
 
+  /// RevRmtMemOp: retrieve the source address
+  uint64_t getSrcAddr() const { return SrcAddr; }
+
   /// RevRmtMemOp: retrieve the destination address
   uint64_t getDstAddr() const { return DstAddr; }
+
+  /// RevRmtMemOp: retrieve the size of each data element in bytes
+  size_t getSize() const { return Size; }
 
   /// RevRmtMemOp: retrieve the number of elements
   uint32_t getNelem() const { return Nelem; } 
@@ -74,11 +83,38 @@ public:
   /// RevRmtMemOp: retrieve the stride
   uint32_t getStride() const { return Stride; }
 
+  /// RevRmtMemOp: retrieve the memory operation opcode
+  MemOp getOp() const { return Op; }
+
+  /// RevRmtMemOp: retrieve the memory buffer
+  std::vector<uint8_t> getBuf() const { return membuf; }
+
+  /// RevRmtMemOp: retrieve the memory operation flags
+  StandardMem::Request::flags_t getFlags() const { return Flags; }
+
+  /// RevRmtMemOp: retrieve the standard set of memory flags for MemEventBase
+  StandardMem::Request::flags_t getStdFlags() const { return Flags & 0xFFFF; }
+
+  /// RevRmtMemOp: retrieve the flags for MemEventBase without caching enable
+  StandardMem::Request::flags_t getNoCacheFlags() const { return Flags & 0xFFFD; }
+
+  /// RevRmtMemOp: retrieve the target address
+  void *getTarget() const { return target; }
+
+  /// RevRmtMemOp: retrieve the remote memory request
+  const RmtMemReq& getRmtMemReq() const { return procReq; }
+
+  /// RevRmtMemOp: set the hart id
+  void setHart( unsigned H ) { Hart = H; }
+
   /// RevRmtMemOp: set the Namespace
   void setNmspace( uint64_t N ) { Nmspace = N; }
 
+  /// RevRmtMemOp: set the source address
+  void setSrcAddr( uint64_t S ) { SrcAddr = S; }
+
   /// RevRmtMemOp: set the destination address
-  void setDstAddr( uint64_t P ) { DstAddr = P; }
+  void setDstAddr( uint64_t D ) { DstAddr = D; }
 
   /// RevRmtMemOp: set the number of elements
   void setNelem( uint32_t N ) { Nelem = N; }
@@ -86,12 +122,23 @@ public:
   /// RevRmtMemOp: set the stride
   void setStride( uint32_t S ) { Stride = S; }
 
+  /// RevRmtMemOp: set the memory operation opcode
+  void setRmtMemOp( const RmtMemReq& req) { procReq = req; }
+
 private:
+  unsigned Hart;                           ///< RevRmtMemOp: hart id
   uint64_t Nmspace;                        ///< RevRmtMemOp: target namespace
+  uint64_t SrcAddr;                        ///< RevRmtMemOp: source address
   uint64_t DstAddr;                        ///< RevRmtMemOp: destination address
+  size_t Size;                             ///< RevRmtMemOp: size of each data element in bytes
   uint32_t Nelem;                          ///< RevRmtMemOp: number of elements
   uint32_t Stride;                         ///< RevRmtMemOp: stride between elements
-}
+  MemOp Op;                                ///< RevRmtMemOp: memory operation
+  std::vector<uint8_t> membuf;             ///< RevRmtMemOp: buffer
+  StandardMem::Request::flags_t Flags;     ///< RevRmtMemOp: request flags
+  void *target;                            ///< RevRmtMemOp: target register pointer
+  RmtMemReq procReq;                       ///< RevRmtMemOp: remote memory request from RevProc
+};
 
 // ----------------------------------------
 // RevRmtMemCtrl
@@ -99,12 +146,12 @@ private:
 class RevRmtMemCtrl : public SST::SubComponent {
 public:
 
-  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::RevCPU::RevRmtMemCtrl)
+  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::RevCPU::RevRmtMemCtrl, TimeConverter*)
 
   SST_ELI_DOCUMENT_PARAMS({ "verbose", "Set the verbosity of output for the memory controller", "0" } )
 
   /// RevRmtMemCtrl: constructor
-  RevRmtMemCtrl( ComponentId_t id, const Params& params);
+  RevRmtMemCtrl( ComponentId_t id, const Params& params, TimeConverter* tc);
 
   /// RevRmtMemCtrl: destructor
   virtual ~RevRmtMemCtrl();
@@ -118,14 +165,17 @@ public:
   /// RevRmtMemCtrl: finish function
   virtual void finish() = 0;
 
+  /// RevRmtMemCtrl: clock tick function
+  virtual bool clockTick( Cycle_t cycle ) = 0;
+
   /// RevRmtMemCtrl: determines if outstanding requests exist
-  virtual bool outstandingRqsts() = 0;
+  // virtual bool outstandingRqsts() = 0;
 
   /// RevRmtMemCtrl: set the local memory object
-  virtual void setMem(RevMem *Mem) = 0;
+  // virtual void setMem(RevMem *Mem) = 0;
 
-  /// RevRmtMemCtrl: set the xBGAS NIC interface
-  virtual void setNic(xbgasNicAPI *Nic) = 0;
+  // /// RevRmtMemCtrl: set the xBGAS NIC interface
+  // virtual void setNic(xbgasNicAPI *Nic) = 0;
 
   /// RevRmtMemCtrl: send a remote memory read request
   virtual bool sendRmtReadRqst( unsigned Hart, uint64_t Nmspace, 
@@ -134,42 +184,48 @@ public:
                                 const RmtMemReq& req, 
                                 StandardMem::Request::flags_t flags ) = 0;
 
-  /// RevRmtMemCtrl: send a remote bulk memory read request
-  virtual bool sendRmtBulkReadRqst( unsigned Hart, uint64_t Nmspace, 
-                                    uint64_t SrcAddr, size_t Size, 
-                                    uint32_t Nelem, uint32_t Stride, 
-                                    uint64_t DestAddr,
-                                    const RmtMemReq& req, 
-                                    StandardMem::Request::flags_t flags ) = 0;
+  // /// RevRmtMemCtrl: send a remote bulk memory read request
+  // virtual bool sendRmtBulkReadRqst( unsigned Hart, uint64_t Nmspace, 
+  //                                   uint64_t SrcAddr, size_t Size, 
+  //                                   uint32_t Nelem, uint32_t Stride, 
+  //                                   uint64_t DestAddr,
+  //                                   const RmtMemReq& req, 
+  //                                   StandardMem::Request::flags_t flags ) = 0;
   
   /// RevRmtMemCtrl: send a remote memory write request
   virtual bool sendRmtWriteRqst( unsigned Hart, uint64_t Nmspace, 
-                                 uint64_t DestAddr, size_t Size, 
-                                 std::vector<uint8_t> Data ) = 0;
+                                 uint64_t DestAddr, size_t Size, char *buffer, 
+                                 StandardMem::Request::flags_t flags = 0) = 0;
 
-  /// RevRmtMemCtrl: send a remote bulk memory write request
-  virtual bool sendRmtBulkWriteRqst( unsigned Hart, uint64_t Nmspace, 
-                                     uint64_t DestAddr, size_t Size, 
-                                     uint32_t Nelem, uint32_t Stride, 
-                                     uint64_t SrcAddr ) = 0;
+  // /// RevRmtMemCtrl: send a remote bulk memory write request
+  // virtual bool sendRmtBulkWriteRqst( unsigned Hart, uint64_t Nmspace, 
+  //                                    uint64_t DestAddr, size_t Size, 
+  //                                    uint32_t Nelem, uint32_t Stride, 
+  //                                    uint64_t SrcAddr ) = 0;
 
-  /// RevRmtMemCtrl: handle a remote memory read request
-  virtual void handleRmtReadRqst( xbgasNicEvent *ev ) = 0;
+  // /// RevBasicRmtMemCtrl: handle a remote memory read request
+  // virtual void handleRmtReadRqst( xbgasNicEvent *ev ) = 0;
+
+  // /// RevBasicRmtMemCtrl: handle a remote memory bulk read request
+  // virtual void handleRmtBulkReadRqst( xbgasNicEvent *ev ) = 0;
   
-  /// RevRmtMemCtrl: handle a remote memory write request
-  virtual bool handleRmtWriteRqst( xbgasNicEvent *ev ) = 0;
+  // /// RevBasicRmtMemCtrl: handle a remote memory write request
+  // virtual bool handleRmtWriteRqst( xbgasNicEvent *ev ) = 0;
 
-  /// RevRmtMemCtrl: handle a read response
-  virtual void handleRmtReadResp( xbgasNicEvent *ev ) = 0;
+  // /// RevBasicRmtMemCtrl: handle a remote memory bulk write request
+  // virtual bool handleRmtBulkWriteRqst( xbgasNicEvent *ev ) = 0;
 
-  /// RevRmtMemCtrl: handle a bulk read response
-  virtual void handleRmtBulkReadResp( xbgasNicEvent *ev ) = 0;
+  // /// RevRmtMemCtrl: handle a read response
+  // virtual void handleRmtReadResp( xbgasNicEvent *ev ) = 0;
 
-  /// RevRmtMemCtrl: handle a write response
-  virtual void handleRmtWriteResp( xbgasNicEvent *ev ) = 0;
+  // /// RevRmtMemCtrl: handle a bulk read response
+  // virtual void handleRmtBulkReadResp( xbgasNicEvent *ev ) = 0;
 
-  /// RevRmtMemCtrl: handle a bulk write response
-  virtual void handleRmtBulkWriteResp( xbgasNicEvent *ev ) = 0;
+  // /// RevRmtMemCtrl: handle a write response
+  // virtual void handleRmtWriteResp( xbgasNicEvent *ev ) = 0;
+
+  // /// RevRmtMemCtrl: handle a bulk write response
+  // virtual void handleRmtBulkWriteResp( xbgasNicEvent *ev ) = 0;
 
 protected:
   SST::Output *output;        ///< RevRmtMemCtrl: sst output object
@@ -193,7 +249,9 @@ public:
                           { "max_stores",    "Set the maximum number of outstanding stores",                 "64"},
                           { "ops_per_cycle", "Set the maximum number of operations to issue per cycle",      "2"})
 
-  SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS()
+  SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
+    { "xbgasNicIface", "xBGAS Network interface to a network", "SST::RevCPU::xbgasNicAPI"}
+  )
 
   SST_ELI_DOCUMENT_PORTS()
 
@@ -213,79 +271,115 @@ public:
     RmtWriteInFlight = 3,
     RmtWritePending  = 4,
     RmtWritesBytes   = 5
-  }RmtMemCtrlStat;
+  };
 
   /// RevBasicRmtMemCtrl: constructor
-  RevBasicRmtMemCtrl( ComponentId_t id, Params& params );
+  RevBasicRmtMemCtrl( ComponentId_t id, const Params& params, TimeConverter* tc );
 
   /// RevBasicRmtMemCtrl: destructor
-  virtual ~RevBasicRmtMemCtrl();
+  ~RevBasicRmtMemCtrl();
 
   /// RevBasicRmtMemCtrl: initialization function
-  virtual void init(unsigned int phase) override;
+  void init(unsigned int phase) override;
 
   /// RevBasicRmtMemCtrl: setup function
-  virtual void setup() override;
+  void setup() override;
 
   /// RevBasicRmtMemCtrl: finish function
-  virtual void finish() override;
+  void finish() override;
 
   /// RevBasicRmtMemCtrl: clock tick function
-  virtual bool clockTick( Cycle_t cycle );
+  bool clockTick( Cycle_t cycle ) override;
 
   /// RevBasicRmtMemCtrl: determines if outstanding requests exist
-  bool outstandingRqsts() override;
+  // bool outstandingRqsts() override;
 
   /// RevBasicRmtMemCtrl: xBGAS event processing handler
-  void processEvent( xbgasNicEvent *ev );
+  // void processEvent( xbgasNicEvent *ev );
+
+  /// RevBasicRmtMemCtrl: remote memory event processing handler
+  void rmtMemEventHandler( Event *ev );
 
   /// RevBasicRmtMemCtrl: send a remote memory read request
-  virtual bool sendRmtReadRqst( unsigned Hart, uint64_t Nmspace, 
-                                uint64_t SrcAddr, size_t Size, 
-                                void *Target,
-                                const RmtMemReq& req, 
-                                StandardMem::Request::flags_t flags) override;
+  bool sendRmtReadRqst( unsigned Hart, uint64_t Nmspace, 
+                        uint64_t SrcAddr, size_t Size, 
+                        void *Target,
+                        const RmtMemReq& req, 
+                        StandardMem::Request::flags_t flags) override;
 
-  /// RevBasicRmtMemCtrl: send a remote bulk memory read request
-  virtual bool sendRmtBulkReadRqst( unsigned Hart, uint64_t Nmspace, 
-                                    uint64_t SrcAddr, size_t Size, 
-                                    uint32_t Nelem, uint32_t Stride, 
-                                    uint64_t DestAddr,
-                                    const RmtMemReq& req, 
-                                    StandardMem::Request::flags_t flags ) override;
+  // /// RevBasicRmtMemCtrl: send a remote bulk memory read request
+  // virtual bool sendRmtBulkReadRqst( unsigned Hart, uint64_t Nmspace, 
+  //                                   uint64_t SrcAddr, size_t Size, 
+  //                                   uint32_t Nelem, uint32_t Stride, 
+  //                                   uint64_t DestAddr,
+  //                                   const RmtMemReq& req, 
+  //                                   StandardMem::Request::flags_t flags ) override;
   
   /// RevBasicRmtMemCtrl: send a remote memory write request
-  virtual bool sendRmtWriteRqst( unsigned Hart, uint64_t Nmspace, 
-                                 uint64_t DestAddr, size_t Size, 
-                                 std::vector<uint8_t> Data ) override;
+  bool sendRmtWriteRqst( unsigned Hart, uint64_t Nmspace, 
+                         uint64_t DestAddr, size_t Size, char *buffer, 
+                         StandardMem::Request::flags_t flags = 0) override;
 
-  /// RevBasicRmtMemCtrl: send a remote bulk memory write request
-  virtual bool sendRmtBulkWriteRqst( unsigned Hart, uint64_t Nmspace, 
-                                     uint64_t DestAddr, size_t Size, 
-                                     uint32_t Nelem, uint32_t Stride, 
-                                     uint64_t SrcAddr ) override;
+  // /// RevBasicRmtMemCtrl: send a remote bulk memory write request
+  // virtual bool sendRmtBulkWriteRqst( unsigned Hart, uint64_t Nmspace, 
+  //                                    uint64_t DestAddr, size_t Size, 
+  //                                    uint32_t Nelem, uint32_t Stride, 
+  //                                    uint64_t SrcAddr ) override;
 
-  /// RevBasicRmtMemCtrl: handle a remote memory read request
-  virtual void handleRmtReadRqst( xbgasNicEvent *ev ) override;
+  // /// RevBasicRmtMemCtrl: handle a remote memory read request
+  // virtual void handleRmtReadRqst( xbgasNicEvent *ev ) override;
+
+  // /// RevBasicRmtMemCtrl: handle a remote memory bulk read request
+  // virtual void handleRmtBulkReadRqst( xbgasNicEvent *ev ) override;
   
-  /// RevBasicRmtMemCtrl: handle a remote memory write request
-  virtual bool handleRmtWriteRqst( xbgasNicEvent *ev ) override;
+  // /// RevBasicRmtMemCtrl: handle a remote memory write request
+  // virtual bool handleRmtWriteRqst( xbgasNicEvent *ev ) override;
 
-  /// RevBasicRmtMemCtrl: handle a read response
-  virtual void handleRmtReadResp( xbgasNicEvent *ev ) override;
+  // /// RevBasicRmtMemCtrl: handle a remote memory bulk write request
+  // virtual bool handleRmtBulkWriteRqst( xbgasNicEvent *ev ) override;
 
-  /// RevBasicRmtMemCtrl: handle a bulk read response
-  virtual void handleRmtBulkReadResp( xbgasNicEvent *ev ) override;
+  // /// RevBasicRmtMemCtrl: handle a read response
+  // virtual void handleRmtReadResp( xbgasNicEvent *ev ) override;
 
-  /// RevBasicRmtMemCtrl: handle a write response
-  virtual void handleRmtWriteResp( xbgasNicEvent *ev ) override;
+  // /// RevBasicRmtMemCtrl: handle a bulk read response
+  // virtual void handleRmtBulkReadResp( xbgasNicEvent *ev ) override;
 
-  /// RevBasicRmtMemCtrl: handle a bulk write response
-  virtual void handleRmtBulkWriteResp( xbgasNicEvent *ev ) override;
+  // /// RevBasicRmtMemCtrl: handle a write response
+  // virtual void handleRmtWriteResp( xbgasNicEvent *ev ) override;
+
+  // /// RevBasicRmtMemCtrl: handle a bulk write response
+  // virtual void handleRmtBulkWriteResp( xbgasNicEvent *ev ) override;
+
+// protected:
+//   class RevRmtMemHandlers : public Event::HandlerBase {
+//   public:
+//     friend class RevBasicRmtMemCtrl;
+
+//     /// RevRmtMemHandlers: constructor
+//     RevRmtMemHandlers( RevBasicRmtMemCtrl* Ctrl, SST::Output* Output );
+
+//     /// RevRmtMemHandlers: destructor
+//     virtual ~RevRmtMemHandlers();
+
+//     /// RevRmtMemHandlers: handle remote memory operation events
+//     virtual void handle(xbgasNicEvent* ev);
+  
+//   private:
+//     RevBasicRmtMemCtrl* Ctrl;   ///< RevRmtMemHandlers: pointer to the parent controller
+//   }; // class RevRmtMemHandlers
 
 private:
   /// RevBasicRmtMemCtrl: process the next memory request
   bool processNextRqst(unsigned &t_max_loads, unsigned &t_max_stores, unsigned &t_max_ops);
+  
+  /// RevBasicRmtMemCtrl: determine if we can instantiate the target remote memory operation
+  bool isRmtMemOpAvailable( RevRmtMemOp *Op, unsigned &t_max_loads, unsigned &t_max_stores );
+
+  /// RevBasicRmtMemCtrl: build a remote memory request packet
+  bool buildRmtMemRqst( RevRmtMemOp *Op, bool &Success );
+
+  /// RevBasicRmtMemCtrl: Namespace Lookaside Buffer translation
+  int findDest( uint64_t Nmspace );
 
   /// RevBasicRmtMemCtrl: register statistics
   void registerStats();
@@ -294,9 +388,13 @@ private:
   void recordStat( RmtMemCtrlStats stat, uint64_t Data );
 
   /// RevBasicRmtMemCtrl: return the total number of outstanding requests
-  uint64_t getTotalRqsts();
+  // uint64_t getTotalRqsts();
 
   // -- private data members;
+  xbgasNicAPI* xbgasNicIface;                 ///< RevBasicRmtMemCtrl: xBGAS NIC interface
+  std::map<uint64_t, int> nmspaceLB;          ///< RevBasicRmtMemCtrl: namespace lookaside Buffer map; <Namespace, Dest>
+  static std::atomic<int64_t> main_id;        ///< RevBasicRmtMemCtrl: main request id counter
+
   unsigned max_loads;                         ///< RevBasicRmtMemCtrl: maximum number of outstanding loads
   unsigned max_stores;                        ///< RevBasicRmtMemCtrl: maximum number of outstanding stores
   unsigned max_ops;                           ///< RevBasicRmtMemCtrl: maximum number of operations per cycle
@@ -304,6 +402,13 @@ private:
   uint64_t num_read;                          ///< RevBasicRmtMemCtrl: number of remote read requests
   uint64_t num_write;                         ///< RevBasicRmtMemCtrl: number of remote write requests
 
+  std::vector<RevRmtMemOp *> rqstQ;                  ///< RevBasicRmtMemCtrl: queued remote memory requests
+  std::vector<uint64_t> readRqsts;                   ///< RevBasicRmtMemCtrl: outstanding remote read requests
+  std::map<uint64_t, RevRmtMemOp *> readOutstanding; ///< RevBasicRmtMemCtrl: map of remote read requests
+  std::vector<uint64_t> writeRqsts;                  ///< RevBasicRmtMemCtrl: outstanding remote write requests
+  std::map<uint64_t, RevRmtMemOp *> writeOutstanding;///< RevBasicRmtMemCtrl: map of remote write requests
+
+  std::vector<Statistic<uint64_t> *> stats;          ///< RevBasicRmtMemCtrl: vector of statistics
 }; // class RevBasicRmtMemCtrl
 
 } // namespace SST::RevCPU

@@ -1647,7 +1647,7 @@ void RevProc::MarkRmtLoadComplete(const RmtMemReq& req){
   }else if(0 != req.DestReg){ //instruction pre-fetch fills target x0, we can ignore these
     output->fatal(CALL_INFO, -1,
                   "Core %" PRIu32 "; Hart %" PRIu32 "; Cannot find outstanding remote load for reg %" PRIu32 " from address %" PRIx64 "\n",
-                  id, req.Hart, req.DestReg, req.Addr);
+                  id, req.Hart, req.DestReg, req.SrcAddr);
   }
 }
 
