@@ -1,7 +1,7 @@
 //
 // _Rev_Common_h_
 //
-// Copyright (C) 2017-2023 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2023 Tactical ComWRITEing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -82,6 +82,19 @@ enum class MemOp : uint8_t {
   MemOpAMO         = 9,
 };
 
+enum class RmtMemOp: uint8_t {
+  READRqst      = 0b0000,     ///< xbgasNicEvent: READ request
+  WRITERqst     = 0b0001,     ///< xbgasNicEvent: WRITE request
+  BulkREADRqst  = 0b0010,     ///< xbgasNicEvent: bulk READ request
+  BulkWRITERqst = 0b0011,     ///< xbgasNicEvent: bulk WRITE request
+  READResp      = 0b0100,     ///< xbgasNicEvent: READ response
+  WRITEResp     = 0b0101,     ///< xbgasNicEvent: WRITE response
+  BulkREADResp  = 0b0110,     ///< xbgasNicEvent: bulk READ response
+  BulkWRITEResp = 0b0111,     ///< xbgasNicEvent: bulk WRITE response
+  Finish        = 0b1111,     ///< xbgasNicEvent: Finish notification
+  Unknown       = 0b1000      ///< xbgasNicEvent: Unknown operation
+};
+
 std::ostream& operator<<(std::ostream& os, MemOp op);
 
 inline uint64_t make_lsq_hash(uint16_t destReg, RevRegClass regType, unsigned HartID){
@@ -124,7 +137,7 @@ struct RmtMemReq {
   RmtMemReq() = default;
 
   RmtMemReq(uint64_t nmspace, uint64_t saddr, uint16_t dest, 
-            RevRegClass regclass, unsigned hart, MemOp req, 
+            RevRegClass regclass, unsigned hart, RmtMemOp req, 
             bool outstanding, std::function<void(RmtMemReq)> func) :
     Nmspace(nmspace), SrcAddr(saddr), DestReg(dest), RegType(regclass), Hart(hart),
     ReqType(req), isOutstanding(outstanding), MarkRmtLoadComplete(func)
@@ -132,7 +145,7 @@ struct RmtMemReq {
   }
 
   RmtMemReq(uint64_t nmspace, uint64_t saddr, uint32_t nelem, uint32_t stride,
-            uint64_t daddr, RevRegClass regclass, unsigned hart, MemOp req, 
+            uint64_t daddr, RevRegClass regclass, unsigned hart, RmtMemOp req, 
             bool outstanding, std::function<void(RmtMemReq)> func) :
     Nmspace(nmspace), SrcAddr(saddr), Nelem(nelem), Stride(stride), DestAddr(daddr), 
     RegType(regclass), Hart(hart), ReqType(req), isOutstanding(outstanding), 
@@ -141,7 +154,7 @@ struct RmtMemReq {
   }
 
   void SetRmt(uint64_t nmspace, uint64_t saddr, uint16_t dest, 
-              RevRegClass regclass, unsigned hart, MemOp req, bool outstanding,
+              RevRegClass regclass, unsigned hart, RmtMemOp req, bool outstanding,
               std::function<void(RmtMemReq)> func)
   {
     Nmspace = nmspace; SrcAddr = saddr; DestReg = dest; 
@@ -150,7 +163,7 @@ struct RmtMemReq {
   }
 
   void SetRmt(uint64_t nmspace, uint64_t saddr, uint32_t nelem, uint32_t stride,
-              uint64_t daddr, RevRegClass regclass, unsigned hart, MemOp req, 
+              uint64_t daddr, RevRegClass regclass, unsigned hart, RmtMemOp req, 
               bool outstanding, std::function<void(RmtMemReq)> func)
   {
     Nmspace = nmspace; SrcAddr = saddr; Nelem = nelem; Stride = stride;
@@ -166,7 +179,7 @@ struct RmtMemReq {
   uint64_t    DestAddr      = _INVALID_ADDR_;
   RevRegClass RegType       = RevRegClass::RegUNKNOWN;
   unsigned    Hart          = _REV_INVALID_HART_ID_;
-  MemOp       ReqType       = MemOp::MemOpCUSTOM;
+  RmtMemOp    ReqType       = RmtMemOp::Unknown;
   bool        isOutstanding = false;
 
   std::function<void(RmtMemReq)> MarkRmtLoadComplete = nullptr;

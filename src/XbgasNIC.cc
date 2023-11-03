@@ -13,11 +13,20 @@
 using namespace SST;
 using namespace RevCPU;
 
-bool xbgasNicEvent::buildGetRqst( uint64_t PktId, uint64_t Addr, size_t Size){
-  Opcode = XbgasOpcode::GetRqst;
-  if( !setPktId(PktId) )
-    return false;
-  if( !setAddr(Addr) )
+std::atomic<uint64_t> SST::RevCPU::xbgasNicEvent::main_id(0);
+
+void xbgasNicEvent::getData(uint8_t *Buffer){
+  if( Size == 0 )
+    return;
+  for( size_t i=0; i<Size; i++){
+    Buffer[i] = Data[i];
+  }
+}
+
+bool xbgasNicEvent::buildREADRqst(uint64_t SrcAddr, size_t Size){
+  Id = main_id++;
+  Opcode = RmtMemOp::READRqst;
+  if( !setSrcAddr(SrcAddr) )
     return false;
   if( !setSize(Size) )
     return false;
@@ -28,12 +37,14 @@ bool xbgasNicEvent::buildGetRqst( uint64_t PktId, uint64_t Addr, size_t Size){
   return true;
 }
 
-bool xbgasNicEvent::buildBulkGetRqst( uint64_t PktId, uint64_t Addr,  size_t Size, 
-                                      uint32_t Nelem, uint32_t Stride ){
-  Opcode = XbgasOpcode::BulkGetRqst;
-  if( !setPktId(PktId) )
+bool xbgasNicEvent::buildBulkREADRqst( uint64_t SrcAddr, uint64_t DestAddr, 
+                                       size_t Size, uint32_t Nelem, 
+                                       uint32_t Stride ){
+  Id = main_id++;
+  Opcode = RmtMemOp::BulkREADRqst;
+  if( !setSrcAddr(SrcAddr) )
     return false;
-  if( !setAddr(Addr) )
+  if( !setDestAddr(DestAddr) )
     return false;
   if( !setSize(Size) )
     return false;
@@ -44,11 +55,11 @@ bool xbgasNicEvent::buildBulkGetRqst( uint64_t PktId, uint64_t Addr,  size_t Siz
   return true;
 }
 
-bool xbgasNicEvent::buildPutRqst(uint64_t PktId, uint64_t Addr, size_t Size){
-  Opcode = XbgasOpcode::PutRqst;
-  if( !setPktId(PktId) )
-    return false;
-  if( !setAddr(Addr) )
+bool xbgasNicEvent::buildWRITERqst( uint64_t DestAddr, size_t Size, 
+                                    std::vector<uint8_t> Buffer){
+  Id = main_id++;
+  Opcode = RmtMemOp::WRITERqst;
+  if( !setDestAddr(DestAddr) )
     return false;
   if( !setSize(Size) )
     return false;
@@ -56,15 +67,18 @@ bool xbgasNicEvent::buildPutRqst(uint64_t PktId, uint64_t Addr, size_t Size){
     return false;
   if( !setStride(0) )
     return false;
+  if( !setData(Buffer, Size) )
+    return false;
   return true;
 }
 
-bool xbgasNicEvent::buildBulkPutRqst(uint64_t PktId, uint64_t Addr, size_t Size, 
-                                     uint32_t Nelem, uint32_t Stride){
-  Opcode = XbgasOpcode::BulkPutRqst;
-  if( !setPktId(PktId) )
-    return false;
-  if( !setAddr(Addr) )
+bool xbgasNicEvent::buildBulkWRITERqst(uint64_t DestAddr, size_t Size, 
+                                       uint32_t Nelem, uint32_t Stride, 
+                                       std::vector<uint8_t> Buffer){
+  uint32_t TotalSize = Size * Nelem;
+  Id = main_id++;
+  Opcode = RmtMemOp::BulkWRITERqst;
+  if( !setDestAddr(DestAddr) )
     return false;
   if( !setSize(Size) )
     return false;
@@ -72,34 +86,40 @@ bool xbgasNicEvent::buildBulkPutRqst(uint64_t PktId, uint64_t Addr, size_t Size,
     return false;
   if( !setStride(Stride) )
     return false;
-  return true;
-}
-
-bool xbgasNicEvent::buildGetResp(uint64_t PktId, size_t Size){
-  Opcode = XbgasOpcode::GetResp;
-  if( !setPktId(PktId) )
+  if( !setData(Buffer, TotalSize) )
     return false;
   return true;
 }
 
-bool xbgasNicEvent::buildBulkGetResp(uint64_t PktId, size_t Size, uint32_t Nelem){
-  Opcode = XbgasOpcode::BulkGetResp;
-  if( !setPktId(PktId) )
+bool xbgasNicEvent::buildREADResp(uint64_t Id, size_t Size, 
+                                  std::vector<uint8_t> Buffer){
+  Id = Id;
+  Opcode = RmtMemOp::READResp;
+  if( !setData(Buffer, Size) )
     return false;
   return true;
 }
 
-bool xbgasNicEvent::buildPutResp(uint64_t PktId){
-  Opcode = XbgasOpcode::PutResp;
-  if( !setPktId(PktId) )
+bool xbgasNicEvent::buildBulkREADResp(uint64_t Id, uint64_t DestAddr, size_t Size, 
+                                      uint32_t Nelem, uint32_t Stride,
+                                      std::vector<uint8_t> Buffer){
+  uint32_t TotalSize = Size * Nelem;
+  Id = Id;
+  Opcode = RmtMemOp::BulkREADResp;
+  if( !setData(Buffer, TotalSize) )
     return false;
   return true;
 }
 
-bool xbgasNicEvent::buildBulkPutResp(uint64_t PktId){
-  Opcode = XbgasOpcode::BulkPutResp;
-  if( !setPktId(PktId) )
-    return false;
+bool xbgasNicEvent::buildWRITEResp(uint64_t Id){
+  Id = Id;
+  Opcode = RmtMemOp::WRITEResp;
+  return true;
+}
+
+bool xbgasNicEvent::buildBulkWRITEResp(uint64_t Id){
+  Id = Id;
+  Opcode = RmtMemOp::BulkWRITEResp;
   return true;
 }
 
@@ -147,13 +167,15 @@ void XbgasNIC::init(unsigned int phase){
   if( link_control->isNetworkInitialized() ){
     if( !initBroadcastSent) {
       initBroadcastSent = true;
-      xbgasNicEvent *ev = new xbgasNicEvent(getName());
+      xbgasNicEvent *ev = new xbgasNicEvent();
 
       SST::Interfaces::SimpleNetwork::Request * req = new SST::Interfaces::SimpleNetwork::Request();
       req->dest = SST::Interfaces::SimpleNetwork::INIT_BROADCAST_ADDR;
       req->src = link_control->getEndpointID();
       req->givePayload(ev);
       link_control->sendInitData(req);
+      // Push back local PE ID
+      xbgasHosts.push_back(link_control->getEndpointID());
     }
   }
 
@@ -161,8 +183,10 @@ void XbgasNIC::init(unsigned int phase){
     xbgasNicEvent *ev = static_cast<xbgasNicEvent*>(req->takePayload());
     numDest++;
     output->verbose(CALL_INFO, 1, 0,
-                    "%s received init message from %s\n",
-                    getName().c_str(), ev->getSource().c_str());
+                    "%s received init message from %u\n",
+                    getName().c_str(), ev->getSrcId());
+    // Push back remote PE ID
+    xbgasHosts.push_back(req->src);
   }
 }
 

@@ -864,7 +864,7 @@ bool RevMem::RmtReadMem( unsigned Hart, uint64_t Nmspace,
                          void *Target,
                          const RmtMemReq& req, 
                          StandardMem::Request::flags_t flags ){
-  // rmtCtrl->sendRmtReadRqst(Hart, Nmspace, SrcAddr, Size, Target, req, flags);
+  rmtCtrl->sendRmtReadRqst(Hart, Nmspace, SrcAddr, Size, Target, req, flags);
   return true;
 }
 
@@ -879,6 +879,8 @@ bool RevMem::RmtBulkReadMem( unsigned Hart, uint64_t Nmspace,
 
 bool RevMem::RmtWriteMem( unsigned Hart, uint64_t Nmspace, 
                           uint64_t DestAddr, size_t Size, const void *Data ){
+  char *DataMem = (char *)(Data);
+  rmtCtrl->sendRmtWriteRqst(Hart, Nmspace, DestAddr, Size, DataMem, 0x00);
   return true;
 }
 

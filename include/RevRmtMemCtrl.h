@@ -23,9 +23,9 @@
 
 // -- RevCPU Headers
 #include "RevOpts.h"
-#include "../common/include/RevCommon.h"
 #include "RevMemCtrl.h"
 #include "XbgasNIC.h"
+#include "../common/include/RevCommon.h"
 
 namespace SST::RevCPU{
 
@@ -39,25 +39,25 @@ public:
 
   /// RevRmtMemOp: constructor
   RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, 
-               MemOp Op, StandardMem::Request::flags_t Flags );
+               RmtMemOp Op, StandardMem::Request::flags_t Flags );
 
   /// RevRmtMemOp: overloaded constructor - read
   RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, 
-               void *target, MemOp Op, StandardMem::Request::flags_t Flags );
+               void *target, RmtMemOp Op, StandardMem::Request::flags_t Flags );
   
   /// RevRmtMemOp: overloaded constructor - bulk read
   RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size,
-               uint32_t Nelem, uint32_t Stride, uint64_t DstAddr, 
-               MemOp Op, StandardMem::Request::flags_t Flags );
+               uint32_t Nelem, uint32_t Stride, uint64_t DestAddr, 
+               RmtMemOp Op, StandardMem::Request::flags_t Flags );
   
   /// RevRmtMemOp: overloaded constructor - write
-  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DstAddr, size_t Size, 
-               char *buffer, MemOp Op, StandardMem::Request::flags_t Flags );
+  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, 
+               char *buffer, RmtMemOp Op, StandardMem::Request::flags_t Flags );
 
   /// RevRmtMemOp: overloaded constructor - bulk write
-  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DstAddr, size_t Size,
+  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size,
                uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr, 
-               char *buffer, MemOp Op, StandardMem::Request::flags_t Flags );
+               char *buffer, RmtMemOp Op, StandardMem::Request::flags_t Flags );
 
   /// RevRmtMemOp: destructor
   ~RevRmtMemOp() = default;
@@ -72,7 +72,7 @@ public:
   uint64_t getSrcAddr() const { return SrcAddr; }
 
   /// RevRmtMemOp: retrieve the destination address
-  uint64_t getDstAddr() const { return DstAddr; }
+  uint64_t getDestAddr() const { return DestAddr; }
 
   /// RevRmtMemOp: retrieve the size of each data element in bytes
   size_t getSize() const { return Size; }
@@ -84,7 +84,7 @@ public:
   uint32_t getStride() const { return Stride; }
 
   /// RevRmtMemOp: retrieve the memory operation opcode
-  MemOp getOp() const { return Op; }
+  RmtMemOp getOp() const { return Op; }
 
   /// RevRmtMemOp: retrieve the memory buffer
   std::vector<uint8_t> getBuf() const { return membuf; }
@@ -114,7 +114,7 @@ public:
   void setSrcAddr( uint64_t S ) { SrcAddr = S; }
 
   /// RevRmtMemOp: set the destination address
-  void setDstAddr( uint64_t D ) { DstAddr = D; }
+  void setDestAddr( uint64_t D ) { DestAddr = D; }
 
   /// RevRmtMemOp: set the number of elements
   void setNelem( uint32_t N ) { Nelem = N; }
@@ -122,18 +122,18 @@ public:
   /// RevRmtMemOp: set the stride
   void setStride( uint32_t S ) { Stride = S; }
 
-  /// RevRmtMemOp: set the memory operation opcode
-  void setRmtMemOp( const RmtMemReq& req) { procReq = req; }
+  /// RevRmtMemOp: set the memory operation request
+  void setRmtMemReq( const RmtMemReq& req) { procReq = req; }
 
 private:
   unsigned Hart;                           ///< RevRmtMemOp: hart id
   uint64_t Nmspace;                        ///< RevRmtMemOp: target namespace
   uint64_t SrcAddr;                        ///< RevRmtMemOp: source address
-  uint64_t DstAddr;                        ///< RevRmtMemOp: destination address
+  uint64_t DestAddr;                       ///< RevRmtMemOp: destination address
   size_t Size;                             ///< RevRmtMemOp: size of each data element in bytes
   uint32_t Nelem;                          ///< RevRmtMemOp: number of elements
   uint32_t Stride;                         ///< RevRmtMemOp: stride between elements
-  MemOp Op;                                ///< RevRmtMemOp: memory operation
+  RmtMemOp Op;                             ///< RevRmtMemOp: memory operation
   std::vector<uint8_t> membuf;             ///< RevRmtMemOp: buffer
   StandardMem::Request::flags_t Flags;     ///< RevRmtMemOp: request flags
   void *target;                            ///< RevRmtMemOp: target register pointer
@@ -393,7 +393,7 @@ private:
   // -- private data members;
   xbgasNicAPI* xbgasNicIface;                 ///< RevBasicRmtMemCtrl: xBGAS NIC interface
   std::map<uint64_t, int> nmspaceLB;          ///< RevBasicRmtMemCtrl: namespace lookaside Buffer map; <Namespace, Dest>
-  static std::atomic<int64_t> main_id;        ///< RevBasicRmtMemCtrl: main request id counter
+  std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts; ///< RevBasicRmtMemCtrl: xbgas hosts list
 
   unsigned max_loads;                         ///< RevBasicRmtMemCtrl: maximum number of outstanding loads
   unsigned max_stores;                        ///< RevBasicRmtMemCtrl: maximum number of outstanding stores
@@ -402,11 +402,9 @@ private:
   uint64_t num_read;                          ///< RevBasicRmtMemCtrl: number of remote read requests
   uint64_t num_write;                         ///< RevBasicRmtMemCtrl: number of remote write requests
 
+  std::vector<uint64_t> requests;                    ///< RevBasicRmtMemCtrl: vector of outstanding remote memory requests
   std::vector<RevRmtMemOp *> rqstQ;                  ///< RevBasicRmtMemCtrl: queued remote memory requests
-  std::vector<uint64_t> readRqsts;                   ///< RevBasicRmtMemCtrl: outstanding remote read requests
-  std::map<uint64_t, RevRmtMemOp *> readOutstanding; ///< RevBasicRmtMemCtrl: map of remote read requests
-  std::vector<uint64_t> writeRqsts;                  ///< RevBasicRmtMemCtrl: outstanding remote write requests
-  std::map<uint64_t, RevRmtMemOp *> writeOutstanding;///< RevBasicRmtMemCtrl: map of remote write requests
+  std::map<uint64_t, RevRmtMemOp *> outstanding;     ///< RevBasicRmtMemCtrl: map of remote write requests
 
   std::vector<Statistic<uint64_t> *> stats;          ///< RevBasicRmtMemCtrl: vector of statistics
 }; // class RevBasicRmtMemCtrl

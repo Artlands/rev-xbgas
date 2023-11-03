@@ -193,7 +193,7 @@ bool eload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
   req.SetRmt(Nmspace, SrcAddr,
              Inst.rd, RevRegClass::RegGPR,
              F->GetHartToExecID(),
-             MemOp::MemOpREAD,
+             RmtMemOp::READRqst,
              true,
              R->GetMarkRmtLoadComplete());
   R->RmtLSQueueInsert({make_lsq_hash(Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID()), req});

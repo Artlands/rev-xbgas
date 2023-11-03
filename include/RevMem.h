@@ -37,6 +37,7 @@
 // -- RevCPU Headers
 #include "RevOpts.h"
 #include "RevMemCtrl.h"
+#include "RevRmtMemCtrl.h"
 #include "RevTracer.h"
 #include "RevRand.h"
 #include "../common/include/RevCommon.h"
@@ -50,8 +51,6 @@
 #define _STACK_SIZE_ (size_t{1024*1024})
 
 namespace SST::RevCPU{
-
-class RevRmtMemCtrl;
 
 class RevMem{
 public:
