@@ -13,7 +13,16 @@
 using namespace SST;
 using namespace RevCPU;
 
-std::atomic<uint64_t> SST::RevCPU::xbgasNicEvent::main_id(0);
+std::atomic<uint32_t> SST::RevCPU::xbgasNicEvent::main_id(0);
+
+bool xbgasNicEvent::setData(uint8_t *In, uint32_t TotalSz){
+  if( TotalSz == 0 )
+    return true;
+  for( unsigned i=0; i<TotalSz; i++ ){
+    Data.push_back(In[i]);
+  }
+  return true;
+}
 
 void xbgasNicEvent::getData(uint8_t *Buffer){
   if( Size == 0 )
@@ -23,25 +32,12 @@ void xbgasNicEvent::getData(uint8_t *Buffer){
   }
 }
 
-bool xbgasNicEvent::buildREADRqst(uint64_t SrcAddr, size_t Size){
+bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, 
+                                   size_t Size, uint32_t Nelem, 
+                                   uint32_t Stride,
+                                   StandardMem::Request::flags_t Fl ){
   Id = main_id++;
   Opcode = RmtMemOp::READRqst;
-  if( !setSrcAddr(SrcAddr) )
-    return false;
-  if( !setSize(Size) )
-    return false;
-  if( !setNelem(1) )
-    return false;
-  if( !setStride(0) )
-    return false;
-  return true;
-}
-
-bool xbgasNicEvent::buildBulkREADRqst( uint64_t SrcAddr, uint64_t DestAddr, 
-                                       size_t Size, uint32_t Nelem, 
-                                       uint32_t Stride ){
-  Id = main_id++;
-  Opcode = RmtMemOp::BulkREADRqst;
   if( !setSrcAddr(SrcAddr) )
     return false;
   if( !setDestAddr(DestAddr) )
@@ -52,32 +48,18 @@ bool xbgasNicEvent::buildBulkREADRqst( uint64_t SrcAddr, uint64_t DestAddr,
     return false;
   if( !setStride(Stride) )
     return false;
-  return true;
-}
-
-bool xbgasNicEvent::buildWRITERqst( uint64_t DestAddr, size_t Size, 
-                                    std::vector<uint8_t> Buffer){
-  Id = main_id++;
-  Opcode = RmtMemOp::WRITERqst;
-  if( !setDestAddr(DestAddr) )
-    return false;
-  if( !setSize(Size) )
-    return false;
-  if( !setNelem(1) )
-    return false;
-  if( !setStride(0) )
-    return false;
-  if( !setData(Buffer, Size) )
+  if( !setFlags(Fl) )
     return false;
   return true;
 }
 
-bool xbgasNicEvent::buildBulkWRITERqst(uint64_t DestAddr, size_t Size, 
-                                       uint32_t Nelem, uint32_t Stride, 
-                                       std::vector<uint8_t> Buffer){
+bool xbgasNicEvent::buildWRITERqst(uint64_t DestAddr, size_t Size, 
+                                   uint32_t Nelem, uint32_t Stride, 
+                                   uint8_t *Buffer,
+                                   StandardMem::Request::flags_t Fl ){
   uint32_t TotalSize = Size * Nelem;
   Id = main_id++;
-  Opcode = RmtMemOp::BulkWRITERqst;
+  Opcode = RmtMemOp::WRITERqst;
   if( !setDestAddr(DestAddr) )
     return false;
   if( !setSize(Size) )
@@ -88,24 +70,25 @@ bool xbgasNicEvent::buildBulkWRITERqst(uint64_t DestAddr, size_t Size,
     return false;
   if( !setData(Buffer, TotalSize) )
     return false;
-  return true;
-}
-
-bool xbgasNicEvent::buildREADResp(uint64_t Id, size_t Size, 
-                                  std::vector<uint8_t> Buffer){
-  Id = Id;
-  Opcode = RmtMemOp::READResp;
-  if( !setData(Buffer, Size) )
+  if( !setFlags(Fl) )
     return false;
   return true;
 }
 
-bool xbgasNicEvent::buildBulkREADResp(uint64_t Id, uint64_t DestAddr, size_t Size, 
-                                      uint32_t Nelem, uint32_t Stride,
-                                      std::vector<uint8_t> Buffer){
+bool xbgasNicEvent::buildREADResp(uint64_t Id, uint64_t DestAddr, size_t Size, 
+                                  uint32_t Nelem, uint32_t Stride,
+                                  uint8_t *Buffer){
   uint32_t TotalSize = Size * Nelem;
   Id = Id;
-  Opcode = RmtMemOp::BulkREADResp;
+  Opcode = RmtMemOp::READResp;
+  if( !setDestAddr(DestAddr) )
+    return false;
+  if( !setSize(Size) )
+    return false;
+  if( !setNelem(Nelem) )
+    return false;
+  if( !setStride(Stride) )
+    return false;
   if( !setData(Buffer, TotalSize) )
     return false;
   return true;
@@ -114,12 +97,6 @@ bool xbgasNicEvent::buildBulkREADResp(uint64_t Id, uint64_t DestAddr, size_t Siz
 bool xbgasNicEvent::buildWRITEResp(uint64_t Id){
   Id = Id;
   Opcode = RmtMemOp::WRITEResp;
-  return true;
-}
-
-bool xbgasNicEvent::buildBulkWRITEResp(uint64_t Id){
-  Id = Id;
-  Opcode = RmtMemOp::BulkWRITEResp;
   return true;
 }
 

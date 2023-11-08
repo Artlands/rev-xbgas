@@ -85,12 +85,8 @@ enum class MemOp : uint8_t {
 enum class RmtMemOp: uint8_t {
   READRqst      = 0b0000,     ///< xbgasNicEvent: READ request
   WRITERqst     = 0b0001,     ///< xbgasNicEvent: WRITE request
-  BulkREADRqst  = 0b0010,     ///< xbgasNicEvent: bulk READ request
-  BulkWRITERqst = 0b0011,     ///< xbgasNicEvent: bulk WRITE request
-  READResp      = 0b0100,     ///< xbgasNicEvent: READ response
-  WRITEResp     = 0b0101,     ///< xbgasNicEvent: WRITE response
-  BulkREADResp  = 0b0110,     ///< xbgasNicEvent: bulk READ response
-  BulkWRITEResp = 0b0111,     ///< xbgasNicEvent: bulk WRITE response
+  READResp      = 0b0010,     ///< xbgasNicEvent: READ response
+  WRITEResp     = 0b0011,     ///< xbgasNicEvent: WRITE response
   Finish        = 0b1111,     ///< xbgasNicEvent: Finish notification
   Unknown       = 0b1000      ///< xbgasNicEvent: Unknown operation
 };
@@ -99,6 +95,10 @@ std::ostream& operator<<(std::ostream& os, MemOp op);
 
 inline uint64_t make_lsq_hash(uint16_t destReg, RevRegClass regType, unsigned HartID){
   return static_cast<uint64_t>(regType) << (16 + 8) | static_cast<uint64_t>(destReg) << 16 | HartID;
+};
+
+inline uint64_t make_rmt_lsq_hash(uint32_t SrcId, uint32_t PktId){
+  return static_cast<uint64_t>(SrcId) << 32 | PktId;
 };
 
 struct MemReq{

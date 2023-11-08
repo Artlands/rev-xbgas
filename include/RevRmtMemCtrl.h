@@ -96,7 +96,7 @@ public:
   StandardMem::Request::flags_t getStdFlags() const { return Flags & 0xFFFF; }
 
   /// RevRmtMemOp: retrieve the flags for MemEventBase without caching enable
-  StandardMem::Request::flags_t getNoCacheFlags() const { return Flags & 0xFFFD; }
+  StandardMem::Request::flags_t getNonCacheFlags() const { return Flags & 0xFFFD; }
 
   /// RevRmtMemOp: retrieve the target address
   void *getTarget() const { return target; }
@@ -121,6 +121,9 @@ public:
 
   /// RevRmtMemOp: set the stride
   void setStride( uint32_t S ) { Stride = S; }
+
+  /// RevRmtMemOp: set the flags
+  void setFlags( StandardMem::Request::flags_t F ) { Flags = F; }
 
   /// RevRmtMemOp: set the memory operation request
   void setRmtMemReq( const RmtMemReq& req) { procReq = req; }
@@ -203,29 +206,17 @@ public:
   //                                    uint32_t Nelem, uint32_t Stride, 
   //                                    uint64_t SrcAddr ) = 0;
 
-  // /// RevBasicRmtMemCtrl: handle a remote memory read request
-  // virtual void handleRmtReadRqst( xbgasNicEvent *ev ) = 0;
+  /// RevRmtMemCtrl: handle a remote memory read request
+  virtual void handleRmtReadRqst( xbgasNicEvent *ev ) = 0;
 
-  // /// RevBasicRmtMemCtrl: handle a remote memory bulk read request
-  // virtual void handleRmtBulkReadRqst( xbgasNicEvent *ev ) = 0;
+  /// RevRmtMemCtrl: handle a remote memory write request
+  virtual void handleRmtWriteRqst( xbgasNicEvent *ev ) = 0;
   
-  // /// RevBasicRmtMemCtrl: handle a remote memory write request
-  // virtual bool handleRmtWriteRqst( xbgasNicEvent *ev ) = 0;
+  /// RevRmtMemCtrl: handle a remote memory read response
+  virtual bool handleRmtReadResp( xbgasNicEvent *ev ) = 0;
 
-  // /// RevBasicRmtMemCtrl: handle a remote memory bulk write request
-  // virtual bool handleRmtBulkWriteRqst( xbgasNicEvent *ev ) = 0;
-
-  // /// RevRmtMemCtrl: handle a read response
-  // virtual void handleRmtReadResp( xbgasNicEvent *ev ) = 0;
-
-  // /// RevRmtMemCtrl: handle a bulk read response
-  // virtual void handleRmtBulkReadResp( xbgasNicEvent *ev ) = 0;
-
-  // /// RevRmtMemCtrl: handle a write response
-  // virtual void handleRmtWriteResp( xbgasNicEvent *ev ) = 0;
-
-  // /// RevRmtMemCtrl: handle a bulk write response
-  // virtual void handleRmtBulkWriteResp( xbgasNicEvent *ev ) = 0;
+  /// RevRmtMemCtrl: handle a remote memory write response
+  virtual void handleRmtWriteResp( xbgasNicEvent *ev ) = 0;
 
 protected:
   SST::Output *output;        ///< RevRmtMemCtrl: sst output object
@@ -326,29 +317,17 @@ public:
   //                                    uint32_t Nelem, uint32_t Stride, 
   //                                    uint64_t SrcAddr ) override;
 
-  // /// RevBasicRmtMemCtrl: handle a remote memory read request
-  // virtual void handleRmtReadRqst( xbgasNicEvent *ev ) override;
+  /// RevBasicRmtMemCtrl: handle a remote memory read request
+  void handleRmtReadRqst( xbgasNicEvent *ev ) override;
 
-  // /// RevBasicRmtMemCtrl: handle a remote memory bulk read request
-  // virtual void handleRmtBulkReadRqst( xbgasNicEvent *ev ) override;
+  /// RevBasicRmtMemCtrl: handle a remote memory write request
+  void handleRmtWriteRqst( xbgasNicEvent *ev ) override;
   
-  // /// RevBasicRmtMemCtrl: handle a remote memory write request
-  // virtual bool handleRmtWriteRqst( xbgasNicEvent *ev ) override;
+  /// RevBasicRmtMemCtrl: handle a remote memory read response
+  bool handleRmtReadResp( xbgasNicEvent *ev ) override;
 
-  // /// RevBasicRmtMemCtrl: handle a remote memory bulk write request
-  // virtual bool handleRmtBulkWriteRqst( xbgasNicEvent *ev ) override;
-
-  // /// RevBasicRmtMemCtrl: handle a read response
-  // virtual void handleRmtReadResp( xbgasNicEvent *ev ) override;
-
-  // /// RevBasicRmtMemCtrl: handle a bulk read response
-  // virtual void handleRmtBulkReadResp( xbgasNicEvent *ev ) override;
-
-  // /// RevBasicRmtMemCtrl: handle a write response
-  // virtual void handleRmtWriteResp( xbgasNicEvent *ev ) override;
-
-  // /// RevBasicRmtMemCtrl: handle a bulk write response
-  // virtual void handleRmtBulkWriteResp( xbgasNicEvent *ev ) override;
+  /// RevRmtMemCtrl: handle a remote memory write response
+  void handleRmtWriteResp( xbgasNicEvent *ev ) override;
 
 // protected:
 //   class RevRmtMemHandlers : public Event::HandlerBase {
@@ -387,13 +366,17 @@ private:
   /// RevBasicRmtMemCtrl: inject statistics data for the target metric
   void recordStat( RmtMemCtrlStats stat, uint64_t Data );
 
+  void MarkLocalLoadComplete( MemReq& req );
+
   /// RevBasicRmtMemCtrl: return the total number of outstanding requests
   // uint64_t getTotalRqsts();
 
   // -- private data members;
+  RevMem *Mem;                                ///< RevBasicRmtMemCtrl: pointer to the memory object
   xbgasNicAPI* xbgasNicIface;                 ///< RevBasicRmtMemCtrl: xBGAS NIC interface
-  std::map<uint64_t, int> nmspaceLB;          ///< RevBasicRmtMemCtrl: namespace lookaside Buffer map; <Namespace, Dest>
+  std::map<uint64_t, uint32_t> nmspaceLB;          ///< RevBasicRmtMemCtrl: namespace lookaside Buffer map; <Namespace, Dest>
   std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts; ///< RevBasicRmtMemCtrl: xbgas hosts list
+  unsigned virtualHart;                       ///< RevBasicRmtMemCtrl: virtual hart id
 
   unsigned max_loads;                         ///< RevBasicRmtMemCtrl: maximum number of outstanding loads
   unsigned max_stores;                        ///< RevBasicRmtMemCtrl: maximum number of outstanding stores
@@ -405,6 +388,24 @@ private:
   std::vector<uint64_t> requests;                    ///< RevBasicRmtMemCtrl: vector of outstanding remote memory requests
   std::vector<RevRmtMemOp *> rqstQ;                  ///< RevBasicRmtMemCtrl: queued remote memory requests
   std::map<uint64_t, RevRmtMemOp *> outstanding;     ///< RevBasicRmtMemCtrl: map of remote write requests
+
+#define LOAD_RECORD_SRCID    0
+#define LOAD_RECORD_ID       1
+#define LOAD_RECORD_DESTADDR 2
+#define LOAD_RECORD_SIZE     3
+#define LOAD_RECORD_NELEM    4
+#define LOAD_RECORD_STRIDE   5
+#define LOAD_RECORD_BUFFER   6
+
+  std::unordered_map<uint64_t, std::tuple<uint32_t, 
+                                          uint32_t,
+                                          uint64_t,
+                                          size_t,
+                                          uint32_t,
+                                          uint32_t,
+                                          uint8_t *>> LocalLoadRecord;         ///< RevBasicRmtMemCtrl: record the number of elements
+  std::unordered_map<uint64_t, uint32_t> LocalLoadCount;                       ///< RevBasicRmtMemCtrl: count the number of elements
+  std::unordered_map<uint64_t, uint64_t> LocalLoadTrack;                       ///< RevBasicRmtMemCtrl: local load table
 
   std::vector<Statistic<uint64_t> *> stats;          ///< RevBasicRmtMemCtrl: vector of statistics
 }; // class RevBasicRmtMemCtrl

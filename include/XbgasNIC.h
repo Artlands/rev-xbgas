@@ -45,7 +45,7 @@ public:
   ~xbgasNicEvent() { }
 
   /// xbgasNicEvent: retrieve the packet Id
-  uint64_t getID() { return Id; }
+  uint32_t getID() { return Id; }
 
   /// xbgasNicEvent: retrieve the source node Id
   uint32_t getSrcId() { return SrcId; }
@@ -67,6 +67,9 @@ public:
 
   /// xbgasNicEvent: retrieve the packet data
   void getData(uint8_t *Buffer);
+
+  /// xbgasNicEvent: retrieve the remote memory operation code
+  RmtMemOp getOp() { return Opcode; }
 
   /// xbgasNicEvent: retrieve the flags
   StandardMem::Request::flags_t getFlags() { return Flags; }
@@ -90,7 +93,7 @@ public:
   bool setStride(uint32_t Sd) { Stride = Sd; return true; }
 
   /// xbgasNicEvent: set the packet data
-  bool setData(std::vector<uint8_t> Buf, uint32_t Sz) { Data = std::move(Buf); return true; };
+  bool setData(uint8_t *Buffer, uint32_t TotalSz);
 
   /// xbgasNicEvent: set the flags
   bool setFlags(StandardMem::Request::flags_t Fl) { Flags = Fl; return true; }
@@ -98,38 +101,26 @@ public:
   // ------------------------------------------------
   // Packet Building Functions
   // ------------------------------------------------
-
-  /// xbgasNicEvent: build a READ request packet
-  bool buildREADRqst(uint64_t SrcAddr, size_t Size);
   
-  /// xbgasNicEvent: build a bulk READ request packet
-  bool buildBulkREADRqst(uint64_t SrcAddr, uint64_t DestAddr, 
+  /// xbgasNicEvent: build a READ request packet
+  bool buildREADRqst(uint64_t SrcAddr, uint64_t DestAddr, 
                          size_t Size, uint32_t Nelem, 
-                         uint32_t Stride);
+                         uint32_t Stride,
+                         StandardMem::Request::flags_t Fl);
   
   /// xbgasNicEvent: build a WRITE request packet
   bool buildWRITERqst(uint64_t DestAddr, size_t Size, 
-                      std::vector<uint8_t> Buffer);
-  
-  /// xbgasNicEvent: build a bulk WRITE request packet
-  bool buildBulkWRITERqst(uint64_t DestAddr, size_t Size, 
-                          uint32_t Nelem, uint32_t Stride, 
-                          std::vector<uint8_t> Buffer);
+                      uint32_t Nelem, uint32_t Stride, 
+                      uint8_t *Buffer Buffer,
+                      StandardMem::Request::flags_t Fl);
   
   /// xbgasNicEvent: build a READ respond packet
-  bool buildREADResp(uint64_t Id, size_t Size, 
-                     std::vector<uint8_t> Buffer);
-
-  /// xbgasNicEvent: build a bulk READ respond packet
-  bool buildBulkREADResp(uint64_t Id, uint64_t DestAddr, size_t Size, 
-                         uint32_t Nelem, uint32_t Stride,
-                         std::vector<uint8_t> Buffer);
+  bool buildREADResp(uint64_t Id, uint64_t DestAddr, size_t Size, 
+                     uint32_t Nelem, uint32_t Stride,
+                     uint8_t *Buffer);
   
   /// xbgasNicEvent: build a WRITE respond packet
   bool buildWRITEResp(uint64_t Id);
-
-  /// xbgasNicEvent: build a bulk WRITE respond packet
-  bool buildBulkWRITEResp(uint64_t Id);
 
   /// xbgasNicEvent: virtual function to clone an event
   virtual Event* clone(void) override{
@@ -138,7 +129,7 @@ public:
   }
 
 protected:
-  uint64_t Id;                          ///< xbgasNicEvent: Id for the packet
+  uint32_t Id;                          ///< xbgasNicEvent: Id for the packet
   std::string SrcName;                  ///< xbgasNicEvent: Name of the sending device
   uint32_t SrcId;                       ///< xbgasNicEvent: Source node ID
   uint64_t SrcAddr;                     ///< xbgasNicEvent: source address for read
