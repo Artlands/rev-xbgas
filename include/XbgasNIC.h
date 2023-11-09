@@ -104,14 +104,14 @@ public:
   
   /// xbgasNicEvent: build a READ request packet
   bool buildREADRqst(uint64_t SrcAddr, uint64_t DestAddr, 
-                         size_t Size, uint32_t Nelem, 
-                         uint32_t Stride,
-                         StandardMem::Request::flags_t Fl);
+                     size_t Size, uint32_t Nelem, 
+                     uint32_t Stride,
+                     StandardMem::Request::flags_t Fl);
   
   /// xbgasNicEvent: build a WRITE request packet
   bool buildWRITERqst(uint64_t DestAddr, size_t Size, 
                       uint32_t Nelem, uint32_t Stride, 
-                      uint8_t *Buffer Buffer,
+                      uint8_t *Buffer,
                       StandardMem::Request::flags_t Fl);
   
   /// xbgasNicEvent: build a READ respond packet
@@ -142,7 +142,7 @@ protected:
   StandardMem::Request::flags_t Flags;  ///< xbgasNicEvent: Memory request flags
   
 private:
-  static std::atomic<uint64_t> main_id; ///< xbgasNicEvent: main request id counter
+  static std::atomic<uint32_t> main_id; ///< xbgasNicEvent: main request id counter
 
 public:
   /// xbgasNicEvent: event serializer

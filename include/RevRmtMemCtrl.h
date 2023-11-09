@@ -213,7 +213,7 @@ public:
   virtual void handleRmtWriteRqst( xbgasNicEvent *ev ) = 0;
   
   /// RevRmtMemCtrl: handle a remote memory read response
-  virtual bool handleRmtReadResp( xbgasNicEvent *ev ) = 0;
+  virtual void handleRmtReadResp( xbgasNicEvent *ev ) = 0;
 
   /// RevRmtMemCtrl: handle a remote memory write response
   virtual void handleRmtWriteResp( xbgasNicEvent *ev ) = 0;
@@ -324,7 +324,7 @@ public:
   void handleRmtWriteRqst( xbgasNicEvent *ev ) override;
   
   /// RevBasicRmtMemCtrl: handle a remote memory read response
-  bool handleRmtReadResp( xbgasNicEvent *ev ) override;
+  void handleRmtReadResp( xbgasNicEvent *ev ) override;
 
   /// RevRmtMemCtrl: handle a remote memory write response
   void handleRmtWriteResp( xbgasNicEvent *ev ) override;
@@ -358,7 +358,7 @@ private:
   bool buildRmtMemRqst( RevRmtMemOp *Op, bool &Success );
 
   /// RevBasicRmtMemCtrl: Namespace Lookaside Buffer translation
-  int findDest( uint64_t Nmspace );
+  uint32_t findDest( uint64_t Nmspace );
 
   /// RevBasicRmtMemCtrl: register statistics
   void registerStats();
@@ -366,7 +366,8 @@ private:
   /// RevBasicRmtMemCtrl: inject statistics data for the target metric
   void recordStat( RmtMemCtrlStats stat, uint64_t Data );
 
-  void MarkLocalLoadComplete( MemReq& req );
+  /// RevBasicRmtMemCtrl: function to mark a local load as complete
+  void MarkLocalLoadComplete( const MemReq& req );
 
   /// RevBasicRmtMemCtrl: return the total number of outstanding requests
   // uint64_t getTotalRqsts();

@@ -139,19 +139,15 @@ void RevBasicRmtMemCtrl::rmtMemEventHandler(Event *ev) {
   xbgasNicEvent *event = static_cast<xbgasNicEvent*>(ev);
   switch(event->getOp()){
     case RmtMemOp::READRqst:
-    case RmtMemOp::BulkREADRqst:
       handleRmtReadRqst( event );
       break;
     case RmtMemOp::WRITERqst:
-    case RmtMemOp::BulkWRITERqst:
       handleRmtWriteRqst( event );
       break;
     case RmtMemOp::READResp:
-    case RmtMemOp::BulkREADResp:
       handleRmtReadResp( event );
       break;
     case RmtMemOp::WRITEResp:
-    case RmtMemOp::BulkWRITEResp:
       handleRmtWriteResp( event );
       break;
     // case RmtMemOp::Finish:
@@ -188,7 +184,9 @@ void RevBasicRmtMemCtrl::handleRmtReadRqst( xbgasNicEvent *ev ){
             virtualHart,                               // Virtual Hart ID
             MemOp::MemOpREAD,                          // Memory operation
             true,                                      // Outstanding
-            MarkLocalLoadComplete());                  // Callback function
+            [this](const MemReq& req) {                // Lambda function as a callback
+                RevBasicRmtMemCtrl::MarkLocalLoadComplete(req);
+            });
     LocalLoadTrack.insert({SrcAddr + i * Stride,
                            make_rmt_lsq_hash(ev->getSrcId(), ev->getID())});
     Mem->ReadMem(virtualHart, 
@@ -226,7 +224,7 @@ void RevBasicRmtMemCtrl::handleRmtReadResp( xbgasNicEvent *ev ){
 void RevBasicRmtMemCtrl::handleRmtWriteResp( xbgasNicEvent *ev ){
 }
 
-void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ){
+void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ) {
   // Count the number of elements already fulfilled
   auto it = LocalLoadTrack.find(req.Addr);
   uint64_t id = it->second;
@@ -403,31 +401,36 @@ bool RevBasicRmtMemCtrl::isRmtMemOpAvailable( RevRmtMemOp *Op,
 }
 
 bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
-  uint64_t SrcAddr, DestAddr;
   uint32_t Src = (uint32_t)( xbgasNicIface->getAddress() );
   uint32_t Dest = findDest( Op->getNmspace() );
-  size_t Size = Op->getSize();
-  StandardMem::Request::flags_t Flags = Op->getFlags();
 
   // Build the remote memory request packet
   xbgasNicEvent *RmtEvent = new xbgasNicEvent();
 
   switch(Op->getOp()){
   case RmtMemOp::READRqst:
-    SrcAddr = Op->getSrcAddr();
-    RmtEvent->buildREADRqst(SrcAddr, Size, Flags);
+    RmtEvent->buildREADRqst(Op->getSrcAddr(), 
+                            Op->getDestAddr(),
+                            Op->getSize(), 
+                            Op->getNelem(), 
+                            Op->getStride(),
+                            Op->getFlags());
     requests.push_back(RmtEvent->getID());
     outstanding[RmtEvent->getID()] = Op;
     recordStat(RmtReadInFlight, 1);
     num_read++;
     break;
   case RmtMemOp::WRITERqst:
-    DestAddr = Op->getDestAddr();
-    RmtEvent->buildWRITERqst(DestAddr, Size, Op->getBuf(), Flags);
-    requests.push_back(RmtEvent->getID());
-    outstanding[RmtEvent->getID()] = Op;
-    recordStat(RmtWriteInFlight, 1);
-    num_write++;
+    // RmtEvent->buildWRITERqst(Op->getDestAddr(), 
+    //                          Op->getSize(), 
+    //                          Op->getNelem(), 
+    //                          Op->getStride(), 
+    //                          Op->getBuf(), 
+    //                          Op->getFlags());
+    // requests.push_back(RmtEvent->getID());
+    // outstanding[RmtEvent->getID()] = Op;
+    // recordStat(RmtWriteInFlight, 1);
+    // num_write++;
     break;
   default:
     return false;
