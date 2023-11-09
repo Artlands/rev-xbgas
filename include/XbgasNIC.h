@@ -111,8 +111,8 @@ public:
   /// xbgasNicEvent: build a WRITE request packet
   bool buildWRITERqst(uint64_t DestAddr, size_t Size, 
                       uint32_t Nelem, uint32_t Stride, 
-                      uint8_t *Buffer,
-                      StandardMem::Request::flags_t Fl);
+                      StandardMem::Request::flags_t Fl,
+                      uint8_t *Buffer);
   
   /// xbgasNicEvent: build a READ respond packet
   bool buildREADResp(uint64_t Id, uint64_t DestAddr, size_t Size, 

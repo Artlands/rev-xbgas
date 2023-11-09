@@ -391,12 +391,14 @@ private:
   std::map<uint64_t, RevRmtMemOp *> outstanding;     ///< RevBasicRmtMemCtrl: map of remote write requests
 
 #define LOAD_RECORD_SRCID    0
+#define LOAD_RECORD_DESTID   0
 #define LOAD_RECORD_ID       1
 #define LOAD_RECORD_DESTADDR 2
 #define LOAD_RECORD_SIZE     3
 #define LOAD_RECORD_NELEM    4
 #define LOAD_RECORD_STRIDE   5
-#define LOAD_RECORD_BUFFER   6
+#define LOAD_RECORD_FLAGS    6
+#define LOAD_RECORD_BUFFER   7
 
   std::unordered_map<uint64_t, std::tuple<uint32_t, 
                                           uint32_t,
@@ -404,9 +406,12 @@ private:
                                           size_t,
                                           uint32_t,
                                           uint32_t,
+                                          StandardMem::Request::flags_t, 
                                           uint8_t *>> LocalLoadRecord;         ///< RevBasicRmtMemCtrl: record the number of elements
   std::unordered_map<uint64_t, uint32_t> LocalLoadCount;                       ///< RevBasicRmtMemCtrl: count the number of elements
   std::unordered_map<uint64_t, uint64_t> LocalLoadTrack;                       ///< RevBasicRmtMemCtrl: local load table
+  std::unordered_map<uint64_t, RmtMemOp> LocalLoadType;                        ///< RevBasicRmtMemCtrl: local load type table
+  std::unordered_map<uint64_t, xbgasNicEvent *> EventToSend;                   ///< RevBasicRmtMemCtrl: event to send table
 
   std::vector<Statistic<uint64_t> *> stats;          ///< RevBasicRmtMemCtrl: vector of statistics
 }; // class RevBasicRmtMemCtrl

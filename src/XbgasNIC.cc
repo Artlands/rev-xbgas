@@ -55,8 +55,8 @@ bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr,
 
 bool xbgasNicEvent::buildWRITERqst(uint64_t DestAddr, size_t Size, 
                                    uint32_t Nelem, uint32_t Stride, 
-                                   uint8_t *Buffer,
-                                   StandardMem::Request::flags_t Fl ){
+                                   StandardMem::Request::flags_t Fl,
+                                   uint8_t *Buffer){
   uint32_t TotalSize = Size * Nelem;
   Id = main_id++;
   Opcode = RmtMemOp::WRITERqst;

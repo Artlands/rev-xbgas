@@ -169,12 +169,13 @@ void RevBasicRmtMemCtrl::handleRmtReadRqst( xbgasNicEvent *ev ){
   uint32_t Stride   = ev->getStride();
   StandardMem::Request::flags_t Flags = ev->getFlags();
 
-  uint8_t *buffer = new uint8_t[Nelem*Stride];
+  uint8_t *buffer = new uint8_t[Size * Nelem];
 
   // Records the read request info in the load queue 
-  LocalLoadRecord.insert({make_rmt_lsq_hash(ev->getSrcId(), ev->getID()), 
-                         {SrcId, Id, DestAddr, Size, Nelem, Stride, buffer}});
-  LocalLoadCount.insert({make_rmt_lsq_hash(ev->getSrcId(), ev->getID()), 0x00ul});
+  LocalLoadRecord.insert({make_rmt_lsq_hash(SrcId, Id), 
+                         {SrcId, Id, DestAddr, Size, Nelem, Stride, Flags, buffer}});
+  LocalLoadCount.insert({make_rmt_lsq_hash(SrcId, Id), 0x00ul});
+  LocalLoadType.insert({make_rmt_lsq_hash(SrcId, Id), RmtMemOp::READRqst});
 
   for( uint32_t i=0; i < Nelem; i++ ){
     MemReq req{};
@@ -188,7 +189,7 @@ void RevBasicRmtMemCtrl::handleRmtReadRqst( xbgasNicEvent *ev ){
                 RevBasicRmtMemCtrl::MarkLocalLoadComplete(req);
             });
     LocalLoadTrack.insert({SrcAddr + i * Stride,
-                           make_rmt_lsq_hash(ev->getSrcId(), ev->getID())});
+                           make_rmt_lsq_hash(SrcId, Id)});
     Mem->ReadMem(virtualHart, 
                  SrcAddr + i * Stride, 
                  Size, 
@@ -205,7 +206,7 @@ void RevBasicRmtMemCtrl::handleRmtWriteRqst( xbgasNicEvent *ev ){
   uint64_t DestAddr = ev->getDestAddr();
   StandardMem::Request::flags_t Flags = ev->getFlags();
 
-  uint8_t *buffer = new uint8_t[Nelem*Stride];
+  uint8_t *buffer = new uint8_t[Size * Nelem];
   ev->getData( buffer );
   
   for( uint32_t i=0; i < Nelem; i++ ){
@@ -237,26 +238,46 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ) {
   }
 
   auto Entry = LocalLoadRecord.find(id)->second;
-
+  xbgasNicEvent *RmtEvent;
+  
   // Check if all the elements have been fulfilled
   if( LocalLoadCount[id] == std::get<LOAD_RECORD_NELEM>(Entry) ){
-    // All the elements have been fulfilled; send the response
-    xbgasNicEvent *RmtEvent = new xbgasNicEvent();
     uint8_t *buffer = std::get<LOAD_RECORD_BUFFER>(Entry);
-    RmtEvent->buildREADResp(std::get<LOAD_RECORD_ID>(Entry), 
-                            std::get<LOAD_RECORD_DESTADDR>(Entry),
-                            std::get<LOAD_RECORD_SIZE>(Entry), 
-                            std::get<LOAD_RECORD_NELEM>(Entry),
-                            std::get<LOAD_RECORD_STRIDE>(Entry),
-                            buffer);
+    RmtMemOp OpType = LocalLoadType.find(id)->second;
 
-    // Destination is the source of the request
-    xbgasNicIface->send(RmtEvent, std::get<LOAD_RECORD_SRCID>(Entry));
-
+    switch (OpType) {
+    case RmtMemOp::READRqst:
+      // All the elements have been fulfilled; send the response
+      RmtEvent = new xbgasNicEvent();
+      RmtEvent->buildREADResp(std::get<LOAD_RECORD_ID>(Entry), 
+                              std::get<LOAD_RECORD_DESTADDR>(Entry),
+                              std::get<LOAD_RECORD_SIZE>(Entry), 
+                              std::get<LOAD_RECORD_NELEM>(Entry),
+                              std::get<LOAD_RECORD_STRIDE>(Entry),
+                              buffer);
+      // Destination is the source of the request
+      xbgasNicIface->send(RmtEvent, std::get<LOAD_RECORD_SRCID>(Entry));
+      break;
+    case RmtMemOp::WRITERqst:
+      // All the elements have been read to buffer; send the write request
+      RmtEvent = EventToSend.find(id)->second;
+      RmtEvent->buildWRITERqst(std::get<LOAD_RECORD_DESTADDR>(Entry), 
+                               std::get<LOAD_RECORD_SIZE>(Entry), 
+                               std::get<LOAD_RECORD_NELEM>(Entry), 
+                               std::get<LOAD_RECORD_STRIDE>(Entry),  
+                               std::get<LOAD_RECORD_FLAGS>(Entry),
+                               buffer);
+      xbgasNicIface->send(RmtEvent, std::get<LOAD_RECORD_DESTID>(Entry));
+      EventToSend.erase(id);
+      break;
+    default:
+      break;
+    }
     // Remove buffer and the entry from the load queue
     delete[] buffer;
     LocalLoadCount.erase(id);
     LocalLoadRecord.erase(id);
+    LocalLoadType.erase(id);
   }
 }
 
@@ -401,44 +422,79 @@ bool RevBasicRmtMemCtrl::isRmtMemOpAvailable( RevRmtMemOp *Op,
 }
 
 bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
-  uint32_t Src = (uint32_t)( xbgasNicIface->getAddress() );
-  uint32_t Dest = findDest( Op->getNmspace() );
-
-  // Build the remote memory request packet
+  uint32_t SrcId = (uint32_t)( xbgasNicIface->getAddress() );
+  uint32_t DestId = findDest( Op->getNmspace() );
+  uint8_t *buffer = nullptr;
+  
+  // Build the remote memory read request packet; remote memory write request
+  // is built after the data is read from the local memory, which is implemented
+  // in the callback function
   xbgasNicEvent *RmtEvent = new xbgasNicEvent();
+  RmtEvent->setSrcId( SrcId );
+
+  uint32_t Id       = RmtEvent->getID();
+  uint64_t SrcAddr  = Op->getSrcAddr(); 
+  uint64_t DestAddr = Op->getDestAddr();
+  size_t   Size     = Op->getSize();
+  uint32_t Nelem    = Op->getNelem();
+  uint32_t Stride   = Op->getStride();
+  StandardMem::Request::flags_t Flags = Op->getFlags();
 
   switch(Op->getOp()){
   case RmtMemOp::READRqst:
-    RmtEvent->buildREADRqst(Op->getSrcAddr(), 
-                            Op->getDestAddr(),
-                            Op->getSize(), 
-                            Op->getNelem(), 
-                            Op->getStride(),
-                            Op->getFlags());
+    RmtEvent->buildREADRqst(SrcAddr, 
+                            DestAddr,
+                            Size, 
+                            Nelem, 
+                            Stride,
+                            Flags);
     requests.push_back(RmtEvent->getID());
     outstanding[RmtEvent->getID()] = Op;
     recordStat(RmtReadInFlight, 1);
     num_read++;
     break;
   case RmtMemOp::WRITERqst:
-    // RmtEvent->buildWRITERqst(Op->getDestAddr(), 
-    //                          Op->getSize(), 
-    //                          Op->getNelem(), 
-    //                          Op->getStride(), 
-    //                          Op->getBuf(), 
-    //                          Op->getFlags());
-    // requests.push_back(RmtEvent->getID());
-    // outstanding[RmtEvent->getID()] = Op;
-    // recordStat(RmtWriteInFlight, 1);
-    // num_write++;
+    // Read the data from the local memory
+    buffer = new uint8_t[Size * Nelem];
+
+    // Records the read request info in the load queue 
+    LocalLoadRecord.insert({make_rmt_lsq_hash(DestId, Id), 
+                           {DestId, Id, DestAddr, Size, Nelem, Stride, Flags, buffer}});
+    LocalLoadCount.insert({make_rmt_lsq_hash(DestId, Id), 0x00ul});
+    EventToSend.insert({make_rmt_lsq_hash(DestId, Id), RmtEvent});
+    LocalLoadType.insert({make_rmt_lsq_hash(SrcId, Id), RmtMemOp::WRITERqst});
+
+    for( uint32_t i=0; i < Nelem; i++ ){
+      MemReq req{};
+      req.Set(SrcAddr + i * Stride,                      // Memory address
+              0,                                         // Destination register (ignored)
+              RevRegClass::RegUNKNOWN,                   // Register class (ignored)
+              virtualHart,                               // Virtual Hart ID
+              MemOp::MemOpREAD,                          // Memory operation
+              true,                                      // Outstanding
+              [this](const MemReq& req) {                // Lambda function as a callback
+                  RevBasicRmtMemCtrl::MarkLocalLoadComplete(req);
+              });
+      LocalLoadTrack.insert({SrcAddr + i * Stride,
+                             make_rmt_lsq_hash(DestId, Id)});
+      Mem->ReadMem(virtualHart, 
+                   SrcAddr + i * Stride, 
+                   Size, 
+                   (void *)(&buffer[i * Size]), 
+                   req, 
+                   Flags);
+    }
+    requests.push_back(RmtEvent->getID());
+    outstanding[RmtEvent->getID()] = Op;
+    recordStat(RmtWriteInFlight, 1);
+    num_write++;
     break;
   default:
     return false;
     break;
   }
 
-  RmtEvent->setSrcId( Src );
-  xbgasNicIface->send(RmtEvent, Dest);
+  xbgasNicIface->send(RmtEvent, DestId);
   return true;
 }
 
