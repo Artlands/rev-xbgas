@@ -19,14 +19,14 @@ using namespace SST::Interfaces;
 // RevRmtMemOp
 // ----------------------------------------
 RevRmtMemOp::RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, 
-                          RmtMemOp Op, StandardMem::Request::flags_t flags )
+                          RmtMemOp Op, RevFlag flags )
   : Hart(Hart), Nmspace(Nmspace), SrcAddr(SrcAddr), DestAddr(0), Size(Size), 
     Nelem(1), Stride(0), Op(Op), Flags(flags),
     target(nullptr), procReq(){
 }
 
 RevRmtMemOp::RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, 
-                          void *target, RmtMemOp Op, StandardMem::Request::flags_t Flags )
+                          void *target, RmtMemOp Op, RevFlag Flags )
   : Hart(Hart), Nmspace(Nmspace), SrcAddr(SrcAddr), DestAddr(0), Size(Size), 
     Nelem(1), Stride(0), Op(Op), Flags(Flags),
     target(target), procReq(){
@@ -34,14 +34,14 @@ RevRmtMemOp::RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, siz
 
 RevRmtMemOp::RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size,
                           uint32_t Nelem, uint32_t Stride, uint64_t DestAddr, 
-                          RmtMemOp Op, StandardMem::Request::flags_t Flags )
+                          RmtMemOp Op, RevFlag Flags )
   : Hart(Hart), Nmspace(Nmspace), SrcAddr(SrcAddr), DestAddr(DestAddr), Size(Size), 
     Nelem(Nelem), Stride(Stride), Op(Op), Flags(Flags),
     target(nullptr), procReq(){
 }
 
 RevRmtMemOp::RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, 
-                          char *buffer, RmtMemOp Op, StandardMem::Request::flags_t Flags )
+                          char *buffer, RmtMemOp Op, RevFlag Flags )
   : Hart(Hart), Nmspace(Nmspace), SrcAddr(0), DestAddr(DestAddr), Size(Size), 
     Nelem(1), Stride(0), Op(Op), Flags(Flags),
     target(nullptr), procReq() {
@@ -52,7 +52,7 @@ RevRmtMemOp::RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, si
 
 RevRmtMemOp::RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size,
                           uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr, 
-                          char *buffer, RmtMemOp Op, StandardMem::Request::flags_t Flags )
+                          char *buffer, RmtMemOp Op, RevFlag Flags )
   : Hart(Hart), Nmspace(Nmspace), SrcAddr(SrcAddr), DestAddr(DestAddr), Size(Size), 
     Nelem(Nelem), Stride(Stride), Op(Op), Flags(Flags),
     target(nullptr), procReq(){
@@ -167,7 +167,7 @@ void RevBasicRmtMemCtrl::handleRmtReadRqst( xbgasNicEvent *ev ){
   size_t   Size     = ev->getSize();
   uint32_t Nelem    = ev->getNelem();
   uint32_t Stride   = ev->getStride();
-  StandardMem::Request::flags_t Flags = ev->getFlags();
+  RevFlag  Flags    = ev->getFlags();
 
   uint8_t *buffer = new uint8_t[Size * Nelem];
 
@@ -204,7 +204,7 @@ void RevBasicRmtMemCtrl::handleRmtWriteRqst( xbgasNicEvent *ev ){
   uint32_t Nelem    = ev->getNelem();
   uint32_t Stride   = ev->getStride();
   uint64_t DestAddr = ev->getDestAddr();
-  StandardMem::Request::flags_t Flags = ev->getFlags();
+  RevFlag  Flags    = ev->getFlags();
 
   uint8_t *buffer = new uint8_t[Size * Nelem];
   ev->getData( buffer );
@@ -231,10 +231,10 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ) {
   uint64_t id = it->second;
   if( LocalLoadCount.find(id) != LocalLoadCount.end() ){
     LocalLoadCount[id]++;
-    // Remove the entry from the load table
+    // Remove the entry from the load track table
     LocalLoadTrack.erase(it);
   } else {
-    output->fatal(CALL_INFO, -1, "Error: unable to find the load queue entry\n");
+    output->fatal(CALL_INFO, -1, "Error: unable to find the load count entry\n");
   }
 
   auto Entry = LocalLoadRecord.find(id)->second;
@@ -260,15 +260,11 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ) {
       break;
     case RmtMemOp::WRITERqst:
       // All the elements have been read to buffer; send the write request
-      RmtEvent = EventToSend.find(id)->second;
-      RmtEvent->buildWRITERqst(std::get<LOAD_RECORD_DESTADDR>(Entry), 
-                               std::get<LOAD_RECORD_SIZE>(Entry), 
-                               std::get<LOAD_RECORD_NELEM>(Entry), 
-                               std::get<LOAD_RECORD_STRIDE>(Entry),  
-                               std::get<LOAD_RECORD_FLAGS>(Entry),
-                               buffer);
+      RmtEvent = EventsToSend.find(id)->second;
+      RmtEvent->setData( buffer, 
+                         std::get<LOAD_RECORD_SIZE>(Entry) * std::get<LOAD_RECORD_NELEM>(Entry) );
       xbgasNicIface->send(RmtEvent, std::get<LOAD_RECORD_DESTID>(Entry));
-      EventToSend.erase(id);
+      EventsToSend.erase(id);
       break;
     default:
       break;
@@ -309,12 +305,12 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst( unsigned Hart, uint64_t Nmspace,
                                           uint64_t SrcAddr, size_t Size, 
                                           void *Target,
                                           const RmtMemReq& req, 
-                                          StandardMem::Request::flags_t flags) {
+                                          RevFlag flags) {
   if( Size == 0 )
     return true;
   RevRmtMemOp *Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, 
                                      Target, RmtMemOp::READRqst, flags );
-  StandardMem::Request::flags_t TmpFlags = Op->getNonCacheFlags();
+  RevFlag TmpFlags = Op->getNonCacheFlags();
   Op->setRmtMemReq( req );
   Op->setFlags( TmpFlags );
   rqstQ.push_back( Op );
@@ -324,12 +320,12 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst( unsigned Hart, uint64_t Nmspace,
 
 bool RevBasicRmtMemCtrl::sendRmtWriteRqst( unsigned Hart, uint64_t Nmspace, 
                          uint64_t DestAddr, size_t Size, char *buffer, 
-                         StandardMem::Request::flags_t flags) {
+                         RevFlag flags) {
   if( Size == 0 )
     return true;
   RevRmtMemOp *Op = new RevRmtMemOp( Hart, Nmspace, DestAddr, Size, buffer,
                                      RmtMemOp::WRITERqst, flags );
-  StandardMem::Request::flags_t TmpFlags = Op->getNonCacheFlags();
+  RevFlag TmpFlags = Op->getNonCacheFlags();
   Op->setFlags( TmpFlags );
   rqstQ.push_back( Op );
   recordStat(RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWritePending, 1);
@@ -432,13 +428,13 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
   xbgasNicEvent *RmtEvent = new xbgasNicEvent();
   RmtEvent->setSrcId( SrcId );
 
-  uint32_t Id       = RmtEvent->getID();
+  uint32_t Id       = RmtEvent->getID();    // Id is 0 and will be updated once the packet is built
   uint64_t SrcAddr  = Op->getSrcAddr(); 
   uint64_t DestAddr = Op->getDestAddr();
   size_t   Size     = Op->getSize();
   uint32_t Nelem    = Op->getNelem();
   uint32_t Stride   = Op->getStride();
-  StandardMem::Request::flags_t Flags = Op->getFlags();
+  RevFlag Flags = Op->getFlags();
 
   switch(Op->getOp()){
   case RmtMemOp::READRqst:
@@ -454,15 +450,22 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
     num_read++;
     break;
   case RmtMemOp::WRITERqst:
-    // Read the data from the local memory
+    // Buffer is empty now and will be filled in the callback function
     buffer = new uint8_t[Size * Nelem];
-
+    RmtEvent->buildWRITERqst(DestAddr, 
+                             Size, 
+                             Nelem, 
+                             Stride, 
+                             Flags,
+                             buffer);
+    Id = RmtEvent->getID();
     // Records the read request info in the load queue 
     LocalLoadRecord.insert({make_rmt_lsq_hash(DestId, Id), 
                            {DestId, Id, DestAddr, Size, Nelem, Stride, Flags, buffer}});
     LocalLoadCount.insert({make_rmt_lsq_hash(DestId, Id), 0x00ul});
-    EventToSend.insert({make_rmt_lsq_hash(DestId, Id), RmtEvent});
-    LocalLoadType.insert({make_rmt_lsq_hash(SrcId, Id), RmtMemOp::WRITERqst});
+    LocalLoadType.insert({make_rmt_lsq_hash(DestId, Id), RmtMemOp::WRITERqst});
+    EventsToSend.insert({make_rmt_lsq_hash(DestId, Id), RmtEvent});
+
 
     for( uint32_t i=0; i < Nelem; i++ ){
       MemReq req{};

@@ -22,6 +22,8 @@
 // -- SST Headers
 #include "SST.h"
 
+// -- RevCPU Headers
+#include "RevMemCtrl.h"
 #include "../common/include/RevCommon.h"
 
 namespace SST::RevCPU{
@@ -37,7 +39,7 @@ public:
   xbgasNicEvent(std::string name)
   : Event(), SrcName(name), SrcId(0), SrcAddr(0), 
     DestAddr(0), Size(0), Nelem(0), Stride(0), 
-    Data(), Opcode(RmtMemOp::Unknown), Flags(0) {}
+    Data(), Opcode(RmtMemOp::Unknown), Flags(RevFlag::F_NONE) {}
 
   /// xbgasNicEvent: secondary constructor
   xbgasNicEvent(): Event() {}
@@ -72,7 +74,7 @@ public:
   RmtMemOp getOp() { return Opcode; }
 
   /// xbgasNicEvent: retrieve the flags
-  StandardMem::Request::flags_t getFlags() { return Flags; }
+  RevFlag getFlags() { return Flags; }
 
   /// xbgasNicEvent: set the source node Id
   bool setSrcId(uint32_t S) { SrcId = S; return true; }
@@ -96,7 +98,7 @@ public:
   bool setData(uint8_t *Buffer, uint32_t TotalSz);
 
   /// xbgasNicEvent: set the flags
-  bool setFlags(StandardMem::Request::flags_t Fl) { Flags = Fl; return true; }
+  bool setFlags(RevFlag Fl) { Flags = Fl; return true; }
 
   // ------------------------------------------------
   // Packet Building Functions
@@ -106,12 +108,12 @@ public:
   bool buildREADRqst(uint64_t SrcAddr, uint64_t DestAddr, 
                      size_t Size, uint32_t Nelem, 
                      uint32_t Stride,
-                     StandardMem::Request::flags_t Fl);
+                     RevFlag Fl);
   
   /// xbgasNicEvent: build a WRITE request packet
   bool buildWRITERqst(uint64_t DestAddr, size_t Size, 
                       uint32_t Nelem, uint32_t Stride, 
-                      StandardMem::Request::flags_t Fl,
+                      RevFlag Fl,
                       uint8_t *Buffer);
   
   /// xbgasNicEvent: build a READ respond packet
@@ -139,7 +141,7 @@ protected:
   uint32_t Stride;                      ///< xbgasNicEvent: Stride for bulk transfers
   std::vector<uint8_t> Data;            ///< xbgasNicEvent: Data payload
   RmtMemOp Opcode;                      ///< xbgasNicEvent: Operation code
-  StandardMem::Request::flags_t Flags;  ///< xbgasNicEvent: Memory request flags
+  RevFlag Flags;  ///< xbgasNicEvent: Memory request flags
   
 private:
   static std::atomic<uint32_t> main_id; ///< xbgasNicEvent: main request id counter

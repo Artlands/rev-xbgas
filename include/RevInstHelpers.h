@@ -183,9 +183,8 @@ bool fstore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
 template<typename T>
 bool eload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
   RmtMemReq req{};
-  static constexpr auto flags = sizeof(T) < sizeof(int64_t) ?
-    REVMEM_FLAGS(std::is_signed_v<T> ? RevCPU::RevFlag::F_SEXT64 : RevCPU::RevFlag::F_ZEXT64) :
-    REVMEM_FLAGS(0);
+  static constexpr RevFlag flags = sizeof(T) < sizeof(int64_t) ?
+      std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
   uint64_t Nmspace = R->GetE(Inst.rs1);
   uint64_t SrcAddr = R->GetX<uint64_t>(Inst.rs1) + Inst.ImmSignExt(12);
   req.SetRmt(Nmspace, SrcAddr,

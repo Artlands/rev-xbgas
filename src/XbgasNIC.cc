@@ -35,7 +35,7 @@ void xbgasNicEvent::getData(uint8_t *Buffer){
 bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, 
                                    size_t Size, uint32_t Nelem, 
                                    uint32_t Stride,
-                                   StandardMem::Request::flags_t Fl ){
+                                   RevFlag Fl ){
   Id = main_id++;
   Opcode = RmtMemOp::READRqst;
   if( !setSrcAddr(SrcAddr) )
@@ -55,7 +55,7 @@ bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr,
 
 bool xbgasNicEvent::buildWRITERqst(uint64_t DestAddr, size_t Size, 
                                    uint32_t Nelem, uint32_t Stride, 
-                                   StandardMem::Request::flags_t Fl,
+                                   RevFlag Fl,
                                    uint8_t *Buffer){
   uint32_t TotalSize = Size * Nelem;
   Id = main_id++;

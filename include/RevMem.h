@@ -180,7 +180,7 @@ public:
                    uint64_t SrcAddr, size_t Size, 
                    void *Target,
                    const RmtMemReq& req, 
-                   StandardMem::Request::flags_t flags );
+                   RevFlag flags );
 
   /// RevMem: read bulk data from the target remote memory location
   bool RmtBulkReadMem( unsigned Hart, uint64_t Nmspace, 
@@ -188,7 +188,7 @@ public:
                        uint32_t Nelem, uint32_t Stride, 
                        uint64_t DestAddr,
                        const RmtMemReq& req, 
-                       StandardMem::Request::flags_t flags );
+                       RevFlag flags );
 
   /// RevMem: write data to the target remote memory location
   bool RmtWriteMem( unsigned Hart, uint64_t Nmspace, 
@@ -264,7 +264,7 @@ public:
                    uint64_t SrcAddr,
                    T *Target,
                    const RmtMemReq& req, 
-                   StandardMem::Request::flags_t flags ){
+                   RevFlag flags ){
     return RmtReadMem(Hart, Nmspace, SrcAddr, sizeof(T), Target, req, flags);
   }
 
@@ -275,7 +275,7 @@ public:
                        uint32_t Nelem, uint32_t Stride, 
                        uint64_t DestAddr,
                        const RmtMemReq& req, 
-                       StandardMem::Request::flags_t flags ){
+                       RevFlag flags ){
     return RmtBulkReadMem(Hart, Nmspace, SrcAddr, sizeof(T), 
                           Nelem, Stride, DestAddr, req, flags);
   }
