@@ -1543,43 +1543,21 @@ void RevProc::HandleALUFault(unsigned width){
 }
 
 bool RevProc::DependencyCheck(unsigned HartID, const RevInst* I) const {
+  const RevRegFile* regFile = GetRegFile(HartID);
+  const RevInstEntry* E = &InstTable[I->entry];
 
-  const auto* E = &InstTable[I->entry];
-  const auto* regFile = GetRegFile(HartID);
+  return
+    // check LS queue for outstanding load
+    LSQCheck(HartID, regFile, I->rs1, E->rs1Class) ||
+    LSQCheck(HartID, regFile, I->rs2, E->rs2Class) ||
+    LSQCheck(HartID, regFile, I->rs3, E->rs3Class) ||
+    LSQCheck(HartID, regFile, I->rd , E->rdClass) ||
 
-  // check LS queue for outstanding load - ignore r0
-  for(const auto& [reg, regClass] : {
-      std::tie(I->rs1, E->rs1Class),
-      std::tie(I->rs2, E->rs2Class),
-      std::tie(I->rs3, E->rs3Class),
-      std::tie(I->rd,  E->rdClass) }){
-    if((reg != 0) && (regFile->GetLSQueue()->count(make_lsq_hash(reg,
-                                                                 regClass,
-                                                                 HartID))) > 0){
-      return true;
-    }
-  }
-
-  // Iterate through the source registers rs1, rs2, rs3 and find any dependency
-  // based on the class of the source register and the associated scoreboard
-  for(const auto& [reg, regClass] : {
-      std::tie(I->rs1, E->rs1Class),
-      std::tie(I->rs2, E->rs2Class),
-      std::tie(I->rs3, E->rs3Class) }){
-    if(reg < _REV_NUM_REGS_){
-      switch(regClass){
-      case RevRegClass::RegFLOAT:
-        if(regFile->FP_Scoreboard[reg]) return true;
-        break;
-      case RevRegClass::RegGPR:
-        if(regFile->RV_Scoreboard[reg]) return true;
-        break;
-      default:
-        break;
-      }
-    }
-  }
-  return false;
+    // Iterate through the source registers rs1, rs2, rs3 and find any dependency
+    // based on the class of the source register and the associated scoreboard
+    ScoreboardCheck(regFile, I->rs1, E->rs1Class) ||
+    ScoreboardCheck(regFile, I->rs2, E->rs2Class) ||
+    ScoreboardCheck(regFile, I->rs3, E->rs3Class);
 }
 
 void RevProc::ExternalStallHart(RevProcPasskey<RevCoProc>, uint16_t HartID){
@@ -1762,7 +1740,7 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
     // TODO: method to determine origin of memory access (core, cache, pan, host debugger, ... )
     mem->SetTracer(nullptr);
     // Conditionally trace after execution
-    if (Tracer) Tracer->InstTrace(currentCycle, id, HartToExecID, ActiveThreadID, InstTable[Inst.entry].mnemonic);
+    if (Tracer) Tracer->Exec(currentCycle, id, HartToExecID, ActiveThreadID, InstTable[Inst.entry].mnemonic);
     #endif
 
 #ifdef __REV_DEEP_TRACE__
@@ -1868,7 +1846,7 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
       #ifdef NO_REV_TRACER
       output->verbose(CALL_INFO, 6, 0,
                       "Core %" PRIu32 "; Hart %" PRIu32 "; ThreadID %" PRIu32 "; Retiring PC= 0x%" PRIx64 "\n",
-                      id, HartID, GetThreadOnHart(HartID)->GetThreadID(), ExecPC);
+                      id, HartID, ActiveThreadID, ExecPC);
       #endif
       Retired++;
 
@@ -1910,7 +1888,10 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
       AddThreadsThatChangedState(std::move(ActiveThread));
     }
   }
-
+  #ifndef REV_TRACER
+  // Dump trace state 
+  if (Tracer)  Tracer->Render(currentCycle);
+  #endif
   return rtn;
 }
 
