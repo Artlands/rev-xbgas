@@ -173,12 +173,12 @@ public:
  */
 class xbgasNicAPI: public SST::SubComponent{
 public:
-  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::RevCPU::xbgasNicAPI, TimeConverter*, Event::HandlerBase *)
+  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::RevCPU::xbgasNicAPI, Event::HandlerBase *)
 
   SST_ELI_DOCUMENT_PARAMS( {"verbose", "Verbosity for output (0 = nothing)", "0"} )
 
   /// xbgasNicEvent: constructor
-  xbgasNicAPI( ComponentId_t id, Params& params, TimeConverter* tc, Event::HandlerBase *handler) : SubComponent(id) { }
+  xbgasNicAPI( ComponentId_t id, Params& params, Event::HandlerBase *handler) : SubComponent(id) { }
 
   /// xbgasNicEvent: default destructor
   virtual ~xbgasNicAPI() {}
@@ -243,7 +243,7 @@ public:
   )
 
   /// XbgasNIC: constructor
-  XbgasNIC(ComponentId_t id, Params& params, TimeConverter* tc, Event::HandlerBase *handler);
+  XbgasNIC(ComponentId_t id, Params& params, Event::HandlerBase *handler);
 
   /// XbgasNIC: destructor
   ~XbgasNIC();

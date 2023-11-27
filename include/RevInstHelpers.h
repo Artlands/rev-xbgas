@@ -210,6 +210,10 @@ bool eload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
 /// xBGAS remote store template
 template<typename T>
 bool estore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  // M-->RmtWriteMem(F->GetHartToExecID(),
+  //                 R->GetE(Inst.rs1),
+  //                 R->GetX<uint64_t>(Inst.rs1) + Inst.ImmSignExt(12),
+  //                 R->GetX<T>(Inst.rs2));
   return true;
 }
 

@@ -32,7 +32,7 @@ const char splash_msg[] = "\
 
 RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
   : SST::Component(id), testStage(0), PrivTag(0), address(-1), EnableMemH(false),
-    EnableXBGAS(false), EnableXBGASStats(false),
+    EnableXBGAS(false), EnableXBGASStats(false), rmtCtrl(nullptr),
     DisableCoprocClock(false), Nic(nullptr), Ctrl(nullptr), ClockHandler(nullptr) {
 
   const int Verbosity = params.find<int>("verbose", 0);
@@ -175,9 +175,14 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
 
   if( EnableXBGAS ) {
     // Load remote memory controller subcomponent
+    rmtCtrl = loadUserSubComponent<RevRmtMemCtrl>("remote_memory");
+    if ( !rmtCtrl )
+      output.fatal(CALL_INFO, -1, "Error : failed to inintialize the remote memory controller subcomponent\n" );
     // Set memory object for xBGAS
+    rmtCtrl->setMem(Mem);
     // Set remote memory controller for Mem
-    // Reserve the xBGAS memory region
+    Mem->setRmtMemCtrl(rmtCtrl);
+    // TODO: Reserve the xBGAS memory region
   }
 
   // Load the binary into memory
@@ -349,6 +354,9 @@ RevCPU::~RevCPU(){
   // delete the memory controller if present
   delete Ctrl;
 
+  // delete the remote memory controller if present
+  delete rmtCtrl;
+
   // delete the memory object
   delete Mem;
 
@@ -460,6 +468,7 @@ void RevCPU::setup(){
   }
   if( EnableXBGAS ){
     // setup NIC and remote controller
+    rmtCtrl->setup();
   }
 }
 
@@ -472,7 +481,7 @@ void RevCPU::init( unsigned int phase ){
   if( EnableMemH )
     Ctrl->init(phase);
   if( EnableXBGAS ){
-    // init NIC and remote controller
+    rmtCtrl->init(phase);
   }
 }
 
@@ -643,10 +652,6 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
     }else{
       FaultCntr--;
     }
-  }
-
-  if( EnableXBGAS ){
-    // Clock tick remote memory controller
   }
 
   // check to see if all the processors are completed

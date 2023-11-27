@@ -192,13 +192,14 @@ public:
 
   /// RevMem: write data to the target remote memory location
   bool RmtWriteMem( unsigned Hart, uint64_t Nmspace, 
-                    uint64_t DestAddr, size_t Size, const void *Data );
+                    uint64_t DestAddr, size_t Size, 
+                    const void *Data, RevFlag flags );
   
   /// RevMem: write bulk data to the target remote memory location
   bool RmtBulkWriteMem( unsigned Hart, uint64_t Nmspace, 
                         uint64_t DestAddr, size_t Size, 
                         uint32_t Nelem, uint32_t Stride,
-                        uint64_t SrcAddr );
+                        uint64_t SrcAddr, RevFlag flags );
 
   // ----------------------------------------------------
   // ---- Read Memory Interfaces
@@ -287,7 +288,7 @@ public:
   template <typename T>
   void RmtWrite(unsigned Hart, uint64_t Nmspace, 
                 uint64_t DestAddr, T Value ) {
-    if( !RmtWriteMem(Hart, Nmspace, DestAddr, sizeof(T), &Value) ) {
+    if( !RmtWriteMem(Hart, Nmspace, DestAddr, sizeof(T), &Value, RevFlag::F_NONE) ) {
       output->fatal(CALL_INFO, -1, std::is_floating_point_v<T> ?
                     "Error: could not write remote memory (FP%zu)\n" :
                     "Error: could not write remote memory (U%zu)\n",
@@ -301,7 +302,7 @@ public:
                     uint64_t DestAddr, uint32_t Nelem, uint32_t Stride,
                     uint64_t SrcAddr ) {
     if( !RmtBulkWriteMem(Hart, Nmspace, DestAddr, sizeof(T), 
-                         Nelem, Stride, SrcAddr) ) {
+                         Nelem, Stride, SrcAddr, RevFlag::F_NONE) ) {
       output->fatal(CALL_INFO, -1, std::is_floating_point_v<T> ?
                     "Error: could not bulk write remote memory (FP%zu)\n" :
                     "Error: could not bulk write remote memory (U%zu)\n",

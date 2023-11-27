@@ -284,9 +284,7 @@ public:
   /// GetE: Get the Extended E register for xBGAS
   template<typename U>
   uint64_t GetE(U rs) const {
-    uint64_t res;
-    res = RevReg(rs) != RevReg::zero ? (uint64_t)(ERV64[size_t(rs)]) : 0;
-    return res;
+    return (uint64_t)(ERV64[size_t(rs)]);
   }
 
   /// SetX: Set the specifed X register to a specific value
@@ -302,6 +300,12 @@ public:
       RV64[size_t(rd)] = res;
       TRACE_REG_WRITE(size_t(rd), uint64_t(res));
     }
+  }
+
+  /// SetE: Set the Extended E register for xBGAS
+  template<typename T, typename U>
+  void SetE(U rd, T val) {
+    ERV64[size_t(rd)] = uint64_t(val);
   }
 
   /// GetPC: Get the Program Counter

@@ -44,9 +44,17 @@ RevProc::RevProc( unsigned Id,
   LSQueue = std::make_shared<std::unordered_map<uint64_t, MemReq>>();
   LSQueue->clear();
 
+  RmtLSQueue = std::make_shared<std::unordered_map<uint64_t, RmtMemReq>>();
+  RmtLSQueue->clear();
+
   // Create the Hart Objects
   for( size_t i=0; i<numHarts; i++ ){
-    Harts.emplace_back(std::make_unique<RevHart>(i, LSQueue, [=](const MemReq& req){ this->MarkLoadComplete(req); }));
+    // Harts.emplace_back(std::make_unique<RevHart>(i, LSQueue, [=](const MemReq& req){ this->MarkLoadComplete(req); }));
+    // Use the overloaded constructor if xBGAS is enabled, i.e. Machine model has 'X'
+    Harts.emplace_back(std::make_unique<RevHart>(i, LSQueue, RmtLSQueue,
+                       [=](const MemReq& req){ this->MarkLoadComplete(req); },
+                       [=](const RmtMemReq& req){ this->MarkRmtLoadComplete(req); }));
+
     ValidHarts.set(i, true);
   }
 

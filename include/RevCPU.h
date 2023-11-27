@@ -128,6 +128,7 @@ public:
     {"pan_nic", "PAN Network interface", "SST::RevCPU::PanNet"},
     {"memory", "Memory interface to utilize for cache/memory hierachy", "SST::RevCPU::RevMemCtrl"},
     {"co_proc", "Co-processor attached to RevProc", "SST::RevCPU::RevSimpleCoProc"},
+    {"remote_memory", "Memory interface to utilize remote memory", "SST::RevCPU::RevRmtMemCtrl"},
     )
 
   // -------------------------------------------------------
@@ -276,6 +277,7 @@ private:
 
   bool EnableXBGAS;                   ///< RevCPU: Enable xBGAS
   bool EnableXBGASStats;              ///< RevCPU: Enable xBGAS statistics
+  RevRmtMemCtrl *rmtCtrl;             ///< RevCPU: xBGAS Remote memory controller
 
   bool EnableCoProc;                  ///< RevCPU: Enable a co-processor attached to all cores
 

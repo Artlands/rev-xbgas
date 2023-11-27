@@ -84,9 +84,13 @@ enum class MemOp : uint8_t {
 
 enum class RmtMemOp: uint8_t {
   READRqst      = 0b0000,     ///< xbgasNicEvent: READ request
-  WRITERqst     = 0b0001,     ///< xbgasNicEvent: WRITE request
-  READResp      = 0b0010,     ///< xbgasNicEvent: READ response
-  WRITEResp     = 0b0011,     ///< xbgasNicEvent: WRITE response
+  BulkREADRqst  = 0b0001,     ///< xbgasNicEvent: Bulk READ request
+  WRITERqst     = 0b0010,     ///< xbgasNicEvent: WRITE request
+  BulkWRITERqst = 0b0011,     ///< xbgasNicEvent: Bulk WRITE request
+  READResp      = 0b0100,     ///< xbgasNicEvent: READ response
+  BulkREADResp  = 0b0101,     ///< xbgasNicEvent: Bulk READ response
+  WRITEResp     = 0b0110,     ///< xbgasNicEvent: WRITE response
+  BulkWRITEResp = 0b0111,     ///< xbgasNicEvent: Bulk WRITE response
   Finish        = 0b1111,     ///< xbgasNicEvent: Finish notification
   Unknown       = 0b1000      ///< xbgasNicEvent: Unknown operation
 };

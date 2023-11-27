@@ -100,10 +100,12 @@ bool xbgasNicEvent::buildWRITEResp(uint64_t Id){
   return true;
 }
 
-XbgasNIC::XbgasNIC(ComponentId_t id, Params& params, TimeConverter* tc, Event::HandlerBase *handler)
-  : xbgasNicAPI(id, params, tc, handler) {
+XbgasNIC::XbgasNIC(ComponentId_t id, Params& params, Event::HandlerBase *handler)
+  : xbgasNicAPI(id, params, handler) {
   // setup the initial logging functions
   int verbosity = params.find<int>("verbose", 0);
+  std::string ClockFreq = params.find<std::string>("clock", "1Ghz");
+
   output = new SST::Output("", verbosity, 0, SST::Output::STDOUT);
 
   // load the SimpleNetwork interfaces
@@ -125,7 +127,7 @@ XbgasNIC::XbgasNIC(ComponentId_t id, Params& params, TimeConverter* tc, Event::H
 
   link_control->setNotifyOnReceive(new SST::Interfaces::SimpleNetwork::Handler<XbgasNIC>(this, &XbgasNIC::msgNotify));
 
-  registerClock(tc, new Clock::Handler<XbgasNIC>(this, &XbgasNIC::clockTick));
+  registerClock(ClockFreq, new Clock::Handler<XbgasNIC>(this, &XbgasNIC::clockTick));
 
   initBroadcastSent = false;
 
