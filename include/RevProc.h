@@ -756,6 +756,13 @@ private:
       regFile->GetLSQueue()->count(make_lsq_hash(reg, regClass, HartID)) > 0;
   }
 
+  /// RevProc: Check remote LS queue for outstanding load - ignore r0
+  bool RmtLSQCheck(unsigned HartID, const RevRegFile* regFile,
+                   uint16_t reg, RevRegClass regClass) const {
+    return (reg != 0 || regClass != RevRegClass::RegGPR) &&
+      regFile->GetRmtLSQueue()->count(make_lsq_hash(reg, regClass, HartID)) > 0;
+  }
+
   /// RevProc: Check scoreboard for a source register dependency
   bool ScoreboardCheck(const RevRegFile* regFile, uint16_t reg, RevRegClass regClass) const {
     return reg < _REV_NUM_REGS_ &&

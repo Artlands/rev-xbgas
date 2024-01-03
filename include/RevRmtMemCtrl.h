@@ -166,6 +166,12 @@ public:
   /// RevRmtMemCtrl: clock tick function
   virtual bool clockTick( Cycle_t cycle ) = 0;
 
+  /// RevRmtMemCtrl: get PE id
+  virtual unsigned getPEID() = 0;
+
+  /// RevRmtMemCtrl: get the number of PEs
+  virtual unsigned getNumPEs() = 0;
+
   /// RevRmtMemCtrl: determines if outstanding requests exist
   // virtual bool outstandingRqsts() = 0;
 
@@ -220,12 +226,12 @@ protected:
 // ----------------------------------------
 class RevBasicRmtMemCtrl : public RevRmtMemCtrl{
 public:
-  SST_ELI_REGISTER_SUBCOMPONENT_DERIVED(RevBasicRmtMemCtrl, "revcpu",
-                                        "RevBasicRmtMemCtrl",
-                                        SST_ELI_ELEMENT_VERSION(1,0,0),
-                                        "RISCV-V Rev xBGAS basic remote memory controller",
-                                        SST::RevCPU::RevRmtMemCtrl
-                                        )
+  SST_ELI_REGISTER_SUBCOMPONENT(RevBasicRmtMemCtrl, "revcpu",
+                                "RevBasicRmtMemCtrl",
+                                SST_ELI_ELEMENT_VERSION(1,0,0),
+                                "RISCV-V Rev xBGAS basic remote memory controller",
+                                SST::RevCPU::RevRmtMemCtrl
+                                )
   
   SST_ELI_DOCUMENT_PARAMS({ "verbose",       "Set the verbosity of output for the remote memory controller", "0" },
                           { "clock",         "Set the clock frequency of the remote memory controller",      "1Ghz"  },
@@ -274,6 +280,12 @@ public:
 
   /// RevBasicRmtMemCtrl: clock tick function
   bool clockTick( Cycle_t cycle ) override;
+
+  /// RevBasicRmtMemCtrl: get PE id
+  unsigned getPEID() override;
+
+  /// RevBasicRmtMemCtrl: get the number of PEs
+  unsigned getNumPEs() override;
 
   /// RevBasicRmtMemCtrl: determines if outstanding requests exist
   // bool outstandingRqsts() override;
@@ -368,7 +380,7 @@ private:
 
   // -- private data members;
   RevMem *Mem;                                ///< RevBasicRmtMemCtrl: pointer to the memory object
-  xbgasNicAPI* xbgasNicIface;                 ///< RevBasicRmtMemCtrl: xBGAS NIC interface
+  xbgasNicAPI* xbgasNic;                      ///< RevBasicRmtMemCtrl: xBGAS NIC interface
   std::map<uint64_t, uint32_t> nmspaceLB;          ///< RevBasicRmtMemCtrl: namespace lookaside Buffer map; <Namespace, Dest>
   std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts; ///< RevBasicRmtMemCtrl: xbgas hosts list
   unsigned virtualHart;                       ///< RevBasicRmtMemCtrl: virtual hart id

@@ -8,6 +8,8 @@
 // See LICENSE in the top level directory for licensing details
 //
 
+// #include "../include/RevMem.h"
+// #include "../include/XbgasNIC.h"
 #include "../include/RevRmtMemCtrl.h"
 #include "../include/RevInstTable.h"
 
@@ -57,7 +59,7 @@ RevRmtMemCtrl::RevRmtMemCtrl(ComponentId_t id, const Params& params)
   : SubComponent(id), output(nullptr) {
   
   uint32_t verbosity = params.find<uint32_t>("verbose");
-  output = new Output("RevRmtMemCtrl[@p:@l]: ", verbosity, 0, SST::Output::STDOUT);
+  output = new SST::Output("[RevRmtMemCtrl @t]: ", verbosity, 0, SST::Output::STDOUT);
 
 }
 
@@ -69,22 +71,22 @@ RevRmtMemCtrl::~RevRmtMemCtrl(){
 // RevBasicRmtMemCtrl
 // ----------------------------------------
 RevBasicRmtMemCtrl::RevBasicRmtMemCtrl(ComponentId_t id, const Params& params)
-  : RevRmtMemCtrl(id, params), xbgasNicIface(nullptr), virtualHart(0),
+  : RevRmtMemCtrl(id, params), xbgasNic(nullptr), virtualHart(0),
     max_loads(64), max_stores(64), max_ops(2),
     num_read(0x00ull), num_write(0x00ull){
   
   std::string ClockFreq = params.find<std::string>("clock", "1Ghz");
   Params xbgasNicParams = params.get_scoped_params("xbgasNicParams");
-  xbgasNicIface = loadAnonymousSubComponent<RevCPU::xbgasNicAPI>( "revcpu.XbgasNIC",
-                                                                  "xbgasNicIface", 
-                                                                  0,
-                                                                  ComponentInfo::SHARE_NONE, //ComponentInfo::SHARE_PORTS | ComponentInfo::INSERT_STATS,
-                                                                  xbgasNicParams,
-                                                                  new Event::Handler<RevBasicRmtMemCtrl>(
-                                                                    this, &RevBasicRmtMemCtrl::rmtMemEventHandler
-                                                                  ));
+  xbgasNic = loadAnonymousSubComponent<RevCPU::xbgasNicAPI>( "revcpu.XbgasNIC",
+                                                             "xbgasNicIface", 
+                                                             0,
+                                                             ComponentInfo::SHARE_NONE, //ComponentInfo::SHARE_PORTS | ComponentInfo::INSERT_STATS,
+                                                             xbgasNicParams,
+                                                             new Event::Handler<RevBasicRmtMemCtrl>(
+                                                               this, &RevBasicRmtMemCtrl::rmtMemEventHandler
+                                                             ));
 
-  if( !xbgasNicIface ){
+  if( !xbgasNic ){
     output->fatal(CALL_INFO, -1, "Error: unable to load xbgasNicAPI\n");
   }
 
@@ -269,14 +271,14 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ) {
                               std::get<LOAD_RECORD_STRIDE>(Entry),
                               buffer);
       // Destination is the source of the request
-      xbgasNicIface->send(RmtEvent, std::get<LOAD_RECORD_SRCID>(Entry));
+      xbgasNic->send(RmtEvent, std::get<LOAD_RECORD_SRCID>(Entry));
       break;
     case RmtMemOp::BulkWRITERqst:
       // All the elements have been read to buffer; send the write request
       RmtEvent = EventsToSend.find(id)->second;
       RmtEvent->setData( buffer, 
                          std::get<LOAD_RECORD_SIZE>(Entry) * std::get<LOAD_RECORD_NELEM>(Entry) );
-      xbgasNicIface->send(RmtEvent, std::get<LOAD_RECORD_DESTID>(Entry));
+      xbgasNic->send(RmtEvent, std::get<LOAD_RECORD_DESTID>(Entry));
       EventsToSend.erase(id);
       break;
     default:
@@ -291,14 +293,14 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ) {
 }
 
 void RevBasicRmtMemCtrl::init(unsigned int phase){
-  xbgasNicIface->init(phase);
+  // xbgasNic->init(phase);
   
-  int id = (int)(xbgasNicIface->getAddress());  
-  // int numPEs = (int)(xbgasNicIface->getNumPEs());
+  int id = (int)(xbgasNic->getAddress());  
+  // int numPEs = (int)(xbgasNic->getNumPEs());
 
   // Namespece Lookaside Buffer Initialization. Now using a naive implementation
   uint64_t nmspace = 0;
-  xbgasHosts = xbgasNicIface->getXbgasHosts();
+  xbgasHosts = xbgasNic->getXbgasHosts();
 
   if (xbgasHosts.size() != 0) {
     // The first entry is reserved for the local PE
@@ -311,9 +313,9 @@ void RevBasicRmtMemCtrl::init(unsigned int phase){
 }
 
 void RevBasicRmtMemCtrl::setup(){
-  if( xbgasNicIface == nullptr )
+  if( xbgasNic == nullptr )
     output->fatal(CALL_INFO, -1, "Error: xBGAS NIC Inferface is null\n");
-  xbgasNicIface->setup();
+  xbgasNic->setup();
 }
 
 void RevBasicRmtMemCtrl::finish(){
@@ -467,7 +469,7 @@ bool RevBasicRmtMemCtrl::isRmtMemOpAvailable( RevRmtMemOp *Op,
 }
 
 bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
-  uint32_t SrcId = (uint32_t)( xbgasNicIface->getAddress() );
+  uint32_t SrcId = (uint32_t)( xbgasNic->getAddress() );
   uint32_t DestId = findDest( Op->getNmspace() );
   uint8_t *buffer = nullptr;
   
@@ -495,7 +497,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
                             Nelem, 
                             Stride,
                             Flags);
-    xbgasNicIface->send(RmtEvent, DestId);
+    xbgasNic->send(RmtEvent, DestId);
     requests.push_back(RmtEvent->getID());
     outstanding[RmtEvent->getID()] = Op;
     recordStat(RmtReadInFlight, 1);
@@ -512,7 +514,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
                              Stride, 
                              Flags,
                              buffer);
-    xbgasNicIface->send(RmtEvent, DestId);
+    xbgasNic->send(RmtEvent, DestId);
     requests.push_back(RmtEvent->getID());
     outstanding[RmtEvent->getID()] = Op;
     recordStat(RmtWriteInFlight, 1);
@@ -574,4 +576,12 @@ uint32_t RevBasicRmtMemCtrl::findDest( uint64_t Nmspace ){
     return -1;
   else
     return it->second;
+}
+
+unsigned RevBasicRmtMemCtrl::getPEID(){
+  return (unsigned)(xbgasNic->getAddress());
+}
+
+unsigned RevBasicRmtMemCtrl::getNumPEs(){
+  return xbgasNic->getNumPEs();
 }

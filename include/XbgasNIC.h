@@ -229,6 +229,7 @@ public:
   // Register the parameters
   SST_ELI_DOCUMENT_PARAMS(
     {"clock", "Clock frequency of the NIC", "1Ghz"},
+    {"port", "Port to use, if loaded as an anonymous subcomponent", "network"},
     {"verbose", "Verbosity for output (0 = nothing)", "0"},
   )
 
@@ -239,7 +240,7 @@ public:
 
   // Register the subcomponent slots
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
-    {"linkcontrol", "Network interface", "SST::Interfaces::SimpleNetwork"}
+    {"iface", "SimpleNetwork interface to a network", "SST::Interfaces::SimpleNetwork"}
   )
 
   /// XbgasNIC: constructor
@@ -281,7 +282,7 @@ public:
 protected:
   SST::Output *output;                    ///< XbgasNIC: SST output object
 
-  SST::Interfaces::SimpleNetwork* link_control; ///< XbgasNIC: SST network interface
+  SST::Interfaces::SimpleNetwork* iFace;  ///< XbgasNIC: SST network interface
 
   SST::Event::HandlerBase *msgHandler;    ///< XbgasNIC: SST message handler
 

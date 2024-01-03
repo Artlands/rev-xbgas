@@ -169,7 +169,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
   const uint64_t maxHeapSize = params.find<unsigned long>("maxHeapSize", memSize/4);
   Mem->SetMaxHeapSize(maxHeapSize);
 
-  // See if we should load the xBGAS
+  // See if we should load the xBGAS remote memory controller
   EnableXBGAS = params.find<bool>("enable_xbgas", 0);
   EnableXBGASStats = params.find<bool>("enable_xbgas_stats", 0);
 
@@ -472,7 +472,7 @@ void RevCPU::setup(){
     Ctrl->setup();
   }
   if( EnableXBGAS ){
-    // setup NIC and remote controller
+    // setup xBGAS NIC and remote controller
     rmtCtrl->setup();
   }
 }
@@ -486,6 +486,7 @@ void RevCPU::init( unsigned int phase ){
   if( EnableMemH )
     Ctrl->init(phase);
   if( EnableXBGAS ){
+    // rmtCtrl.xbgasNicIface->init(phase);
     rmtCtrl->init(phase);
   }
 }
@@ -861,10 +862,19 @@ void RevCPU::InitMainThread(uint32_t MainThreadID, const uint64_t StartAddr){
   // @Lee: Is there a better way to get the feature info?
   std::unique_ptr<RevRegFile> MainThreadRegState = std::make_unique<RevRegFile>(Procs[0]->GetRevFeature());
   MainThreadRegState->SetPC(StartAddr);
-  MainThreadRegState->SetX(RevReg::tp,Mem->GetThreadMemSegs().front()->getTopAddr());
-  MainThreadRegState->SetX(RevReg::sp,Mem->GetThreadMemSegs().front()->getTopAddr()-Mem->GetTLSSize());
+  MainThreadRegState->SetX(RevReg::tp, Mem->GetThreadMemSegs().front()->getTopAddr());
+  MainThreadRegState->SetX(RevReg::sp, Mem->GetThreadMemSegs().front()->getTopAddr()-Mem->GetTLSSize());
   MainThreadRegState->SetX(RevReg::gp, Loader->GetSymbolAddr("__global_pointer$"));
   MainThreadRegState->SetX(8, Loader->GetSymbolAddr("__global_pointer$"));
+
+  // Initialize the extended registers to have the xBGAS PE ID and total number of PEs
+  // e10 = contains the physical PE id
+  // e11 = contains the number of PEs
+  if( EnableXBGAS ){
+    MainThreadRegState->SetE(RevReg::e10, rmtCtrl->getPEID());
+    MainThreadRegState->SetE(RevReg::e11, rmtCtrl->getNumPEs());
+  }
+
   SetupArgs(MainThreadRegState);
   std::unique_ptr<RevThread> MainThread = std::make_unique<RevThread>(MainThreadID,
                                                                       _INVALID_TID_, // No Parent Thread ID

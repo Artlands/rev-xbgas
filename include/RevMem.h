@@ -66,6 +66,9 @@ public:
   /// RevMem: set the remote memory controller for xBGAS
   void setRmtMemCtrl(RevRmtMemCtrl *RmtCtrl) { rmtCtrl = RmtCtrl; }
 
+  /// RevMem: check if xBGAS is enabled
+  bool isXBGASEnabled() { return rmtCtrl != nullptr; }
+
   /* Virtual Memory Blocks  */
   class MemSegment {
   public:

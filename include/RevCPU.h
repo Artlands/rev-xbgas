@@ -97,6 +97,8 @@ public:
     {"enable_pan",      "Enable PAN network endpoint",                  "0"},
     {"enable_test",     "Enable PAN network endpoint test",             "0"},
     {"enable_pan_stats", "Enable PAN network statistics",               "1"},
+    {"enable_xbgas",    "Enable xBGAS",                                 "0"},
+    {"enable_xbgas_stats", "Enable xBGAS statistics",                   "0"},
     {"enable_memH",     "Enable memHierarchy",                          "0"},
     {"enableRDMAMbox",  "Enable the RDMA mailbox",                      "1"},
     {"enableCoProc",    "Enable an attached coProcessor for all cores", "0"},

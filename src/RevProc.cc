@@ -50,7 +50,7 @@ RevProc::RevProc( unsigned Id,
   // Create the Hart Objects
   for( size_t i=0; i<numHarts; i++ ){
     // Harts.emplace_back(std::make_unique<RevHart>(i, LSQueue, [=](const MemReq& req){ this->MarkLoadComplete(req); }));
-    // Use the overloaded constructor if xBGAS is enabled, i.e. Machine model has 'X'
+    // Use the overloaded constructor 
     Harts.emplace_back(std::make_unique<RevHart>(i, LSQueue, RmtLSQueue,
                        [=](const MemReq& req){ this->MarkLoadComplete(req); },
                        [=](const RmtMemReq& req){ this->MarkRmtLoadComplete(req); }));
@@ -1553,6 +1553,12 @@ bool RevProc::DependencyCheck(unsigned HartID, const RevInst* I) const {
     LSQCheck(HartID, regFile, I->rs3, E->rs3Class) ||
     LSQCheck(HartID, regFile, I->rd , E->rdClass) ||
 
+    // check remote LS queue for outstanding load
+    RmtLSQCheck(HartID, regFile, I->rs1, E->rs1Class) ||
+    RmtLSQCheck(HartID, regFile, I->rs2, E->rs2Class) ||
+    RmtLSQCheck(HartID, regFile, I->rs3, E->rs3Class) ||
+    RmtLSQCheck(HartID, regFile, I->rd , E->rdClass) ||
+
     // Iterate through the source registers rs1, rs2, rs3 and find any dependency
     // based on the class of the source register and the associated scoreboard
     ScoreboardCheck(regFile, I->rs1, E->rs1Class) ||
@@ -1852,8 +1858,11 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
 
       // Only clear the dependency if there is no outstanding load
       if((RegFile->GetLSQueue()->count(make_lsq_hash(Pipeline.front().second.rd,
-                                                                 InstTable[Pipeline.front().second.entry].rdClass,
-                                                                 HartID))) == 0){
+                                                     InstTable[Pipeline.front().second.entry].rdClass,
+                                                     HartID))) == 0 && 
+          RegFile->GetRmtLSQueue()->count(make_lsq_hash(Pipeline.front().second.rd,
+                                                        InstTable[Pipeline.front().second.entry].rdClass,
+                                                        HartID)) == 0){
         DependencyClear(HartID, &(Pipeline.front().second));
       }
       Pipeline.pop_front();
@@ -1960,6 +1969,12 @@ void RevProc::CreateThread(uint32_t NewTID, uint64_t firstPC, void* arg){
   NewThreadRegFile->SetX(RevReg::gp, loader->GetSymbolAddr("__global_pointer$"));
   NewThreadRegFile->SetX(8, loader->GetSymbolAddr("__global_pointer$"));
   NewThreadRegFile->SetPC(firstPC);
+
+  // Copy the extended registers e10 and e11
+  if( mem->isXBGASEnabled() ) {
+    NewThreadRegFile->SetE(RevReg::e10, Harts.at(HartToExecID)->RegFile->GetE(RevReg::e10));
+    NewThreadRegFile->SetE(RevReg::e11, Harts.at(HartToExecID)->RegFile->GetE(RevReg::e11));
+  }
 
   // Create a new RevThread Object
   std::unique_ptr<RevThread> NewThread =
