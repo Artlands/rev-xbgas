@@ -9,7 +9,8 @@
 //
 
 #include "RevPrefetcher.h"
-using namespace SST::RevCPU;
+
+namespace SST::RevCPU{
 
 /*RevPrefetcher::~RevPrefetcher(){
 // delete all the existing streams
@@ -39,7 +40,7 @@ bool RevPrefetcher::IsAvail(uint64_t Addr){
 
       // we may be short of instruction width in our current stream
       // determine if an adjacent stream has the payload
-      if( lastAddr-Addr < 4 ){
+      if( (lastAddr-Addr < 4) || ( (Addr & 0x03) != 0) ){
 
         uint32_t TmpInst;
         bool Fetched = false;
@@ -52,6 +53,16 @@ bool RevPrefetcher::IsAvail(uint64_t Addr){
         }
       }
 
+      if(!OutstandingFetchQ.empty()){
+        auto it = LSQueue->equal_range(OutstandingFetchQ.back().LSQHash());      // Find all outstanding dependencies for this register
+        if( it.first != LSQueue->end()){                  
+          for (auto i = it.first; i != it.second; ++i){    // Iterate over all outstanding loads for this reg (if any)
+            if(i->second.Addr == OutstandingFetchQ.back().Addr){
+              return false;
+            }
+          }
+        }
+      }
       // the instruction is available in the stream cache
       return true;
     }
@@ -61,6 +72,18 @@ bool RevPrefetcher::IsAvail(uint64_t Addr){
   // a stream prefetch.  Lets go ahead and initiate one via a 'Fill' operation
   Fill(Addr);
   return false;
+}
+
+void RevPrefetcher::MarkInstructionLoadComplete(const MemReq& req){
+  auto it = OutstandingFetchQ.begin();
+  while((it != OutstandingFetchQ.end())){
+    if(it->Addr == req.Addr){
+      OutstandingFetchQ.erase(it++);
+      break;
+    }
+    it++;
+    
+  }
 }
 
 bool RevPrefetcher::FetchUpper(uint64_t Addr, bool &Fetched, uint32_t &UInst){
@@ -154,12 +177,8 @@ bool RevPrefetcher::InstFetch(uint64_t Addr, bool &Fetched, uint32_t &Inst){
 
 void RevPrefetcher::Fill(uint64_t Addr){
 
-  // determine if the address is 32bit aligned
-  if((Addr%4)!=0){
-    // not 32bit aligned, adjust the base address by 2 bytes
-    Fill(Addr&0xFFFFFFFFFFFFFFFC);
-    return;
-  }
+  // If address is not 32bit aligned... then make it aligned
+  Addr &= 0xFFFFFFFFFFFFFFFC;
 
   // allocate a new stream buffer
   baseAddr.push_back(Addr);
@@ -173,13 +192,18 @@ void RevPrefetcher::Fill(uint64_t Addr){
 
   // now fill it
   for( size_t y=0; y<depth; y++ ){
-    MemReq req (Addr+(y*4), 0, RevRegClass::RegGPR, feature->GetHartToExecID(), MemOp::MemOpREAD, true, MarkLoadAsComplete);
-    LSQueue->insert({make_lsq_hash(0, RevRegClass::RegGPR, feature->GetHartToExecID()), req});
-    mem->ReadVal( feature->GetHartToExecID(), Addr+(y*4),
-                  &iStack[x][y],
-                  req,
-                  RevFlag::F_NONE );
+    MemReq req( Addr+(y*4), RevReg::zero, RevRegClass::RegGPR,
+                feature->GetHartToExecID(), MemOp::MemOpREAD, true,
+                MarkLoadAsComplete );
+    LSQueue->insert( req.LSQHashPair() );
+    OutstandingFetchQ.emplace_back(req);
+    mem->ReadVal<uint32_t>( feature->GetHartToExecID(), Addr+(y*4),
+                            &iStack[x][y],
+                            req,
+                            RevFlag::F_NONE );
+    //Track outstanding requests
   }
+
 }
 
 void RevPrefetcher::DeleteStream(size_t i){
@@ -190,4 +214,5 @@ void RevPrefetcher::DeleteStream(size_t i){
   }
 }
 
+} // namespace SST::RevCPU
 // EOF

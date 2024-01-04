@@ -24,7 +24,7 @@ RevProc::RevProc( unsigned Id,
                   SST::Output *Output )
   : Halted(false), Stalled(false), SingleStep(false),
     CrackFault(false), ALUFault(false), fault_width(0),
-    id(Id), HartToDecodeID(0), HartToExecID(0), Retired(0x00ull),
+    id(Id), HartToDecodeID(0), HartToExecID(0),
     numHarts(NumHarts), opts(Opts), mem(Mem), coProc(nullptr), loader(Loader),
     GetNewThreadID(std::move(GetNewTID)), output(Output), feature(nullptr),
     sfetch(nullptr), Tracer(nullptr) {
@@ -41,10 +41,10 @@ RevProc::RevProc( unsigned Id,
   Opts->GetMemCost(Id, MinCost, MaxCost);
 
 
-  LSQueue = std::make_shared<std::unordered_map<uint64_t, MemReq>>();
+  LSQueue = std::make_shared<std::unordered_multimap<uint64_t, MemReq>>();
   LSQueue->clear();
 
-  RmtLSQueue = std::make_shared<std::unordered_map<uint64_t, RmtMemReq>>();
+  RmtLSQueue = std::make_shared<std::unordered_multimap<uint64_t, RmtMemReq>>();
   RmtLSQueue->clear();
 
   // Create the Hart Objects
@@ -239,11 +239,6 @@ bool RevProc::SeedInstTable(){
       EnableExt(new RV64F(feature, mem, output), false);
 
     }
-#if 0
-    if( feature->IsRV64() ){
-      EnableExt(new RV64D(feature, mem, output));
-    }
-#endif
   }
 
   // D-Extension
@@ -252,6 +247,11 @@ bool RevProc::SeedInstTable(){
     if( feature->IsRV64() ){
       EnableExt(new RV64D(feature, mem, output), false);
     }
+  }
+
+  // Zicbom-Extension
+  if( feature->IsModeEnabled(RV_ZICBOM) ){
+    EnableExt(new Zicbom(feature, mem, output), false);
   }
 
   // xBGAS Extension
@@ -429,10 +429,14 @@ RevInst RevProc::DecodeCRInst(uint16_t Inst, unsigned Entry) const {
   CompInst.funct4  = InstTable[Entry].funct4;
 
   // registers
-  CompInst.rd      = DECODE_RD(Inst);
-  CompInst.rs1     = DECODE_RD(Inst);
+  CompInst.rd      = CompInst.rs1 = DECODE_RD(Inst);
   CompInst.rs2     = DECODE_LOWER_CRS2(Inst);
   CompInst.imm     = 0x00;
+
+  //if c.mv force rs1 to x0
+  if((0b10 == CompInst.opcode) && (0b1000 == CompInst.funct4) && (0 != CompInst.rs2)){
+    CompInst.rs1 = 0;
+  }
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -451,8 +455,7 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry) const {
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  CompInst.rd      = DECODE_RD(Inst);
-  CompInst.rs1     = DECODE_RD(Inst);
+  CompInst.rd      = CompInst.rs1 = DECODE_RD(Inst);
   CompInst.imm     = DECODE_LOWER_CRS2(Inst);
   CompInst.imm    |= ((Inst & 0b1000000000000)>>7);
 
@@ -463,6 +466,7 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry) const {
     CompInst.imm =  ((Inst & 0b1100000) >> 2);        // [4:3]
     CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
     CompInst.imm |= ((Inst & 0b11100) << 4);          // [8:6]
+    CompInst.rs1 = 2;                                 // Force rs1 to be x2 (stack pointer)
   }else if( (CompInst.opcode == 0b10) &&
             (CompInst.funct3 == 0b010) ){
     // c.lwsp
@@ -470,6 +474,7 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry) const {
     CompInst.imm =  ((Inst & 0b1110000) >> 2);        // [4:2]
     CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
     CompInst.imm |= ((Inst & 1100) << 4);             // [7:6]
+    CompInst.rs1 = 2;                                 // Force rs1 to be x2 (stack pointer)
   }else if( (CompInst.opcode == 0b10) &&
             (CompInst.funct3 == 0b011) ){
     CompInst.imm = 0;
@@ -478,11 +483,13 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry) const {
       CompInst.imm =  ((Inst & 0b1100000) >> 2);        // [4:3]
       CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
       CompInst.imm |= ((Inst & 0b11100) << 4);          // [8:6]
+      CompInst.rs1 = 2;                                 // Force rs1 to be x2 (stack pointer)
     }else{
       // c.flwsp
       CompInst.imm =  ((Inst & 0b1110000) >> 2);        // [4:2]
       CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
       CompInst.imm |= ((Inst & 1100) << 4);             // [7:6]
+      CompInst.rs1 = 2;                                 // Force rs1 to be x2 (stack pointer)
     }
   }else if( (CompInst.opcode == 0b01) &&
             (CompInst.funct3 == 0b011) &&
@@ -495,6 +502,7 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry) const {
     CompInst.imm |= ((Inst & 0b100000) << 1); // bit 6
     CompInst.imm |= ((Inst & 0b11000) << 4);  // bit 8:7
     CompInst.imm |= ((Inst & 0b1000000000000) >> 3);  // bit 9
+    CompInst.rs1 = 2;                                 // Force rs1 to be x2 (stack pointer)
     if( (CompInst.imm & 0b1000000000) > 0 ){
       // sign extend
       CompInst.imm |= 0b11111111111111111111111000000000;
@@ -518,6 +526,7 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry) const {
     CompInst.imm = 0;
     CompInst.imm =  ((Inst & 0b1111100) >> 2);        // [4:0]
     CompInst.imm |= ((Inst & 0b1000000000000) >> 7);  // [5]
+    CompInst.rs1 = 0;                                 // Force rs1 to be x0, expands to add rd, x0, imm
     if( (CompInst.imm & 0b100000) > 0 ){
       // sign extend
       CompInst.imm |= 0b11111111111111111111111111000000;
@@ -527,6 +536,14 @@ RevInst RevProc::DecodeCIInst(uint16_t Inst, unsigned Entry) const {
     CompInst.imm |= 0b11111111111111111111111111100000;
   }
 
+  //if c.addi, expands to addi %rd, %rd, $imm so set rs1 to rd -or-
+    // c.slli, expands to slli %rd %rd $imm -or -
+    // c.addiw. expands to addiw %rd %rd $imm
+  if(((0b01 == CompInst.opcode) && (0b000 == CompInst.funct3)) ||
+     ((0b10 == CompInst.opcode) && (0b000 == CompInst.funct3)) ||
+     ((0b01 == CompInst.opcode) && (0b001 == CompInst.funct3))) {
+    CompInst.rs1 = CompInst.rd;
+  }
   CompInst.instSize = 2;
   CompInst.compressed = true;
 
@@ -552,21 +569,25 @@ RevInst RevProc::DecodeCSSInst(uint16_t Inst, unsigned Entry) const {
     CompInst.imm = 0;
     CompInst.imm =  ((Inst & 0b1110000000000) >> 7);    // [5:3]
     CompInst.imm |= ((Inst & 0b1110000000) >> 1);       // [8:6]
+    CompInst.rs1 = 2;                                   // Force rs1 to x2 (stack pointer)
   }else if( CompInst.funct3 == 0b110 ){
     // c.swsp
     CompInst.imm = 0;
     CompInst.imm =  ((Inst & 0b1111000000000) >> 7);    // [5:2]
     CompInst.imm |= ((Inst & 0b110000000) >> 1);        // [7:6]
+    CompInst.rs1 = 2;                                   // Force rs1 to x2 (stack pointer)
   }else if( CompInst.funct3 == 0b111 ){
     CompInst.imm = 0;
     if( feature->IsRV64() ){
       // c.sdsp
       CompInst.imm =  ((Inst & 0b1110000000000) >> 7);    // [5:3]
       CompInst.imm |= ((Inst & 0b1110000000) >> 1);       // [8:6]
+      CompInst.rs1 = 2;                                   // Force rs1 to x2 (stack pointer)
     }else{
       // c.fswsp
       CompInst.imm =  ((Inst & 0b1111000000000) >> 7);    // [5:2]
       CompInst.imm |= ((Inst & 0b110000000) >> 1);        // [7:6]
+      CompInst.rs1 = 2;                                   // Force rs1 to x2 (stack pointer)
     }
   }
 
@@ -589,6 +610,15 @@ RevInst RevProc::DecodeCIWInst(uint16_t Inst, unsigned Entry) const {
   // registers
   CompInst.rd      = ((Inst & 0b11100) >> 2);
   CompInst.imm     = ((Inst & 0b1111111100000) >> 5);
+
+  // Apply compressed offset
+  CompInst.rd      = CRegIdx(CompInst.rd);
+
+  //Set rs1 to x2 if this is an addi4spn
+  if((0x00 == CompInst.opcode) && (0x00 == CompInst.funct3) ){
+    CompInst.rs1 = 2;
+  }
+
 
   //swizzle: nzuimm[5:4|9:6|2|3]
   std::bitset<32> imm(CompInst.imm);
@@ -623,6 +653,10 @@ RevInst RevProc::DecodeCLInst(uint16_t Inst, unsigned Entry) const {
   // registers
   CompInst.rd      = ((Inst & 0b11100) >> 2);
   CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
+
+  //Apply compressed offset
+  CompInst.rd     = CRegIdx(CompInst.rd);
+  CompInst.rs1    = CRegIdx(CompInst.rs1);
 
   if( CompInst.funct3 == 0b001 ){
     // c.fld
@@ -687,6 +721,10 @@ RevInst RevProc::DecodeCSInst(uint16_t Inst, unsigned Entry) const {
   CompInst.rs2     = ((Inst & 0b011100) >> 2);
   CompInst.rs1     = ((Inst & 0b01110000000) >> 7);
 
+  //Apply Compressed offset
+  CompInst.rs2    = CRegIdx(CompInst.rs2);
+  CompInst.rs1    = CRegIdx(CompInst.rs1);
+
   // The immd is pre-scaled in this instruction format
   if(CompInst.funct3 == 0b110){
     //c.sw
@@ -725,8 +763,15 @@ RevInst RevProc::DecodeCAInst(uint16_t Inst, unsigned Entry) const {
 
   // registers
   CompInst.rs2     = ((Inst & 0b11100) >> 2);
-  CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
-  CompInst.rd      = ((Inst & 0b1110000000) >> 7);
+  CompInst.rd      = CompInst.rs1 = ((Inst & 0b1110000000) >> 7);
+
+  //Adjust registers for compressed offset
+  CompInst.rs2 = CRegIdx(CompInst.rs2);
+  CompInst.rs1 = CRegIdx(CompInst.rs1);
+  CompInst.rd = CRegIdx(CompInst.rd);
+
+  //All instructions of this format expand to <opcode> rd rd rs2, so set rs1 to rd
+  CompInst.rs1 = CompInst.rd;
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -745,9 +790,22 @@ RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry) const {
   CompInst.funct3  = InstTable[Entry].funct3;
 
   // registers
-  CompInst.rs1     = ((Inst & 0b1110000000) >> 7);
+  CompInst.rd = CompInst.rs1 = ((Inst & 0b1110000000) >> 7);
   CompInst.offset  = ((Inst & 0b1111100) >> 2);
   CompInst.offset |= ((Inst & 0b1110000000000) >> 5);
+
+  //Apply compressed offset
+  CompInst.rs1 = CRegIdx(CompInst.rs1);
+
+  //Set rs2 to x0 if c.beqz or c.bnez
+  if((0b01 == CompInst.opcode) && ((0b110 == CompInst.funct3) || (0b111 == CompInst.funct3))){
+    CompInst.rs2 = 0;
+  }
+
+  //If c.srli, c.srai or c.andi set rd to rs1
+  if((0b01 == CompInst.opcode) && (0b100 == CompInst.funct3)){
+    CompInst.rd = CompInst.rs1;
+  }
 
   //swizzle: offset[8|4:3]  offset[7:6|2:1|5]
   std::bitset<16> tmp(0);
@@ -764,28 +822,12 @@ RevInst RevProc::DecodeCBInst(uint16_t Inst, unsigned Entry) const {
     tmp[7] = o[7];
   } else if( (CompInst.opcode == 0b01) && (CompInst.funct3 == 0b100)) {
     //We have a shift or a andi
-    CompInst.rd = CompInst.rs1;
+    CompInst.rd = CompInst.rs1; //Already has compressed offset applied
   }
 
   CompInst.offset = ((uint16_t)tmp.to_ulong()) << 1; // scale to corrrect position to be consistent with other compressed ops
   CompInst.imm = ((Inst & 0b01111100) >> 2);
   CompInst.imm |= ((Inst & 0b01000000000000) >> 7);
-
-
-/*  // handle c.beqz/c.bnez offset
-    if( (CompInst.opcode = 0b01) && (CompInst.funct3 >= 0b110) ){
-    CompInst.offset = 0;  // reset it
-    CompInst.offset = ((Inst & 0b11000) >> 2);          // [2:1]
-    CompInst.offset |= ((Inst & 0b110000000000) >> 7);  // [4:3]
-    CompInst.offset |= ((Inst & 0b100) << 3);           // [5]
-    CompInst.offset |= ((Inst & 0b1100000) << 1);       // [7:6]
-    CompInst.offset |= ((Inst & 0b1000000000000) >> 4); // [8]
-
-    if( (CompInst.offset & 0b100000000) > 0 ){
-    // sign extend
-    CompInst.offset |= 0b11111111100000000;
-    }
-    }*/
 
   CompInst.instSize = 2;
   CompInst.compressed = true;
@@ -824,6 +866,10 @@ RevInst RevProc::DecodeCJInst(uint16_t Inst, unsigned Entry) const {
   CompInst.jumpTarget = ((u_int16_t)target.to_ulong()) << 1;
   //CompInst.jumpTarget = ((u_int16_t)target.to_ulong());
 
+  //Set rd to x1 if this is a c.jal
+  if((0b01 == CompInst.opcode) && (0b001 == CompInst.funct3)){
+    CompInst.rd = 1;
+  }
   CompInst.instSize = 2;
   CompInst.compressed = true;
 
@@ -1611,20 +1657,36 @@ unsigned RevProc::GetNextHartToDecodeID() const {
 
 void RevProc::MarkLoadComplete(const MemReq& req){
 
-  auto it = LSQueue->find(make_lsq_hash(req.DestReg, req.RegType, req.Hart));
-  if( it != LSQueue->end()){
-    DependencyClear(it->second.Hart, it->second.DestReg, (it->second.RegType == RevRegClass::RegFLOAT));
-    LSQueue->erase(it);
+  auto it = LSQueue->equal_range(req.LSQHash());      // Find all outstanding dependencies for this register
+  bool addrMatch = false;
+  if( it.first != LSQueue->end()){                  
+    for (auto i = it.first; i != it.second; ++i){    // Iterate over all outstanding loads for this reg (if any)
+        if(i->second.Addr == req.Addr){
+          if(LSQueue->count(req.LSQHash()) == 1){   // Only clear the dependency if this is the LAST outstanding load for this register
+            DependencyClear(i->second.Hart, i->second.DestReg, (i->second.RegType == RevRegClass::RegFLOAT));
+          }
+          sfetch->MarkInstructionLoadComplete(req);
+          LSQueue->erase(i);                        // Remove this load from the queue
+          addrMatch = true;                         // Flag that there was a succesful match (if left false an error condition occurs)
+          break;
+        }
+    }
   }else if(0 != req.DestReg){ //instruction pre-fetch fills target x0, we can ignore these
     output->fatal(CALL_INFO, -1,
                   "Core %" PRIu32 "; Hart %" PRIu32 "; Cannot find outstanding load for reg %" PRIu32 " from address %" PRIx64 "\n",
                   id, req.Hart, req.DestReg, req.Addr);
   }
+  if(!addrMatch){
+    output->fatal(CALL_INFO, -1,
+                  "Core %" PRIu32 "; Hart %" PRIu32 "; Cannot find matching address for outstanding load for reg %" PRIu32 " from address %" PRIx64 "\n",
+                  id, req.Hart, req.DestReg, req.Addr);
+
+  }
 }
 
 void RevProc::MarkRmtLoadComplete(const RmtMemReq& req){
 
-  auto it = RmtLSQueue->find(make_lsq_hash(req.DestReg, req.RegType, req.Hart));
+  auto it = RmtLSQueue->find(LSQHash(req.DestReg, req.RegType, req.Hart));
   if( it != RmtLSQueue->end()){
     DependencyClear(it->second.Hart, it->second.DestReg, (it->second.RegType == RevRegClass::RegFLOAT));
     RmtLSQueue->erase(it);
@@ -1854,13 +1916,13 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
                       "Core %" PRIu32 "; Hart %" PRIu32 "; ThreadID %" PRIu32 "; Retiring PC= 0x%" PRIx64 "\n",
                       id, HartID, ActiveThreadID, ExecPC);
       #endif
-      Retired++;
+      Stats.retired++;
 
       // Only clear the dependency if there is no outstanding load
-      if((RegFile->GetLSQueue()->count(make_lsq_hash(Pipeline.front().second.rd,
+      if((RegFile->GetLSQueue()->count(LSQHash(Pipeline.front().second.rd,
                                                      InstTable[Pipeline.front().second.entry].rdClass,
                                                      HartID))) == 0 && 
-          RegFile->GetRmtLSQueue()->count(make_lsq_hash(Pipeline.front().second.rd,
+          RegFile->GetRmtLSQueue()->count(LSQHash(Pipeline.front().second.rd,
                                                         InstTable[Pipeline.front().second.entry].rdClass,
                                                         HartID)) == 0){
         DependencyClear(HartID, &(Pipeline.front().second));
@@ -1897,10 +1959,12 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
       AddThreadsThatChangedState(std::move(ActiveThread));
     }
   }
-  #ifndef REV_TRACER
-  // Dump trace state 
+
+  #ifndef NO_REV_TRACER
+  // Dump trace state
   if (Tracer)  Tracer->Render(currentCycle);
   #endif
+
   return rtn;
 }
 
@@ -1914,26 +1978,32 @@ std::unique_ptr<RevThread> RevProc::PopThreadFromHart(unsigned HartID){
   return Harts.at(HartID)->PopThread();
 }
 
+
 void RevProc::PrintStatSummary(){
-  output->verbose(CALL_INFO, 2, 0, "Program execution complete\n");
-  Stats.percentEff = float(Stats.cyclesBusy)/Stats.totalCycles;
+  auto memStatsTotal = mem->GetMemStatsTotal();
+
+  double eff = StatsTotal.totalCycles ? double(StatsTotal.cyclesBusy)/StatsTotal.totalCycles : 0;
   output->verbose(CALL_INFO, 2, 0,
-                  "Program Stats: Total Cycles: %" PRIu64 " Busy Cycles: %" PRIu64
+                  "Program execution complete\n"
+                  "Core %u Program Stats: Total Cycles: %" PRIu64 " Busy Cycles: %" PRIu64
                   " Idle Cycles: %" PRIu64 " Eff: %f\n",
-                  Stats.totalCycles, Stats.cyclesBusy,
-                  Stats.cyclesIdle_Total, static_cast<double>(Stats.percentEff));
-  output->verbose(CALL_INFO, 3, 0, "\t Bytes Read: %" PRIu32 " Bytes Written: %" PRIu32
-                  " Floats Read: %" PRIu32 " Doubles Read %" PRIu32 " Floats Exec: %" PRIu64
-                  " TLB Hits: %" PRIu64 " TLB Misses: %" PRIu64 " Inst Retired: %" PRIu64 "\n",
-                  mem->memStats.bytesRead,
-                  mem->memStats.bytesWritten,
-                  mem->memStats.floatsRead,
-                  mem->memStats.doublesRead,
-                  Stats.floatsExec,
-                  mem->memStats.TLBHits,
-                  mem->memStats.TLBMisses,
-                  Retired);
-  return;
+                  id,
+                  StatsTotal.totalCycles,
+                  StatsTotal.cyclesBusy,
+                  StatsTotal.cyclesIdle_Total,
+                  eff);
+
+  output->verbose(CALL_INFO, 3, 0, "\t Bytes Read: %" PRIu64 " Bytes Written: %" PRIu64
+                  " Floats Read: %" PRIu64 " Doubles Read %" PRIu64 " Floats Exec: %" PRIu64
+                  " TLB Hits: %" PRIu64 " TLB Misses: %" PRIu64 " Inst Retired: %" PRIu64 "\n\n",
+                  memStatsTotal.bytesRead,
+                  memStatsTotal.bytesWritten,
+                  memStatsTotal.floatsRead,
+                  memStatsTotal.doublesRead,
+                  StatsTotal.floatsExec,
+                  memStatsTotal.TLBHits,
+                  memStatsTotal.TLBMisses,
+                  StatsTotal.retired);
 }
 
 RevRegFile* RevProc::GetRegFile(unsigned HartID) const {

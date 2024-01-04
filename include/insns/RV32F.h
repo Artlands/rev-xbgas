@@ -22,29 +22,23 @@ namespace SST::RevCPU{
 class RV32F : public RevExt{
 
   // Compressed instructions
-  static bool cflwsp(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cflwsp(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     // c.flwsp rd, $imm = lw rd, x2, $imm
-    Inst.rs1  = 2;
     return flw(F, R, M, Inst);
   }
 
-  static bool cfswsp(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cfswsp(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     // c.swsp rs2, $imm = sw rs2, x2, $imm
-    Inst.rs1  = 2;
     return fsw(F, R, M, Inst);
   }
 
-  static bool cflw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cflw(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     // c.flw %rd, %rs1, $imm = flw %rd, %rs1, $imm
-    Inst.rd  = CRegIdx(Inst.rd);
-    Inst.rs1 = CRegIdx(Inst.rs1);
     return flw(F, R, M, Inst);
   }
 
-  static bool cfsw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cfsw(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     // c.fsw rs2, rs1, $imm = fsw rs2, $imm(rs1)
-    Inst.rs2 = CRegIdx(Inst.rd);
-    Inst.rs1 = CRegIdx(Inst.rs1);
     return fsw(F, R, M, Inst);
   }
 
@@ -75,50 +69,50 @@ class RV32F : public RevExt{
   static constexpr auto& fcvtws  = CvtFpToInt<float,  int32_t>;
   static constexpr auto& fcvtwus = CvtFpToInt<float, uint32_t>;
 
-  static bool fsqrts(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool fsqrts(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->SetFP(Inst.rd, sqrtf( R->GetFP<float>(Inst.rs1) ));
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool fsgnjs(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool fsgnjs(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->SetFP(Inst.rd, std::copysign( R->GetFP<float>(Inst.rs1), R->GetFP<float>(Inst.rs2) ));
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool fsgnjns(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool fsgnjns(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->SetFP(Inst.rd, std::copysign( R->GetFP<float>(Inst.rs1), -R->GetFP<float>(Inst.rs2) ));
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool fsgnjxs(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool fsgnjxs(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     float rs1 = R->GetFP<float>(Inst.rs1), rs2 = R->GetFP<float>(Inst.rs2);
     R->SetFP(Inst.rd, std::copysign(rs1, std::signbit(rs1) ? -rs2 : rs2));
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool fmvxw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool fmvxw(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     int32_t i32;
-    float fp32 = R->GetFP<float>(Inst.rs1);      // The FP32 value
-    memcpy(&i32, &fp32, sizeof(i32));          // Reinterpreted as int32_t
+    float fp32 = R->GetFP<float, true>(Inst.rs1); // The FP32 value
+    memcpy(&i32, &fp32, sizeof(i32));       // Reinterpreted as int32_t
     R->SetX(Inst.rd, i32);                  // Copied to the destination register
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool fmvwx(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool fmvwx(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     float fp32;
     auto i32 = R->GetX<int32_t>(Inst.rs1);  // The X register as a 32-bit value
-    memcpy(&fp32, &i32, sizeof(fp32));         // Reinterpreted as float
-    R->SetFP(Inst.rd, fp32);              // Copied to the destination register
+    memcpy(&fp32, &i32, sizeof(fp32));      // Reinterpreted as float
+    R->SetFP(Inst.rd, fp32);                // Copied to the destination register
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool fclasss(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool fclasss(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     float fp32 = R->GetFP<float>(Inst.rs1);
     uint32_t i32;
     memcpy(&i32, &fp32, sizeof(i32));
@@ -128,13 +122,13 @@ class RV32F : public RevExt{
     return true;
   }
 
-  static bool fcvtsw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool fcvtsw(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->SetFP(Inst.rd, static_cast<float>(R->GetX<int32_t>(Inst.rs1)));
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool fcvtswu(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool fcvtswu(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->SetFP(Inst.rd, static_cast<float>(R->GetX<uint32_t>(Inst.rs1)));
     R->AdvancePC(Inst);
     return true;

@@ -40,7 +40,7 @@ inline void BoxNaN(double* dest, const void* value){
 }
 
 /// RISC-V Register Mneumonics
-enum class RevReg {
+enum class RevReg : uint16_t {
   zero =  0, ra  =  1, sp   =  2, gp   =  3, tp  =  4, t0  =  5, t1   =  6, t2   =  7,
   s0   =  8, s1  =  9, a0   = 10, a1   = 11, a2  = 12, a3  = 13, a4   = 14, a5   = 15,
   a6   = 16, a7  = 17, s2   = 18, s3   = 19, s4  = 20, s5  = 21, s6   = 22, s7   = 23,
@@ -96,11 +96,11 @@ private:
 
   FCSR fcsr{}; ///< RevRegFile: FCSR
 
-  std::shared_ptr<std::unordered_map<uint64_t, MemReq>> LSQueue{};
+  std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>> LSQueue{};
   std::function<void(const MemReq&)> MarkLoadCompleteFunc{};
 
   // xBGAS load-store queue
-  std::shared_ptr<std::unordered_map<uint64_t, RmtMemReq>> RmtLSQueue{};
+  std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>> RmtLSQueue{};
   std::function<void(const RmtMemReq&)> MarkRmtLoadCompleteFunc{};
 
   union{  // Anonymous union. We zero-initialize the largest member
@@ -113,7 +113,7 @@ private:
     double DPF[_REV_NUM_REGS_]{};       ///< RevRegFile: RVxxD register file
   };
 
-  union{  // Anonymous union. We zero-initialize the largest member
+  union{  // Anonymous union. We zero-initialize the register file
     uint64_t ERV64[_REV_NUM_REGS_]{};    ///< RevRegFile: xBGAS RV64 extended register file
   };
 
@@ -181,17 +181,12 @@ public:
   const auto& GetLSQueue() const { return LSQueue; }
 
   /// Set the Load/Store Queue
-  void SetLSQueue(std::shared_ptr<std::unordered_map<uint64_t, MemReq>> lsq){
+  void SetLSQueue(std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>> lsq){
     LSQueue = std::move(lsq);
   }
 
   /// Set the current tracer
   void SetTracer(RevTracer *t) { Tracer = t; }
-
-  /// Insert an item in the Load/Store Queue
-  void LSQueueInsert(std::pair<uint64_t, MemReq> item){
-    LSQueue->insert(std::move(item));
-  }
 
   /// Get the MarkLoadComplete function
   const std::function<void(const MemReq&)>& GetMarkLoadComplete() const {
@@ -212,14 +207,14 @@ public:
   const auto& GetRmtLSQueue() const { return RmtLSQueue; }
 
   /// Set the xBGAS Remote Load/Store Queue
-  void SetRmtLSQueue(std::shared_ptr<std::unordered_map<uint64_t, RmtMemReq>> lsq){
+  void SetRmtLSQueue(std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>> lsq){
     RmtLSQueue = std::move(lsq);
   }
 
-  /// Insert an item in the xBGAS Remote Load/Store Queue
-  void RmtLSQueueInsert(std::pair<uint64_t, RmtMemReq> item){
-    RmtLSQueue->insert(std::move(item));
-  }
+  // /// Insert an item in the xBGAS Remote Load/Store Queue
+  // void RmtLSQueueInsert(std::pair<uint64_t, RmtMemReq> item){
+  //   RmtLSQueue->insert(std::move(item));
+  // }
 
   /// Get the xBGAS MarkRmtLoadComplete function
   const std::function<void(const RmtMemReq&)>& GetMarkRmtLoadComplete() const {
@@ -288,7 +283,7 @@ public:
   /// GetE: Get the Extended E register for xBGAS
   template<typename U>
   uint64_t GetE(U rs) const {
-    return (uint64_t)(ERV64[size_t(rs)]);
+    return static_cast<uint64_t>(ERV64[size_t(rs)]);
   }
 
   /// SetX: Set the specifed X register to a specific value
@@ -345,21 +340,27 @@ public:
   }
 
   /// GetFP: Get the specified FP register cast to a specific FP type
-  template<typename T, typename U>
+  // The second argument indicates whether it is a FMV/FS move/store
+  // instruction which just transfers bits and not care about NaN-Boxing.
+  template<typename T, bool FMV_FS = false, typename U>
   T GetFP(U rs) const {
     if constexpr(std::is_same_v<T, double>){
-      return DPF[size_t(rs)];                // The FP64 register's value
-    }else if( HasD ){
-      uint64_t i64;
-      memcpy(&i64, &DPF[size_t(rs)], sizeof(i64));   // The FP64 register's value
-      if (~i64 >> 32)                        // Check for boxed NaN
-        return NAN;                          // Return NaN if it's not boxed
-      auto i32 = static_cast<uint32_t>(i64); // For endian independence
-      float fp32;
-      memcpy(&fp32, &i32, sizeof(fp32));     // The bottom half of FP64
-      return fp32;                           // Reinterpreted as FP32
+      return DPF[size_t(rs)];                    // The FP64 register's value
     }else{
-      return SPF[size_t(rs)];                // The FP32 register's value
+      float fp32;
+      if( !HasD ){
+        fp32 = SPF[size_t(rs)];                  // The FP32 register's value
+      }else{
+        uint64_t i64;
+        memcpy(&i64, &DPF[size_t(rs)], sizeof(i64)); // The FP64 register's value
+        if (!FMV_FS && ~i64 >> 32){              // Check for boxed NaN unless FMV/FS
+          fp32 = NAN;                            // Return NaN if it's not boxed
+        }else{
+          auto i32 = static_cast<uint32_t>(i64); // For endian independence on host
+          memcpy(&fp32, &i32, sizeof(fp32));     // The bottom half of FP64
+        }
+      }
+      return fp32;                               // Reinterpreted as FP32
     }
   }
 
@@ -378,44 +379,44 @@ public:
 
   // Friend functions and classes to access internal register state
   template<typename FP, typename INT>
-  friend bool CvtFpToInt(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool CvtFpToInt(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   template<typename T>
-  friend bool load(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool load(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   template<typename T>
-  friend bool store(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool store(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   template<typename T>
-  friend bool fload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool fload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   template<typename T>
-  friend bool fstore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool fstore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   // xBGAS
   template<typename T>
-  friend bool eload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool eload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   template<typename T>
-  friend bool estore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool estore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   template<typename T>
-  friend bool erload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool erload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   template<typename T>
-  friend bool erstore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool erstore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   template<typename T>
-  friend bool ebload(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool ebload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   template<typename T>
-  friend bool ebstore(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool ebstore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   template<typename T, template<class> class OP>
-  friend bool foper(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool foper(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   template<typename T, template<class> class OP>
-  friend bool fcondop(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst);
+  friend bool fcondop(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst);
 
   friend std::ostream& operator<<(std::ostream& os, const RevRegFile& regFile);
 

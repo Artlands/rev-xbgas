@@ -23,10 +23,12 @@ namespace SST::RevCPU{
 class RV32I : public RevExt {
 
   // Compressed instructions
-  static bool caddi4spn(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool caddi4spn(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.addi4spn rd, $imm == addi rd, x2, $imm
-    Inst.rs1  = 2;
-    Inst.rd   = CRegIdx(Inst.rd);
+    //Inst.rs1  = 2;  //Removed - Set in Decode
+    //Inst.rd   = CRegIdx(Inst.rd);  //Set in Decode
 
     // if Inst.imm == 0; this is a HINT instruction
     // this is effectively a NOP
@@ -39,45 +41,55 @@ class RV32I : public RevExt {
     return addi(F, R, M, Inst);
   }
 
-  static bool clwsp(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool clwsp(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.lwsp rd, $imm = lw rd, x2, $imm
-    Inst.rs1  = 2;
+    //Inst.rs1  = 2; //Removed - set in decode
     //Inst.imm = ((Inst.imm & 0b111111)*4);
     Inst.imm = (Inst.imm & 0b11111111); // Immd is 8 bits -  bits placed correctly in decode, no need to scale
 
     return lw(F, R, M, Inst);
   }
 
-  static bool cswsp(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cswsp(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.swsp rs2, $imm = sw rs2, x2, $imm
-    Inst.rs1  = 2;
+    //Inst.rs1  = 2;  //Removed - set in decode
     //Inst.imm = ((Inst.imm & 0b111111)*4);
     Inst.imm = (Inst.imm & 0b11111111); // Immd is 8 bits - zero extended, bits placed correctly in decode, no need to scale
 
     return sw(F, R, M, Inst);
   }
 
-  static bool clw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool clw(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.lw rd, rs1, $imm = lw rd, $imm(rs1)
-    Inst.rd  = CRegIdx(Inst.rd);
-    Inst.rs1 = CRegIdx(Inst.rs1);
+    //Inst.rd  = CRegIdx(Inst.rd);    //Removed - Scaled in decode
+    //Inst.rs1 = CRegIdx(Inst.rs1);   //Removed - Scaled in decode
     //Inst.imm = ((Inst.imm & 0b11111)*4);
     Inst.imm = (Inst.imm & 0b1111111); // Immd is 7 bits, zero extended, bits placed correctly in decode, no need to scale
 
     return lw(F, R, M, Inst);
   }
 
-  static bool csw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool csw(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.sw rs2, rs1, $imm = sw rs2, $imm(rs1)
-    Inst.rs2 = CRegIdx(Inst.rd);
-    Inst.rs1 = CRegIdx(Inst.rs1);
+    //Inst.rs2 = CRegIdx(Inst.rd);  //Removed - Scaled in Decode
+    //Inst.rs1 = CRegIdx(Inst.rs1); //Removed - Scaled in Decode
     //Inst.imm = ((Inst.imm & 0b11111)*4);
     Inst.imm = (Inst.imm & 0b1111111); //Immd is 7-bits, zero extended, bits placed correctly in decode, no need to scale
 
     return sw(F, R, M, Inst);
   }
 
-  static bool cj(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cj(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.j $imm = jal x0, $imm
     Inst.rd = 0; // x0
 
@@ -86,22 +98,26 @@ class RV32I : public RevExt {
     return jal(F, R, M, Inst);
   }
 
-  static bool cjal(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cjal(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.jal $imm = jal x0, $imm
-    Inst.rd = 1; // x1
+    //Inst.rd = 1; // x1 //Removed - set in decode
     Inst.imm = Inst.jumpTarget;
 
     return jal(F, R, M, Inst);
   }
 
-  static bool CRFUNC_1000(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst){
+  static bool CRFUNC_1000(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst){
     if( Inst.rs2 != 0 ){
       return cmv(F, R, M, Inst);
     }
     return cjr(F, R, M, Inst);
   }
 
-  static bool CRFUNC_1001(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst){
+  static bool CRFUNC_1001(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst){
+    RevInst Inst = CInst;
+
     if( (Inst.rs1 == 0) && (Inst.rd == 0) ){
       return ebreak(F, R, M, Inst);
     }else if( (Inst.rs2 == 0) && (Inst.rd != 0) ){
@@ -112,32 +128,40 @@ class RV32I : public RevExt {
     }
   }
 
-  static bool cjr(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cjr(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.jr %rs1 = jalr x0, 0(%rs1)
     Inst.rs2 = 0;
     return jalr(F, R, M, Inst);
   }
 
-  static bool cmv(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
-    Inst.rs1 = 0;  // expands to add rd, x0, rs2, so force rs1 to zero
+  static bool cmv(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
+    //Inst.rs1 = 0;  //Removed - performed in decode // expands to add rd, x0, rs2, so force rs1 to zero
     return add(F, R, M, Inst);
   }
 
-  static bool cadd(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cadd(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     Inst.rs1 = Inst.rd;
     return add(F, R, M, Inst);
   }
 
-  static bool cjalr(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cjalr(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.jalr %rs1 = jalr x1, 0(%rs1)
     Inst.rs2 = 1;
     return jalr(F, R, M, Inst);
   }
 
-  static bool cbeqz(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cbeqz(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.beqz %rs1, $imm = beq %rs1, x0, $imm
     Inst.rs2 = 0;
-    Inst.rs1 = CRegIdx(Inst.rs1);
+   // Inst.rs1 = CRegIdx(Inst.rs1); // removed - scaled in decode
     Inst.imm = Inst.offset;
     Inst.imm = Inst.ImmSignExt(9);
     //Inst.imm = Inst.offset & 0b111111;
@@ -147,10 +171,12 @@ class RV32I : public RevExt {
     return beq(F, R, M, Inst);
   }
 
-  static bool cbnez(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cbnez(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.bnez %rs1, $imm = bne %rs1, x0, $imm
-    Inst.rs2 = 0;
-    Inst.rs1 = CRegIdx(Inst.rs1);
+    //Inst.rs2 = 0; //removed - set in decode
+   // Inst.rs1 = CRegIdx(Inst.rs1); //removed - scaled in decode
     Inst.imm = Inst.offset;
     Inst.imm = Inst.ImmSignExt(9);  //Immd is signed 9-bit, scaled in decode
     //Inst.imm = Inst.offset & 0b111111;
@@ -160,15 +186,19 @@ class RV32I : public RevExt {
     return bne(F, R, M, Inst);
   }
 
-  static bool cli(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cli(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.li %rd, $imm = addi %rd, x0, $imm
-    Inst.rs1 = 0;
+    //Inst.rs1 = 0; //removed - set in decode
     // SEXT(Inst.imm, (Inst.imm & 0b111111), 6);
     Inst.imm = Inst.ImmSignExt(6);
     return addi(F, R, M, Inst);
   }
 
-  static bool CIFUNC(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool CIFUNC(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     if( Inst.rd == 2 ){
       // c.addi16sp
       //SEXT(Inst.imm, (Inst.imm & 0b011111111)*16, 32);
@@ -178,100 +208,118 @@ class RV32I : public RevExt {
       return addi(F, R, M, Inst);
     }else{
       // c.lui %rd, $imm = addi %rd, x0, $imm
-      Inst.imm = Inst.ImmSignExt(6);
+      Inst.imm = Inst.ImmSignExt(17);
       return lui(F, R, M, Inst);
     }
   }
 
-  static bool caddi(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool caddi(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.addi %rd, $imm = addi %rd, %rd, $imm
     // uint32_t tmp = Inst.imm & 0b111111;
     Inst.imm = Inst.ImmSignExt(6);
-    Inst.rs1 = Inst.rd;
+    //Inst.rs1 = Inst.rd; //Removed, set in decode
     return addi(F, R, M, Inst);
   }
 
-  static bool cslli(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cslli(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.slli %rd, $imm = slli %rd, %rd, $imm
-    Inst.rs1 = Inst.rd;
+   // Inst.rs1 = Inst.rd;  //removed - set in decode
     return slli(F, R, M, Inst);
   }
 
-  static bool csrli(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool csrli(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.srli %rd, $imm = srli %rd, %rd, $imm
-    Inst.rd  = CRegIdx(Inst.rd);
+    //Inst.rd  = CRegIdx(Inst.rd); //removed - set in decode
     Inst.rs1 = Inst.rd;
     return srli(F, R, M, Inst);
   }
 
-  static bool csrai(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool csrai(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.srai %rd, $imm = srai %rd, %rd, $imm
-    Inst.rd  = CRegIdx(Inst.rd);
-    Inst.rs1 = Inst.rd;
+   // Inst.rd  = CRegIdx(Inst.rd); //removed - set in decode
+   // Inst.rs1 = Inst.rd; //Removed - set in decode
     return srai(F, R, M, Inst);
   }
 
-  static bool candi(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool candi(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.andi %rd, $imm = sandi %rd, %rd, $imm
-    Inst.rd  = CRegIdx(Inst.rd);
-    Inst.rs1 = Inst.rd;
+    // Inst.rd  = CRegIdx(Inst.rd); //removed - scaled in decode
+    // Inst.rs1 = Inst.rd;          //removed - set in decode
     Inst.imm = Inst.ImmSignExt(6);  //immd is 6 bits, sign extended no scaling needed
     return andi(F, R, M, Inst);
   }
 
-  static bool cand(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cand(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.and %rd, %rs2 = and %rd, %rd, %rs2
-    Inst.rd  = CRegIdx(Inst.rd);
-    Inst.rs1 = Inst.rd;
-    Inst.rs2 = CRegIdx(Inst.rs2);
+   // Inst.rd  = CRegIdx(Inst.rd);//removed - scaled in decode
+   // Inst.rs1 = Inst.rd;//removed - scaled in decode
+   // Inst.rs2 = CRegIdx(Inst.rs2);//removed - scaled in decode
     return f_and(F, R, M, Inst);
   }
 
-  static bool cor(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cor(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.or %rd, %rs2 = or %rd, %rd, %rs2
-    Inst.rd  = CRegIdx(Inst.rd);
-    Inst.rs1 = Inst.rd;
-    Inst.rs2 = CRegIdx(Inst.rs2);
+    //Inst.rd  = CRegIdx(Inst.rd);//removed - scaled in decode
+    //Inst.rs1 = Inst.rd;//removed - scaled in decode
+    //Inst.rs2 = CRegIdx(Inst.rs2);//removed - scaled in decode
     return f_or(F, R, M, Inst);
   }
 
-  static bool cxor(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool cxor(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.xor %rd, %rs2 = xor %rd, %rd, %rs2
-    Inst.rd  = CRegIdx(Inst.rd);
-    Inst.rs1 = Inst.rd;
-    Inst.rs2 = CRegIdx(Inst.rs2);
+    //Inst.rd  = CRegIdx(Inst.rd);//removed - scaled in decode
+    //Inst.rs1 = Inst.rd;//removed - scaled in decode
+    //Inst.rs2 = CRegIdx(Inst.rs2);//removed - scaled in decode
     return f_xor(F, R, M, Inst);
   }
 
-  static bool csub(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool csub(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& CInst) {
+    RevInst Inst = CInst;
+
     // c.sub %rd, %rs2 = sub %rd, %rd, %rs2
-    Inst.rd  = CRegIdx(Inst.rd);
-    Inst.rs1 = Inst.rd;
-    Inst.rs2  = CRegIdx(Inst.rs2);
+    //Inst.rd  = CRegIdx(Inst.rd);//removed - scaled in decode
+    //Inst.rs1 = Inst.rd;//removed - scaled in decode
+    //Inst.rs2  = CRegIdx(Inst.rs2);//removed - scaled in decode
     return sub(F, R, M, Inst);
   }
 
   // Standard instructions
-  static bool lui(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool lui(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->SetX(Inst.rd, static_cast<int32_t>(Inst.imm << 12));
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool auipc(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool auipc(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     auto ui = static_cast<int32_t>(Inst.imm << 12);
     R->SetX(Inst.rd, ui + R->GetPC());
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool jal(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool jal(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->SetX(Inst.rd, R->GetPC() + Inst.instSize);
     R->SetPC(R->GetPC() + Inst.ImmSignExt(21));
     return true;
   }
 
-  static bool jalr(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool jalr(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     auto ret = R->GetPC() + Inst.instSize;
     R->SetPC((R->GetX<uint64_t>(Inst.rs1) + Inst.ImmSignExt(12)) & -2);
     R->SetX(Inst.rd, ret);
@@ -323,19 +371,19 @@ class RV32I : public RevExt {
   static constexpr auto& srl  = oper<ShiftRight,    OpKind::Reg, std::make_unsigned_t>;
   static constexpr auto& sra  = oper<ShiftRight,    OpKind::Reg>;
 
-  static bool fence(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool fence(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     M->FenceMem(F->GetHartToExecID());
     R->AdvancePC(Inst);
     return true;  // temporarily disabled
   }
 
-  static bool fencei(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool fencei(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     M->FenceMem(F->GetHartToExecID());
     R->AdvancePC(Inst);
     return true;  // temporarily disabled
   }
 
-  static bool ecall(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst){
+  static bool ecall(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst){
     /*
      * In reality this should be getting/setting a LOT of bits inside the
      * CSRs however because we are only concerned with ecall right now it's
@@ -358,37 +406,37 @@ class RV32I : public RevExt {
     return true;
   }
 
-  static bool ebreak(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool ebreak(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool csrrw(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool csrrw(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool csrrs(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool csrrs(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool csrrc(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool csrrc(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool csrrwi(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool csrrwi(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool csrrsi(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool csrrsi(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool csrrci(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool csrrci(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     R->AdvancePC(Inst);
     return true;
   }

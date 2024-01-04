@@ -26,10 +26,10 @@ class RevHart{
   EcallState Ecall{};
 
   ///< RevHart: Pointer to the Proc's LSQueue
-  const std::shared_ptr<std::unordered_map<uint64_t, MemReq>>& LSQueue;
+  const std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>>& LSQueue;
 
   ///< RevHart: Pointer to the Proc's RmtLSQueue
-  const std::shared_ptr<std::unordered_map<uint64_t, RmtMemReq>>& RmtLSQueue;
+  const std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>>& RmtLSQueue;
 
   ///< RevHart: Pointer to the Proc's MarkLoadCompleteFunc
   std::function<void(const MemReq&)> MarkLoadCompleteFunc;
@@ -46,18 +46,18 @@ class RevHart{
 
 public:
   ///< RevHart: Constructor
-  // RevHart(unsigned ID, const std::shared_ptr<std::unordered_map<uint64_t, MemReq>>& LSQueue,
+  // RevHart(unsigned ID, const std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>>& LSQueue,
   //         std::function<void(const MemReq&)> MarkLoadCompleteFunc)
-  //   : ID(ID), LSQueue(LSQueue), MarkLoadCompleteFunc(MarkLoadCompleteFunc) {}
+  //   : ID(ID), LSQueue(LSQueue), MarkLoadCompleteFunc(std::move(MarkLoadCompleteFunc)) {}
 
   ///< RevHart: Overloaded constructor
-  RevHart(unsigned ID, const std::shared_ptr<std::unordered_map<uint64_t, MemReq>>& LSQueue,
-          const std::shared_ptr<std::unordered_map<uint64_t, RmtMemReq>>& RmtLSQueue,
+  RevHart(unsigned ID, const std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>>& LSQueue,
+          const std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>>& RmtLSQueue,
           std::function<void(const MemReq&)> MarkLoadCompleteFunc,
           std::function<void(const RmtMemReq&)> MarkRmtLoadCompleteFunc)
     : ID(ID), LSQueue(LSQueue), RmtLSQueue(RmtLSQueue),
-      MarkLoadCompleteFunc(MarkLoadCompleteFunc),
-      MarkRmtLoadCompleteFunc(MarkRmtLoadCompleteFunc) {}
+      MarkLoadCompleteFunc(std::move(MarkLoadCompleteFunc)),
+      MarkRmtLoadCompleteFunc(std::move(MarkRmtLoadCompleteFunc)) {}
 
   ///< RevHart: Destructor
   ~RevHart() = default;

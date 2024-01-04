@@ -162,6 +162,15 @@ public:
                 const MemReq& req,
                 RevFlag flags);
 
+  /// RevMem: flush a cache line
+  bool FlushLine( unsigned Hart, uint64_t Addr );
+
+  /// RevMem: invalidate a cache line
+  bool InvLine( unsigned Hart, uint64_t Addr );
+
+  /// RevMem: clean a line
+  bool CleanLine( unsigned Hart, uint64_t Addr );
+
   /// RevMem: DEPRECATED: read data from the target memory location
   [[deprecated("Simple RevMem interfaces have been deprecated")]]
   bool ReadMem( uint64_t Addr, size_t Len, void *Data );
@@ -264,7 +273,8 @@ public:
   // ----------------------------------------------------
   /// RevMem: template remote read memory interface
   template <typename T>
-  bool RmtReadVal( unsigned Hart, uint64_t Nmspace, 
+  bool RmtReadVal( unsigned Hart, 
+                   uint64_t Nmspace, 
                    uint64_t SrcAddr,
                    T *Target,
                    const RmtMemReq& req, 
@@ -403,24 +413,47 @@ public:
   const uint64_t& GetTLSBaseAddr(){ return TLSBaseAddr; }
   const uint64_t& GetTLSSize(){ return TLSSize; }
 
-  class RevMemStats {
-  public:
+  struct RevMemStats {
     uint64_t TLBHits;
     uint64_t TLBMisses;
-    uint32_t floatsRead;
-    uint32_t floatsWritten;
-    uint32_t doublesWritten;
-    uint32_t doublesRead;
-    uint32_t bytesRead;
-    uint32_t bytesWritten;
+    uint64_t floatsRead;
+    uint64_t floatsWritten;
+    uint64_t doublesRead;
+    uint64_t doublesWritten;
+    uint64_t bytesRead;
+    uint64_t bytesWritten;
   };
 
-  RevMemStats memStats = {};
+  RevMemStats GetAndClearStats(){
+    // Add each field from memStats into memStatsTotal
+    for(auto stat : {
+        &RevMemStats::TLBHits,
+        &RevMemStats::TLBMisses,
+        &RevMemStats::floatsRead,
+        &RevMemStats::floatsWritten,
+        &RevMemStats::doublesRead,
+        &RevMemStats::doublesWritten,
+        &RevMemStats::bytesRead,
+        &RevMemStats::bytesWritten}){
+      memStatsTotal.*stat += memStats.*stat;
+    }
+
+    auto ret = memStats;
+    memStats = {};  // Zero out memStats
+    return ret;
+  }
+
+RevMemStats GetMemStatsTotal() const {
+    return memStatsTotal;
+  }
 
 protected:
   char *physMem = nullptr;                 ///< RevMem: memory container
 
 private:
+  RevMemStats memStats = {};
+  RevMemStats memStatsTotal = {};
+
   unsigned long memSize;        ///< RevMem: size of the target memory
   unsigned tlbSize;             ///< RevMem: number of entries in the TLB
   unsigned maxHeapSize;         ///< RevMem: maximum size of the heap

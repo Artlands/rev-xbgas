@@ -12,6 +12,7 @@
 #define _SST_REVCPU_RV64X_H_
 
 #include "../RevInstHelpers.h"
+#include "../RevExt.h"
 
 namespace SST::RevCPU{
 
@@ -25,7 +26,7 @@ class RV64X : public RevExt {
   static constexpr auto& elb  = eload<int8_t>;
   static constexpr auto& elbu = eload<uint8_t>;
 
-  static bool ele(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool ele(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     return true;
   }
 
@@ -35,7 +36,7 @@ class RV64X : public RevExt {
   static constexpr auto& esh  = estore<uint16_t>;
   static constexpr auto& esb  = estore<uint8_t>;
 
-  static bool ese(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool ese(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     return true;
   }
 
@@ -47,7 +48,7 @@ class RV64X : public RevExt {
   static constexpr auto& erlb  = erload<int8_t>;
   static constexpr auto& erlbu = erload<uint8_t>;
 
-  static bool erle(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool erle(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     return true;
   }
 
@@ -57,26 +58,26 @@ class RV64X : public RevExt {
   static constexpr auto& ersh  = erstore<uint16_t>;
   static constexpr auto& ersb  = erstore<uint8_t>;
 
-  static bool erse(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool erse(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     return true;
   }
 
   // xBGAS register operations
-  static bool eaddi(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool eaddi(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     uint64_t rs1 = R->GetE(Inst.rs1);
     R->SetX(Inst.rd, rs1 + Inst.ImmSignExt(12));
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool eaddie(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool eaddie(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     uint64_t rs1 = R->GetX<uint64_t>(Inst.rs1);
     R->SetE(Inst.rd, rs1 + Inst.ImmSignExt(12));
     R->AdvancePC(Inst);
     return true;
   }
 
-  static bool eaddix(RevFeature *F, RevRegFile *R, RevMem *M, RevInst Inst) {
+  static bool eaddix(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
     uint64_t rs1 = R->GetE(Inst.rs1);
     R->SetE(Inst.rd, rs1 + Inst.ImmSignExt(12));
     R->AdvancePC(Inst);

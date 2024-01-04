@@ -163,29 +163,27 @@ void RevBasicRmtMemCtrl::handleReadRqst( xbgasNicEvent *ev ){
   uint8_t *buffer = new uint8_t[Size * Nelem];
 
   // Records the read request info in the load queue 
-  LocalLoadRecord.insert({make_rmt_lsq_hash(SrcId, Id), 
+  LocalLoadRecord.insert({RmtLSQHash(SrcId, Id), 
                          {SrcId, Id, DestAddr, Size, Nelem, Stride, Flags, buffer}});
-  LocalLoadCount.insert({make_rmt_lsq_hash(SrcId, Id), 0x00ul});
-  LocalLoadType.insert({make_rmt_lsq_hash(SrcId, Id), RmtMemOp::READRqst});
+  LocalLoadCount.insert({RmtLSQHash(SrcId, Id), 0x00ul});
+  LocalLoadType.insert({RmtLSQHash(SrcId, Id), RmtMemOp::READRqst});
 
   for( uint32_t i=0; i < Nelem; i++ ){
-    MemReq req{};
-    req.Set(SrcAddr + i * Stride,                      // Memory address
-            0,                                         // Destination register (ignored)
-            RevRegClass::RegUNKNOWN,                   // Register class (ignored)
-            virtualHart,                               // Virtual Hart ID
-            MemOp::MemOpREAD,                          // Memory operation
-            true,                                      // Outstanding
-            [this](const MemReq& req) {                // Lambda function as a callback
-                RevBasicRmtMemCtrl::MarkLocalLoadComplete(req);
-            });
-    LocalLoadTrack.insert({SrcAddr + i * Stride,
-                           make_rmt_lsq_hash(SrcId, Id)});
+    MemReq req(SrcAddr + i * Stride,                      // Memory address
+               0,                                         // Destination register (ignored)
+               RevRegClass::RegUNKNOWN,                   // Register class (ignored)
+               virtualHart,                               // Virtual Hart ID
+               MemOp::MemOpREAD,                          // Memory operation
+               true,                                      // Outstanding
+               [this](const MemReq& req) {                // Lambda function as a callback
+                  RevBasicRmtMemCtrl::MarkLocalLoadComplete(req);
+               });
+    LocalLoadTrack.insert({SrcAddr + i * Stride, RmtLSQHash(SrcId, Id)});
     Mem->ReadMem(virtualHart, 
                  SrcAddr + i * Stride, 
                  Size, 
                  (void *)(&buffer[i * Size]), 
-                 req, 
+                 std::move(req), 
                  Flags);
   }
 }
@@ -220,10 +218,10 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent *ev ){
       output->fatal(CALL_INFO, -1, "RevRmtMemOp is null in handleReadResp\n");
     switch(ev->getOp()){
     case RmtMemOp::READResp:
-      ev->getData( target );
+      ev->getData( target );    // Copy the data to the target register
       break;
     case RmtMemOp::BulkREADResp:
-      handleWriteRqst(ev);
+      handleWriteRqst(ev);      // Write the data to the local memory
       break;
     default:
       output->fatal(CALL_INFO, -1, "Error: unknown remote memory response\n");
@@ -532,30 +530,29 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
                              buffer);
     Id = RmtEvent->getID();
     // Records the read request info in the load queue 
-    LocalLoadRecord.insert({make_rmt_lsq_hash(DestId, Id), 
+    LocalLoadRecord.insert({RmtLSQHash(DestId, Id), 
                            {DestId, Id, DestAddr, Size, Nelem, Stride, Flags, buffer}});
-    LocalLoadCount.insert({make_rmt_lsq_hash(DestId, Id), 0x00ul});
-    LocalLoadType.insert({make_rmt_lsq_hash(DestId, Id), RmtMemOp::BulkWRITERqst});
-    EventsToSend.insert({make_rmt_lsq_hash(DestId, Id), RmtEvent});
+    LocalLoadCount.insert({RmtLSQHash(DestId, Id), 0x00ul});
+    LocalLoadType.insert({RmtLSQHash(DestId, Id), RmtMemOp::BulkWRITERqst});
+    EventsToSend.insert({RmtLSQHash(DestId, Id), RmtEvent});
 
     for( uint32_t i=0; i < Nelem; i++ ){
-      MemReq req{};
-      req.Set(SrcAddr + i * Stride,                      // Memory address
-              0,                                         // Destination register (ignored)
-              RevRegClass::RegUNKNOWN,                   // Register class (ignored)
-              virtualHart,                               // Virtual Hart ID
-              MemOp::MemOpREAD,                          // Memory operation
-              true,                                      // Outstanding
-              [this](const MemReq& req) {                // Lambda function as a callback
-                  RevBasicRmtMemCtrl::MarkLocalLoadComplete(req);
-              });
+      MemReq req(SrcAddr + i * Stride,                      // Memory address
+                 0,                                         // Destination register (ignored)
+                 RevRegClass::RegUNKNOWN,                   // Register class (ignored)
+                 virtualHart,                               // Virtual Hart ID
+                 MemOp::MemOpREAD,                          // Memory operation
+                 true,                                      // Outstanding
+                 [this](const MemReq& req) {                // Lambda function as a callback
+                     RevBasicRmtMemCtrl::MarkLocalLoadComplete(req);
+                 });
       LocalLoadTrack.insert({SrcAddr + i * Stride,
-                             make_rmt_lsq_hash(DestId, Id)});
+                             RmtLSQHash(DestId, Id)});
       Mem->ReadMem(virtualHart, 
                    SrcAddr + i * Stride, 
                    Size, 
                    (void *)(&buffer[i * Size]), 
-                   req, 
+                   std::move(req), 
                    Flags);
     }
     requests.push_back(RmtEvent->getID());

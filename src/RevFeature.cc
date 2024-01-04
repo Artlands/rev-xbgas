@@ -13,7 +13,7 @@
 #include <cstring>
 #include <string_view>
 
-using namespace SST::RevCPU;
+namespace SST::RevCPU{
 
 RevFeature::RevFeature( std::string Machine,
                         SST::Output *Output,
@@ -74,6 +74,7 @@ bool RevFeature::ParseMachineModel(){
     { "Zam",        RV_ZAM | RV_A                                             },
     { "Ztso",       RV_ZTSO                                                   },
     { "Zfa",        RV_ZFA | RV_F | RV_ZICSR                                  },
+    { "Zicbom",     RV_ZICBOM                                                 },
     { "X",          RV_XBGAS                                                  },
   };
 
@@ -102,4 +103,5 @@ bool RevFeature::ParseMachineModel(){
   return false;
 }
 
+} // namespace SST::RevCPU
 // EOF
