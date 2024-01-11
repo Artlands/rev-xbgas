@@ -74,21 +74,17 @@ RevBasicRmtMemCtrl::RevBasicRmtMemCtrl(ComponentId_t id, const Params& params)
   : RevRmtMemCtrl(id, params), xbgasNic(nullptr), virtualHart(0),
     max_loads(64), max_stores(64), max_ops(2),
     num_read(0x00ull), num_write(0x00ull){
-  
-  std::string ClockFreq = params.find<std::string>("clock", "1Ghz");
-  Params xbgasNicParams = params.get_scoped_params("xbgasNicParams");
-  xbgasNic = loadAnonymousSubComponent<RevCPU::xbgasNicAPI>( "revcpu.XbgasNIC",
-                                                             "xbgasNicIface", 
-                                                             0,
-                                                             ComponentInfo::SHARE_NONE, //ComponentInfo::SHARE_PORTS | ComponentInfo::INSERT_STATS,
-                                                             xbgasNicParams,
-                                                             new Event::Handler<RevBasicRmtMemCtrl>(
-                                                               this, &RevBasicRmtMemCtrl::rmtMemEventHandler
-                                                             ));
 
+  std::string ClockFreq = params.find<std::string>("clock", "1Ghz");
+
+  xbgasNic = loadUserSubComponent<RevCPU::xbgasNicAPI>( "xbgasNicIface");
+  
   if( !xbgasNic ){
     output->fatal(CALL_INFO, -1, "Error: unable to load xbgasNicAPI\n");
   }
+
+  xbgasNic->setMsgHandler(new Event::Handler<RevBasicRmtMemCtrl>(
+                          this, &RevBasicRmtMemCtrl::rmtMemEventHandler));
 
   virtualHart = params.find<uint16_t>("numHarts", "1");
   max_loads = params.find<uint32_t>("max_loads", 64);
@@ -291,7 +287,7 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ) {
 }
 
 void RevBasicRmtMemCtrl::init(unsigned int phase){
-  // xbgasNic->init(phase);
+  xbgasNic->init(phase);
   
   int id = (int)(xbgasNic->getAddress());  
   // int numPEs = (int)(xbgasNic->getNumPEs());

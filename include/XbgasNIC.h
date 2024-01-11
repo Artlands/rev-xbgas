@@ -173,32 +173,35 @@ public:
  */
 class xbgasNicAPI: public SST::SubComponent{
 public:
-  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::RevCPU::xbgasNicAPI, Event::HandlerBase *)
+  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::RevCPU::xbgasNicAPI)
 
   SST_ELI_DOCUMENT_PARAMS( {"verbose", "Verbosity for output (0 = nothing)", "0"} )
 
-  /// xbgasNicEvent: constructor
-  xbgasNicAPI( ComponentId_t id, Params& params, Event::HandlerBase *handler) : SubComponent(id) { }
+  /// xbgasNicAPI: constructor
+  xbgasNicAPI( ComponentId_t id, Params& params) : SubComponent(id) { }
 
-  /// xbgasNicEvent: default destructor
+  /// xbgasNicAPI: default destructor
   virtual ~xbgasNicAPI() {}
 
-  /// xbgasNicEvent: initializes the network
+  /// xbgasNicAPI: set the event handler
+  virtual void setMsgHandler(Event::HandlerBase* handler) = 0;
+
+  /// xbgasNicAPI: initializes the network
   virtual void init(unsigned int phase) = 0;
 
-  /// xbgasNicEvent: setup the network
+  /// xbgasNicAPI: setup the network
   virtual void setup() = 0;
 
-  /// xbgasNicEvent: finish function
+  /// xbgasNicAPI: finish function
   virtual void finish() = 0;
 
-  /// xbgasNicEvent: send a message on the network
+  /// xbgasNicAPI: send a message on the network
   virtual void send(xbgasNicEvent *ev, int dest) = 0;
 
-  /// xbgasNicEvent: retrieve the number of potential destinations
+  /// xbgasNicAPI: retrieve the number of potential destinations
   virtual int getNumDestinations() = 0;
 
-  /// xbgasNicEvent: returns the NIC's network address
+  /// xbgasNicAPI: returns the NIC's network address
   virtual SST::Interfaces::SimpleNetwork::nid_t getAddress() = 0;
 
   /// xbgasNicAPI: retrieve the number of hosts
@@ -244,10 +247,13 @@ public:
   )
 
   /// XbgasNIC: constructor
-  XbgasNIC(ComponentId_t id, Params& params, Event::HandlerBase *handler);
+  XbgasNIC(ComponentId_t id, Params& params);
 
   /// XbgasNIC: destructor
   ~XbgasNIC();
+
+  /// XbgasNIC: set the event handler
+  virtual void setMsgHandler(Event::HandlerBase* handler) { msgHandler = handler; };
 
   /// XbgasNIC: initialization function
   void init(unsigned int phase) override;

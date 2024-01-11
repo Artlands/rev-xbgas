@@ -100,8 +100,9 @@ bool xbgasNicEvent::buildWRITEResp(uint64_t Id){
   return true;
 }
 
-XbgasNIC::XbgasNIC(ComponentId_t id, Params& params, Event::HandlerBase *handler)
-  : xbgasNicAPI(id, params, handler) {
+XbgasNIC::XbgasNIC(ComponentId_t id, Params& params)
+  : xbgasNicAPI(id, params) {
+    
   // setup the initial logging functions
   int verbosity = params.find<int>("verbose", 0);
   std::string ClockFreq = params.find<std::string>("clock", "1Ghz");
@@ -114,7 +115,7 @@ XbgasNIC::XbgasNIC(ComponentId_t id, Params& params, Event::HandlerBase *handler
   if( !iFace ){
     // load the anonymous nic
     Params netparams;
-    netparams.insert("port_name", params.find<std::string>("port", "network"));
+    netparams.insert("port_name", params.find<std::string>("port", "port"));
     netparams.insert("input_buf_size", params.find<std::string>("network_input_buffer_size", "1KiB"));
     netparams.insert("output_buf_size", params.find<std::string>("network_output_buffer_size", "1KiB"));
     netparams.insert("link_bw", params.find<std::string>("network_bw", "80GiB/s"));
@@ -138,7 +139,7 @@ XbgasNIC::XbgasNIC(ComponentId_t id, Params& params, Event::HandlerBase *handler
 
   numDest = 0;
 
-  msgHandler = handler;
+  msgHandler = nullptr;
 }
 
 XbgasNIC::~XbgasNIC(){
@@ -175,6 +176,7 @@ void XbgasNIC::init(unsigned int phase){
 }
 
 void XbgasNIC::setup(){
+  iFace->setup();
   if( msgHandler == nullptr ){
     output->fatal(CALL_INFO, -1,
                   "%s, Error: XbgasNIC implements a callback-based notification and parent has not registerd a callback function\n",
@@ -183,6 +185,7 @@ void XbgasNIC::setup(){
 }
 
 void XbgasNIC::finish(){
+  iFace->finish();
 }
 
 bool XbgasNIC::msgNotify(int vn){
