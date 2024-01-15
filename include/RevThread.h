@@ -87,6 +87,9 @@ public:
     return std::move(VirtRegState);
   }
 
+  ///< RevThread: Get the initial register state of this thread
+  RevVirtRegState* GetVirtRegState() const { return VirtRegState.get(); }
+
   ///< RevThread: Get the RevFeature this thread was created with
   RevFeature* GetFeature() const { return Feature; }
 

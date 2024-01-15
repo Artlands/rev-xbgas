@@ -470,8 +470,17 @@ void RevCPU::setup(){
     Ctrl->setup();
   }
   if( EnableXBGAS ){
-    // setup xBGAS NIC and remote controller
     rmtCtrl->setup();
+    // Setup the extended registers to have the xBGAS PE ID and total number of PEs
+    // e10 = contains the PE id
+    // e11 = contains the number of PEs
+
+    // Get the main thread
+    RevThread* MainThread = ReadyThreads[0].get();
+    RevRegFile* RegState = MainThread->GetVirtRegState();
+
+    RegState->SetE(RevReg::e10, rmtCtrl->getPEID());
+    RegState->SetE(RevReg::e11, rmtCtrl->getNumPEs());
   }
 }
 
@@ -484,7 +493,6 @@ void RevCPU::init( unsigned int phase ){
   if( EnableMemH )
     Ctrl->init(phase);
   if( EnableXBGAS ){
-    // rmtCtrl.xbgasNicIface->init(phase);
     rmtCtrl->init(phase);
   }
 }
@@ -865,14 +873,6 @@ void RevCPU::InitMainThread(uint32_t MainThreadID, const uint64_t StartAddr){
   MainThreadRegState->SetX(RevReg::sp, Mem->GetThreadMemSegs().front()->getTopAddr()-Mem->GetTLSSize());
   MainThreadRegState->SetX(RevReg::gp, Loader->GetSymbolAddr("__global_pointer$"));
   MainThreadRegState->SetX(8, Loader->GetSymbolAddr("__global_pointer$"));
-
-  // Initialize the extended registers to have the xBGAS PE ID and total number of PEs
-  // e10 = contains the physical PE id
-  // e11 = contains the number of PEs
-  if( EnableXBGAS ){
-    MainThreadRegState->SetE(RevReg::e10, rmtCtrl->getPEID());
-    MainThreadRegState->SetE(RevReg::e11, rmtCtrl->getNumPEs());
-  }
 
   SetupArgs(MainThreadRegState);
   std::unique_ptr<RevThread> MainThread = std::make_unique<RevThread>(MainThreadID,

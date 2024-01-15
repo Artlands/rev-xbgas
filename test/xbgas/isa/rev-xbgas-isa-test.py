@@ -5,7 +5,7 @@
 #
 # See LICENSE in the top level directory for licensing details
 #
-# rev-xbgas-test.py
+# rev-test-xbgas-isa.py
 #
 
 # ---------------------------------------------------------------
@@ -25,35 +25,40 @@
 
 import os
 import sst
+import sys
 
-PROGRAM = "eaddi.exe"
-MEMSIZE = 1024*1024*1024 - 1
-ENABLE_XBGAS = 1
-VERBOSE0 = 5
-VERBOSE1 = 5
+if len(sys.argv) != 2:
+    sys.stderr.write("Usage: You must pass the executable you wish to simulate using the '--model-options' option with sst")
+    raise SystemExit(1)
+
+# Define SST core options
+sst.setProgramOption("timebase", "1ps")
+
+# Tell SST what statistics handling we want
+sst.setStatisticLoadLevel(4)
 
 cpu0_params = {
-  "verbose" : VERBOSE0,                         # Verbosity
+  "verbose" : 1,                         # Verbosity
   "clock" : "1.0GHz",                           # Clock
-  "program" : os.getenv("REV_EXE", PROGRAM),    # Target executable
-  "memSize" : MEMSIZE,                          # Memory size in bytes
+  "program" : os.getenv("REV_EXE",  sys.argv[1]),    # Target executable
+  "memSize" : 1024*1024*1024,                          # Memory size in bytes
   "startAddr" : "[0:0x00000000]",               # Starting address for core 0
   "machine" : "[0:RV64GCX]",
   "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
-  "enable_xbgas" : ENABLE_XBGAS,                # Enable XBGAS support  
+  "enable_xbgas" : 1,                # Enable XBGAS support  
   "enable_memH": 1,                             # Enable memHierarchy support
   "splash" : 1                                  # Display the splash message
 }
 
 cpu1_params = {
-  "verbose" : VERBOSE1,                         # Verbosity
+  "verbose" : 5,                         # Verbosity
   "clock" : "1.0GHz",                           # Clock
-  "program" : os.getenv("REV_EXE", PROGRAM),    # Target executable
-  "memSize" : MEMSIZE,                          # Memory size in bytes
+  "program" : os.getenv("REV_EXE",  sys.argv[1]),    # Target executable
+  "memSize" : 1024*1024*1024,                          # Memory size in bytes
   "startAddr" : "[0:0x00000000]",               # Starting address for core 0
   "machine" : "[0:RV64GCX]",
   "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
-  "enable_xbgas" : ENABLE_XBGAS,                # Enable XBGAS support  
+  "enable_xbgas" : 1,                # Enable XBGAS support  
   "enable_memH": 1,                             # Enable memHierarchy support
   "splash" : 0                                  # Display the splash message
 }
@@ -74,7 +79,7 @@ lsq_params = {
 memctrl_params = {
   "clock": "2GHz",
   "addr_range_start": 0,
-  "addr_range_end": MEMSIZE,
+  "addr_range_end": 1024*1024*1024-1,
   "backing": "malloc"
 }
 
@@ -163,4 +168,8 @@ link_if_rtr0.setNoCut()
 link_if_rtr1 = sst.Link("link_rmt_nic1")
 link_if_rtr1.connect( (rmt_nic1_iface, "rtr_port", "2us"), (router, "port1", "2us") )
 link_if_rtr1.setNoCut()
+
+sst.setStatisticOutput("sst.statOutputCSV")
+sst.enableAllStatisticsForAllComponents()
+
 # EOF

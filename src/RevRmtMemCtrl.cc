@@ -71,7 +71,8 @@ RevRmtMemCtrl::~RevRmtMemCtrl(){
 // RevBasicRmtMemCtrl
 // ----------------------------------------
 RevBasicRmtMemCtrl::RevBasicRmtMemCtrl(ComponentId_t id, const Params& params)
-  : RevRmtMemCtrl(id, params), xbgasNic(nullptr), virtualHart(0),
+  : RevRmtMemCtrl(id, params), xbgasNic(nullptr), virtualHart(0), 
+    myPEid(0), numPEs(0),
     max_loads(64), max_stores(64), max_ops(2),
     num_read(0x00ull), num_write(0x00ull){
 
@@ -288,28 +289,30 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ) {
 
 void RevBasicRmtMemCtrl::init(unsigned int phase){
   xbgasNic->init(phase);
-  
-  int id = (int)(xbgasNic->getAddress());  
-  // int numPEs = (int)(xbgasNic->getNumPEs());
-
-  // Namespece Lookaside Buffer Initialization. Now using a naive implementation
-  uint64_t nmspace = 0;
-  xbgasHosts = xbgasNic->getXbgasHosts();
-
-  if (xbgasHosts.size() != 0) {
-    // The first entry is reserved for the local PE
-    nmspaceLB[nmspace] = id;
-    for ( unsigned i = 1; i < xbgasHosts.size(); i++ ) {
-      nmspace = (uint64_t)(xbgasHosts[i] + 1);
-      nmspaceLB[nmspace] = xbgasHosts[i];
-    }
-  }
 }
 
 void RevBasicRmtMemCtrl::setup(){
   if( xbgasNic == nullptr )
     output->fatal(CALL_INFO, -1, "Error: xBGAS NIC Inferface is null\n");
   xbgasNic->setup();
+
+  xbgasHosts = xbgasNic->getXbgasHosts();
+  myPEid = xbgasNic->getAddress();
+  numPEs = xbgasHosts.size();
+
+  // Namespece Lookaside Buffer Initialization. Now using a naive implementation,
+  // i.e, the first entry is reserved for the local PE and the rest of namespace id
+  // is calculated by adding 1 to the PE id.
+  uint64_t nmspace = 0;
+
+  if (xbgasHosts.size() != 0) {
+    // The first entry is reserved for the local PE
+    nmspaceLB[nmspace] = myPEid;
+    for ( unsigned i = 1; i < numPEs; i++ ) {
+      nmspace = (uint64_t)(xbgasHosts[i] + 1);
+      nmspaceLB[nmspace] = xbgasHosts[i];
+    }
+  }
 }
 
 void RevBasicRmtMemCtrl::finish(){
@@ -569,12 +572,4 @@ uint32_t RevBasicRmtMemCtrl::findDest( uint64_t Nmspace ){
     return -1;
   else
     return it->second;
-}
-
-unsigned RevBasicRmtMemCtrl::getPEID(){
-  return (unsigned)(xbgasNic->getAddress());
-}
-
-unsigned RevBasicRmtMemCtrl::getNumPEs(){
-  return xbgasNic->getNumPEs();
 }

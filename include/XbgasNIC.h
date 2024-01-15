@@ -204,9 +204,6 @@ public:
   /// xbgasNicAPI: returns the NIC's network address
   virtual SST::Interfaces::SimpleNetwork::nid_t getAddress() = 0;
 
-  /// xbgasNicAPI: retrieve the number of hosts
-  virtual unsigned getNumPEs() = 0;
-
   /// xbgasNicAPI: retrieve the hosts
   virtual std::vector<SST::Interfaces::SimpleNetwork::nid_t> getXbgasHosts() = 0;
 
@@ -272,9 +269,6 @@ public:
 
   /// XbgasNIC: get the endpoint's network address
   SST::Interfaces::SimpleNetwork::nid_t getAddress() override;
-
-  /// XbgasNIC: retrieve the number of hosts
-  unsigned getNumPEs() { return (unsigned)(xbgasHosts.size()); }
 
   /// XbgasNIC: retrieve the hosts
   std::vector<SST::Interfaces::SimpleNetwork::nid_t> getXbgasHosts() {return xbgasHosts;}

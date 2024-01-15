@@ -282,10 +282,10 @@ public:
   bool clockTick( Cycle_t cycle ) override;
 
   /// RevBasicRmtMemCtrl: get PE id
-  unsigned getPEID() override;
+  unsigned getPEID() { return myPEid; };
 
   /// RevBasicRmtMemCtrl: get the number of PEs
-  unsigned getNumPEs() override;
+  unsigned getNumPEs() { return numPEs; };
 
   /// RevBasicRmtMemCtrl: determines if outstanding requests exist
   // bool outstandingRqsts() override;
@@ -384,6 +384,8 @@ private:
   std::map<uint64_t, uint32_t> nmspaceLB;          ///< RevBasicRmtMemCtrl: namespace lookaside Buffer map; <Namespace, Dest>
   std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts; ///< RevBasicRmtMemCtrl: xbgas hosts list
   unsigned virtualHart;                       ///< RevBasicRmtMemCtrl: virtual hart id
+  unsigned myPEid;                            ///< RevBasicRmtMemCtrl: My PE id
+  unsigned numPEs;                            ///< RevBasicRmtMemCtrl: number of PEs on distinct nodes
 
   unsigned max_loads;                         ///< RevBasicRmtMemCtrl: maximum number of outstanding loads
   unsigned max_stores;                        ///< RevBasicRmtMemCtrl: maximum number of outstanding stores
