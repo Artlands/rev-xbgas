@@ -688,13 +688,19 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ){
   }
 
   if( rtn && CompletedThreads.size() ){
-    for( unsigned i=0; i<numCores; i++ ){
-      UpdateCoreStatistics(i);
-      Procs[i]->PrintStatSummary();
+    if( EnableXBGAS ) {
+      rtn = rmtCtrl->isDone();
     }
-    primaryComponentOKToEndSim();
-    output.verbose(CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
-  } else {
+
+    if( rtn ) {
+      for( unsigned i=0; i<numCores; i++ ){
+        UpdateCoreStatistics(i);
+        Procs[i]->PrintStatSummary();
+      }
+      primaryComponentOKToEndSim();
+      output.verbose(CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>(currentCycle));
+    }
+} else {
     rtn = false;
   }
 

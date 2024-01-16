@@ -11,4 +11,5 @@
 *.out
 build/*
 *.asm
+*.o
 __pycache__/

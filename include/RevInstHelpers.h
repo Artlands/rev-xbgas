@@ -185,6 +185,11 @@ bool eload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
       std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
   uint64_t Nmspace = R->GetE(Inst.rs1);
   uint64_t SrcAddr = R->GetX<uint64_t>(Inst.rs1) + Inst.ImmSignExt(12);
+
+  std::cout << "eload: rs1: " << std::dec << Inst.rs1 
+            << ", Nmspace: " << Nmspace
+            << ", SrcAddr: 0x" << std::hex << SrcAddr << std::endl;
+
   RmtMemReq req(Nmspace, 
                 SrcAddr,
                 1,

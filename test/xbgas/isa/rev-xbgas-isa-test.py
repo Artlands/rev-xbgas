@@ -38,29 +38,29 @@ sst.setProgramOption("timebase", "1ps")
 sst.setStatisticLoadLevel(4)
 
 cpu0_params = {
-  "verbose" : 1,                         # Verbosity
-  "clock" : "1.0GHz",                           # Clock
-  "program" : os.getenv("REV_EXE",  sys.argv[1]),    # Target executable
-  "memSize" : 1024*1024*1024,                          # Memory size in bytes
-  "startAddr" : "[0:0x00000000]",               # Starting address for core 0
+  "verbose" : 1,                                  # Verbosity
+  "clock" : "1.0GHz",                             # Clock
+  "program" : os.getenv("REV_EXE",  sys.argv[1]), # Target executable
+  "memSize" : 1024*1024*1024,                     # Memory size in bytes
+  "startAddr" : "[0:0x00000000]",                 # Starting address for core 0
   "machine" : "[0:RV64GCX]",
-  "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
-  "enable_xbgas" : 1,                # Enable XBGAS support  
-  "enable_memH": 1,                             # Enable memHierarchy support
-  "splash" : 1                                  # Display the splash message
+  "memCost" : "[0:1:10]",                         # Memory loads required 1-10 cycles
+  "enable_xbgas" : 1,                             # Enable XBGAS support  
+  "enable_memH": 1,                               # Enable memHierarchy support
+  "splash" : 1                                    # Display the splash message
 }
 
 cpu1_params = {
-  "verbose" : 5,                         # Verbosity
-  "clock" : "1.0GHz",                           # Clock
-  "program" : os.getenv("REV_EXE",  sys.argv[1]),    # Target executable
-  "memSize" : 1024*1024*1024,                          # Memory size in bytes
-  "startAddr" : "[0:0x00000000]",               # Starting address for core 0
+  "verbose" : 5,                                  # Verbosity
+  "clock" : "1.0GHz",                             # Clock
+  "program" : os.getenv("REV_EXE",  sys.argv[1]), # Target executable
+  "memSize" : 1024*1024*1024,                     # Memory size in bytes
+  "startAddr" : "[0:0x00000000]",                 # Starting address for core 0
   "machine" : "[0:RV64GCX]",
-  "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
-  "enable_xbgas" : 1,                # Enable XBGAS support  
-  "enable_memH": 1,                             # Enable memHierarchy support
-  "splash" : 0                                  # Display the splash message
+  "memCost" : "[0:1:10]",                         # Memory loads required 1-10 cycles
+  "enable_xbgas" : 1,                             # Enable XBGAS support  
+  "enable_memH": 1,                               # Enable memHierarchy support
+  "splash" : 0                                    # Display the splash message
 }
 
 lsq_params = {
@@ -85,7 +85,7 @@ memctrl_params = {
 
 mem_params = {
   "access_time" : "100ns",
-  "mem_size" : "8GB"
+  "mem_size" : "1GB"
 }
 
 net_params = {

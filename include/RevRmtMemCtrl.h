@@ -172,6 +172,9 @@ public:
   /// RevRmtMemCtrl: get the number of PEs
   virtual unsigned getNumPEs() = 0;
 
+  /// RevRmtMemCtrl: check is remote memory operation is done
+  virtual bool isDone() = 0;
+
   /// RevRmtMemCtrl: determines if outstanding requests exist
   // virtual bool outstandingRqsts() = 0;
 
@@ -286,6 +289,9 @@ public:
 
   /// RevBasicRmtMemCtrl: get the number of PEs
   unsigned getNumPEs() { return numPEs; };
+
+  /// RevBasicRmtMemCtrl: check is remote memory operation is done
+  bool isDone() override;
 
   /// RevBasicRmtMemCtrl: determines if outstanding requests exist
   // bool outstandingRqsts() override;

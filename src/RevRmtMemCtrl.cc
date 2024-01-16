@@ -17,6 +17,12 @@ using namespace SST;
 using namespace SST::RevCPU;
 using namespace SST::Interfaces;
 
+#define _XBGAS_DEBUG
+
+// Remote memory controller interface
+// RevMem:RmtReadVal->RevMem:RmtReadMem->RevRmtMemCtrl:sendRmtReadRqst
+// rqstQ.push_back -> RevRmtMemCtrl:processNextRqst -> RevRmtMemCtrl:buildRmtMemRqst
+
 // ----------------------------------------
 // RevRmtMemOp
 // ----------------------------------------
@@ -157,6 +163,17 @@ void RevBasicRmtMemCtrl::handleReadRqst( xbgasNicEvent *ev ){
   uint32_t Stride   = ev->getStride();
   RevFlag  Flags    = ev->getFlags();
 
+#ifdef _XBGAS_DEBUG
+  std::cout << "PE: " << getPEID() << ", handle Read Rqst...";
+  std::cout << "Event ID: " << Id
+            << ", SrcId: " << SrcId 
+            << ", SrcAddr: 0x" << std::hex << SrcAddr 
+            << ", DestAddr: 0x" << std::hex << DestAddr
+            << ", Size: " << Size 
+            << ", Nelem: " << Nelem 
+            << ", Stride: " << Stride << std::endl;
+#endif
+
   uint8_t *buffer = new uint8_t[Size * Nelem];
 
   // Records the read request info in the load queue 
@@ -206,6 +223,21 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent *ev ){
 }
 
 void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent *ev ){
+
+#ifdef _XBGAS_DEBUG
+  for (auto it = requests.begin(); it != requests.end(); ++it) {
+    std::cout << "PE: " << getPEID() << ", Request ID: " << *it << std::endl;
+  }
+
+  std::cout << "Event ID: " << ev->getID()
+            << ", SrcId: " << ev->getSrcId() 
+            << ", SrcAddr: 0x" << std::hex << ev->getSrcAddr() 
+            << ", DestAddr: 0x" << std::hex << ev->getDestAddr()
+            << ", Size: " << ev->getSize() 
+            << ", Nelem: " << ev->getNelem() 
+            << ", Stride: " << ev->getStride() << std::endl;
+#endif
+
   if( std::find(requests.begin(), requests.end(), ev->getID()) != requests.end() ){
     requests.erase(std::find(requests.begin(), requests.end(), ev->getID()));
     RevRmtMemOp *Op = outstanding[ev->getID()];
@@ -224,10 +256,13 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent *ev ){
       output->fatal(CALL_INFO, -1, "Error: unknown remote memory response\n");
       break;
     }
+    outstanding.erase(ev->getID());
+    delete ev;
   } else {
     output->fatal(CALL_INFO, -1, "Error: found unknown ReadResp\n");
   }
   num_read--;
+  return;
 }
 
 void RevBasicRmtMemCtrl::handleWriteResp( xbgasNicEvent *ev ){
@@ -253,6 +288,14 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ) {
   if( LocalLoadCount[id] == std::get<LOAD_RECORD_NELEM>(Entry) ){
     uint8_t *buffer = std::get<LOAD_RECORD_BUFFER>(Entry);
     RmtMemOp OpType = LocalLoadType.find(id)->second;
+
+
+#ifdef _XBGAS_DEBUG
+  std::cout << "PE: " << getPEID() << ", MarkLocalLoadComplete...";
+  std::cout << "Event ID: " << std::get<LOAD_RECORD_ID>(Entry)
+            << ", SrcId: " << std::get<LOAD_RECORD_SRCID>(Entry) << std::endl;
+#endif
+
 
     switch (OpType) {
     case RmtMemOp::READRqst:
@@ -313,6 +356,19 @@ void RevBasicRmtMemCtrl::setup(){
       nmspaceLB[nmspace] = xbgasHosts[i];
     }
   }
+
+#ifdef _XBGAS_DEBUG
+  std::cout << "Namespace Lookaside Buffer of PE " << myPEid << ":" << std::endl;
+  std::cout << "|" << std::string(23, '-') << "|" << "\n";
+  std::cout << "|" << " Namespace " << "|" << "Physical ID" << "|" << "\n";
+  for (auto it = nmspaceLB.begin(); it != nmspaceLB.end(); ++it) {
+    std::cout << "|" << std::string(11, '-') << "+" << std::string(11, '-') << "|" << "\n";
+    std::cout << "|" << std::string(5, ' ') << it->first << std::string(5, ' ') << "|"
+                     << std::string(5, ' ') << it->second << std::string(5, ' ') << "|" << '\n';
+  }
+  std::cout << "|" << std::string(23, '-') << "|" << "\n";
+#endif
+
 }
 
 void RevBasicRmtMemCtrl::finish(){
@@ -322,6 +378,11 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst( unsigned Hart, uint64_t Nmspace,
                                           uint64_t SrcAddr, size_t Size, 
                                           void *Target,
                                           const RmtMemReq& req, RevFlag flags) {
+#ifdef _XBGAS_DEBUG
+  std::cout << "PE: " << getPEID() << ", RevBasicRmtMemCtrl::sendRmtReadRqst" 
+            << ", Nmspace: " << Nmspace << std::endl;
+#endif
+  
   if( Size == 0 )
     return true;
   RevRmtMemOp *Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, 
@@ -397,6 +458,10 @@ bool RevBasicRmtMemCtrl::clockTick( Cycle_t cycle ){
   }
 
   return false;
+}
+
+bool RevBasicRmtMemCtrl::isDone() {
+  return requests.size() == 0;
 }
 
 bool RevBasicRmtMemCtrl::processNextRqst(unsigned &t_max_loads, 
@@ -499,6 +564,19 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
     outstanding[RmtEvent->getID()] = Op;
     recordStat(RmtReadInFlight, 1);
     num_read++;
+
+#ifdef _XBGAS_DEBUG
+  std::cout << "PE: " << getPEID() << ", build Read Rqst...";
+  std::cout << "Event ID: " << RmtEvent->getID()
+            << ", SrcId: " << SrcId 
+            << ", DestId: " << DestId
+            << ", SrcAddr: 0x" << std::hex << SrcAddr 
+            << ", DestAddr: 0x" << std::hex << DestAddr
+            << ", Size: " << Size 
+            << ", Nelem: " << Nelem 
+            << ", Stride: " << Stride << std::endl;
+#endif
+
     break;
   case RmtMemOp::WRITERqst:
     buffer = new uint8_t[Size];
@@ -563,6 +641,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
     return false;
     break;
   }
+  Success = true;
   return true;
 }
 

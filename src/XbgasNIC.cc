@@ -13,6 +13,8 @@
 using namespace SST;
 using namespace RevCPU;
 
+#define _XBGAS_DEBUG
+
 std::atomic<uint32_t> SST::RevCPU::xbgasNicEvent::main_id(0);
 
 bool xbgasNicEvent::setData(uint8_t *In, uint32_t TotalSz){
@@ -91,6 +93,11 @@ bool xbgasNicEvent::buildREADResp(uint64_t Id, uint64_t DestAddr, size_t Size,
     return false;
   if( !setData(Buffer, TotalSize) )
     return false;
+
+#ifdef _XBGAS_DEBUG
+  std::cout << "xbgasNicEvent::buildREADResp, Event ID: " << Id <<std::endl;
+#endif
+
   return true;
 }
 

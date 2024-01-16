@@ -15,6 +15,8 @@
 using namespace SST::RevCPU;
 using MemSegment = RevMem::MemSegment;
 
+// #define _XBGAS_DEBUG
+
 RevProc::RevProc( unsigned Id,
                   RevOpts *Opts,
                   unsigned NumHarts,
@@ -1717,6 +1719,17 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
     HartToDecodeID = GetNextHartToDecodeID();
     ActiveThreadID = Harts.at(HartToDecodeID)->GetAssignedThreadID();
     RegFile = Harts[HartToDecodeID]->RegFile.get();
+
+
+#ifdef _XBGAS_DEBUG
+  if( currentCycle % 1000 == 0 ){
+    std::cout << "Register File" << "\n";
+    for( unsigned i = 10; i < 15; i++){
+      std::cout << "e" << std::dec << i << ": " << RegFile->GetE(i)
+                << "| x" << std::dec << i << ": " << std::hex << RegFile->GetX<uint64_t>(i) << "\n";
+    }
+  }
+#endif
 
     feature->SetHartToExecID(HartToDecodeID);
 
