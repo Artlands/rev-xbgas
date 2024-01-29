@@ -38,6 +38,6 @@ dump: $(ISA_EXES)
 	$(foreach var,$(ISA_EXES),$(RV_OBJDUMP) -d $(var) > $(var).dump;)
 
 clean:
-	rm -Rf *.exe
+	rm -Rf *.exe *.dump *.o
 
 #-- EOF
