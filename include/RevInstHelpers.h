@@ -21,7 +21,7 @@
 
 #include "RevInstTable.h"
 
-// #define _XBGAS_DEBUG
+#define _XBGAS_DEBUG_
 
 namespace SST::RevCPU{
 
@@ -188,14 +188,6 @@ bool eload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
   uint64_t Nmspace = R->GetE(Inst.rs1);
   uint64_t SrcAddr = R->GetX<uint64_t>(Inst.rs1) + Inst.ImmSignExt(12);
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "eload - Resigter status: \n";
-  for( unsigned i = 10; i < 16; i++){
-    std::cout << "e" << std::dec << i << ": " << R->GetE(i)
-              << "| x" << std::dec << i << ": " << std::hex << R->GetX<uint64_t>(i) << "\n";
-  }
-#endif
-
   if (Nmspace == 0) {
 
 #ifdef _XBGAS_DEBUG_
@@ -207,7 +199,7 @@ bool eload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
 
 #ifdef _XBGAS_DEBUG_
     std::cout << "PE " << R->GetE(10) 
-            << ", eload: rs1: " << std::dec << Inst.rs1 
+            << " eload: rs1: " << std::dec << Inst.rs1 
             << ", Nmspace: " << Nmspace
             << ", SrcAddr: 0x" << std::hex << SrcAddr << std::endl;
 #endif
@@ -240,10 +232,23 @@ bool eload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
 /// xBGAS remote store template
 template<typename T>
 bool estore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  // M-->RmtWriteMem(F->GetHartToExecID(),
-  //                 R->GetE(Inst.rs1),
-  //                 R->GetX<uint64_t>(Inst.rs1) + Inst.ImmSignExt(12),
-  //                 R->GetX<T>(Inst.rs2));
+  uint64_t Nmspace = R->GetE(Inst.rs1);
+  uint64_t DestAddr = R->GetX<uint64_t>(Inst.rs2) + Inst.ImmSignExt(12);
+
+#ifdef _XBGAS_DEBUG_
+    std::cout << "PE " << R->GetE(10) 
+            << " estore: rs1: " << std::hex << Inst.rs1 
+            << ", Nmspace: " << Nmspace
+            << ", DestAddr: 0x" << std::hex << DestAddr
+            << ", Value: 0x" << std::hex << R->GetX<T>(Inst.rs1) << std::endl;
+#endif
+
+  M->RmtWrite(F->GetHartToExecID(),
+              Nmspace,
+              DestAddr,
+              R->GetX<T>(Inst.rs1));
+
+  R->AdvancePC(Inst);
   return true;
 }
 

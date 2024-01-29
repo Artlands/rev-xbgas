@@ -28,7 +28,7 @@ int main(int argc, char **argv){
   printf("Hello from PE %d of %d\n", id, npes);
 
   uint64_t namespace;
-  uint64_t dest;
+  uint64_t dest = 0xdeadbeefdeadbeef;
 
   uint64_t src1 = 0x00ff00ff00ff00ff;
   uint64_t src2 = 0xff00ff00ff00ff00;
@@ -47,43 +47,47 @@ int main(int argc, char **argv){
     : [x] "r" (namespace)
   );
 
+  // Load the source value
   if (id == 0) {
     asm volatile(
       " mv x5, %0 \n\t "
       :
-      : "r" (&src2)
+      : "r" (src2)
     );
   } else if (id == 1) {
     asm volatile(
       " mv x5, %0 \n\t "
       :
-      : "r" (&src1)
+      : "r" (src1)
     );
   }
 
+  // Remote store
   asm volatile(
-    " eld a5, 0(x5) \n\t "
+    " esd x5, 0(%0) \n\t "
+    :
+    : "r" (&dest)
   );
 
-  asm volatile(
-    " mv %0, a5 \n\t "
-    : "=r" (dest)
-  );
+  // Wait in a loop
+  while (dest == 0xdeadbeefdeadbeef) {
+    asm volatile(" nop ");
+  }
 
   // Print the value in dest
   printf("PE %d: dest = 0x%lx\n", id, dest);
 
-  if (id == 0) {
-    if (dest == src2) {
-      printf("PE %d ELD Test Passed!\n", id);
+  if (id == 0) { 
+    if (dest == src1) {
+      printf("PE %d ESD Test Passed!\n", id);
     } else {
-      printf("PE %d ELD Test Failed!\n", id);
+      printf("PE %d ESD Test Failed!\n", id);
     };
   } else if (id == 1) {
-    if(dest == src1) {
-      printf("PE %d ELD Test Passed!\n", id);
+    if(dest == src2) {
+      printf("PE %d ESD Test Passed!\n", id);
     } else {
-      printf("PE %d ELD Test Failed!\n", id);
+      printf("PE %d ESD Test Failed!\n", id);
     }
   }
 

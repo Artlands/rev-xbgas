@@ -203,11 +203,26 @@ void RevBasicRmtMemCtrl::handleReadRqst( xbgasNicEvent *ev ){
 }
 
 void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent *ev ){
+  uint32_t Id       = ev->getID();
+  uint32_t SrcId    = ev->getSrcId();
+  uint64_t SrcAddr  = ev->getSrcAddr(); 
+  uint64_t DestAddr = ev->getDestAddr();
   size_t   Size     = ev->getSize();
   uint32_t Nelem    = ev->getNelem();
   uint32_t Stride   = ev->getStride();
-  uint64_t DestAddr = ev->getDestAddr();
   RevFlag  Flags    = ev->getFlags();
+
+
+#ifdef _XBGAS_DEBUG
+  std::cout << "PE " << getPEID() << " handle Write Rqst, ";
+  std::cout << "Event ID: " << Id
+            << ", SrcId: " << SrcId 
+            << ", SrcAddr: 0x" << std::hex << SrcAddr 
+            << ", DestAddr: 0x" << std::hex << DestAddr
+            << ", Size: " << Size 
+            << ", Nelem: " << Nelem 
+            << ", Stride: " << Stride << std::endl;
+#endif
 
   uint8_t *buffer = new uint8_t[Size * Nelem];
   ev->getData( buffer );
@@ -219,7 +234,13 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent *ev ){
                   (void *)(&buffer[i * Size]), 
                   Flags);
   }
+
   delete[] buffer;
+
+  // Send the write response
+  xbgasNicEvent *RmtEvent = new xbgasNicEvent( getName() );
+  RmtEvent->buildWRITEResp(Id);
+  xbgasNic->send(RmtEvent, SrcId);
 }
 
 void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent *ev ){
@@ -227,7 +248,7 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent *ev ){
 #ifdef _XBGAS_DEBUG
   std::cout << "PE " << getPEID()
             << " handle Read Resp, "
-            << ", Event ID: " << ev->getID()
+            << "Event ID: " << ev->getID()
             << ", SrcId: " << ev->getSrcId() 
             << ", SrcAddr: 0x" << std::hex << ev->getSrcAddr() 
             << ", DestAddr: 0x" << std::hex << ev->getDestAddr()
@@ -266,8 +287,42 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent *ev ){
 }
 
 void RevBasicRmtMemCtrl::handleWriteResp( xbgasNicEvent *ev ){
-  // Do nothing
+
+#ifdef _XBGAS_DEBUG
+  std::cout << "PE " << getPEID()
+            << " handle Write Resp, "
+            << "Event ID: " << ev->getID()
+            << ", SrcId: " << ev->getSrcId() 
+            << ", SrcAddr: 0x" << std::hex << ev->getSrcAddr() 
+            << ", DestAddr: 0x" << std::hex << ev->getDestAddr()
+            << ", Size: " << ev->getSize() 
+            << ", Nelem: " << ev->getNelem() 
+            << ", Stride: " << ev->getStride() << std::endl;
+#endif
+
+  if( std::find(requests.begin(), requests.end(), ev->getID()) != requests.end() ){
+    requests.erase(std::find(requests.begin(), requests.end(), ev->getID()));
+    RevRmtMemOp *Op = outstanding[ev->getID()];
+    if( !Op )
+      output->fatal(CALL_INFO, -1, "RevRmtMemOp is null in handleWriteResp\n");
+    switch(ev->getOp()){
+    case RmtMemOp::WRITEResp:
+      break;
+    case RmtMemOp::BulkWRITEResp:
+      break;
+    default:
+      output->fatal(CALL_INFO, -1, "Error: unknown remote memory response\n");
+      break;
+    }
+    outstanding.erase(ev->getID());
+    delete ev;
+  } else {
+    output->fatal(CALL_INFO, -1, "Error: found unknown WriteResp\n");
+  }
+  num_write--;
+  return;
 }
+
 
 void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ) {
   // Count the number of elements already fulfilled
@@ -588,6 +643,14 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
                              buffer);
     xbgasNic->send(RmtEvent, DestId);
     requests.push_back(RmtEvent->getID());
+
+#ifdef _XBGAS_DEBUG
+  std::cout << "PE " << getPEID() 
+            << " build Write Rqst, "
+            << "Event Id: " << std::dec << RmtEvent->getID() 
+            << std::endl;
+#endif
+
     outstanding[RmtEvent->getID()] = Op;
     recordStat(RmtWriteInFlight, 1);
     num_write++;
