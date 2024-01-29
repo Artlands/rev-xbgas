@@ -27,17 +27,13 @@ import os
 import sst
 import sys
 
-# argv[0] = 'sst'
-# argv[1] = '--pes'
-# argv[2] = 'INTEGER'
-
 if len(sys.argv) != 2:
-  sys.stderr.write("Usage: You must pass the number of PEs you wish to simulate using the '--model-options' option with sst\n")
+  sys.stderr.write("Usage: You must pass the executable you wish to simulate using the '--model-options' option with sst\n")
   raise SystemExit(1)
 
-NPES = int(sys.argv[1])
+NPES = 2
 
-PROGRAM = "multi-pes.exe"
+PROGRAM = sys.argv[1]
 CLOCK = "2.5GHz"  
 MEMSIZE = 1024*1024*1024
 
@@ -71,12 +67,16 @@ router.addParams({
     "id" : 0
 })
 
-for i in range(0, NPES):    
+for i in range(0, NPES):
+  if i == 0:
+    VERBOSE = 1
+  else:
+    VERBOSE = 1
   # xBGAS CPUs
   sst.pushNamePrefix("cpu" + str(i))
   xbgas_cpu = sst.Component("xbgas", "revcpu.RevCPU")
   xbgas_cpu.addParams({
-    "verbose" : 1,                                # Verbosity
+    "verbose" : VERBOSE,                          # Verbosity
     "clock" : CLOCK,                              # Clock
     "program" : os.getenv("REV_EXE", PROGRAM),    # Target executable
     "memSize" : MEMSIZE,                          # Memory size in bytes

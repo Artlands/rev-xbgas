@@ -15,7 +15,7 @@
 using namespace SST::RevCPU;
 using MemSegment = RevMem::MemSegment;
 
-// #define _XBGAS_DEBUG
+#define _XBGAS_DEBUG
 
 RevProc::RevProc( unsigned Id,
                   RevOpts *Opts,
@@ -1699,14 +1699,33 @@ void RevProc::MarkLoadComplete(const MemReq& req){
 
 void RevProc::MarkRmtLoadComplete(const RmtMemReq& req){
 
-  auto it = RmtLSQueue->find(LSQHash(req.DestReg, req.RegType, req.Hart));
-  if( it != RmtLSQueue->end()){
-    DependencyClear(it->second.Hart, it->second.DestReg, (it->second.RegType == RevRegClass::RegFLOAT));
-    RmtLSQueue->erase(it);
+#ifdef _XBGAS_DEBUG
+  std::cout << "Marking remote load complete for register: x" << std::dec << req.DestReg << "\n";
+#endif
+
+  auto it = RmtLSQueue->equal_range(req.LSQHash());      // Find all outstanding dependencies for this register
+  bool addrMatch = false;
+  if( it.first != RmtLSQueue->end()){
+    for (auto i = it.first; i != it.second; ++i){
+      if(i->second.SrcAddr == req.SrcAddr){
+        if(RmtLSQueue->count(req.LSQHash()) == 1){
+          DependencyClear(i->second.Hart, i->second.DestReg, (i->second.RegType == RevRegClass::RegFLOAT));
+        }
+        RmtLSQueue->erase(i);
+        addrMatch = true;
+        break;
+      }
+    }
   }else if(0 != req.DestReg){ //instruction pre-fetch fills target x0, we can ignore these
     output->fatal(CALL_INFO, -1,
                   "Core %" PRIu32 "; Hart %" PRIu32 "; Cannot find outstanding remote load for reg %" PRIu32 " from address %" PRIx64 "\n",
                   id, req.Hart, req.DestReg, req.SrcAddr);
+  }
+  if(!addrMatch){
+    output->fatal(CALL_INFO, -1,
+                  "Core %" PRIu32 "; Hart %" PRIu32 "; Cannot find matching address for outstanding remote load for reg %" PRIu32 " from address %" PRIx64 "\n",
+                  id, req.Hart, req.DestReg, req.SrcAddr);
+
   }
 }
 
@@ -1732,15 +1751,15 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
     RegFile = Harts[HartToDecodeID]->RegFile.get();
 
 
-#ifdef _XBGAS_DEBUG
-  if( currentCycle % 1000 == 0 ){
-    std::cout << "Register File" << "\n";
-    for( unsigned i = 10; i < 15; i++){
-      std::cout << "e" << std::dec << i << ": " << RegFile->GetE(i)
-                << "| x" << std::dec << i << ": " << std::hex << RegFile->GetX<uint64_t>(i) << "\n";
-    }
-  }
-#endif
+// #ifdef _XBGAS_DEBUG
+//   if( currentCycle % 1000 == 0 ){
+//     std::cout << "Current Cycle: " << currentCycle << ", Register File" << "\n";
+//     for( unsigned i = 10; i < 16; i++){
+//       std::cout << "e" << std::dec << i << ": " << RegFile->GetE(i)
+//                 << "| x" << std::dec << i << ": " << std::hex << RegFile->GetX<uint64_t>(i) << "\n";
+//     }
+//   }
+// #endif
 
     feature->SetHartToExecID(HartToDecodeID);
 

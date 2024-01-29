@@ -37,7 +37,7 @@ class xbgasNicEvent : public SST::Event{
 public:
   /// xbgasNicEvent: standard constructor
   xbgasNicEvent(std::string name)
-  : Event(), SrcName(name), SrcId(0), SrcAddr(0), 
+  : Event(), Id(0), SrcName(name), SrcId(0), SrcAddr(0), 
     DestAddr(0), Size(0), Nelem(0), Stride(0), 
     Data(), Opcode(RmtMemOp::Unknown), Flags(RevFlag::F_NONE) {}
 
@@ -75,6 +75,9 @@ public:
 
   /// xbgasNicEvent: retrieve the flags
   RevFlag getFlags() { return Flags; }
+
+  /// xbgasNicEvent: set the event Id
+  bool setId(uint32_t I) { Id = I; return true; }
 
   /// xbgasNicEvent: set the source node Id
   bool setSrcId(uint32_t S) { SrcId = S; return true; }

@@ -13,8 +13,6 @@
 using namespace SST;
 using namespace RevCPU;
 
-#define _XBGAS_DEBUG
-
 std::atomic<uint32_t> SST::RevCPU::xbgasNicEvent::main_id(0);
 
 bool xbgasNicEvent::setData(uint8_t *In, uint32_t TotalSz){
@@ -38,8 +36,9 @@ bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr,
                                    size_t Size, uint32_t Nelem, 
                                    uint32_t Stride,
                                    RevFlag Fl ){
-  Id = main_id++;
   Opcode = RmtMemOp::READRqst;
+  if( !setId(main_id++) )
+    return false;
   if( !setSrcAddr(SrcAddr) )
     return false;
   if( !setDestAddr(DestAddr) )
@@ -59,9 +58,9 @@ bool xbgasNicEvent::buildWRITERqst(uint64_t DestAddr, size_t Size,
                                    uint32_t Nelem, uint32_t Stride, 
                                    RevFlag Fl,
                                    uint8_t *Buffer){
-  uint32_t TotalSize = Size * Nelem;
-  Id = main_id++;
   Opcode = RmtMemOp::WRITERqst;
+  if( !setId(main_id++) )
+    return false;
   if( !setDestAddr(DestAddr) )
     return false;
   if( !setSize(Size) )
@@ -70,7 +69,7 @@ bool xbgasNicEvent::buildWRITERqst(uint64_t DestAddr, size_t Size,
     return false;
   if( !setStride(Stride) )
     return false;
-  if( !setData(Buffer, TotalSize) )
+  if( !setData(Buffer, Size * Nelem) )
     return false;
   if( !setFlags(Fl) )
     return false;
@@ -80,9 +79,9 @@ bool xbgasNicEvent::buildWRITERqst(uint64_t DestAddr, size_t Size,
 bool xbgasNicEvent::buildREADResp(uint64_t Id, uint64_t DestAddr, size_t Size, 
                                   uint32_t Nelem, uint32_t Stride,
                                   uint8_t *Buffer){
-  uint32_t TotalSize = Size * Nelem;
-  Id = Id;
   Opcode = RmtMemOp::READResp;
+  if( !setId(Id) )
+    return false;
   if( !setDestAddr(DestAddr) )
     return false;
   if( !setSize(Size) )
@@ -91,19 +90,15 @@ bool xbgasNicEvent::buildREADResp(uint64_t Id, uint64_t DestAddr, size_t Size,
     return false;
   if( !setStride(Stride) )
     return false;
-  if( !setData(Buffer, TotalSize) )
+  if( !setData(Buffer, Size * Nelem) )
     return false;
-
-#ifdef _XBGAS_DEBUG
-  std::cout << "xbgasNicEvent::buildREADResp, Event ID: " << Id <<std::endl;
-#endif
-
   return true;
 }
 
 bool xbgasNicEvent::buildWRITEResp(uint64_t Id){
-  Id = Id;
   Opcode = RmtMemOp::WRITEResp;
+  if( !setId(Id) )
+    return false;
   return true;
 }
 

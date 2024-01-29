@@ -21,6 +21,8 @@
 
 #include "RevInstTable.h"
 
+// #define _XBGAS_DEBUG
+
 namespace SST::RevCPU{
 
 /// General template for converting between Floating Point and Integer.
@@ -186,33 +188,53 @@ bool eload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
   uint64_t Nmspace = R->GetE(Inst.rs1);
   uint64_t SrcAddr = R->GetX<uint64_t>(Inst.rs1) + Inst.ImmSignExt(12);
 
-  std::cout << "eload: rs1: " << std::dec << Inst.rs1 
+#ifdef _XBGAS_DEBUG_
+  std::cout << "eload - Resigter status: \n";
+  for( unsigned i = 10; i < 16; i++){
+    std::cout << "e" << std::dec << i << ": " << R->GetE(i)
+              << "| x" << std::dec << i << ": " << std::hex << R->GetX<uint64_t>(i) << "\n";
+  }
+#endif
+
+  if (Nmspace == 0) {
+
+#ifdef _XBGAS_DEBUG_
+    std::cout << "Namespace is 0, go to the local memory access" << std::endl;
+#endif
+
+    return load<T>(F, R, M, Inst);
+  } else {
+
+#ifdef _XBGAS_DEBUG_
+    std::cout << "PE " << R->GetE(10) 
+            << ", eload: rs1: " << std::dec << Inst.rs1 
             << ", Nmspace: " << Nmspace
             << ", SrcAddr: 0x" << std::hex << SrcAddr << std::endl;
+#endif
+    RmtMemReq req(Nmspace, 
+                  SrcAddr,
+                  1,
+                  0,
+                  _INVALID_ADDR_,
+                  Inst.rd,
+                  RevRegClass::RegGPR,
+                  F->GetHartToExecID(),
+                  RmtMemOp::READRqst,
+                  true,
+                  R->GetMarkRmtLoadComplete());
+    R->RmtLSQueue->insert(req.LSQHashPair());
+    M->RmtReadVal(F->GetHartToExecID(),
+                  Nmspace, SrcAddr,
+                  reinterpret_cast<std::make_unsigned_t<T>*>(&R->RV64[Inst.rd]),
+                  std::move(req),
+                  flags);
+    R->SetX(Inst.rd, static_cast<T>(R->RV64[Inst.rd]));
 
-  RmtMemReq req(Nmspace, 
-                SrcAddr,
-                1,
-                0,
-                _INVALID_ADDR_,
-                Inst.rd,
-                RevRegClass::RegGPR,
-                F->GetHartToExecID(),
-                RmtMemOp::READRqst,
-                true,
-                R->GetMarkRmtLoadComplete());
-  R->RmtLSQueue->insert(req.LSQHashPair());
-  M->RmtReadVal(F->GetHartToExecID(),
-                Nmspace, SrcAddr,
-                reinterpret_cast<std::make_unsigned_t<T>*>(&R->RV64[Inst.rd]),
-                std::move(req),
-                flags);
-  R->SetX(Inst.rd, static_cast<T>(R->RV64[Inst.rd]));
-
-  // update the cost
-  R->cost += M->RandCost(F->GetMinCost(), F->GetMaxCost());
-  R->AdvancePC(Inst);
-  return true;
+    // update the cost
+    R->cost += M->RandCost(F->GetMinCost(), F->GetMaxCost());
+    R->AdvancePC(Inst);
+    return true;
+  }
 }
 
 /// xBGAS remote store template

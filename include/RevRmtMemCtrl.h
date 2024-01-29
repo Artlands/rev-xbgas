@@ -381,6 +381,9 @@ private:
   /// RevBasicRmtMemCtrl: function to mark a local load as complete
   void MarkLocalLoadComplete( const MemReq& req );
 
+  /// RevBasicRmtMemCtrl: print remote memory operation
+  std::string rmtMemOpToString( RmtMemOp OpType );
+
   /// RevBasicRmtMemCtrl: return the total number of outstanding requests
   // uint64_t getTotalRqsts();
 
