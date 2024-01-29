@@ -1,5 +1,5 @@
 /*
- * eld.c
+ * elw.c
  *
  * RISC-V ISA: RV64GX
  *
@@ -28,10 +28,10 @@ int main(int argc, char **argv){
   printf("Hello from PE %d of %d\n", id, npes);
 
   uint64_t namespace;
-  uint64_t dest;
+  uint32_t dest;
 
-  uint64_t src1 = 0x00ff00ff00ff00ff;
-  uint64_t src2 = 0xff00ff00ff00ff00;
+  uint32_t src1 = 0x00ff00ff;
+  uint32_t src2 = 0xff00ff00;
 
 
   if (id == 0) {
@@ -64,7 +64,7 @@ int main(int argc, char **argv){
 
   // Remote load
   asm volatile(
-    " eld a5, 0(x5) \n\t "
+    " elw a5, 0(x5) \n\t "
   );
 
   // Store the value in dest
@@ -74,7 +74,7 @@ int main(int argc, char **argv){
   );
 
   // Print the value in dest
-  printf("PE %d: dest = 0x%lx\n", id, dest);
+  printf("PE %d: dest = 0x%x\n", id, dest);
 
   if (id == 0) {
     assert(dest == src2);

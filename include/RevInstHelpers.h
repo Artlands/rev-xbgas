@@ -21,7 +21,7 @@
 
 #include "RevInstTable.h"
 
-#define _XBGAS_DEBUG_
+// #define _XBGAS_DEBUG_
 
 namespace SST::RevCPU{
 

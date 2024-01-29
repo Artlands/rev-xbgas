@@ -1,5 +1,5 @@
 /*
- * eld.c
+ * esb.c
  *
  * RISC-V ISA: RV64GX
  *
@@ -28,10 +28,10 @@ int main(int argc, char **argv){
   printf("Hello from PE %d of %d\n", id, npes);
 
   uint64_t namespace;
-  uint64_t dest;
+  uint8_t dest = 0xdd;
 
-  uint64_t src1 = 0x00ff00ff00ff00ff;
-  uint64_t src2 = 0xff00ff00ff00ff00;
+  uint8_t src1 = 0x0f;
+  uint8_t src2 = 0xf0;
 
 
   if (id == 0) {
@@ -47,39 +47,40 @@ int main(int argc, char **argv){
     : [x] "r" (namespace)
   );
 
-  // Load the source address
+  // Load the source value
   if (id == 0) {
     asm volatile(
       " mv x5, %0 \n\t "
       :
-      : "r" (&src2)
+      : "r" (src2)
     );
   } else if (id == 1) {
     asm volatile(
       " mv x5, %0 \n\t "
       :
-      : "r" (&src1)
+      : "r" (src1)
     );
   }
 
-  // Remote load
+  // Remote store
   asm volatile(
-    " eld a5, 0(x5) \n\t "
+    " esb x5, 0(%0) \n\t "
+    :
+    : "r" (&dest)
   );
 
-  // Store the value in dest
-  asm volatile(
-    " mv %0, a5 \n\t "
-    : "=r" (dest)
-  );
+  // Wait in a loop
+  while (dest == 0xdd) {
+    asm volatile(" nop ");
+  }
 
   // Print the value in dest
-  printf("PE %d: dest = 0x%lx\n", id, dest);
+  printf("PE %d: dest = 0x%x\n", id, dest);
 
   if (id == 0) {
-    assert(dest == src2);
-  } else if (id == 1) {
     assert(dest == src1);
+  } else if (id == 1) {
+    assert(dest == src2);
   }
 
   return 0;

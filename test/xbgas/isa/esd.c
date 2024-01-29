@@ -1,5 +1,5 @@
 /*
- * eld.c
+ * esd.c
  *
  * RISC-V ISA: RV64GX
  *
@@ -77,18 +77,10 @@ int main(int argc, char **argv){
   // Print the value in dest
   printf("PE %d: dest = 0x%lx\n", id, dest);
 
-  if (id == 0) { 
-    if (dest == src1) {
-      printf("PE %d ESD Test Passed!\n", id);
-    } else {
-      printf("PE %d ESD Test Failed!\n", id);
-    };
+  if (id == 0) {
+    assert(dest == src1);
   } else if (id == 1) {
-    if(dest == src2) {
-      printf("PE %d ESD Test Passed!\n", id);
-    } else {
-      printf("PE %d ESD Test Failed!\n", id);
-    }
+    assert(dest == src2);
   }
 
   return 0;
