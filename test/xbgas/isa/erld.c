@@ -1,5 +1,5 @@
 /*
- * elh.c
+ * erld.c
  *
  * RISC-V ISA: RV64GX
  *
@@ -28,10 +28,10 @@ int main(int argc, char **argv){
   printf("Hello from PE %d of %d\n", id, npes);
 
   uint64_t namespace;
-  int16_t dest;
+  uint64_t dest;
 
-  int16_t src1 = 0x00ff;
-  int16_t src2 = 0xff00;
+  uint64_t src1 = 0x00ff00ff00ff00ff;
+  uint64_t src2 = 0xff00ff00ff00ff00;
 
 
   if (id == 0) {
@@ -42,7 +42,7 @@ int main(int argc, char **argv){
 
   // Set the remote namespace
   asm volatile(
-    " eaddie e5, %0, 0 \n\t "
+    " eaddie e6, %0, 0 \n\t "
     :
     : "r" (namespace)
   );
@@ -64,7 +64,7 @@ int main(int argc, char **argv){
 
   // Remote load
   asm volatile(
-    " elh a5, 0(x5) \n\t "
+    " erld a5, x5, e6 \n\t "
   );
 
   // Store the value in dest
@@ -74,7 +74,7 @@ int main(int argc, char **argv){
   );
 
   // Print the value in dest
-  printf("PE %d: dest = 0x%x\n", id, dest);
+  printf("PE %d: dest = 0x%lx\n", id, dest);
 
   if (id == 0) {
     assert(dest == src2);

@@ -42,9 +42,9 @@ int main(int argc, char **argv){
 
   // Set the remote namespace
   asm volatile(
-    " eaddie e5, %[x], 0 \n\t "
+    " eaddie e5, %0, 0 \n\t "
     :
-    : [x] "r" (namespace)
+    : "r" (namespace)
   );
 
   // Load the source address

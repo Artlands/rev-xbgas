@@ -15,7 +15,7 @@
 using namespace SST::RevCPU;
 using MemSegment = RevMem::MemSegment;
 
-#define _XBGAS_DEBUG
+#define _XBGAS_DEBUG_
 
 RevProc::RevProc( unsigned Id,
                   RevOpts *Opts,
@@ -1699,7 +1699,7 @@ void RevProc::MarkLoadComplete(const MemReq& req){
 
 void RevProc::MarkRmtLoadComplete(const RmtMemReq& req){
 
-#ifdef _XBGAS_DEBUG
+#ifdef _XBGAS_DEBUG_
   std::cout << "Marking remote load complete for register: x" << std::dec << req.DestReg << "\n";
 #endif
 
@@ -1751,7 +1751,7 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
     RegFile = Harts[HartToDecodeID]->RegFile.get();
 
 
-// #ifdef _XBGAS_DEBUG
+// #ifdef _XBGAS_DEBUG_
 //   if( currentCycle % 1000 == 0 ){
 //     std::cout << "Current Cycle: " << currentCycle << ", Register File" << "\n";
 //     for( unsigned i = 10; i < 16; i++){
