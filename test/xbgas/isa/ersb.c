@@ -69,9 +69,6 @@ int main(int argc, char **argv){
     : "r" (&dest)
   );
 
-  //0100010 01111 00101 000 00110 0110011
-  // rs2: 15, rs1: 5, rd:6
-
   // Wait in a loop
   while (dest == 0xdd) {
     asm volatile(" nop ");

@@ -64,12 +64,7 @@ int main(int argc, char **argv){
 
   // Remote load
   asm volatile(
-    " erlhu a5, x5, e6 \n\t "
-  );
-
-  // Store the value in dest
-  asm volatile(
-    " mv %0, a5 \n\t "
+    " erlhu %0, x5, e6 \n\t "
     : "=r" (dest)
   );
 
