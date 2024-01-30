@@ -73,8 +73,7 @@ for i in range(0, NPES):
   else:
     VERBOSE = 1
   # xBGAS CPUs
-  sst.pushNamePrefix("cpu" + str(i))
-  xbgas_cpu = sst.Component("xbgas", "revcpu.RevCPU")
+  xbgas_cpu = sst.Component("cpu" + str(i), "revcpu.RevCPU")
   xbgas_cpu.addParams({
     "verbose" : VERBOSE,                          # Verbosity
     "clock" : CLOCK,                              # Clock
@@ -91,28 +90,23 @@ for i in range(0, NPES):
   
   xbgas_cpu.enableAllStatistics()
   
-  # Setup the remote memory controllers
+  # Setup the memory controllers
   lsq = xbgas_cpu.setSubComponent("memory", "revcpu.RevBasicMemCtrl")
 
   # Create the memHierarchy subcomponent
   miface = lsq.setSubComponent("memIface", "memHierarchy.standardInterface")
-  sst.popNamePrefix()
   
-  sst.pushNamePrefix("memory" + str(i))
   # Create the memory controller in memHierarchy
-  memctrl = sst.Component("memory", "memHierarchy.MemController")
+  memctrl = sst.Component("memory" + str(i), "memHierarchy.MemController")
   memctrl.addParams(memctrl_params)
 
   # Create the memory backend subcomponent
   memory = memctrl.setSubComponent("backend", "memHierarchy.simpleMem")
   memory.addParams(mem_params)
-  sst.popNamePrefix()
   
-  sst.pushNamePrefix("link_miface_mem" + str(i))
   # setup the links
-  link_miface_mem = sst.Link(f"link_miface_mem")
+  link_miface_mem = sst.Link("link_miface_mem" + str(i))
   link_miface_mem.connect( (miface, "port", "50ps"), (memctrl, "direct_link", "50ps") )
-  sst.popNamePrefix()
   
   # Create remote memory controllers
   rmt_lsq = xbgas_cpu.setSubComponent("remote_memory", "revcpu.RevBasicRmtMemCtrl")
@@ -122,10 +116,8 @@ for i in range(0, NPES):
   rmt_nic_iface.addParams(net_params)
   
   # Setup the links
-  sst.pushNamePrefix("link" + str(i))
-  link = sst.Link("link")
+  link = sst.Link("link" + str(i))
   link.connect( (rmt_nic_iface, "rtr_port", "20ns"), (router, f"port{i}", "20ns") )
-  sst.popNamePrefix()
 
 
 # Tell SST what statistics handling we want

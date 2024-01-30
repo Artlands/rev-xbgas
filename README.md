@@ -82,6 +82,31 @@ using the `multilib` option. This is analogous to the following:
     ./configure --prefix=/opt/riscv --enable-multilib
     make -j
 
+To build __xBGAS-compatible__ compilers, you will need to use [xbgas-gnu-toolchain](https://github.com/artlands/riscv-gnu-toolchain-xbgas.git): 
+
+```
+git clone https://github.com/artlands/riscv-gnu-toolchain-xbgas.git
+cd riscv-gnu-toolchain-xbgas
+git checkout xbgas
+git submodule update --init --recursive
+./configure --prefix=/opt/riscv --enable-multilib
+make -j
+```
+
+## Example Execution of xBGAS programs
+
+The xBGAS programs are located in the `test/xbgas/isa` and `test/xbgas/topo` directories. In each directory, there is a `Makefile` that can be used to build the programs. Simply run `make` in the directory of the programs you want to build. 
+
+The directies also contain SST configuration files that can be modified to your needs, e.g. change the number of simulated nodes, the network topology, etc.
+
+To run the xBGAS instruction tests, e.g. testing remote load double words `eld.exe`, you can use the following command:
+
+    sst test/xbgas/isa/xbgas-isa-test.py --model-options=eld.exe
+
+To run the xBGAS topology tests, e.g. simulating xBGAS nodes connected in a fat tree topology, you can use the following command:
+
+    sst test/xbgas/topo/fattree-memh.py.py
+
 ## Example Execution
 
 ### Component Options
