@@ -35,11 +35,7 @@ EcallStatus RevProc::EcallLoadAndParseString(RevInst& inst,
       // action is usually passed in as a lambda with local code and captures
       // from the caller, such as performing a syscall using EcallState.string.
       action();
-
-      EcallState.string.clear();   //reset the ECALL buffers
-      EcallState.bytesRead = 0;
-
-      DependencyClear(HartToExecID, RevReg::a0, false);
+      DependencyClear(HartToExecID, RevReg::a0, RevRegClass::RegGPR);
       rtval = EcallStatus::SUCCESS;
     }else{
       //We are in the middle of the string - read one byte
@@ -53,7 +49,7 @@ EcallStatus RevProc::EcallLoadAndParseString(RevInst& inst,
                   req,
                    RevFlag::F_NONE);
       EcallState.bytesRead = 1;
-      DependencySet(HartToExecID, RevReg::a0, false);
+      DependencySet(HartToExecID, RevReg::a0, RevRegClass::RegGPR);
       rtval = EcallStatus::CONTINUE;
     }
   }
@@ -120,6 +116,7 @@ EcallStatus RevProc::ECALL_setxattr(RevInst& inst){
     // will move the ECALL.string to ECALL.path_string and continue below
     auto action = [&]{
       ECALL.path_string = std::move(ECALL.string);
+      ECALL.string.clear();
     };
     auto rtv = EcallLoadAndParseString(inst, path, action);
 
@@ -750,8 +747,7 @@ EcallStatus RevProc::ECALL_write(RevInst& inst){
   if(nleft == 0 && LSQueue->count(lsq_hash) == 0){
     int rc = write(fd, EcallState.string.data(), EcallState.string.size());
     RegFile->SetX(RevReg::a0, rc);
-    EcallState.clear();
-    DependencyClear(HartToExecID, RevReg::a0, false);
+    DependencyClear(HartToExecID, RevReg::a0, RevRegClass::RegGPR);
     return EcallStatus::SUCCESS;
   }
 
@@ -782,7 +778,7 @@ EcallStatus RevProc::ECALL_write(RevInst& inst){
       EcallState.bytesRead = 1;
     }
 
-    DependencySet(HartToExecID, RevReg::a0, false);
+    DependencySet(HartToExecID, RevReg::a0, RevRegClass::RegGPR);
     return EcallStatus::CONTINUE;
   }
 
@@ -2216,7 +2212,6 @@ EcallStatus RevProc::ECALL_clone(RevInst& inst){
 
  //    // clean up ecall state
  //    rtval = EcallStatus::SUCCESS;
- //    ECALL.bytesRead = 0;
 
  //  } //else
   return rtval;
@@ -3072,7 +3067,6 @@ EcallStatus RevProc::ECALL_clone3(RevInst& inst){
 
  //    // clean up ecall state
  //    rtval = EcallStatus::SUCCESS;
- //    ECALL.bytesRead = 0;
 
  //  } //else
   return rtval;

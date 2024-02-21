@@ -256,6 +256,11 @@ bool RevProc::SeedInstTable(){
     EnableExt(new Zicbom(feature, mem, output), false);
   }
 
+  // Zifencei-Extension
+  if( feature->IsModeEnabled(RV_ZIFENCEI) ){
+    EnableExt(new Zifencei(feature, mem, output), false);
+  }
+
   // xBGAS Extension
   if( feature->IsModeEnabled(RV_XBGAS) ){
     EnableExt(new RV64X(feature, mem, output), false);
@@ -1052,7 +1057,7 @@ RevInst RevProc::DecodeRInst(uint32_t Inst, unsigned Entry) const {
   if( (InstTable[Entry].imm == FImm) && (InstTable[Entry].rs2Class == RevRegClass::RegUNKNOWN)){
     DInst.imm  = DECODE_IMM12(Inst) & 0b011111;
   }else{
-    DInst.imm     = 0x0;
+    DInst.imm  = 0x0;
   }
 
   // Size
@@ -1065,7 +1070,7 @@ RevInst RevProc::DecodeRInst(uint32_t Inst, unsigned Entry) const {
   }
 
   // Decode any ancillary SP/DP float options
-  if( IsFloat(Entry) ){
+  if( DInst.opcode == 0b1010011 ){
     DInst.rm = DECODE_RM(Inst);
   }
 
@@ -1104,10 +1109,6 @@ RevInst RevProc::DecodeIInst(uint32_t Inst, unsigned Entry) const {
   // Size
   DInst.instSize  = 4;
 
-  // Decode any ancillary SP/DP float options
-  if( IsFloat(Entry) ){
-    DInst.rm = DECODE_RM(Inst);
-  }
   DInst.compressed = false;
 
   return DInst;
@@ -1142,11 +1143,6 @@ RevInst RevProc::DecodeSInst(uint32_t Inst, unsigned Entry) const {
 
   // Size
   DInst.instSize  = 4;
-
-  // Decode any ancillary SP/DP float options
-  if( IsFloat(Entry) ){
-    DInst.rm = DECODE_RM(Inst);
-  }
 
   DInst.compressed = false;
   return DInst;
@@ -1264,27 +1260,15 @@ RevInst RevProc::DecodeR4Inst(uint32_t Inst, unsigned Entry) const {
 
   // encodings
   DInst.opcode     = InstTable[Entry].opcode;
-  DInst.funct3     = InstTable[Entry].funct3;
+  DInst.funct3     = 0x0;
   DInst.funct2or7  = DECODE_FUNCT2(Inst);
+  DInst.rm         = DECODE_RM(Inst);
 
   // registers
-  DInst.rd      = 0x0;
-  DInst.rs1     = 0x0;
-  DInst.rs2     = 0x0;
-  DInst.rs3     = 0x0;
-
-  if( InstTable[Entry].rdClass != RevRegClass::RegUNKNOWN ){
-    DInst.rd  = DECODE_RD(Inst);
-  }
-  if( InstTable[Entry].rs1Class != RevRegClass::RegUNKNOWN ){
-    DInst.rs1  = DECODE_RS1(Inst);
-  }
-  if( InstTable[Entry].rs2Class != RevRegClass::RegUNKNOWN ){
-    DInst.rs2  = DECODE_RS2(Inst);
-  }
-  if( InstTable[Entry].rs3Class != RevRegClass::RegUNKNOWN ){
-    DInst.rs3  = DECODE_RS3(Inst);
-  }
+  DInst.rd   = DECODE_RD(Inst);
+  DInst.rs1  = DECODE_RS1(Inst);
+  DInst.rs2  = DECODE_RS2(Inst);
+  DInst.rs3  = DECODE_RS3(Inst);
 
   // imm
   DInst.imm     = 0x0;
@@ -1669,32 +1653,29 @@ unsigned RevProc::GetNextHartToDecodeID() const {
 }
 
 void RevProc::MarkLoadComplete(const MemReq& req){
-
-  auto it = LSQueue->equal_range(req.LSQHash());      // Find all outstanding dependencies for this register
-  bool addrMatch = false;
-  if( it.first != LSQueue->end()){
-    for (auto i = it.first; i != it.second; ++i){    // Iterate over all outstanding loads for this reg (if any)
-        if(i->second.Addr == req.Addr){
-          if(LSQueue->count(req.LSQHash()) == 1){   // Only clear the dependency if this is the LAST outstanding load for this register
-            DependencyClear(i->second.Hart, i->second.DestReg, (i->second.RegType == RevRegClass::RegFLOAT));
-          }
-          sfetch->MarkInstructionLoadComplete(req);
-          LSQueue->erase(i);                        // Remove this load from the queue
-          addrMatch = true;                         // Flag that there was a succesful match (if left false an error condition occurs)
-          break;
-        }
+  // Iterate over all outstanding loads for this reg (if any)
+  for(auto [i, end] = LSQueue->equal_range(req.LSQHash()); i != end; ++i){
+    if(i->second.Addr == req.Addr){
+      // Only clear the dependency if this is the
+      // LAST outstanding load for this register
+      if(LSQueue->count(req.LSQHash()) == 1){
+        DependencyClear(req.Hart, req.DestReg, req.RegType);
+      }
+      sfetch->MarkInstructionLoadComplete(req);
+      // Remove this load from the queue
+      LSQueue->erase(i);
+      return;
     }
-  }else if(0 != req.DestReg){ //instruction pre-fetch fills target x0, we can ignore these
-    output->fatal(CALL_INFO, -1,
-                  "Core %" PRIu32 "; Hart %" PRIu32 "; Cannot find outstanding load for reg %" PRIu32 " from address %" PRIx64 "\n",
-                  id, req.Hart, req.DestReg, req.Addr);
   }
-  if(!addrMatch){
-    output->fatal(CALL_INFO, -1,
-                  "Core %" PRIu32 "; Hart %" PRIu32 "; Cannot find matching address for outstanding load for reg %" PRIu32 " from address %" PRIx64 "\n",
-                  id, req.Hart, req.DestReg, req.Addr);
 
-  }
+  // Instruction prefetch fills target x0; we can ignore these
+  if(req.DestReg == 0 && req.RegType == RevRegClass::RegGPR)
+    return;
+  output->fatal(CALL_INFO, -1,
+                "Core %" PRIu32 "; Hart %" PRIu32 "; "
+                "Cannot find matching address for outstanding "
+                "load for reg %" PRIu32 " from address %" PRIx64 "\n",
+                id, req.Hart, req.DestReg, req.Addr);
 }
 
 void RevProc::MarkRmtLoadComplete(const RmtMemReq& req){
@@ -1703,30 +1684,27 @@ void RevProc::MarkRmtLoadComplete(const RmtMemReq& req){
   std::cout << "Marking remote load complete for register: x" << std::dec << req.DestReg << "\n";
 #endif
 
-  auto it = RmtLSQueue->equal_range(req.LSQHash());      // Find all outstanding dependencies for this register
-  bool addrMatch = false;
-  if( it.first != RmtLSQueue->end()){
-    for (auto i = it.first; i != it.second; ++i){
-      if(i->second.SrcAddr == req.SrcAddr){
-        if(RmtLSQueue->count(req.LSQHash()) == 1){
-          DependencyClear(i->second.Hart, i->second.DestReg, (i->second.RegType == RevRegClass::RegFLOAT));
-        }
-        RmtLSQueue->erase(i);
-        addrMatch = true;
-        break;
+  // Iterate over all outstanding loads for this reg (if any)
+  for(auto[i, end] = RmtLSQueue->equal_range(req.LSQHash()); i != end; ++i){
+    if(i->second.SrcAddr == req.SrcAddr){
+      // Only clear the dependency if this is the
+      // LAST outstanding load for this register
+      if(RmtLSQueue->count(req.LSQHash()) == 1){
+        DependencyClear(req.Hart, req.DestReg, req.RegType);
       }
+      RmtLSQueue->erase(i);
+      return;
     }
-  }else if(0 != req.DestReg){ //instruction pre-fetch fills target x0, we can ignore these
-    output->fatal(CALL_INFO, -1,
-                  "Core %" PRIu32 "; Hart %" PRIu32 "; Cannot find outstanding remote load for reg %" PRIu32 " from address %" PRIx64 "\n",
-                  id, req.Hart, req.DestReg, req.SrcAddr);
   }
-  if(!addrMatch){
-    output->fatal(CALL_INFO, -1,
-                  "Core %" PRIu32 "; Hart %" PRIu32 "; Cannot find matching address for outstanding remote load for reg %" PRIu32 " from address %" PRIx64 "\n",
-                  id, req.Hart, req.DestReg, req.SrcAddr);
 
-  }
+  // Instruction prefetch fills target x0; we can ignore these
+  if(req.DestReg == 0 && req.RegType == RevRegClass::RegGPR)
+    return;
+  output->fatal(CALL_INFO, -1,
+                "Core %" PRIu32 "; Hart %" PRIu32 "; "
+                "Cannot find matching address for outstanding "
+                "remote load for reg %" PRIu32 " from address %" PRIx64 "\n",
+                id, req.Hart, req.DestReg, req.SrcAddr);
 }
 
 bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
@@ -2445,8 +2423,10 @@ void RevProc::ExecEcall(RevInst& inst){
 
     // For now, rewind the PC and keep executing the ECALL until we
     // have completed
-    if(EcallStatus::SUCCESS != status){
+    if( status != EcallStatus::SUCCESS ){
       RegFile->SetPC( RegFile->GetPC() - inst.instSize );
+    } else {
+      Harts[HartToDecodeID]->GetEcallState().clear();
     }
   } else {
     output->fatal(CALL_INFO, -1, "Ecall Code = %" PRIu64 " not found", EcallCode);
