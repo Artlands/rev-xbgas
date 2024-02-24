@@ -99,6 +99,7 @@ public:
     {"enable_pan_stats", "Enable PAN network statistics",               "1"},
     {"enable_xbgas",    "Enable xBGAS",                                 "0"},
     {"enable_xbgas_stats", "Enable xBGAS statistics",                   "0"},
+    {"shared_memory_size", "Shared memory size in bytes",               "4096"},
     {"enable_memH",     "Enable memHierarchy",                          "0"},
     {"enableRDMAMbox",  "Enable the RDMA mailbox",                      "1"},
     {"enableCoProc",    "Enable an attached coProcessor for all cores", "0"},
@@ -281,6 +282,9 @@ private:
 
   bool EnableXBGAS;                   ///< RevCPU: Enable xBGAS
   bool EnableXBGASStats;              ///< RevCPU: Enable xBGAS statistics
+  uint64_t SharedMemorySize;          ///< RevCPU: Shared memory size
+  uint64_t SharedMemoryBase;          ///< RevCPU: Shared memory base address
+  uint64_t BarrierBase;               ///< RevCPU: Barrier base address
   RevRmtMemCtrl *rmtCtrl;             ///< RevCPU: xBGAS Remote memory controller
 
   bool EnableCoProc;                  ///< RevCPU: Enable a co-processor attached to all cores

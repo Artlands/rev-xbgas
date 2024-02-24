@@ -21,8 +21,7 @@
 
 #include "RevInstTable.h"
 
-// #define _XBGAS_DEBUG_
-
+// 
 namespace SST::RevCPU{
 
 /// General template for converting between Floating Point and Integer.

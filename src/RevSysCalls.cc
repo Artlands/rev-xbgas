@@ -102,6 +102,14 @@ EcallStatus RevProc::ECALL_setxattr(RevInst& inst){
   // TODO: Need to load the data from (value, size bytes) into
   // hostValue vector before it can be passed to setxattr() on host.
 
+  if(ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR) || 
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a1), RevRegClass::RegGPR) ||
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a2), RevRegClass::RegGPR) ||
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a3), RevRegClass::RegGPR) ||
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a4), RevRegClass::RegGPR) ) {
+      return EcallStatus::CONTINUE;
+  }
+
   auto path = RegFile->GetX<uint64_t>(RevReg::a0);
   auto name = RegFile->GetX<uint64_t>(RevReg::a1);
   auto value = RegFile->GetX<uint64_t>(RevReg::a2);
@@ -249,6 +257,12 @@ EcallStatus RevProc::ECALL_fremovexattr(RevInst& inst){
 
 // 17, rev_getcwd(char  *buf, unsigned long size)
 EcallStatus RevProc::ECALL_getcwd(RevInst& inst){
+
+  if(ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR) || 
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a1), RevRegClass::RegGPR) ) {
+      return EcallStatus::CONTINUE;
+  }
+
   auto BufAddr = RegFile->GetX<uint64_t>(RevReg::a0);
   auto size = RegFile->GetX<uint64_t>(RevReg::a1);
   auto CWD = std::filesystem::current_path();
@@ -394,6 +408,13 @@ EcallStatus RevProc::ECALL_mkdirat(RevInst& inst){
   output->verbose(CALL_INFO, 2, 0,
                   "ECALL: mkdirat called");
   EcallState& ECALL = Harts.at(HartToExecID)->GetEcallState();
+
+  if(ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR) || 
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a1), RevRegClass::RegGPR) ||
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a2), RevRegClass::RegGPR) ) {
+      return EcallStatus::CONTINUE;
+  }
+
   auto dirfd = RegFile->GetX<int>(RevReg::a0);
   auto path = RegFile->GetX<uint64_t>(RevReg::a1);
   auto mode = RegFile->GetX<unsigned short>(RevReg::a2);
@@ -523,6 +544,9 @@ EcallStatus RevProc::ECALL_faccessat(RevInst& inst){
 EcallStatus RevProc::ECALL_chdir(RevInst& inst){
   output->verbose(CALL_INFO, 2, 0,
                   "ECALL: chdir called\n");
+  if(ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR)) {
+      return EcallStatus::CONTINUE;
+  }
   auto path = RegFile->GetX<uint64_t>(RevReg::a0);
   auto action = [&]{
     int rc = chdir(Harts.at(HartToExecID)->GetEcallState().string.c_str());
@@ -588,6 +612,14 @@ EcallStatus RevProc::ECALL_openat(RevInst& inst){
                     "ECALL: openat called by thread %" PRIu32
                     " on hart %" PRIu32 "\n",  ActiveThreadID, HartToExecID);
   }
+
+  if(ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR) || 
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a1), RevRegClass::RegGPR) ||
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a2), RevRegClass::RegGPR) ||
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a3), RevRegClass::RegGPR) ) {
+      return EcallStatus::CONTINUE;
+  }
+  
   auto dirfd = RegFile->GetX<int>(RevReg::a0);
   auto pathname = RegFile->GetX<uint64_t>(RevReg::a1);
 
@@ -625,6 +657,11 @@ EcallStatus RevProc::ECALL_close(RevInst& inst){
   output->verbose(CALL_INFO, 2, 0,
                   "ECALL: close called by thread %" PRIu32
                   " on hart %" PRIu32 "\n", ActiveThreadID, HartToExecID);
+
+  if(ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR) ) {
+      return EcallStatus::CONTINUE;
+  }
+
   auto fd = RegFile->GetX<int>(RevReg::a0);
   auto& ActiveThread = Harts.at(HartToExecID)->Thread;
 
@@ -694,6 +731,11 @@ EcallStatus RevProc::ECALL_read(RevInst& inst){
   output->verbose(CALL_INFO, 2, 0,
                   "ECALL: read called by thread %" PRIu32
                   " on hart %" PRIu32 "\n", ActiveThreadID, HartToExecID);
+  if(ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR) || 
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a1), RevRegClass::RegGPR) ||
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a2), RevRegClass::RegGPR) ) {
+      return EcallStatus::CONTINUE;
+  }
   auto fd = RegFile->GetX<int>(RevReg::a0);
   auto BufAddr = RegFile->GetX<uint64_t>(RevReg::a1);
   auto BufSize = RegFile->GetX<uint64_t>(RevReg::a2);
@@ -732,6 +774,12 @@ EcallStatus RevProc::ECALL_write(RevInst& inst){
                     "ECALL: write called by thread %" PRIu32
                     " on hart %" PRIu32 "\n",  ActiveThreadID, HartToExecID);
   }
+  if(ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR) || 
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a1), RevRegClass::RegGPR) ||
+     ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a2), RevRegClass::RegGPR) ) {
+      return EcallStatus::CONTINUE;
+  }
+
   auto fd = RegFile->GetX<int>(RevReg::a0);
   auto addr = RegFile->GetX<uint64_t>(RevReg::a1);
   auto nbytes = RegFile->GetX<uint64_t>(RevReg::a2);
@@ -1189,6 +1237,11 @@ EcallStatus RevProc::ECALL_clock_gettime(RevInst& inst){
   output->verbose(CALL_INFO, 2, 0,
                   "ECALL: clock_gettime called by thread %" PRIu32
                   " on hart %" PRIu32 "\n", ActiveThreadID, HartToExecID);
+
+  if(ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a1), RevRegClass::RegGPR)) {
+    return EcallStatus::CONTINUE;
+  }
+
   struct timespec src, *tp = (struct timespec *) RegFile->GetX<uint64_t>(RevReg::a1);
 
   if (timeConverter == nullptr) {
@@ -2001,6 +2054,10 @@ EcallStatus RevProc::ECALL_readahead(RevInst& inst){
 
 // 214, rev_brk(unsigned long brk)
 EcallStatus RevProc::ECALL_brk(RevInst& inst){
+
+if(ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR)) {
+  return EcallStatus::CONTINUE;
+}
   auto Addr = RegFile->GetX<uint64_t>(RevReg::a0);
 
   const uint64_t heapend = mem->GetHeapEnd();
@@ -2019,6 +2076,12 @@ EcallStatus RevProc::ECALL_brk(RevInst& inst){
 EcallStatus RevProc::ECALL_munmap(RevInst& inst){
   output->verbose(CALL_INFO, 2, 0,
                   "ECALL: munmap called\n");
+
+  if (ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR) || 
+      ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a1), RevRegClass::RegGPR)) {
+    return EcallStatus::CONTINUE;
+  }
+
   auto Addr = RegFile->GetX<uint64_t>(RevReg::a0);
   auto Size = RegFile->GetX<uint64_t>(RevReg::a1);
 
@@ -2229,6 +2292,11 @@ EcallStatus RevProc::ECALL_execve(RevInst& inst){
 EcallStatus RevProc::ECALL_mmap(RevInst& inst){
   output->verbose(CALL_INFO, 2, 0,
                   "ECALL: mmap called\n");
+
+  if (ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR) || 
+      ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a1), RevRegClass::RegGPR)) {
+    return EcallStatus::CONTINUE;
+  }
 
   auto addr = RegFile->GetX<uint64_t>(RevReg::a0);
   auto size = RegFile->GetX<uint64_t>(RevReg::a1);
@@ -3119,7 +3187,11 @@ EcallStatus RevProc::ECALL_cpuinfo(RevInst& inst){
   output->verbose(CALL_INFO, 2, 0,
                   "ECALL: cpuinfoc called by thread %" PRIu32
                     "\n", ActiveThreadID);
-    struct rev_cpuinfo info;
+  
+  if (ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR)) {
+    return EcallStatus::CONTINUE;
+  }
+  struct rev_cpuinfo info;
   auto addr = RegFile->GetX<int>(RevReg::a0);
   info.cores = opts->GetNumCores();
   info.harts_per_core = opts->GetNumHarts();
@@ -3131,6 +3203,9 @@ EcallStatus RevProc::ECALL_cpuinfo(RevInst& inst){
 // 501, rev_perf_stats(struct rev_perf_stats *stats)
 EcallStatus RevProc::ECALL_perf_stats(RevInst& inst){
   output->verbose(CALL_INFO, 2, 0, "ECALL: perf_stats called by thread %" PRIu32 "\n", GetActiveThreadID());
+  if (ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR)) {
+    return EcallStatus::CONTINUE;
+  }
   rev_stats rs, *dest = reinterpret_cast<rev_stats*>(RegFile->GetX<uint64_t>(RevReg::a0));
 
   rs.cycles = Stats.totalCycles;
@@ -3148,6 +3223,11 @@ EcallStatus RevProc::ECALL_pthread_create(RevInst& inst){
   output->verbose(CALL_INFO, 2, 0,
                   "ECALL: pthread_create called by thread %" PRIu32
                   " on hart %" PRIu32 "\n", ActiveThreadID, HartToExecID);
+  if (ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a0), RevRegClass::RegGPR) ||
+      ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a2), RevRegClass::RegGPR) ||
+      ScoreboardCheck(RegFile, static_cast<uint16_t>(RevReg::a3), RevRegClass::RegGPR)){
+    return EcallStatus::CONTINUE;
+  }
   uint64_t tidAddr     = RegFile->GetX<uint64_t>(RevReg::a0);
   //uint64_t AttrPtr     = RegFile->GetX<uint64_t>(RevReg::a1);
   uint64_t NewThreadPC = RegFile->GetX<uint64_t>(RevReg::a2);

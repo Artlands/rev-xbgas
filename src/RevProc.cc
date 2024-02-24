@@ -15,8 +15,6 @@
 using namespace SST::RevCPU;
 using MemSegment = RevMem::MemSegment;
 
-#define _XBGAS_DEBUG_
-
 RevProc::RevProc( unsigned Id,
                   RevOpts *Opts,
                   unsigned NumHarts,
@@ -2061,10 +2059,13 @@ void RevProc::CreateThread(uint32_t NewTID, uint64_t firstPC, void* arg){
   NewThreadRegFile->SetX(8, loader->GetSymbolAddr("__global_pointer$"));
   NewThreadRegFile->SetPC(firstPC);
 
-  // Copy the extended registers e10 and e11
+  // Copy the extended registers e10, e11, e12, e13, e14
   if( mem->isXBGASEnabled() ) {
     NewThreadRegFile->SetE(RevReg::e10, Harts.at(HartToExecID)->RegFile->GetE(RevReg::e10));
     NewThreadRegFile->SetE(RevReg::e11, Harts.at(HartToExecID)->RegFile->GetE(RevReg::e11));
+    NewThreadRegFile->SetE(RevReg::e12, Harts.at(HartToExecID)->RegFile->GetE(RevReg::e12));
+    NewThreadRegFile->SetE(RevReg::e13, Harts.at(HartToExecID)->RegFile->GetE(RevReg::e13));
+    NewThreadRegFile->SetE(RevReg::e14, Harts.at(HartToExecID)->RegFile->GetE(RevReg::e14));
   }
 
   // Create a new RevThread Object
@@ -2412,6 +2413,7 @@ void RevProc::InitEcallTable(){
 // supported exceptions at this point there is no need just yet.
 //
 void RevProc::ExecEcall(RevInst& inst){
+  // DependencyCheck(HartToDecodeID, &Inst)
   auto EcallCode =Harts[HartToDecodeID]->RegFile->GetX<uint64_t>(RevReg::a7);
   auto it = Ecalls.find(EcallCode);
   if( it != Ecalls.end() ){

@@ -12,6 +12,7 @@
 #define _SST_REVCPU_REVMEM_H_
 
 #define __PAGE_SIZE__ 4096
+#define __XBRTIME_RESERVED__ 256
 
 // -- C++ Headers
 #include <algorithm>

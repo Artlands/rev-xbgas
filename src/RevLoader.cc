@@ -443,7 +443,8 @@ bool RevLoader::LoadElf64(char *membuf, size_t sz){
     }
   }
 
-  // Initialize the heap
+  // Initialize the heap, aligning the StaticDataEnd to the page end
+  StaticDataEnd = ((StaticDataEnd + __PAGE_SIZE__ - 1) & ~(__PAGE_SIZE__ - 1)) - 1;
   mem->InitHeap(StaticDataEnd);
 
   return true;

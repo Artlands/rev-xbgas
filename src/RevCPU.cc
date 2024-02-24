@@ -33,7 +33,8 @@ const char splash_msg[] = "\
 
 RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
   : SST::Component(id), testStage(0), PrivTag(0), address(-1), EnableMemH(false),
-    EnableXBGAS(false), EnableXBGASStats(false), rmtCtrl(nullptr),
+    EnableXBGAS(false), EnableXBGASStats(false), 
+    SharedMemorySize(0), SharedMemoryBase(0x0), BarrierBase(0x0), rmtCtrl(nullptr),
     DisableCoprocClock(false), Nic(nullptr), Ctrl(nullptr), ClockHandler(nullptr) {
 
   const int Verbosity = params.find<int>("verbose", 0);
@@ -151,22 +152,6 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
   const uint64_t maxHeapSize = params.find<unsigned long>("maxHeapSize", memSize/4);
   Mem->SetMaxHeapSize(maxHeapSize);
 
-  // See if we should load the xBGAS remote memory controller
-  EnableXBGAS = params.find<bool>("enable_xbgas", 0);
-  EnableXBGASStats = params.find<bool>("enable_xbgas_stats", 0);
-
-  if( EnableXBGAS ) {
-    // Load remote memory controller subcomponent
-    rmtCtrl = loadUserSubComponent<RevRmtMemCtrl>("remote_memory");
-    if ( !rmtCtrl )
-      output.fatal(CALL_INFO, -1, "Error : failed to inintialize the remote memory controller subcomponent\n" );
-    // Set memory object for xBGAS
-    rmtCtrl->setMem(Mem);
-    // Set remote memory controller for Mem
-    Mem->setRmtMemCtrl(rmtCtrl);
-    // TODO: Reserve the xBGAS memory region
-  }
-
   // Load the binary into memory
   // TODO: Use std::nothrow to return null instead of throwing std::bad_alloc
   Loader = new RevLoader( Exe, Args, Mem, &output );
@@ -199,6 +184,26 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
     for( unsigned i=0; i<numCores; i++ ){
       Procs.push_back( new RevProc( i, Opts, numHarts, Mem, Loader, this->GetNewTID(), &output ) );
     }
+  }
+
+  // See if we should load the xBGAS remote memory controller
+  EnableXBGAS = params.find<bool>("enable_xbgas", 0);
+  EnableXBGASStats = params.find<bool>("enable_xbgas_stats", 0);
+  SharedMemorySize = params.find<unsigned long>("shared_memory_size", 4096);
+
+  if( EnableXBGAS ) {
+    // Load remote memory controller subcomponent
+    rmtCtrl = loadUserSubComponent<RevRmtMemCtrl>("remote_memory");
+    if ( !rmtCtrl )
+      output.fatal(CALL_INFO, -1, "Error : failed to inintialize the remote memory controller subcomponent\n" );
+    // Set memory object for xBGAS
+    rmtCtrl->setMem(Mem);
+    // Set remote memory controller for Mem
+    Mem->setRmtMemCtrl(rmtCtrl);
+    // Allocate the xBGAS shared memory region
+    SharedMemoryBase = Mem->AllocMem((uint64_t)(SharedMemorySize));
+    // Get the base address of the barrier region
+    BarrierBase = _REVMEM_BASE_ + memSize - __XBRTIME_RESERVED__;
   }
 
   #ifndef NO_REV_TRACER
@@ -455,6 +460,9 @@ void RevCPU::setup(){
     // Setup the extended registers to have the xBGAS PE ID and total number of PEs
     // e10 = contains the PE id
     // e11 = contains the number of PEs
+    // e12 = contains the size of the shared memory region
+    // e13 = contains the base address of the shared memory region
+    // e14 = contains the base address of the barrier region
 
     // Get the main thread
     RevThread* MainThread = ReadyThreads[0].get();
@@ -462,6 +470,9 @@ void RevCPU::setup(){
 
     RegState->SetE(RevReg::e10, rmtCtrl->getPEID());
     RegState->SetE(RevReg::e11, rmtCtrl->getNumPEs());
+    RegState->SetE(RevReg::e12, SharedMemorySize);
+    RegState->SetE(RevReg::e13, SharedMemoryBase);
+    RegState->SetE(RevReg::e14, BarrierBase);
   }
 }
 

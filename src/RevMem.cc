@@ -28,12 +28,15 @@ RevMem::RevMem( uint64_t MemSize, RevOpts *Opts, RevMemCtrl *Ctrl, SST::Output *
   addrShift = lg(pageSize);
   nextPage = 0;
 
-  // We initialize StackTop to the size of memory minus 1024 bytes
+  // We initialize StackTop to the size of memory minus __XBRTIME_RESERVED__ (256) bytes
+  // This allocates __XBRTIME_RESERVED__ bytes for the barrier information used in xbrtime
+  stacktop = (_REVMEM_BASE_ + memSize) - __XBRTIME_RESERVED__;
+  AddMemSegAt(stacktop, __XBRTIME_RESERVED__);
+  
+  // We offset stacktop by 1024 bytes
   // This allocates 1024 bytes for program header information to contain
   // the ARGC and ARGV information
-  stacktop = (_REVMEM_BASE_ + memSize) - 1024;
-
-  // Add the 1024 bytes for the program header information
+  stacktop -= 1024;
   AddMemSegAt(stacktop, 1024);
 
 }
@@ -50,10 +53,15 @@ RevMem::RevMem( uint64_t MemSize, RevOpts *Opts, SST::Output *Output )
   if( !physMem )
     output->fatal(CALL_INFO, -1, "Error: could not allocate backing memory\n");
 
-  // We initialize StackTop to the size of memory minus 1024 bytes
+  // We initialize StackTop to the size of memory minus __XBRTIME_RESERVED__ (256) bytes
+  // This allocates __XBRTIME_RESERVED__ bytes for the barrier information used in xbrtime
+  stacktop = (_REVMEM_BASE_ + memSize) - __XBRTIME_RESERVED__;
+  AddMemSegAt(stacktop, __XBRTIME_RESERVED__);
+  
+  // We offset stacktop by 1024 bytes
   // This allocates 1024 bytes for program header information to contain
   // the ARGC and ARGV information
-  stacktop = (_REVMEM_BASE_ + memSize) - 1024;
+  stacktop -= 1024;
   AddMemSegAt(stacktop, 1024);
 }
 
@@ -417,6 +425,16 @@ void RevMem::SetTLSInfo(const uint64_t& BaseAddr, const uint64_t& Size){
 uint64_t RevMem::AllocMem(const uint64_t& SegSize){
   output->verbose(CALL_INFO, 10, 99, "Attempting to allocate %" PRIu64 " bytes on the heap\n", SegSize);
 
+  // std::cout << "====================" << std::endl;
+  // for( auto Seg : MemSegs ){
+  //   std::cout << *Seg << std::endl;
+  // }
+
+  // for( auto Seg : ThreadMemSegs ){
+  //   std::cout << *Seg << std::endl;
+  // }
+  // std::cout << "====================" << std::endl;
+
   uint64_t NewSegBaseAddr = 0;
   // Check if there is a free segment that can fit the new data
   for( size_t i=0; i < FreeMemSegs.size(); i++ ){
@@ -520,7 +538,7 @@ uint64_t RevMem::AllocMemAt(const uint64_t& BaseAddr, const uint64_t& SegSize){
       // Check if either the baseAddr or topAddr of the potential new segment exists inside of an already allocated segment
       if( Seg->contains(BaseAddr) || Seg->contains(BaseAddr + SegSize) ){
         output->fatal(CALL_INFO, 11,
-                      "Error: Attempting to allocate memory at address 0x%lx of size 0x%lx which contains memory that is"
+                      "Error: Attempting to allocate memory at address 0x%lx of size 0x%lx which contains memory that is "
                       "already allocated in the segment with BaseAddr = 0x%lx and Size 0x%lx\n",
                       BaseAddr, SegSize, Seg->getBaseAddr(), Seg->getSize());
       } else {

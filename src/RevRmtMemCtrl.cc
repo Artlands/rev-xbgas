@@ -17,8 +17,6 @@ using namespace SST;
 using namespace SST::RevCPU;
 using namespace SST::Interfaces;
 
-#define _XBGAS_DEBUG_
-
 // Remote memory controller interface
 // RevMem:RmtReadVal->RevMem:RmtReadMem->RevRmtMemCtrl:sendRmtReadRqst
 // rqstQ.push_back -> RevRmtMemCtrl:processNextRqst -> RevRmtMemCtrl:buildRmtMemRqst
