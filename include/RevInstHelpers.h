@@ -189,15 +189,15 @@ bool eload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
 
   if (Nmspace == 0) {
 
-#ifdef _XBGAS_DEBUG_
-    std::cout << "Namespace is 0, go to the local memory access" << std::endl;
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
 
     return load<T>(F, R, M, Inst);
   } else {
 
-#ifdef _XBGAS_DEBUG_
-    std::cout << "PE " << R->GetE(10) 
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE(10) 
             << " eload: Nmspace: " << Nmspace
             << ", SrcAddr: 0x" << std::hex << SrcAddr << std::endl;
 #endif
@@ -233,16 +233,16 @@ bool estore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
   uint64_t Nmspace = R->GetE(Inst.rs2);
   uint64_t DestAddr = R->GetX<uint64_t>(Inst.rs2) + Inst.ImmSignExt(12);
 
-#ifdef _XBGAS_DEBUG_
-    std::cout << "PE " << R->GetE(10) 
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE(10) 
             << " estore: Nmspace: " << Nmspace
             << ", DestAddr: 0x" << std::hex << DestAddr
             << ", Value: 0x" << std::hex << (uint64_t)(R->GetX<T>(Inst.rs1)) << std::endl;
 #endif
 
 if (Nmspace == 0) {
-#ifdef _XBGAS_DEBUG_
-    std::cout << "Namespace is 0, go to the local memory access" << std::endl;
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
     return store<T>(F, R, M, Inst);
   } else {
@@ -265,15 +265,15 @@ bool erload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
 
   if (Nmspace == 0) {
 
-#ifdef _XBGAS_DEBUG_
-    std::cout << "Namespace is 0, go to the local memory access" << std::endl;
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
 
     return load<T>(F, R, M, Inst);
   } else {
 
-#ifdef _XBGAS_DEBUG_
-    std::cout << "PE " << R->GetE(10) 
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE(10) 
             << " erload: Nmspace: " << Nmspace
             << ", SrcAddr: 0x" << std::hex << SrcAddr << std::endl;
 #endif
@@ -309,8 +309,8 @@ bool erstore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
   uint64_t Nmspace = R->GetE(Inst.rd);
   uint64_t DestAddr = R->GetX<uint64_t>(Inst.rs2);
 
-#ifdef _XBGAS_DEBUG_
-    std::cout << "PE " << R->GetE(10)
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE(10)
               << " Inst.rs1: " << std::dec << Inst.rs1
               << " Inst.rs2: " << std::dec << Inst.rs2
               << " Inst.rd: " << std::dec << Inst.rd
@@ -320,8 +320,8 @@ bool erstore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
 #endif
 
 if (Nmspace == 0) {
-#ifdef _XBGAS_DEBUG_
-    std::cout << "Namespace is 0, go to the local memory access" << std::endl;
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
     return store<T>(F, R, M, Inst);
   } else {

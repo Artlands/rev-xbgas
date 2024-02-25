@@ -1678,8 +1678,8 @@ void RevProc::MarkLoadComplete(const MemReq& req){
 
 void RevProc::MarkRmtLoadComplete(const RmtMemReq& req){
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "Marking remote load complete for register: x" << std::dec << req.DestReg << "\n";
+#ifdef XBGAS_DEBUG
+  std::cout << "XBGAS_DEBUG : Marking remote load complete for register: x" << std::dec << req.DestReg << "\n";
 #endif
 
   // Iterate over all outstanding loads for this reg (if any)
@@ -1725,17 +1725,6 @@ bool RevProc::ClockTick( SST::Cycle_t currentCycle ){
     HartToDecodeID = GetNextHartToDecodeID();
     ActiveThreadID = Harts.at(HartToDecodeID)->GetAssignedThreadID();
     RegFile = Harts[HartToDecodeID]->RegFile.get();
-
-
-// #ifdef _XBGAS_DEBUG_
-//   if( currentCycle % 1000 == 0 ){
-//     std::cout << "Current Cycle: " << currentCycle << ", Register File" << "\n";
-//     for( unsigned i = 10; i < 16; i++){
-//       std::cout << "e" << std::dec << i << ": " << RegFile->GetE(i)
-//                 << "| x" << std::dec << i << ": " << std::hex << RegFile->GetX<uint64_t>(i) << "\n";
-//     }
-//   }
-// #endif
 
     feature->SetHartToExecID(HartToDecodeID);
 

@@ -161,8 +161,8 @@ void RevBasicRmtMemCtrl::handleReadRqst( xbgasNicEvent *ev ){
   uint32_t Stride   = ev->getStride();
   RevFlag  Flags    = ev->getFlags();
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "PE " << getPEID() << " handle Read Rqst, ";
+#ifdef XBGAS_DEBUG
+  std::cout << "XBGAS_DEBUG : PE " << getPEID() << " handle Read Rqst, ";
   std::cout << "Event ID: " << Id
             << ", SrcId: " << SrcId 
             << ", SrcAddr: 0x" << std::hex << SrcAddr 
@@ -210,8 +210,8 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent *ev ){
   RevFlag  Flags    = ev->getFlags();
 
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "PE " << getPEID() << " handle Write Rqst, ";
+#ifdef XBGAS_DEBUG
+  std::cout << "XBGAS_DEBUG : PE " << getPEID() << " handle Write Rqst, ";
   std::cout << "Event ID: " << Id
             << ", SrcId: " << SrcId 
             << ", SrcAddr: 0x" << std::hex << ev->getSrcAddr()  
@@ -242,8 +242,8 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent *ev ){
 
 void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent *ev ){
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "PE " << getPEID()
+#ifdef XBGAS_DEBUG
+  std::cout << "XBGAS_DEBUG : PE " << getPEID()
             << " handle Read Resp, "
             << "Event ID: " << ev->getID()
             << ", SrcId: " << ev->getSrcId() 
@@ -285,8 +285,8 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent *ev ){
 
 void RevBasicRmtMemCtrl::handleWriteResp( xbgasNicEvent *ev ){
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "PE " << getPEID()
+#ifdef XBGAS_DEBUG
+  std::cout << "XBGAS_DEBUG : PE " << getPEID()
             << " handle Write Resp, "
             << "Event ID: " << ev->getID()
             << ", SrcId: " << ev->getSrcId() 
@@ -342,8 +342,8 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& req ) {
     RmtMemOp OpType = LocalLoadType.find(id)->second;
 
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "PE " << getPEID() << " mark local load complete, ";
+#ifdef XBGAS_DEBUG
+  std::cout << "XBGAS_DEBUG : PE " << getPEID() << " mark local load complete, ";
   std::cout << "Event ID: " << std::get<LOAD_RECORD_ID>(Entry)
             << ", SrcId: " << std::get<LOAD_RECORD_SRCID>(Entry) 
             << ", OpTyPE " << rmtMemOpToString(OpType)
@@ -411,8 +411,8 @@ void RevBasicRmtMemCtrl::setup(){
     }
   }
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "Namespace Lookaside Buffer of PE " << myPEid << ":" << std::endl;
+#ifdef XBGAS_DEBUG
+  std::cout << "XBGAS_DEBUG : Namespace Lookaside Buffer of PE " << myPEid << ":" << std::endl;
   std::cout << "|" << std::string(23, '-') << "|" << "\n";
   std::cout << "|" << " Namespace " << "|" << "Physical ID" << "|" << "\n";
   for (auto it = nmspaceLB.begin(); it != nmspaceLB.end(); ++it) {
@@ -432,10 +432,6 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst( unsigned Hart, uint64_t Nmspace,
                                           uint64_t SrcAddr, size_t Size, 
                                           void *Target,
                                           const RmtMemReq& req, RevFlag flags) {
-// #ifdef _XBGAS_DEBUG_
-//   std::cout << "PE " << getPEID() << ", RevBasicRmtMemCtrl::sendRmtReadRqst" 
-//             << ", Nmspace: " << Nmspace << std::endl;
-// #endif
   
   if( Size == 0 )
     return true;
@@ -616,8 +612,8 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
     xbgasNic->send(RmtEvent, DestId);
     requests.push_back(RmtEvent->getID());
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "PE " << getPEID() 
+#ifdef XBGAS_DEBUG
+  std::cout << "XBGAS_DEBUG : PE " << getPEID() 
             << " build Read Rqst, "
             << "Event Id: " << std::dec << RmtEvent->getID() 
             << std::endl;
@@ -641,8 +637,8 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp *Op, bool &Success ){
     xbgasNic->send(RmtEvent, DestId);
     requests.push_back(RmtEvent->getID());
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "PE " << getPEID() 
+#ifdef XBGAS_DEBUG
+  std::cout << "XBGAS_DEBUG : PE " << getPEID() 
             << " build Write Rqst, "
             << "Event Id: " << std::dec << RmtEvent->getID() 
             << std::endl;
