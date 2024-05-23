@@ -284,14 +284,16 @@ public:
   }
 
   /// RevMem: template remote bulk read memory interface
-  template <typename T>
-  bool RmtBulkReadVal( unsigned Hart, uint64_t Nmspace, 
+  bool RmtBulkReadVal( unsigned Hart, 
+                       uint64_t Nmspace, 
                        uint64_t SrcAddr,
-                       uint32_t Nelem, uint32_t Stride, 
+                       uint32_t Nelem, 
+                       uint32_t Stride, 
                        uint64_t DestAddr,
+                       size_t Size,
                        const RmtMemReq& req, 
                        RevFlag flags ){
-    return RmtBulkReadMem(Hart, Nmspace, SrcAddr, sizeof(T), 
+    return RmtBulkReadMem(Hart, Nmspace, SrcAddr, Size, 
                           Nelem, Stride, DestAddr, req, flags);
   }
 
@@ -300,8 +302,10 @@ public:
   // ----------------------------------------------------
   /// RevMem: template remote write memory interface
   template <typename T>
-  void RmtWrite(unsigned Hart, uint64_t Nmspace, 
-                uint64_t DestAddr, T Value ) {
+  void RmtWrite(unsigned Hart, 
+                uint64_t Nmspace, 
+                uint64_t DestAddr, 
+                T Value ) {
     if( !RmtWriteMem(Hart, Nmspace, DestAddr, sizeof(T), &Value, RevFlag::F_NONE) ) {
       output->fatal(CALL_INFO, -1, std::is_floating_point_v<T> ?
                     "Error: could not write remote memory (FP%zu)\n" :
@@ -311,16 +315,17 @@ public:
   }
 
   /// RevMem: template remote bulk write memory interface
-  template <typename T>
-  void RmtBulkWrite(unsigned Hart, uint64_t Nmspace, 
-                    uint64_t DestAddr, uint32_t Nelem, uint32_t Stride,
+  void RmtBulkWrite(unsigned Hart, 
+                    uint64_t Nmspace, 
+                    uint64_t DestAddr, 
+                    size_t Size, 
+                    uint32_t Nelem, 
+                    uint32_t Stride,
                     uint64_t SrcAddr ) {
-    if( !RmtBulkWriteMem(Hart, Nmspace, DestAddr, sizeof(T), 
+    if( !RmtBulkWriteMem(Hart, Nmspace, DestAddr, Size, 
                          Nelem, Stride, SrcAddr, RevFlag::F_NONE) ) {
-      output->fatal(CALL_INFO, -1, std::is_floating_point_v<T> ?
-                    "Error: could not bulk write remote memory (FP%zu)\n" :
-                    "Error: could not bulk write remote memory (U%zu)\n",
-                    sizeof(T) * 8 * Nelem);
+      output->fatal(CALL_INFO, -1,
+                    "Error: could not bulk write remote memory\n");
     }
   }
 

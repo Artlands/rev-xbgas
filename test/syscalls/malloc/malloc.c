@@ -46,9 +46,10 @@ void *alloc_new_block(size_t size) {
   return block;
 }
 
-void merge_blocks(mem_block *block) {
-  // Merge the block with the next block if it is free and within the same memory segment
-  if (block->next && block->next->free && is_same_segment(block, block->next)) {
+mem_block *merge_blocks(mem_block *block) {
+  // Merge the block with its neighbor blocks if any of them is free and 
+  // within the same memory segment
+  if (block->next && block->next->free && in_same_segment(block, block->next)) {
     block->free = 1;
     block->size += align8(BLOCK_SIZE) + block->next->size;
     block->next = block->next->next;
@@ -56,9 +57,19 @@ void merge_blocks(mem_block *block) {
       block->next->prev = block;
     }
   }
+  if (block->prev && block->prev->free && in_same_segment(block, block->prev)) {
+    block->prev->free = 1;
+    block->prev->size += align8(BLOCK_SIZE) + block->size;
+    block->prev->next = block->next;
+    if (block->next) {
+      block->next->prev = block->prev;
+    }
+    return block->prev;
+  }
+  return block;
 }
 
-int is_same_segment(mem_block *block1, mem_block *block2) {
+int in_same_segment(mem_block *block1, mem_block *block2) {
   for (int i = 0; i < num_segments; i++) {
     if (segments[i].start <= (unsigned long)block1 && segments[i].end >= (unsigned long)block1 &&
         segments[i].start <= (unsigned long)block2 && segments[i].end >= (unsigned long)block2) {
@@ -70,14 +81,14 @@ int is_same_segment(mem_block *block1, mem_block *block2) {
 
 void split_block(mem_block *block, size_t size) {
   // Split the block
-  mem_block *new_block = (mem_block *)((char *)block + size);
+  mem_block *new_block = (mem_block *)((char *)block + align8(BLOCK_SIZE) + align8(size));
   new_block->free = 1;
-  new_block->size = block->size - size - align8(BLOCK_SIZE);
+  new_block->size = block->size - align8(size) - align8(BLOCK_SIZE);
   new_block->next = block->next;
   new_block->prev = block;
 
   block->free = 0;
-  block->size = size - align8(BLOCK_SIZE);
+  block->size = align8(size);
   block->next = new_block;
   if (new_block->next) {
     new_block->next->prev = new_block;
@@ -92,6 +103,22 @@ mem_block *find_block(mem_block *base, size_t size) {
   return current;
 }
 
+void print_blocks() {
+  mem_block *current = base;
+  int i = 0;
+  while (current) {
+    printf("Block %d: %p, size: %d, free: %d\n", i, current, current->size, current->free);
+    current = current->next;
+    i++;
+  }
+}
+
+void print_segments() {
+  for (int i = 0; i < num_segments; i++) {
+    printf("Segment %d: %p - %p\n", i, segments[i].start, segments[i].end);
+  }
+}
+
 void *malloc(size_t size) {
   if( size <= 0 ) {
     return NULL;
@@ -104,10 +131,10 @@ void *malloc(size_t size) {
   size_t rounded_total_size = ((total_size - 1)/PAGE_SIZE + 1) * PAGE_SIZE;
 
   if (!base) {
-    // If the list is empty, allocate a new block with the page size
+    // If the list is empty, allocate a new block with the rounded page size
     block = alloc_new_block(rounded_total_size);
     if (block) {
-      split_block(block, total_size);
+      split_block(block, size);
       return (void *)((char *)block + align8(BLOCK_SIZE));
     } else {
       return NULL;
@@ -116,13 +143,13 @@ void *malloc(size_t size) {
     // If the list is not empty, find a free block
     block = find_block(base, total_size);
     if (block) {
-      split_block(block, total_size);
+      split_block(block, size);
       return (void *)((char *)block + align8(BLOCK_SIZE));
     } else {
       // If no block is found, allocate a new block with the page size
       block = alloc_new_block(rounded_total_size);
       if (block) {
-        split_block(block, total_size);
+        split_block(block, size);
         return (void *)((char *)block + align8(BLOCK_SIZE));
       } else {
         return NULL;
@@ -140,13 +167,8 @@ void free(void *ptr) {
   // Mark the block as free
   block->free = 1;
 
-  // Merge the block with the next block
-  merge_blocks(block);
-
-  // Merge the block with the previous block 
-  if (block->prev) {
-    merge_blocks(block->prev);
-  }
+  // Merge the block with the neighbor blocks, block will be updated to the start of the merged block
+  block = merge_blocks(block);
 
   // If the block is at the start of the memory segment and the size is equal to
   // the segment size, unmap the segment
@@ -162,9 +184,20 @@ void free(void *ptr) {
         block->next->prev = block->prev;
       }
       // Unmap the block
+      printf("Unmapping block: %p\n", block);
       rev_munmap((void *)block, block->size + align8(BLOCK_SIZE));
-      for (int j = i; j < num_segments - 1; j++) {
-        segments[j] = segments[j + 1];
+      // Remove the segment from the list if the segment is at the end
+      if (i == num_segments - 1) {
+        segments[i].start = 0;
+        segments[i].end = 0;
+        num_segments--;
+      } else {
+        // If the segment is not at the end, move the last segment to the current position
+        segments[i].start = segments[num_segments - 1].start;
+        segments[i].end = segments[num_segments - 1].end;
+        segments[num_segments - 1].start = 0;
+        segments[num_segments - 1].end = 0;
+        num_segments--;
       }
       break;
     }
@@ -174,29 +207,33 @@ void free(void *ptr) {
 }
 
 int main () {
-  void *ptr1 = malloc( 1022 );
+  void *ptr1 = malloc( 1024 );
   printf( "ptr1: %p\n", ptr1);
+  print_blocks();
+  print_segments();
 
-  void *ptr2 = malloc( 8000 );
+  void *ptr2 = malloc( 4096 );
   printf( "ptr2: %p\n", ptr2);
+  print_blocks();
+  print_segments();
 
-  void *ptr3 = malloc( 200 );
+  void *ptr3 = malloc( 2048 );
   printf( "ptr3: %p\n", ptr3);
+  print_blocks();
+  print_segments();
 
+  printf( "Freeing ptr1: %p\n", ptr1);
   free( ptr1 );
-  free( ptr2 );
+  print_blocks();
+  print_segments();
+
+  printf( "Freeing ptr3: %p\n", ptr3);
   free( ptr3 );
+  print_blocks();
+  print_segments();
 
-  void *ptr4 = malloc( 200 );
-  printf( "ptr4: %p\n", ptr4);
-
-  void *ptr5 = malloc( 500 );
-  printf( "ptr5: %p\n", ptr5);
-
-  void *ptr6 = malloc( 5000 );
-  printf( "ptr6: %p\n", ptr6);
-
-  free( ptr4 );
-  free( ptr5 );
-  free( ptr6 );
+  printf( "Freeing ptr2: %p\n", ptr2);
+  free( ptr2 );
+  print_blocks();
+  print_segments();
 }

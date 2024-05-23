@@ -14,7 +14,7 @@
 
 EXAMPLE=malloc
 #CC=riscv64-unknown-elf-gcc
-CC="${RVCC}"
+CC=${RVCC}
 #ARCH=rv64g
 ARCH=rv64imafdc
 RV_OBJDUMP=riscv64-unknown-elf-objdump

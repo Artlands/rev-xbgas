@@ -337,7 +337,58 @@ if (Nmspace == 0) {
 /// xBGAS remote bulk load template
 template<typename T>
 bool ebload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  return true;
+  static constexpr RevFlag flags = sizeof(T) < sizeof(int64_t) ?
+      std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
+  uint64_t Nmspace  = R->GetE(Inst.rs1);
+  uint64_t SrcAddr  = R->GetX<uint64_t>(Inst.rs1);
+  uint32_t Nelem    = R->GetX<uint32_t>(Inst.rs2);
+  uint32_t Stride   = R->GetX<uint32_t>(Inst.rs3);
+  uint64_t DestAddr = R->GetX<uint64_t>(Inst.rd);
+
+
+  if (Nmspace == 0) {
+
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
+#endif
+
+    // return load<T>(F, R, M, Inst);
+    return true;
+  } else {
+
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE(10) 
+              << " eload: Nmspace: " << Nmspace
+              << ", SrcAddr: 0x" << std::hex << SrcAddr 
+              << ", Nelem: " << std::dec << Nelem
+              << ", Stride: " << std::dec << Stride << std::endl;
+              << std::endl;
+#endif
+    RmtMemReq req(Nmspace, 
+                  SrcAddr,
+                  Nelem,
+                  Stride,
+                  DestAddr,
+                  0,
+                  RevRegClass::RegUNKNOWN,
+                  F->GetHartToExecID(),
+                  RmtMemOp::BulkREADRqst,
+                  true,
+                  R->GetMarkRmtLoadComplete());
+    // R->RmtLSQueue->insert(req.LSQHashPair());
+    // Send the bulk read request, record the request in a table
+    // How to implement this in a non-blocking way?
+    // The question is when the bulk read request is not satisfied, if the instruction
+    // in the pipeline load a value from the destination address, how to handle this?
+    M->RmtBulkReadVal(F->GetHartToExecID(),
+                      Nmspace, SrcAddr, Nelem, Stride, DestAddr, sizeof(T),
+                      std::move(req), flags);
+
+    // update the cost
+    R->cost += M->RandCost(F->GetMinCost(), F->GetMaxCost());
+    R->AdvancePC(Inst);
+    return true;
+  }
 }
 
 /// xBGAS remote bulk store template
