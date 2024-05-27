@@ -68,11 +68,11 @@ void RevNIC::init(unsigned int phase){
       req->dest = SST::Interfaces::SimpleNetwork::INIT_BROADCAST_ADDR;
       req->src = iFace->getEndpointID();
       req->givePayload(ev);
-      iFace->sendInitData(req);
+      iFace->sendUntimedData(req);
     }
   }
 
-  while( SST::Interfaces::SimpleNetwork::Request * req = iFace->recvInitData() ) {
+  while( SST::Interfaces::SimpleNetwork::Request * req = iFace->recvUntimedData() ) {
     nicEvent *ev = static_cast<nicEvent*>(req->takePayload());
     numDest++;
     output->verbose(CALL_INFO, 1, 0,
