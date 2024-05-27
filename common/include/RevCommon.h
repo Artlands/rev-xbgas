@@ -23,51 +23,51 @@
 #endif
 
 #ifndef _REV_INVALID_HART_ID_
-#define _REV_INVALID_HART_ID_ (unsigned(~0))
+#define _REV_INVALID_HART_ID_ ( unsigned( ~0 ) )
 #endif
 
-#define _INVALID_ADDR_ (~uint64_t{0})
+#define _INVALID_ADDR_ ( ~uint64_t{ 0 } )
 
-#define _INVALID_TID_ (uint32_t{0})
+#define _INVALID_TID_  ( uint32_t{ 0 } )
 
-#define _MAX_HARTS_ 4096
+#define _MAX_HARTS_    4096
 
-namespace SST::RevCPU{
+namespace SST::RevCPU {
 
 /// Zero-extend value of bits size
 template<typename T>
-constexpr auto ZeroExt(T val, size_t bits){
-  return static_cast<std::make_unsigned_t<T>>(val) & ~(~std::make_unsigned_t<T>{0} << bits);
+constexpr auto ZeroExt( T val, size_t bits ) {
+  return static_cast<std::make_unsigned_t<T>>( val ) & ~( ~std::make_unsigned_t<T>{ 0 } << bits );
 }
 
 /// Sign-extend value of bits size
 template<typename T>
-constexpr auto SignExt(T val, size_t bits){
-  auto signbit = std::make_unsigned_t<T>{1} << (bits-1);
-  return static_cast<std::make_signed_t<T>>((ZeroExt(val, bits) ^ signbit) - signbit);
+constexpr auto SignExt( T val, size_t bits ) {
+  auto signbit = std::make_unsigned_t<T>{ 1 } << ( bits - 1 );
+  return static_cast<std::make_signed_t<T>>( ( ZeroExt( val, bits ) ^ signbit ) - signbit );
 }
 
 /// Base-2 logarithm of integers
 template<typename T>
-constexpr int lg(T x){
-  static_assert(std::is_integral_v<T>);
+constexpr int lg( T x ) {
+  static_assert( std::is_integral_v<T> );
 
   // We select the __builtin_clz which takes integers no smaller than x
-  if constexpr(sizeof(x) <= sizeof(int)){
-    return x ? 8*sizeof(int)-1 - __builtin_clz(x) : -1;
-  }else if constexpr(sizeof(x) <= sizeof(long)){
-    return x ? 8*sizeof(long)-1 - __builtin_clzl(x) : -1;
-  }else{
-    return x ? 8*sizeof(long long)-1 - __builtin_clzll(x) : -1;
+  if constexpr( sizeof( x ) <= sizeof( int ) ) {
+    return x ? 8 * sizeof( int ) - 1 - __builtin_clz( x ) : -1;
+  } else if constexpr( sizeof( x ) <= sizeof( long ) ) {
+    return x ? 8 * sizeof( long ) - 1 - __builtin_clzl( x ) : -1;
+  } else {
+    return x ? 8 * sizeof( long long ) - 1 - __builtin_clzll( x ) : -1;
   }
 }
 
-enum class RevRegClass : uint8_t { ///< Rev CPU Register Classes
-  RegUNKNOWN  = 0,           ///< RevRegClass: Unknown register file
-  RegIMM      = 1,           ///< RevRegClass: Treat the reg class like an immediate: S-Format
-  RegGPR      = 2,           ///< RevRegClass: GPR reg file
-  RegCSR      = 3,           ///< RevRegClass: CSR reg file
-  RegFLOAT    = 4,           ///< RevRegClass: Float register file
+enum class RevRegClass : uint8_t {  ///< Rev CPU Register Classes
+  RegUNKNOWN = 0,                   ///< RevRegClass: Unknown register file
+  RegIMM     = 1,                   ///< RevRegClass: Treat the reg class like an immediate: S-Format
+  RegGPR     = 2,                   ///< RevRegClass: GPR reg file
+  RegCSR     = 3,                   ///< RevRegClass: CSR reg file
+  RegFLOAT   = 4,                   ///< RevRegClass: Float register file
 };
 
 enum class MemOp : uint8_t {
@@ -83,134 +83,113 @@ enum class MemOp : uint8_t {
   MemOpAMO         = 9,
 };
 
-enum class RmtMemOp: uint8_t {
-  READRqst      = 0b0000,     ///< xbgasNicEvent: READ request
-  BulkREADRqst  = 0b0001,     ///< xbgasNicEvent: Bulk READ request
-  WRITERqst     = 0b0010,     ///< xbgasNicEvent: WRITE request
-  BulkWRITERqst = 0b0011,     ///< xbgasNicEvent: Bulk WRITE request
-  READResp      = 0b0100,     ///< xbgasNicEvent: READ response
-  BulkREADResp  = 0b0101,     ///< xbgasNicEvent: Bulk READ response
-  WRITEResp     = 0b0110,     ///< xbgasNicEvent: WRITE response
-  BulkWRITEResp = 0b0111,     ///< xbgasNicEvent: Bulk WRITE response
-  Finish        = 0b1111,     ///< xbgasNicEvent: Finish notification
-  Unknown       = 0b1000      ///< xbgasNicEvent: Unknown operation
+enum class RmtMemOp : uint8_t {
+  READRqst      = 0b0000,  ///< xbgasNicEvent: READ request
+  BulkREADRqst  = 0b0001,  ///< xbgasNicEvent: Bulk READ request
+  WRITERqst     = 0b0010,  ///< xbgasNicEvent: WRITE request
+  BulkWRITERqst = 0b0011,  ///< xbgasNicEvent: Bulk WRITE request
+  READResp      = 0b0100,  ///< xbgasNicEvent: READ response
+  BulkREADResp  = 0b0101,  ///< xbgasNicEvent: Bulk READ response
+  WRITEResp     = 0b0110,  ///< xbgasNicEvent: WRITE response
+  BulkWRITEResp = 0b0111,  ///< xbgasNicEvent: Bulk WRITE response
+  Finish        = 0b1111,  ///< xbgasNicEvent: Finish notification
+  Unknown       = 0b1000   ///< xbgasNicEvent: Unknown operation
 };
 
-std::ostream& operator<<(std::ostream& os, MemOp op);
+std::ostream& operator<<( std::ostream& os, MemOp op );
 
 template<typename T>
-constexpr uint64_t LSQHash(T DestReg, RevRegClass RegType, unsigned Hart){
-  return static_cast<uint64_t>(RegType) << (16 + 8) | static_cast<uint64_t>(DestReg) << 16 | Hart;
+constexpr uint64_t LSQHash( T DestReg, RevRegClass RegType, unsigned Hart ) {
+  return static_cast<uint64_t>( RegType ) << ( 16 + 8 ) | static_cast<uint64_t>( DestReg ) << 16 | Hart;
 }
 
-constexpr uint64_t RmtLSQHash(uint32_t SrcId, uint32_t PktId){
-  return static_cast<uint64_t>(SrcId) << 32 | PktId;
+constexpr uint64_t RmtOptHash( uint32_t SrcId, uint32_t PktId ) {
+  return static_cast<uint64_t>( SrcId ) << 32 | PktId;
 };
 
-struct MemReq{
-  MemReq() = default;
-  MemReq(const MemReq&) = default;
-  MemReq(MemReq&&) = default;
-  MemReq& operator=(const MemReq&) = default;
-  MemReq& operator=(MemReq&&) = default;
-  ~MemReq() = default;
+struct MemReq {
+  MemReq()                           = default;
+  MemReq( const MemReq& )            = default;
+  MemReq( MemReq&& )                 = default;
+  MemReq& operator=( const MemReq& ) = default;
+  MemReq& operator=( MemReq&& )      = default;
+  ~MemReq()                          = default;
 
   template<typename T>
-  MemReq(uint64_t Addr,
-         T DestReg,
-         RevRegClass RegType,
-         unsigned Hart,
-         MemOp ReqType,
-         bool isOutstanding,
-         std::function<void(const MemReq&)> MarkLoadCompleteFunc) :
-    Addr(Addr),
-    DestReg(uint16_t(DestReg)),
-    RegType(RegType),
-    Hart(Hart),
-    ReqType(ReqType),
-    isOutstanding(isOutstanding),
-    MarkLoadCompleteFunc(std::move(MarkLoadCompleteFunc)){}
+  MemReq(
+    uint64_t                             Addr,
+    T                                    DestReg,
+    RevRegClass                          RegType,
+    unsigned                             Hart,
+    MemOp                                ReqType,
+    bool                                 isOutstanding,
+    std::function<void( const MemReq& )> MarkLoadCompleteFunc
+  )
+    : Addr( Addr ), DestReg( uint16_t( DestReg ) ), RegType( RegType ), Hart( Hart ), ReqType( ReqType ),
+      isOutstanding( isOutstanding ), MarkLoadCompleteFunc( std::move( MarkLoadCompleteFunc ) ) {}
 
-  void MarkLoadComplete() const {
-    MarkLoadCompleteFunc(*this);
-  }
+  void MarkLoadComplete() const { MarkLoadCompleteFunc( *this ); }
 
-  auto LSQHash() const {
-    return SST::RevCPU::LSQHash(DestReg, RegType, Hart);
-  }
+  auto LSQHash() const { return SST::RevCPU::LSQHash( DestReg, RegType, Hart ); }
 
-  auto LSQHashPair() const {
-    return std::make_pair( LSQHash(), *this );
-  }
+  auto LSQHashPair() const { return std::make_pair( LSQHash(), *this ); }
 
-  uint64_t    Addr          = _INVALID_ADDR_;
-  uint16_t    DestReg       = 0;
-  RevRegClass RegType       = RevRegClass::RegUNKNOWN;
-  unsigned    Hart          = _REV_INVALID_HART_ID_;
-  MemOp       ReqType       = MemOp::MemOpCUSTOM;
-  bool        isOutstanding = false;
+  uint64_t    Addr                                          = _INVALID_ADDR_;
+  uint16_t    DestReg                                       = 0;
+  RevRegClass RegType                                       = RevRegClass::RegUNKNOWN;
+  unsigned    Hart                                          = _REV_INVALID_HART_ID_;
+  MemOp       ReqType                                       = MemOp::MemOpCUSTOM;
+  bool        isOutstanding                                 = false;
 
-  std::function<void(const MemReq&)> MarkLoadCompleteFunc = nullptr;
+  std::function<void( const MemReq& )> MarkLoadCompleteFunc = nullptr;
 
-};//struct MemReq
+};  //struct MemReq
 
 struct RmtMemReq {
-  RmtMemReq() = default;
-  RmtMemReq(const RmtMemReq&) = default;
-  RmtMemReq(RmtMemReq&&) = default;
-  RmtMemReq& operator=(const RmtMemReq&) = default;
-  RmtMemReq& operator=(RmtMemReq&&) = default;
-  ~RmtMemReq() = default;
+  RmtMemReq()                              = default;
+  RmtMemReq( const RmtMemReq& )            = default;
+  RmtMemReq( RmtMemReq&& )                 = default;
+  RmtMemReq& operator=( const RmtMemReq& ) = default;
+  RmtMemReq& operator=( RmtMemReq&& )      = default;
+  ~RmtMemReq()                             = default;
 
   template<typename T>
-  RmtMemReq(uint64_t Nmspace, 
-            uint64_t SrcAddr, 
-            uint32_t Nelem, 
-            uint32_t Stride,
-            uint64_t DestAddr, 
-            T DestReg,
-            RevRegClass RegType, 
-            unsigned Hart, 
-            RmtMemOp ReqType, 
-            bool isOutstanding, 
-            std::function<void(const RmtMemReq&)> MarkRmtLoadCompleteFunc) :
-    Nmspace(Nmspace), 
-    SrcAddr(SrcAddr), 
-    Nelem(Nelem), 
-    Stride(Stride), 
-    DestAddr(DestAddr),
-    DestReg(uint16_t(DestReg)),
-    RegType(RegType),
-    Hart(Hart), 
-    ReqType(ReqType), 
-    isOutstanding(isOutstanding), 
-    MarkRmtLoadCompleteFunc(std::move(MarkRmtLoadCompleteFunc)){}
+  RmtMemReq(
+    uint64_t                                Nmspace,
+    uint64_t                                SrcAddr,
+    uint32_t                                Nelem,
+    uint32_t                                Stride,
+    uint64_t                                DestAddr,
+    T                                       DestReg,
+    RevRegClass                             RegType,
+    unsigned                                Hart,
+    RmtMemOp                                ReqType,
+    bool                                    isOutstanding,
+    std::function<void( const RmtMemReq& )> MarkRmtLoadCompleteFunc
+  )
+    : Nmspace( Nmspace ), SrcAddr( SrcAddr ), Nelem( Nelem ), Stride( Stride ), DestAddr( DestAddr ),
+      DestReg( uint16_t( DestReg ) ), RegType( RegType ), Hart( Hart ), ReqType( ReqType ), isOutstanding( isOutstanding ),
+      MarkRmtLoadCompleteFunc( std::move( MarkRmtLoadCompleteFunc ) ) {}
 
-  void MarkRmtLoadComplete() const {
-    MarkRmtLoadCompleteFunc(*this);
-  }
+  void MarkRmtLoadComplete() const { MarkRmtLoadCompleteFunc( *this ); }
 
-  auto LSQHash() const {
-    return SST::RevCPU::LSQHash(DestReg, RegType, Hart);
-  }
+  auto LSQHash() const { return SST::RevCPU::LSQHash( DestReg, RegType, Hart ); }
 
-  auto LSQHashPair() const {
-    return std::make_pair( LSQHash(), *this );
-  }
+  auto LSQHashPair() const { return std::make_pair( LSQHash(), *this ); }
 
-  uint64_t    Nmspace       = 0;
-  uint64_t    SrcAddr       = _INVALID_ADDR_;
-  uint32_t    Nelem         = 1;
-  uint32_t    Stride        = 0;
-  uint64_t    DestAddr      = _INVALID_ADDR_;
-  uint16_t    DestReg       = 0;
-  RevRegClass RegType       = RevRegClass::RegUNKNOWN;
-  unsigned    Hart          = _REV_INVALID_HART_ID_;
-  RmtMemOp    ReqType       = RmtMemOp::Unknown;
-  bool        isOutstanding = false;
+  uint64_t    Nmspace                                             = 0;
+  uint64_t    SrcAddr                                             = _INVALID_ADDR_;
+  uint32_t    Nelem                                               = 1;
+  uint32_t    Stride                                              = 0;
+  uint64_t    DestAddr                                            = _INVALID_ADDR_;
+  uint16_t    DestReg                                             = 0;
+  RevRegClass RegType                                             = RevRegClass::RegUNKNOWN;
+  unsigned    Hart                                                = _REV_INVALID_HART_ID_;
+  RmtMemOp    ReqType                                             = RmtMemOp::Unknown;
+  bool        isOutstanding                                       = false;
 
-  std::function<void(const RmtMemReq&)> MarkRmtLoadCompleteFunc = nullptr;
-}; //struct RmtMemReq
+  std::function<void( const RmtMemReq& )> MarkRmtLoadCompleteFunc = nullptr;
+};  //struct RmtMemReq
 
 // Enum for tracking the state of a RevThread.
 // Ex. Possible flow of thread state:
@@ -237,7 +216,6 @@ enum class ThreadState {
   DONE,     // Thread has finished; deallocate resources.
 };
 
-
-}//namespace SST::RevCPU
+}  //namespace SST::RevCPU
 
 #endif

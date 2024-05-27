@@ -41,6 +41,7 @@ version for this is `3.19`.
 Building the Rev SST component from source using CMake (>= 3.19) can be performed as follows:
 
     git clone
+    git config core.hooksPath .githooks
     cd rev/build
     cmake -DRVCC=/path/to/riscv/compiler/exe ..
     make -j
@@ -48,6 +49,7 @@ Building the Rev SST component from source using CMake (>= 3.19) can be performe
 
 Additional build options include:
     * -DBUILD_ASM_TESTING=ON
+    * -DBUILD_DOCUMENTATION=ON  : enables Doxygen source code generation (use `make doc`)
 
 After a successful build you can test your install with:
 
@@ -73,7 +75,7 @@ RISC-V compiler from source. This will permit you to tune the necessary options
 in order to support a multitude of different standard, optional and custom
 extensions.
 
-We recommend compiling the [riscv-gnu-toolchain](https://github.com/riscv/riscv-gnu-toolchain) 
+We recommend compiling the [riscv-gnu-toolchain](https://github.com/riscv/riscv-gnu-toolchain)
 using the `multilib` option. This is analogous to the following:
 
     git clone https://github.com/riscv/riscv-gnu-toolchain
@@ -82,7 +84,7 @@ using the `multilib` option. This is analogous to the following:
     ./configure --prefix=/opt/riscv --enable-multilib
     make -j
 
-To build __xBGAS-compatible__ compilers, you will need to use [xbgas-gnu-toolchain](https://github.com/artlands/riscv-gnu-toolchain-xbgas.git): 
+To build __xBGAS-compatible__ compilers, you will need to use [xbgas-gnu-toolchain](https://github.com/artlands/riscv-gnu-toolchain-xbgas.git):
 
 ```
 git clone https://github.com/artlands/riscv-gnu-toolchain-xbgas.git
@@ -95,7 +97,7 @@ make -j
 
 ## Example Execution of xBGAS programs
 
-The xBGAS programs are located in the `test/xbgas/isa` and `test/xbgas/topo` directories. In each directory, there is a `Makefile` that can be used to build the programs. Simply run `make` in the directory of the programs you want to build. 
+The xBGAS programs are located in the `test/xbgas/isa` and `test/xbgas/topo` directories. In each directory, there is a `Makefile` that can be used to build the programs. Simply run `make` in the directory of the programs you want to build.
 
 The directies also contain SST configuration files that can be modified to your needs, e.g. change the number of simulated nodes, the network topology, etc.
 

@@ -3,7 +3,7 @@
 #
 # makefile: tracer
 #
-# Copyright (C) 2017-2023 Tactical Computing Laboratories, LLC
+# Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
 # All Rights Reserved
 # contact@tactcomplabs.com
 #
@@ -22,7 +22,7 @@ LOGS   = $(addsuffix .log,$(TLIST))
 TARGS = $(EXES) $(DIASMS) $(LOGS)
 
 CC=${RVCC}
-OBJDUMP=${RISCV}/bin/riscv64-unknown-elf-objdump -D --source 
+OBJDUMP=${RISCV}/bin/riscv64-unknown-elf-objdump -D --source
 INCLUDE = -I../../common/syscalls -I../include
 
 all: $(TARGS)

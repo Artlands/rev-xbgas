@@ -21,23 +21,22 @@
 
 #include "RevInstTable.h"
 
-// 
-namespace SST::RevCPU{
+namespace SST::RevCPU {
 
 /// General template for converting between Floating Point and Integer.
 /// FP values outside the range of the target integer type are clipped
 /// at the integer type's numerical limits, whether signed or unsigned.
 template<typename FP, typename INT>
-bool CvtFpToInt(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  FP fp = R->GetFP<FP>(Inst.rs1); // Read the FP register
+bool CvtFpToInt( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  FP            fp  = R->GetFP<FP>( Inst.rs1 );  // Read the FP register
   constexpr INT max = std::numeric_limits<INT>::max();
   constexpr INT min = std::numeric_limits<INT>::min();
-  INT res = std::isnan(fp) || fp > FP(max) ? max : fp < FP(min) ? min : static_cast<INT>(fp);
+  INT           res = std::isnan( fp ) || fp > FP( max ) ? max : fp < FP( min ) ? min : static_cast<INT>( fp );
 
   // Make final result signed so sign extension occurs when sizeof(INT) < XLEN
-  R->SetX(Inst.rd, static_cast<std::make_signed_t<INT>>(res));
+  R->SetX( Inst.rd, static_cast<std::make_signed_t<INT>>( res ) );
 
-  R->AdvancePC(Inst);
+  R->AdvancePC( Inst );
   return true;
 }
 
@@ -47,384 +46,374 @@ bool CvtFpToInt(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
 // an additional argument has been added to disambiguate between quiet and
 // signaling NaNs.
 template<typename T>
-unsigned fclass(T val, bool quietNaN = true) {
-  switch(std::fpclassify(val)){
-  case FP_INFINITE:
-    return std::signbit(val) ? 1 : 1 << 7;
-  case FP_NAN:
-    return quietNaN ? 1 << 9 : 1 << 8;
-  case FP_NORMAL:
-    return std::signbit(val) ? 1 << 1 : 1 << 6;
-  case FP_SUBNORMAL:
-    return std::signbit(val) ? 1 << 2 : 1 << 5;
-  case FP_ZERO:
-    return std::signbit(val) ? 1 << 3 : 1 << 4;
-  default:
-    return 0;
+unsigned fclass( T val, bool quietNaN = true ) {
+  switch( std::fpclassify( val ) ) {
+  case FP_INFINITE: return std::signbit( val ) ? 1 : 1 << 7;
+  case FP_NAN: return quietNaN ? 1 << 9 : 1 << 8;
+  case FP_NORMAL: return std::signbit( val ) ? 1 << 1 : 1 << 6;
+  case FP_SUBNORMAL: return std::signbit( val ) ? 1 << 2 : 1 << 5;
+  case FP_ZERO: return std::signbit( val ) ? 1 << 3 : 1 << 4;
+  default: return 0;
   }
 }
 
 /// Load template
 template<typename T>
-bool load(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  if( sizeof(T) < sizeof(int64_t) && R->IsRV32 ){
-    static constexpr RevFlag flags = sizeof(T) < sizeof(int32_t) ?
-      std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
-    uint64_t rs1 = R->GetX<uint64_t>(Inst.rs1); // read once for tracer
-    MemReq req(rs1 + Inst.ImmSignExt(12),
-               Inst.rd, RevRegClass::RegGPR,
-               F->GetHartToExecID(),
-               MemOp::MemOpREAD,
-               true,
-               R->GetMarkLoadComplete());
-    R->LSQueue->insert(req.LSQHashPair());
-    M->ReadVal(F->GetHartToExecID(),
-               rs1 + Inst.ImmSignExt(12),
-               reinterpret_cast<std::make_unsigned_t<T>*>(&R->RV32[Inst.rd]),
-               std::move(req),
-               flags);
-    R->SetX(Inst.rd, static_cast<T>(R->RV32[Inst.rd]));
+bool load( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  if( sizeof( T ) < sizeof( int64_t ) && R->IsRV32 ) {
+    static constexpr RevFlag flags =
+      sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
+    uint64_t rs1 = R->GetX<uint64_t>( Inst.rs1 );  // read once for tracer
+    MemReq   req(
+      rs1 + Inst.ImmSignExt( 12 ),
+      Inst.rd,
+      RevRegClass::RegGPR,
+      F->GetHartToExecID(),
+      MemOp::MemOpREAD,
+      true,
+      R->GetMarkLoadComplete()
+    );
+    R->LSQueue->insert( req.LSQHashPair() );
+    M->ReadVal(
+      F->GetHartToExecID(),
+      rs1 + Inst.ImmSignExt( 12 ),
+      reinterpret_cast<std::make_unsigned_t<T>*>( &R->RV32[Inst.rd] ),
+      std::move( req ),
+      flags
+    );
+    R->SetX( Inst.rd, static_cast<T>( R->RV32[Inst.rd] ) );
 
-  }else{
-    static constexpr RevFlag flags = sizeof(T) < sizeof(int64_t) ?
-      std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
-    uint64_t rs1 = R->GetX<uint64_t>(Inst.rs1);
-    MemReq req(rs1 + Inst.ImmSignExt(12),
-               Inst.rd, RevRegClass::RegGPR,
-               F->GetHartToExecID(),
-               MemOp::MemOpREAD,
-               true,
-               R->GetMarkLoadComplete());
-    R->LSQueue->insert(req.LSQHashPair());
-    M->ReadVal(F->GetHartToExecID(),
-               rs1 + Inst.ImmSignExt(12),
-               reinterpret_cast<std::make_unsigned_t<T>*>(&R->RV64[Inst.rd]),
-               std::move(req),
-               flags);
-    R->SetX(Inst.rd, static_cast<T>(R->RV64[Inst.rd]));
+  } else {
+    static constexpr RevFlag flags =
+      sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
+    uint64_t rs1 = R->GetX<uint64_t>( Inst.rs1 );
+    MemReq   req(
+      rs1 + Inst.ImmSignExt( 12 ),
+      Inst.rd,
+      RevRegClass::RegGPR,
+      F->GetHartToExecID(),
+      MemOp::MemOpREAD,
+      true,
+      R->GetMarkLoadComplete()
+    );
+    R->LSQueue->insert( req.LSQHashPair() );
+    M->ReadVal(
+      F->GetHartToExecID(),
+      rs1 + Inst.ImmSignExt( 12 ),
+      reinterpret_cast<std::make_unsigned_t<T>*>( &R->RV64[Inst.rd] ),
+      std::move( req ),
+      flags
+    );
+    R->SetX( Inst.rd, static_cast<T>( R->RV64[Inst.rd] ) );
   }
 
   // update the cost
-  R->cost += M->RandCost(F->GetMinCost(), F->GetMaxCost());
-  R->AdvancePC(Inst);
+  R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+  R->AdvancePC( Inst );
   return true;
 }
 
 /// Store template
 template<typename T>
-bool store(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  M->Write(F->GetHartToExecID(),
-           R->GetX<uint64_t>(Inst.rs1) + Inst.ImmSignExt(12),
-           R->GetX<T>(Inst.rs2));
-  R->AdvancePC(Inst);
+bool store( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  M->Write( F->GetHartToExecID(), R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 ), R->GetX<T>( Inst.rs2 ) );
+  R->AdvancePC( Inst );
   return true;
 }
 
 /// Floating-point load template
 template<typename T>
-bool fload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  if(std::is_same_v<T, double> || F->HasD()){
-    static constexpr RevFlag flags = sizeof(T) < sizeof(double) ?
-      RevFlag::F_BOXNAN : RevFlag::F_NONE;
+bool fload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  if( std::is_same_v<T, double> || F->HasD() ) {
+    static constexpr RevFlag flags = sizeof( T ) < sizeof( double ) ? RevFlag::F_BOXNAN : RevFlag::F_NONE;
 
-    uint64_t rs1 = R->GetX<uint64_t>(Inst.rs1);
-    MemReq req(rs1 + Inst.ImmSignExt(12),
-               Inst.rd,
-               RevRegClass::RegFLOAT,
-               F->GetHartToExecID(),
-               MemOp::MemOpREAD,
-               true,
-               R->GetMarkLoadComplete());
-    R->LSQueue->insert(req.LSQHashPair());
-    M->ReadVal(F->GetHartToExecID(),
-               rs1 + Inst.ImmSignExt(12),
-               reinterpret_cast<T*>(&R->DPF[Inst.rd]),
-               std::move(req),
-               flags);
+    uint64_t rs1                   = R->GetX<uint64_t>( Inst.rs1 );
+    MemReq   req(
+      rs1 + Inst.ImmSignExt( 12 ),
+      Inst.rd,
+      RevRegClass::RegFLOAT,
+      F->GetHartToExecID(),
+      MemOp::MemOpREAD,
+      true,
+      R->GetMarkLoadComplete()
+    );
+    R->LSQueue->insert( req.LSQHashPair() );
+    M->ReadVal(
+      F->GetHartToExecID(), rs1 + Inst.ImmSignExt( 12 ), reinterpret_cast<T*>( &R->DPF[Inst.rd] ), std::move( req ), flags
+    );
 
     // Box float value into 64-bit FP register
-    if(std::is_same_v<T, float>){
-      double fp = R->GetFP<double>(Inst.rd);
-      BoxNaN(&fp, &fp);
-      R->SetFP(Inst.rd, fp);
+    if( std::is_same_v<T, float> ) {
+      double fp = R->GetFP<double>( Inst.rd );
+      BoxNaN( &fp, &fp );
+      R->SetFP( Inst.rd, fp );
     }
-  }else{
-    uint64_t rs1 = R->GetX<uint64_t>(Inst.rs1);
-    MemReq req(rs1 + Inst.ImmSignExt(12),
-               Inst.rd,
-               RevRegClass::RegFLOAT,
-               F->GetHartToExecID(),
-               MemOp::MemOpREAD,
-               true,
-               R->GetMarkLoadComplete());
-    R->LSQueue->insert(req.LSQHashPair());
-    M->ReadVal(F->GetHartToExecID(),
-               rs1 + Inst.ImmSignExt(12),
-               &R->SPF[Inst.rd],
-               std::move(req),
-               RevFlag::F_NONE);
+  } else {
+    uint64_t rs1 = R->GetX<uint64_t>( Inst.rs1 );
+    MemReq   req(
+      rs1 + Inst.ImmSignExt( 12 ),
+      Inst.rd,
+      RevRegClass::RegFLOAT,
+      F->GetHartToExecID(),
+      MemOp::MemOpREAD,
+      true,
+      R->GetMarkLoadComplete()
+    );
+    R->LSQueue->insert( req.LSQHashPair() );
+    M->ReadVal( F->GetHartToExecID(), rs1 + Inst.ImmSignExt( 12 ), &R->SPF[Inst.rd], std::move( req ), RevFlag::F_NONE );
   }
   // update the cost
-  R->cost += M->RandCost(F->GetMinCost(), F->GetMaxCost());
-  R->AdvancePC(Inst);
+  R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+  R->AdvancePC( Inst );
   return true;
 }
 
 /// Floating-point store template
 template<typename T>
-bool fstore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  T val = R->GetFP<T, true>(Inst.rs2);
-  M->Write(F->GetHartToExecID(), R->GetX<uint64_t>(Inst.rs1) + Inst.ImmSignExt(12), val);
-  R->AdvancePC(Inst);
+bool fstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  T val = R->GetFP<T, true>( Inst.rs2 );
+  M->Write( F->GetHartToExecID(), R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 ), val );
+  R->AdvancePC( Inst );
   return true;
 }
 
 /// xBGAS remote load template
 template<typename T>
-bool eload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  static constexpr RevFlag flags = sizeof(T) < sizeof(int64_t) ?
-      std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
-  uint64_t Nmspace = R->GetE(Inst.rs1);
-  uint64_t SrcAddr = R->GetX<uint64_t>(Inst.rs1) + Inst.ImmSignExt(12);
+bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  static constexpr RevFlag flags =
+    sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
+  uint64_t Nmspace = R->GetE( Inst.rs1 );
+  uint64_t SrcAddr = R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
 
-  if (Nmspace == 0) {
+  if( Nmspace == 0 ) {
 
 #ifdef XBGAS_DEBUG
     std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
 
-    return load<T>(F, R, M, Inst);
+    return load<T>( F, R, M, Inst );
   } else {
 
 #ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE(10) 
-            << " eload: Nmspace: " << Nmspace
-            << ", SrcAddr: 0x" << std::hex << SrcAddr << std::endl;
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex << SrcAddr
+              << std::endl;
 #endif
-    RmtMemReq req(Nmspace, 
-                  SrcAddr,
-                  1,
-                  0,
-                  _INVALID_ADDR_,
-                  Inst.rd,
-                  RevRegClass::RegGPR,
-                  F->GetHartToExecID(),
-                  RmtMemOp::READRqst,
-                  true,
-                  R->GetMarkRmtLoadComplete());
-    R->RmtLSQueue->insert(req.LSQHashPair());
-    M->RmtReadVal(F->GetHartToExecID(),
-                  Nmspace, SrcAddr,
-                  reinterpret_cast<std::make_unsigned_t<T>*>(&R->RV64[Inst.rd]),
-                  std::move(req),
-                  flags);
-    R->SetX(Inst.rd, static_cast<T>(R->RV64[Inst.rd]));
+    RmtMemReq req(
+      Nmspace,
+      SrcAddr,
+      1,
+      0,
+      _INVALID_ADDR_,
+      Inst.rd,
+      RevRegClass::RegGPR,
+      F->GetHartToExecID(),
+      RmtMemOp::READRqst,
+      true,
+      R->GetMarkRmtLoadComplete()
+    );
+    R->RmtLSQueue->insert( req.LSQHashPair() );
+    M->RmtReadVal(
+      F->GetHartToExecID(),
+      Nmspace,
+      SrcAddr,
+      reinterpret_cast<std::make_unsigned_t<T>*>( &R->RV64[Inst.rd] ),
+      std::move( req ),
+      flags
+    );
+    R->SetX( Inst.rd, static_cast<T>( R->RV64[Inst.rd] ) );
 
     // update the cost
-    R->cost += M->RandCost(F->GetMinCost(), F->GetMaxCost());
-    R->AdvancePC(Inst);
+    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+    R->AdvancePC( Inst );
     return true;
   }
 }
 
 /// xBGAS remote store template
 template<typename T>
-bool estore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  uint64_t Nmspace = R->GetE(Inst.rs2);
-  uint64_t DestAddr = R->GetX<uint64_t>(Inst.rs2) + Inst.ImmSignExt(12);
+bool estore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  uint64_t Nmspace  = R->GetE( Inst.rs2 );
+  uint64_t DestAddr = R->GetX<uint64_t>( Inst.rs2 ) + Inst.ImmSignExt( 12 );
 
 #ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE(10) 
-            << " estore: Nmspace: " << Nmspace
-            << ", DestAddr: 0x" << std::hex << DestAddr
-            << ", Value: 0x" << std::hex << (uint64_t)(R->GetX<T>(Inst.rs1)) << std::endl;
+  std::cout << "XBGAS_DEBUG : PE " << R->GetE( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex << DestAddr
+            << ", Value: 0x" << std::hex << (uint64_t) ( R->GetX<T>( Inst.rs1 ) ) << std::endl;
 #endif
 
-if (Nmspace == 0) {
+  if( Nmspace == 0 ) {
 #ifdef XBGAS_DEBUG
     std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
-    return store<T>(F, R, M, Inst);
+    return store<T>( F, R, M, Inst );
   } else {
-    M->RmtWrite(F->GetHartToExecID(),
-                Nmspace,
-                DestAddr,
-                R->GetX<T>(Inst.rs1));
-    R->AdvancePC(Inst);
+    M->RmtWrite( F->GetHartToExecID(), Nmspace, DestAddr, R->GetX<T>( Inst.rs1 ) );
+    R->AdvancePC( Inst );
     return true;
   }
 }
 
 /// xBGAS remote raw load template
 template<typename T>
-bool erload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  static constexpr RevFlag flags = sizeof(T) < sizeof(int64_t) ?
-      std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
-  uint64_t Nmspace = R->GetE(Inst.rs2);
-  uint64_t SrcAddr = R->GetX<uint64_t>(Inst.rs1);
+bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  static constexpr RevFlag flags =
+    sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
+  uint64_t Nmspace = R->GetE( Inst.rs2 );
+  uint64_t SrcAddr = R->GetX<uint64_t>( Inst.rs1 );
 
-  if (Nmspace == 0) {
+  if( Nmspace == 0 ) {
 
 #ifdef XBGAS_DEBUG
     std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
 
-    return load<T>(F, R, M, Inst);
+    return load<T>( F, R, M, Inst );
   } else {
 
 #ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE(10) 
-            << " erload: Nmspace: " << Nmspace
-            << ", SrcAddr: 0x" << std::hex << SrcAddr << std::endl;
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE( 10 ) << " erload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex << SrcAddr
+              << std::endl;
 #endif
-    RmtMemReq req(Nmspace, 
-                  SrcAddr,
-                  1,
-                  0,
-                  _INVALID_ADDR_,
-                  Inst.rd,
-                  RevRegClass::RegGPR,
-                  F->GetHartToExecID(),
-                  RmtMemOp::READRqst,
-                  true,
-                  R->GetMarkRmtLoadComplete());
-    R->RmtLSQueue->insert(req.LSQHashPair());
-    M->RmtReadVal(F->GetHartToExecID(),
-                  Nmspace, SrcAddr,
-                  reinterpret_cast<std::make_unsigned_t<T>*>(&R->RV64[Inst.rd]),
-                  std::move(req),
-                  flags);
-    R->SetX(Inst.rd, static_cast<T>(R->RV64[Inst.rd]));
+    RmtMemReq req(
+      Nmspace,
+      SrcAddr,
+      1,
+      0,
+      _INVALID_ADDR_,
+      Inst.rd,
+      RevRegClass::RegGPR,
+      F->GetHartToExecID(),
+      RmtMemOp::READRqst,
+      true,
+      R->GetMarkRmtLoadComplete()
+    );
+    R->RmtLSQueue->insert( req.LSQHashPair() );
+    M->RmtReadVal(
+      F->GetHartToExecID(),
+      Nmspace,
+      SrcAddr,
+      reinterpret_cast<std::make_unsigned_t<T>*>( &R->RV64[Inst.rd] ),
+      std::move( req ),
+      flags
+    );
+    R->SetX( Inst.rd, static_cast<T>( R->RV64[Inst.rd] ) );
 
     // update the cost
-    R->cost += M->RandCost(F->GetMinCost(), F->GetMaxCost());
-    R->AdvancePC(Inst);
+    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+    R->AdvancePC( Inst );
     return true;
   }
 }
 
 /// xBGAS remote raw store template
 template<typename T>
-bool erstore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  uint64_t Nmspace = R->GetE(Inst.rd);
-  uint64_t DestAddr = R->GetX<uint64_t>(Inst.rs2);
+bool erstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  uint64_t Nmspace  = R->GetE( Inst.rd );
+  uint64_t DestAddr = R->GetX<uint64_t>( Inst.rs2 );
 
 #ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE(10)
-              << " Inst.rs1: " << std::dec << Inst.rs1
-              << " Inst.rs2: " << std::dec << Inst.rs2
-              << " Inst.rd: " << std::dec << Inst.rd
-              << " erstore: Nmspace: " << Nmspace
-              << ", DestAddr: 0x" << std::hex << DestAddr
-              << ", Value: 0x" << std::hex << (uint64_t)(R->GetX<T>(Inst.rs1)) << std::endl;
+  std::cout << "XBGAS_DEBUG : PE " << R->GetE( 10 ) << " Inst.rs1: " << std::dec << Inst.rs1 << " Inst.rs2: " << std::dec
+            << Inst.rs2 << " Inst.rd: " << std::dec << Inst.rd << " erstore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
+            << DestAddr << ", Value: 0x" << std::hex << (uint64_t) ( R->GetX<T>( Inst.rs1 ) ) << std::endl;
 #endif
 
-if (Nmspace == 0) {
+  if( Nmspace == 0 ) {
 #ifdef XBGAS_DEBUG
     std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
-    return store<T>(F, R, M, Inst);
+    return store<T>( F, R, M, Inst );
   } else {
-    M->RmtWrite(F->GetHartToExecID(),
-                Nmspace,
-                DestAddr,
-                R->GetX<T>(Inst.rs1));
-    R->AdvancePC(Inst);
+    M->RmtWrite( F->GetHartToExecID(), Nmspace, DestAddr, R->GetX<T>( Inst.rs1 ) );
+    R->AdvancePC( Inst );
     return true;
   }
 }
 
 /// xBGAS remote bulk load template
 template<typename T>
-bool ebload(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  static constexpr RevFlag flags = sizeof(T) < sizeof(int64_t) ?
-      std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
-  uint64_t Nmspace  = R->GetE(Inst.rs1);
-  uint64_t SrcAddr  = R->GetX<uint64_t>(Inst.rs1);
-  uint32_t Nelem    = R->GetX<uint32_t>(Inst.rs2);
-  uint32_t Stride   = R->GetX<uint32_t>(Inst.rs3);
-  uint64_t DestAddr = R->GetX<uint64_t>(Inst.rd);
+bool ebload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  static constexpr RevFlag flags =
+    sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
+  uint64_t Nmspace  = R->GetE( Inst.rs1 );
+  uint64_t SrcAddr  = R->GetX<uint64_t>( Inst.rs1 );
+  uint32_t Nelem    = R->GetX<uint32_t>( Inst.rs2 );
+  uint32_t Stride   = R->GetX<uint32_t>( Inst.rs3 );
+  uint64_t DestAddr = R->GetX<uint64_t>( Inst.rd );
 
-
-  if (Nmspace == 0) {
-
-#ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
-#endif
-
-    // return load<T>(F, R, M, Inst);
+  if( Nmspace == 0 ) {
+    // Do nothing
     return true;
   } else {
 
 #ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE(10) 
-              << " eload: Nmspace: " << Nmspace
-              << ", SrcAddr: 0x" << std::hex << SrcAddr 
-              << ", Nelem: " << std::dec << Nelem
-              << ", Stride: " << std::dec << Stride << std::endl;
-              << std::endl;
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex << SrcAddr
+              << ", Nelem: " << std::dec << Nelem << ", Stride: " << std::dec << Stride << std::endl;
+    << std::endl;
 #endif
-    RmtMemReq req(Nmspace, 
-                  SrcAddr,
-                  Nelem,
-                  Stride,
-                  DestAddr,
-                  0,
-                  RevRegClass::RegUNKNOWN,
-                  F->GetHartToExecID(),
-                  RmtMemOp::BulkREADRqst,
-                  true,
-                  R->GetMarkRmtLoadComplete());
+    RmtMemReq req(
+      Nmspace,
+      SrcAddr,
+      Nelem,
+      Stride,
+      DestAddr,
+      0,
+      RevRegClass::RegUNKNOWN,
+      F->GetHartToExecID(),
+      RmtMemOp::BulkREADRqst,
+      true,
+      R->GetMarkRmtLoadComplete()
+    );
     // R->RmtLSQueue->insert(req.LSQHashPair());
     // Send the bulk read request, record the request in a table
     // How to implement this in a non-blocking way?
     // The question is when the bulk read request is not satisfied, if the instruction
     // in the pipeline load a value from the destination address, how to handle this?
-    M->RmtBulkReadVal(F->GetHartToExecID(),
-                      Nmspace, SrcAddr, Nelem, Stride, DestAddr, sizeof(T),
-                      std::move(req), flags);
+    M->RmtBulkReadVal( F->GetHartToExecID(), Nmspace, SrcAddr, Nelem, Stride, DestAddr, sizeof( T ), std::move( req ), flags );
 
     // update the cost
-    R->cost += M->RandCost(F->GetMinCost(), F->GetMaxCost());
-    R->AdvancePC(Inst);
+    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+    R->AdvancePC( Inst );
     return true;
   }
 }
 
 /// xBGAS remote bulk store template
 template<typename T>
-bool ebstore(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
+bool ebstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   return true;
 }
 
 /// Floating-point operation template
 template<typename T, template<class> class OP>
-bool foper(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  R->SetFP(Inst.rd, OP()(R->GetFP<T>(Inst.rs1), R->GetFP<T>(Inst.rs2)));
-  R->AdvancePC(Inst);
+bool foper( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  R->SetFP( Inst.rd, OP()( R->GetFP<T>( Inst.rs1 ), R->GetFP<T>( Inst.rs2 ) ) );
+  R->AdvancePC( Inst );
   return true;
 }
 
 /// Floating-point minimum functor
 template<typename = void>
-struct FMin{
+struct FMin {
   template<typename T>
-  auto operator()(T x, T y) const { return std::fmin(x, y); }
+  auto operator()( T x, T y ) const {
+    return std::fmin( x, y );
+  }
 };
 
 /// Floating-point maximum functor
 template<typename = void>
-struct FMax{
+struct FMax {
   template<typename T>
-  auto operator()(T x, T y) const { return std::fmax(x, y); }
+  auto operator()( T x, T y ) const {
+    return std::fmax( x, y );
+  }
 };
 
 /// Floating-point conditional operation template
 template<typename T, template<class> class OP>
-bool fcondop(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  bool res = OP()(R->GetFP<T>(Inst.rs1), R->GetFP<T>(Inst.rs2));
-  R->SetX(Inst.rd, res);
-  R->AdvancePC(Inst);
+bool fcondop( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  bool res = OP()( R->GetFP<T>( Inst.rs1 ), R->GetFP<T>( Inst.rs2 ) );
+  R->SetX( Inst.rd, res );
+  R->AdvancePC( Inst );
   return true;
 }
 
@@ -436,64 +425,67 @@ enum class OpKind { Imm, Reg };
 // The second parameter is the operand kind (OpKind::Imm or OpKind::Reg)
 // The third parameter is std::make_unsigned_t or std::make_signed_t (default)
 // The optional fourth parameter indicates W mode (32-bit on XLEN == 64)
-template<template<class> class OP, OpKind KIND,
-  template<class> class SIGN = std::make_signed_t, bool W_MODE = false>
-  bool oper(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  if( !W_MODE && R->IsRV32 ){
+template<template<class> class OP, OpKind KIND, template<class> class SIGN = std::make_signed_t, bool W_MODE = false>
+bool oper( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  if( !W_MODE && R->IsRV32 ) {
     using T = SIGN<int32_t>;
-    T rs1 = R->GetX<T>(Inst.rs1);
-    T rs2 = KIND == OpKind::Imm ? T(Inst.ImmSignExt(12)) : R->GetX<T>(Inst.rs2);
-    T res = OP()(rs1, rs2);
-    R->SetX(Inst.rd, res);
-  }else{
+    T rs1   = R->GetX<T>( Inst.rs1 );
+    T rs2   = KIND == OpKind::Imm ? T( Inst.ImmSignExt( 12 ) ) : R->GetX<T>( Inst.rs2 );
+    T res   = OP()( rs1, rs2 );
+    R->SetX( Inst.rd, res );
+  } else {
     using T = SIGN<std::conditional_t<W_MODE, int32_t, int64_t>>;
-    T rs1 = R->GetX<T>(Inst.rs1);
-    T rs2 = KIND == OpKind::Imm ? T(Inst.ImmSignExt(12)) : R->GetX<T>(Inst.rs2);
-    T res = OP()(rs1, rs2);
+    T rs1   = R->GetX<T>( Inst.rs1 );
+    T rs2   = KIND == OpKind::Imm ? T( Inst.ImmSignExt( 12 ) ) : R->GetX<T>( Inst.rs2 );
+    T res   = OP()( rs1, rs2 );
     // In W_MODE, cast the result to int32_t so that it's sign-extended
-    R->SetX(Inst.rd, std::conditional_t<W_MODE, int32_t, T>(res));
+    R->SetX( Inst.rd, std::conditional_t<W_MODE, int32_t, T>( res ) );
   }
-  R->AdvancePC(Inst);
+  R->AdvancePC( Inst );
   return true;
 }
 
 /// Left shift functor
-  template<typename = void>
-  struct ShiftLeft{
-    template<typename T>
-    constexpr T operator()(T val, unsigned shift) const {
-      return val << (sizeof(T) == 4 ? shift & 0x1f : shift & 0x3f);
-    }
-  };
+template<typename = void>
+struct ShiftLeft {
+  template<typename T>
+  constexpr T operator()( T val, unsigned shift ) const {
+    return val << ( sizeof( T ) == 4 ? shift & 0x1f : shift & 0x3f );
+  }
+};
 
 /// Right shift functor
 template<typename = void>
-  struct ShiftRight{
-    template<typename T>
-    constexpr T operator()(T val, unsigned shift) const {
-      return val >> (sizeof(T) == 4 ? shift & 0x1f : shift & 0x3f);
-    }
-  };
+struct ShiftRight {
+  template<typename T>
+  constexpr T operator()( T val, unsigned shift ) const {
+    return val >> ( sizeof( T ) == 4 ? shift & 0x1f : shift & 0x3f );
+  }
+};
 
 // Computes the UPPER half of multiplication, based on signedness
 template<bool rs1_is_signed, bool rs2_is_signed>
-bool uppermul(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  if( R->IsRV32 ){
-    uint32_t rs1 = R->GetX<uint32_t>(Inst.rs1);
-    uint32_t rs2 = R->GetX<uint32_t>(Inst.rs2);
-    uint32_t mul = static_cast<uint32_t>(rs1 * int64_t(rs2) >> 32);
-    if (rs1_is_signed && (rs1 & (uint32_t{1}<<31)) != 0) mul -= rs2;
-    if (rs2_is_signed && (rs2 & (uint32_t{1}<<31)) != 0) mul -= rs1;
-    R->SetX(Inst.rd, mul);
-  }else{
-    uint64_t rs1 = R->GetX<uint64_t>(Inst.rs1);
-    uint64_t rs2 = R->GetX<uint64_t>(Inst.rs2);
-    uint64_t mul = static_cast<uint64_t>(rs1 * __int128(rs2) >> 64);
-    if (rs1_is_signed && (rs1 & (uint64_t{1}<<63)) != 0) mul -= rs2;
-    if (rs2_is_signed && (rs2 & (uint64_t{1}<<63)) != 0) mul -= rs1;
-    R->SetX(Inst.rd, mul);
+bool uppermul( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  if( R->IsRV32 ) {
+    uint32_t rs1 = R->GetX<uint32_t>( Inst.rs1 );
+    uint32_t rs2 = R->GetX<uint32_t>( Inst.rs2 );
+    uint32_t mul = static_cast<uint32_t>( rs1 * int64_t( rs2 ) >> 32 );
+    if( rs1_is_signed && ( rs1 & ( uint32_t{ 1 } << 31 ) ) != 0 )
+      mul -= rs2;
+    if( rs2_is_signed && ( rs2 & ( uint32_t{ 1 } << 31 ) ) != 0 )
+      mul -= rs1;
+    R->SetX( Inst.rd, mul );
+  } else {
+    uint64_t rs1 = R->GetX<uint64_t>( Inst.rs1 );
+    uint64_t rs2 = R->GetX<uint64_t>( Inst.rs2 );
+    uint64_t mul = static_cast<uint64_t>( rs1 * __int128( rs2 ) >> 64 );
+    if( rs1_is_signed && ( rs1 & ( uint64_t{ 1 } << 63 ) ) != 0 )
+      mul -= rs2;
+    if( rs2_is_signed && ( rs2 & ( uint64_t{ 1 } << 63 ) ) != 0 )
+      mul -= rs1;
+    R->SetX( Inst.rd, mul );
   }
-  R->AdvancePC(Inst);
+  R->AdvancePC( Inst );
   return true;
 }
 
@@ -504,36 +496,32 @@ enum class DivRem { Div, Rem };
 // The second parameter is std::make_signed_t or std::make_unsigned_t
 // The optional third parameter indicates W mode (32-bit on XLEN == 64)
 template<DivRem DIVREM, template<class> class SIGN, bool W_MODE = false>
-  bool divrem(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  if( !W_MODE && R->IsRV32 ){
+bool divrem( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  if( !W_MODE && R->IsRV32 ) {
     using T = SIGN<int32_t>;
-    T rs1 = R->GetX<T>(Inst.rs1);
-    T rs2 = R->GetX<T>(Inst.rs2);
+    T rs1   = R->GetX<T>( Inst.rs1 );
+    T rs2   = R->GetX<T>( Inst.rs2 );
     T res;
-    if constexpr(DIVREM == DivRem::Div){
-        res = std::is_signed_v<T> && rs1 == std::numeric_limits<T>::min() &&
-          rs2 == -T{1} ? rs1 : rs2 ? rs1 / rs2 : -T{1};
-      }else{
-      res = std::is_signed_v<T> && rs1 == std::numeric_limits<T>::min() &&
-        rs2 == -T{1} ? 0 : rs2 ? rs1 % rs2 : rs1;
+    if constexpr( DIVREM == DivRem::Div ) {
+      res = std::is_signed_v<T> && rs1 == std::numeric_limits<T>::min() && rs2 == -T{ 1 } ? rs1 : rs2 ? rs1 / rs2 : -T{ 1 };
+    } else {
+      res = std::is_signed_v<T> && rs1 == std::numeric_limits<T>::min() && rs2 == -T{ 1 } ? 0 : rs2 ? rs1 % rs2 : rs1;
     }
-    R->SetX(Inst.rd, res);
+    R->SetX( Inst.rd, res );
   } else {
     using T = SIGN<std::conditional_t<W_MODE, int32_t, int64_t>>;
-    T rs1 = R->GetX<T>(Inst.rs1);
-    T rs2 = R->GetX<T>(Inst.rs2);
+    T rs1   = R->GetX<T>( Inst.rs1 );
+    T rs2   = R->GetX<T>( Inst.rs2 );
     T res;
-    if constexpr(DIVREM == DivRem::Div){
-        res = std::is_signed_v<T> && rs1 == std::numeric_limits<T>::min() &&
-          rs2 == -T{1} ? rs1 : rs2 ? rs1 / rs2 : -T{1};
-      }else{
-      res = std::is_signed_v<T> && rs1 == std::numeric_limits<T>::min() &&
-        rs2 == -T{1} ? 0 : rs2 ? rs1 % rs2 : rs1;
+    if constexpr( DIVREM == DivRem::Div ) {
+      res = std::is_signed_v<T> && rs1 == std::numeric_limits<T>::min() && rs2 == -T{ 1 } ? rs1 : rs2 ? rs1 / rs2 : -T{ 1 };
+    } else {
+      res = std::is_signed_v<T> && rs1 == std::numeric_limits<T>::min() && rs2 == -T{ 1 } ? 0 : rs2 ? rs1 % rs2 : rs1;
     }
     // In W_MODE, cast the result to int32_t so that it's sign-extended
-    R->SetX(Inst.rd, std::conditional_t<W_MODE, int32_t, T>(res));
+    R->SetX( Inst.rd, std::conditional_t<W_MODE, int32_t, T>( res ) );
   }
-  R->AdvancePC(Inst);
+  R->AdvancePC( Inst );
   return true;
 }
 
@@ -541,54 +529,53 @@ template<DivRem DIVREM, template<class> class SIGN, bool W_MODE = false>
 // The first template parameter is the comparison functor
 // The second template parameter is std::make_signed_t or std::make_unsigned_t
 template<template<class> class OP, template<class> class SIGN = std::make_unsigned_t>
-bool bcond(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
+bool bcond( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   bool cond;
-  if( R->IsRV32 ){
-    cond = OP()(R->GetX<SIGN<int32_t>>(Inst.rs1), R->GetX<SIGN<int32_t>>(Inst.rs2));
-  }else{
-    cond = OP()(R->GetX<SIGN<int64_t>>(Inst.rs1), R->GetX<SIGN<int64_t>>(Inst.rs2));
+  if( R->IsRV32 ) {
+    cond = OP()( R->GetX<SIGN<int32_t>>( Inst.rs1 ), R->GetX<SIGN<int32_t>>( Inst.rs2 ) );
+  } else {
+    cond = OP()( R->GetX<SIGN<int64_t>>( Inst.rs1 ), R->GetX<SIGN<int64_t>>( Inst.rs2 ) );
   }
-  if(cond){
-    R->SetPC(R->GetPC() + Inst.ImmSignExt(13));
-  }else{
-    R->AdvancePC(Inst);
+  if( cond ) {
+    R->SetPC( R->GetPC() + Inst.ImmSignExt( 13 ) );
+  } else {
+    R->AdvancePC( Inst );
   }
   return true;
 }
 
 /// Fused Multiply-Add
 template<typename T>
-bool fmadd(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  R->SetFP(Inst.rd, std::fma(R->GetFP<T>(Inst.rs1), R->GetFP<T>(Inst.rs2), R->GetFP<T>(Inst.rs3)));
-  R->AdvancePC(Inst);
+bool fmadd( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  R->SetFP( Inst.rd, std::fma( R->GetFP<T>( Inst.rs1 ), R->GetFP<T>( Inst.rs2 ), R->GetFP<T>( Inst.rs3 ) ) );
+  R->AdvancePC( Inst );
   return true;
 }
 
 /// Fused Multiply-Subtract
 template<typename T>
-bool fmsub(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  R->SetFP(Inst.rd, std::fma(R->GetFP<T>(Inst.rs1), R->GetFP<T>(Inst.rs2), -R->GetFP<T>(Inst.rs3)));
-  R->AdvancePC(Inst);
+bool fmsub( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  R->SetFP( Inst.rd, std::fma( R->GetFP<T>( Inst.rs1 ), R->GetFP<T>( Inst.rs2 ), -R->GetFP<T>( Inst.rs3 ) ) );
+  R->AdvancePC( Inst );
   return true;
 }
 
 /// Fused Negated (Multiply-Subtract)
 template<typename T>
-bool fnmsub(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst)
-{
-  R->SetFP(Inst.rd, std::fma(-R->GetFP<T>(Inst.rs1), R->GetFP<T>(Inst.rs2), R->GetFP<T>(Inst.rs3)));
-  R->AdvancePC(Inst);
+bool fnmsub( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  R->SetFP( Inst.rd, std::fma( -R->GetFP<T>( Inst.rs1 ), R->GetFP<T>( Inst.rs2 ), R->GetFP<T>( Inst.rs3 ) ) );
+  R->AdvancePC( Inst );
   return true;
 }
 
 /// Fused Negated (Multiply-Add)
 template<typename T>
-bool fnmadd(RevFeature *F, RevRegFile *R, RevMem *M, const RevInst& Inst) {
-  R->SetFP(Inst.rd, -std::fma(R->GetFP<T>(Inst.rs1), R->GetFP<T>(Inst.rs2), R->GetFP<T>(Inst.rs3)));
-  R->AdvancePC(Inst);
+bool fnmadd( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  R->SetFP( Inst.rd, -std::fma( R->GetFP<T>( Inst.rs1 ), R->GetFP<T>( Inst.rs2 ), R->GetFP<T>( Inst.rs3 ) ) );
+  R->AdvancePC( Inst );
   return true;
 }
 
-} // namespace SST:RevCPU
+}  // namespace SST::RevCPU
 
 #endif

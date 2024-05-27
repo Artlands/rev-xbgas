@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017-2023 Tactical Computing Laboratories, LLC
+# Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
 # All Rights Reserved
 # contact@tactcomplabs.com
 #
@@ -26,7 +26,7 @@ comp_cpu.addParams({
         "numCores" : 1,                               # Number of cores
         "clock" : "1.0GHz",                           # Clock
         "memSize" : 1024*1024*1024,                   # Memory size in bytes
-        "machine" : "[0:RV64IMAFDC]",                 # 
+        "machine" : "[0:RV64IMAFDC]",                 #
         # "startAddr" : "[0:0x00000000]",               # Starting address for core 0
         "startSymbol" : "[0:_start]",
         "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
