@@ -95,20 +95,6 @@ git submodule update --init --recursive
 make -j
 ```
 
-## Example Execution of xBGAS programs
-
-The xBGAS programs are located in the `test/xbgas/isa` and `test/xbgas/topo` directories. In each directory, there is a `Makefile` that can be used to build the programs. Simply run `make` in the directory of the programs you want to build.
-
-The directies also contain SST configuration files that can be modified to your needs, e.g. change the number of simulated nodes, the network topology, etc.
-
-To run the xBGAS instruction tests, e.g. testing remote load double words `eld.exe`, you can use the following command:
-
-    sst test/xbgas/isa/xbgas-isa-test.py --model-options=eld.exe
-
-To run the xBGAS topology tests, e.g. simulating xBGAS nodes connected in a fat tree topology, you can use the following command:
-
-    sst test/xbgas/topo/fattree-memh.py.py
-
 ## Example Execution
 
 ### Component Options
@@ -134,6 +120,7 @@ The Rev SST component contains the following options:
 | enableRDMAMbox      |           | 0/1                | Default=1. Setting to 1 enables the internal RDMA Mailbox for applications to initiate messages |
 | msgPerCycle         |           | unsigned integer   | Default=1. Sets the number of messages to inject per cycle |
 | testIters           |           | unsigned integer   | Default=255. Sets the number of iterations for each PAN test loop |
+| enable_xbgas        |           | 0/1                | Default=0. Setting to 1 enables the xBGAS instructions support |
 
 ### Deriving the ELF Entry Point
 

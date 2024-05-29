@@ -220,5 +220,6 @@ add_subdirectory(benchmarks)
 add_subdirectory(syscalls)
 add_subdirectory(threading)
 add_subdirectory(cxx)
+add_subdirectory(xbgas)
 
 # EOF
