@@ -186,12 +186,14 @@ bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   uint64_t SrcAddr = R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
 
   if( Nmspace == 0 ) {
-
 #ifdef XBGAS_DEBUG
     std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
-
-    return load<T>( F, R, M, Inst );
+    MemReq req( SrcAddr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpREAD, true, R->GetMarkLoadComplete() );
+    R->LSQueue->insert( req.LSQHashPair() );
+    M->ReadVal(
+      F->GetHartToExecID(), SrcAddr, reinterpret_cast<std::make_unsigned_t<T>*>( &R->RV64[Inst.rd] ), std::move( req ), flags
+    );
   } else {
 
 #ifdef XBGAS_DEBUG
@@ -220,13 +222,13 @@ bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
       std::move( req ),
       flags
     );
-    R->SetX( Inst.rd, static_cast<T>( R->RV64[Inst.rd] ) );
-
-    // update the cost
-    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
-    R->AdvancePC( Inst );
-    return true;
   }
+  R->SetX( Inst.rd, static_cast<T>( R->RV64[Inst.rd] ) );
+
+  // update the cost
+  R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+  R->AdvancePC( Inst );
+  return true;
 }
 
 /// xBGAS remote store template
@@ -244,12 +246,13 @@ bool estore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
 #ifdef XBGAS_DEBUG
     std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
-    return store<T>( F, R, M, Inst );
+    // TODO: The encoding of remote store operations are not aligned with the standard RISC-V store encodings. Need to change the encoding.
+    M->Write( F->GetHartToExecID(), DestAddr, R->GetX<T>( Inst.rs1 ) );
   } else {
     M->RmtWrite( F->GetHartToExecID(), Nmspace, DestAddr, R->GetX<T>( Inst.rs1 ) );
-    R->AdvancePC( Inst );
-    return true;
   }
+  R->AdvancePC( Inst );
+  return true;
 }
 
 /// xBGAS remote raw load template
@@ -265,8 +268,11 @@ bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
 #ifdef XBGAS_DEBUG
     std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
-
-    return load<T>( F, R, M, Inst );
+    MemReq req( SrcAddr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpREAD, true, R->GetMarkLoadComplete() );
+    R->LSQueue->insert( req.LSQHashPair() );
+    M->ReadVal(
+      F->GetHartToExecID(), SrcAddr, reinterpret_cast<std::make_unsigned_t<T>*>( &R->RV64[Inst.rd] ), std::move( req ), flags
+    );
   } else {
 
 #ifdef XBGAS_DEBUG
@@ -295,13 +301,13 @@ bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
       std::move( req ),
       flags
     );
-    R->SetX( Inst.rd, static_cast<T>( R->RV64[Inst.rd] ) );
-
-    // update the cost
-    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
-    R->AdvancePC( Inst );
-    return true;
   }
+  R->SetX( Inst.rd, static_cast<T>( R->RV64[Inst.rd] ) );
+
+  // update the cost
+  R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+  R->AdvancePC( Inst );
+  return true;
 }
 
 /// xBGAS remote raw store template
@@ -320,12 +326,12 @@ bool erstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
 #ifdef XBGAS_DEBUG
     std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
 #endif
-    return store<T>( F, R, M, Inst );
+    M->Write( F->GetHartToExecID(), DestAddr, R->GetX<T>( Inst.rs1 ) );
   } else {
     M->RmtWrite( F->GetHartToExecID(), Nmspace, DestAddr, R->GetX<T>( Inst.rs1 ) );
-    R->AdvancePC( Inst );
-    return true;
   }
+  R->AdvancePC( Inst );
+  return true;
 }
 
 /// xBGAS remote bulk load template. Not supported in the current implementation.

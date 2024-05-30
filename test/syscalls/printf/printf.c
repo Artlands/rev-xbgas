@@ -29,5 +29,6 @@ int main() {
   if( bytes_written3 < 0 ){
     rev_exit(1);
   }
+  */
   return 0;
 }
