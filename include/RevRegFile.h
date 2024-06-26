@@ -32,11 +32,12 @@ namespace SST::RevCPU {
 struct RevInst;
 
 /// BoxNaN: Store a boxed float inside a double
-inline void BoxNaN( double* dest, const void* value ) {
+inline void BoxNaN( double* dest, const float* value ) {
   uint32_t i32;
-  memcpy( &i32, value, sizeof( float ) );                 // The FP32 value
+  memcpy( &i32, value, sizeof( i32 ) );                   // The FP32 value
   uint64_t i64 = uint64_t{ i32 } | ~uint64_t{ 0 } << 32;  // Boxed NaN value
-  memcpy( dest, &i64, sizeof( double ) );                 // Store in FP64 register
+  memcpy( dest, &i64, sizeof( i64 ) );                    // Store in FP64 register
+  static_assert( sizeof( i32 ) == sizeof( float ) && sizeof( i64 ) == sizeof( double ) );
 }
 
 /// RISC-V Register Mneumonics
@@ -57,7 +58,7 @@ enum class RevReg : uint16_t {
 };
 
 /// Floating-Point Rounding Mode
-enum class FRMode : uint8_t {
+enum class FRMode : uint32_t {
   None = 0xff,
   RNE = 0,   // Round to Nearest, ties to Even
   RTZ = 1,   // Round towards Zero
@@ -68,16 +69,15 @@ enum class FRMode : uint8_t {
 };
 
 /// Floating-point control register
-// fcsr.NX, fcsr.UF, fcsr.OF, fcsr.DZ, fcsr.NV, fcsr.frm
-struct FCSR{
-  uint32_t NX  : 1;
-  uint32_t UF  : 1;
-  uint32_t OF  : 1;
-  uint32_t DZ  : 1;
-  uint32_t NV  : 1;
-  uint32_t frm : 3;
-  uint32_t     : 24;
+enum class FCSR : uint32_t {
+  NX = 1,
+  UF = 2,
+  OF = 4,
+  DZ = 8,
+  NV = 16,
 };
+
+#define CSR_LIMIT 0x1000
 
 // Ref: RISC-V Privileged Spec (pg. 39)
 enum class RevExceptionCause : int32_t {
@@ -100,10 +100,13 @@ enum class RevExceptionCause : int32_t {
 
 // clang-format on
 
+class RevCore;
+
 class RevRegFile {
 public:
-  const bool IsRV32;  ///< RevRegFile: Cached copy of Features->IsRV32()
-  const bool HasD;    ///< RevRegFile: Cached copy of Features->HasD()
+  RevCore* const Core;    ///< RevRegFile: Owning core of this register file's hart
+  const bool     IsRV32;  ///< RevRegFile: Cached copy of Features->IsRV32()
+  const bool     HasD;    ///< RevRegFile: Cached copy of Features->HasD()
 
 private:
   bool       trigger{};         ///< RevRegFile: Has the instruction been triggered?
@@ -115,8 +118,6 @@ private:
     uint32_t RV32_PC;    ///< RevRegFile: RV32 PC
     uint64_t RV64_PC{};  ///< RevRegFile: RV64 PC
   };
-
-  FCSR fcsr{};  ///< RevRegFile: FCSR
 
   std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>> LSQueue{};
   std::function<void( const MemReq& )>                       MarkLoadCompleteFunc{};
@@ -143,12 +144,13 @@ private:
   std::bitset<_REV_NUM_REGS_> FP_Scoreboard{};  ///< RevRegFile: Scoreboard for SPF/DPF RF to manage pipeline hazard
 
   // Supervisor Mode CSRs
-#if 0  // not used
-  union{  // Anonymous union. We zero-initialize the largest member
-    uint64_t RV64_SSTATUS{}; // During ecall, previous priviledge mode is saved in this register (Incomplete)
-    uint32_t RV32_SSTATUS;
-  };
-#endif
+  uint64_t CSR[CSR_LIMIT]{};
+
+  // Floating-point CSR
+  FCSR fcsr{};
+
+  // Number of instructions retired
+  uint64_t InstRet{};
 
   union {                  // Anonymous union. We zero-initialize the largest member
     uint64_t RV64_SEPC{};  // Holds address of instruction that caused the exception (ie. ECALL)
@@ -170,8 +172,14 @@ private:
 #endif
 
 public:
-  // Constructor which takes a RevFeature
-  explicit RevRegFile( const RevFeature* feature ) : IsRV32( feature->IsRV32() ), HasD( feature->HasD() ) {}
+  // Constructor which takes a RevCore to indicate its hart's parent core
+  // Template is to prevent circular dependencies by not requiring RevCore to be a complete type now
+  template<typename T, typename = std::enable_if_t<std::is_same_v<T, RevCore>>>
+  explicit RevRegFile( T* core ) : Core( core ), IsRV32( core->GetRevFeature()->IsRV32() ), HasD( core->GetRevFeature()->HasD() ) {}
+
+  /// RevRegFile: disallow copying and assignment
+  RevRegFile( const RevRegFile& )            = delete;
+  RevRegFile& operator=( const RevRegFile& ) = delete;
 
   // Getters/Setters
 
@@ -219,11 +227,6 @@ public:
   /// Set the xBGAS Remote Load/Store Queue
   void SetRmtLSQueue( std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>> lsq ) { RmtLSQueue = std::move( lsq ); }
 
-  // /// Insert an item in the xBGAS Remote Load/Store Queue
-  // void RmtLSQueueInsert(std::pair<uint64_t, RmtMemReq> item){
-  //   RmtLSQueue->insert(std::move(item));
-  // }
-
   /// Get the xBGAS MarkRmtLoadComplete function
   const std::function<void( const RmtMemReq& )>& GetMarkRmtLoadComplete() const { return MarkRmtLoadCompleteFunc; }
 
@@ -232,9 +235,6 @@ public:
 
   /// Invoke the xBGAS MarkRmtLoadComplete function
   void MarkRmtLoadComplete( const RmtMemReq& req ) const { MarkRmtLoadCompleteFunc( req ); }
-
-  /// Return the Floating-Point Rounding Mode
-  FRMode GetFPRound() const { return static_cast<FRMode>( fcsr.frm ); }
 
   /// Capture the PC of current instruction which raised exception
   void SetSEPC() {
@@ -373,6 +373,42 @@ public:
       SPF[size_t( rd )] = value;  // Store in FP32 register
     }
   }
+
+  /// Get a CSR register
+  template<typename T>
+  T GetCSR( size_t csr ) const {
+    // We store fcsr separately from the global CSR
+    switch( csr ) {
+    case 1: return static_cast<uint32_t>( fcsr ) >> 0 & 0b00011111u; break;
+    case 2: return static_cast<uint32_t>( fcsr ) >> 5 & 0b00000111u; break;
+    case 3: return static_cast<uint32_t>( fcsr ) >> 0 & 0b11111111u; break;
+    default: return static_cast<T>( CSR[csr] );
+    }
+  }
+
+  /// Set a CSR register
+  template<typename T>
+  void SetCSR( size_t csr, T val ) {
+    // We store fcsr separately from the global CSR
+    switch( csr ) {
+    case 1:
+      fcsr = FCSR{ ( static_cast<uint32_t>( fcsr ) & ~uint32_t{ 0b00011111u } ) | static_cast<uint32_t>( val & 0b00011111u ) };
+      break;
+    case 2:
+      fcsr = FCSR{ ( static_cast<uint32_t>( fcsr ) & ~uint32_t{ 0b11100000u } ) | static_cast<uint32_t>( val & 0b00000111u ) << 5 };
+      break;
+    case 3:
+      fcsr = FCSR{ ( static_cast<uint32_t>( fcsr ) & ~uint32_t{ 0b11111111u } ) | static_cast<uint32_t>( val & 0b11111111u ) };
+      break;
+    default: CSR[csr] = val;
+    }
+  }
+
+  /// Get the Floating-Point Rounding Mode
+  FRMode GetFRM() const { return FRMode{ ( static_cast<uint32_t>( fcsr ) >> 5 ) & 0x3u }; }
+
+  /// Return the Floating-Point Status Register
+  FCSR& GetFCSR() { return fcsr; }
 
   // Friend functions and classes to access internal register state
   template<typename FP, typename INT>

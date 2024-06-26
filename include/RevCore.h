@@ -37,7 +37,6 @@
 #include <vector>
 
 // -- RevCPU Headers
-#include "AllRevInstTables.h"
 #include "RevCoProc.h"
 #include "RevCorePasskey.h"
 #include "RevFeature.h"
@@ -54,6 +53,8 @@
 #include "../common/include/RevCommon.h"
 #include "../common/syscalls/syscalls.h"
 
+#include "AllRevInstTables.h"
+
 namespace SST::RevCPU {
 class RevCoProc;
 
@@ -61,17 +62,21 @@ class RevCore {
 public:
   /// RevCore: standard constructor
   RevCore(
-    unsigned                  Id,
-    RevOpts*                  Opts,
-    unsigned                  NumHarts,
-    RevMem*                   Mem,
-    RevLoader*                Loader,
+    unsigned                  id,
+    RevOpts*                  opts,
+    unsigned                  numHarts,
+    RevMem*                   mem,
+    RevLoader*                loader,
     std::function<uint32_t()> GetNewThreadID,
-    SST::Output*              Output
+    SST::Output*              output
   );
 
   /// RevCore: standard destructor
-  ~RevCore() = default;
+  ~RevCore()                           = default;
+
+  /// RevCore: disallow copying and assignment
+  RevCore( const RevCore& )            = delete;
+  RevCore& operator=( const RevCore& ) = delete;
 
   /// RevCore: per-processor clock function
   bool ClockTick( SST::Cycle_t currentCycle );
@@ -153,7 +158,9 @@ public:
 
   RevMem& GetMem() const { return *mem; }
 
-  ///< RevCore: Called by RevCPU to handle the state changes threads may have happened during this Proc's ClockTick
+  uint64_t GetCurrentSimCycle() const { return currentSimCycle; }
+
+  ///< RevCore: Called by RevCPU to handle the state changes threads may have happened during this Core's ClockTick
   auto TransferThreadsThatChangedState() { return std::move( ThreadsThatChangedState ); }
 
   ///< RevCore: Add
@@ -167,7 +174,7 @@ public:
   ///< RevCore: Returns the current HartToExecID active pid
   uint32_t GetActiveThreadID() { return Harts.at( HartToDecodeID )->GetAssignedThreadID(); }
 
-  ///< RevCore: Get this Proc's feature
+  ///< RevCore: Get this Core's feature
   RevFeature* GetRevFeature() const { return feature; }
 
   ///< RevCore: Mark a current request as complete
@@ -259,7 +266,7 @@ public:
   ///< RevCore: Returns the id of an idle hart (or _INVALID_HART_ID_ if none are idle)
   unsigned FindIdleHartID() const;
 
-  ///< RevCore: Returns true if all harts are available (ie. There is nothing executing on this Proc)
+  ///< RevCore: Returns true if all harts are available (ie. There is nothing executing on this Core)
   bool HasNoBusyHarts() const { return IdleHarts == ValidHarts; }
 
   ///< RevCore: Used by RevCPU to determine if it can disable this proc
@@ -270,57 +277,63 @@ public:
   ///< RevCore: Returns true if there are any IdleHarts
   bool HasIdleHart() const { return IdleHarts.any(); }
 
+  ///< RevCore: Returns the number of cycles executed so far
+  uint64_t GetCycles() const { return cycles; }
+
 private:
-  bool     Halted;          ///< RevCore: determines if the core is halted
-  bool     Stalled;         ///< RevCore: determines if the core is stalled on instruction fetch
-  bool     SingleStep;      ///< RevCore: determines if we are in a single step
-  bool     CrackFault;      ///< RevCore: determiens if we need to handle a crack fault
-  bool     ALUFault;        ///< RevCore: determines if we need to handle an ALU fault
-  unsigned fault_width;     ///< RevCore: the width of the target fault
-  unsigned id;              ///< RevCore: processor id
-  uint64_t ExecPC;          ///< RevCore: executing PC
-  unsigned HartToDecodeID;  ///< RevCore: Current executing ThreadID
-  unsigned HartToExecID;    ///< RevCore: Thread to dispatch instruction
+  bool           Halted      = false;  ///< RevCore: determines if the core is halted
+  bool           Stalled     = false;  ///< RevCore: determines if the core is stalled on instruction fetch
+  bool           SingleStep  = false;  ///< RevCore: determines if we are in a single step
+  bool           CrackFault  = false;  ///< RevCore: determines if we need to handle a crack fault
+  bool           ALUFault    = false;  ///< RevCore: determines if we need to handle an ALU fault
+  unsigned       fault_width = 0;      ///< RevCore: the width of the target fault
+  unsigned const id;                   ///< RevCore: processor id
+  uint64_t       ExecPC          = 0;  ///< RevCore: executing PC
+  unsigned       HartToDecodeID  = 0;  ///< RevCore: Current executing ThreadID
+  unsigned       HartToExecID    = 0;  ///< RevCore: Thread to dispatch instruction
+  uint64_t       currentSimCycle = 0;  ///< RevCore: Current simulation cycle
 
-  std::vector<std::shared_ptr<RevHart>> Harts;                ///< RevCore: vector of Harts without a thread assigned to them
-  std::bitset<_MAX_HARTS_>              IdleHarts;            ///< RevCore: bitset of Harts with no thread assigned
-  std::bitset<_MAX_HARTS_>              ValidHarts;           ///< RevCore: Bits 0 -> numHarts are 1
-  std::bitset<_MAX_HARTS_>              HartsClearToDecode;   ///< RevCore: Thread is clear to start (proceed with decode)
-  std::bitset<_MAX_HARTS_>              HartsClearToExecute;  ///< RevCore: Thread is clear to execute (no register dependencides)
+  std::vector<std::shared_ptr<RevHart>> Harts{};                ///< RevCore: vector of Harts without a thread assigned to them
+  std::bitset<_MAX_HARTS_>              IdleHarts{};            ///< RevCore: bitset of Harts with no thread assigned
+  std::bitset<_MAX_HARTS_>              ValidHarts{};           ///< RevCore: Bits 0 -> numHarts are 1
+  std::bitset<_MAX_HARTS_>              HartsClearToDecode{};   ///< RevCore: Thread is clear to start (proceed with decode)
+  std::bitset<_MAX_HARTS_>              HartsClearToExecute{};  ///< RevCore: Thread is clear to execute (no register dependencides)
 
-  unsigned   numHarts;  ///< RevCore: Number of Harts for this core
-  RevOpts*   opts;      ///< RevCore: options object
-  RevMem*    mem;       ///< RevCore: memory object
-  RevCoProc* coProc;    ///< RevCore: attached co-processor
-  RevLoader* loader;    ///< RevCore: loader object
+  unsigned   numHarts{};  ///< RevCore: Number of Harts for this core
+  RevOpts*   opts{};      ///< RevCore: options object
+  RevMem*    mem{};       ///< RevCore: memory object
+  RevCoProc* coProc{};    ///< RevCore: attached co-processor
+  RevLoader* loader{};    ///< RevCore: loader object
 
   // Function pointer to the GetNewThreadID function in RevCPU (monotonically increasing thread ID counter)
-  std::function<uint32_t()> GetNewThreadID;
+  std::function<uint32_t()> const GetNewThreadID;
 
   // If a given assigned thread experiences a change of state, it sets the corresponding bit
-  std::vector<std::unique_ptr<RevThread>>
-    ThreadsThatChangedState;  ///< RevCore: used to signal to RevCPU that the thread assigned to HART has changed state
+  std::vector<std::unique_ptr<RevThread>> ThreadsThatChangedState{
+  };  ///< RevCore: used to signal to RevCPU that the thread assigned to HART has changed state
 
-  SST::Output*                   output;     ///< RevCore: output handler
-  std::unique_ptr<RevFeature>    featureUP;  ///< RevCore: feature handler
-  RevFeature*                    feature;
+  SST::Output* const             output;       ///< RevCore: output handler
+  std::unique_ptr<RevFeature>    featureUP{};  ///< RevCore: feature handler
+  RevFeature*                    feature{};
   RevCoreStats                   Stats{};       ///< RevCore: collection of performance stats
   RevCoreStats                   StatsTotal{};  ///< RevCore: collection of total performance stats
-  std::unique_ptr<RevPrefetcher> sfetch;        ///< RevCore: stream instruction prefetcher
+  std::unique_ptr<RevPrefetcher> sfetch{};      ///< RevCore: stream instruction prefetcher
 
-  std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>>
-    LSQueue;  ///< RevCore: Load / Store queue used to track memory operations. Currently only tracks outstanding loads.
-  TimeConverter* timeConverter;  ///< RevCore: Time converter for RTC
+  std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>> LSQueue{
+  };  ///< RevCore: Load / Store queue used to track memory operations. Currently only tracks outstanding loads.
+  TimeConverter* timeConverter{};  ///< RevCore: Time converter for RTC
 
   std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>>
     RmtLSQueue;  ///< RevCore: Remote Load / Store queue used to track xBGAS remote memory operations. Currently only tracks outstanding loads.
 
   RevRegFile* RegFile        = nullptr;        ///< RevCore: Initial pointer to HartToDecodeID RegFile
   uint32_t    ActiveThreadID = _INVALID_TID_;  ///< Software ThreadID (Not the Hart) that belongs to the Hart currently decoding
+  RevTracer*  Tracer         = nullptr;        ///< RevCore: Tracer object
 
-  RevTracer* Tracer          = nullptr;  ///< RevCore: Tracer object
+  std::bitset<_MAX_HARTS_> CoProcStallReq{};
 
-  std::bitset<_MAX_HARTS_> CoProcStallReq;
+  uint64_t cycles{};  ///< RevCore: The number of cycles executed
+
   ///< RevCore: Utility function for system calls that involve reading a string from memory
   EcallStatus EcallLoadAndParseString( uint64_t straddr, std::function<void()> );
 
@@ -652,6 +665,17 @@ private:
   EcallStatus ECALL_pthread_create();         // 1000, rev_pthread_create(pthread_t *thread, const pthread_attr_t  *attr, void  *(*start_routine)(void  *), void  *arg)
   EcallStatus ECALL_pthread_join();           // 1001, rev_pthread_join(pthread_t thread, void **retval);
   EcallStatus ECALL_pthread_exit();           // 1002, rev_pthread_exit(void* retval);
+
+  EcallStatus ECALL_dump_mem_range();         // 9000, dump_mem_range(uint64_t addr, uint64_t size)
+  EcallStatus ECALL_dump_mem_range_to_file(); // 9001, dump_mem_range_to_file(const char* outputFile, uint64_t addr, uint64_t size)
+  EcallStatus ECALL_dump_stack();             // 9002, dump_stack()
+  EcallStatus ECALL_dump_stack_to_file();     // 9003, dump_stack(const char* outputFile)
+
+  EcallStatus ECALL_dump_valid_mem();         // 9004, dump_valid_mem()
+  EcallStatus ECALL_dump_valid_mem_to_file(); // 9005, dump_valid_mem_to_file(const char* outputFile)
+
+  EcallStatus ECALL_dump_thread_mem();         // 9006, dump_thread_mem()
+  EcallStatus ECALL_dump_thread_mem_to_file(); // 9007, dump_thread_mem_to_file(const char* outputFile)
   // clang-format on
 
   /// RevCore: Table of ecall codes w/ corresponding function pointer implementations
@@ -663,18 +687,14 @@ private:
   /// RevCore: Get a pointer to the register file loaded into Hart w/ HartID
   RevRegFile* GetRegFile( unsigned HartID ) const;
 
-  std::vector<RevInstEntry> InstTable;  ///< RevCore: target instruction table
-
-  std::vector<std::unique_ptr<RevExt>> Extensions;  ///< RevCore: vector of enabled extensions
-
+  std::vector<RevInstEntry>            InstTable{};   ///< RevCore: target instruction table
+  std::vector<std::unique_ptr<RevExt>> Extensions{};  ///< RevCore: vector of enabled extensions
   //std::vector<std::tuple<uint16_t, RevInst, bool>>  Pipeline; ///< RevCore: pipeline of instructions
-  std::deque<std::pair<uint16_t, RevInst>>    Pipeline;     ///< RevCore: pipeline of instructions
-  std::unordered_map<std::string, unsigned>   NameToEntry;  ///< RevCore: instruction mnemonic to table entry mapping
-  std::unordered_multimap<uint32_t, unsigned> EncToEntry;   ///< RevCore: instruction encoding to table entry mapping
-  std::unordered_multimap<uint32_t, unsigned> CEncToEntry;  ///< RevCore: compressed instruction encoding to table entry mapping
-
-  std::unordered_map<unsigned, std::pair<unsigned, unsigned>>
-    EntryToExt;  ///< RevCore: instruction entry to extension object mapping
+  std::deque<std::pair<uint16_t, RevInst>>    Pipeline{};     ///< RevCore: pipeline of instructions
+  std::unordered_map<std::string, unsigned>   NameToEntry{};  ///< RevCore: instruction mnemonic to table entry mapping
+  std::unordered_multimap<uint32_t, unsigned> EncToEntry{};   ///< RevCore: instruction encoding to table entry mapping
+  std::unordered_multimap<uint32_t, unsigned> CEncToEntry{};  ///< RevCore: compressed instruction encoding to table entry mapping
+  std::unordered_map<unsigned, std::pair<unsigned, unsigned>> EntryToExt{};  ///< RevCore: instruction entry to extension mapping
   ///           first = Master table entry number
   ///           second = pair<Extension Index, Extension Entry>
 
@@ -685,9 +705,6 @@ private:
     const std::vector<RevInstEntry>&                   InstTable,
     uint32_t                                           Inst
   ) const;
-
-  /// RevCore: splits a string into tokens
-  void splitStr( const std::string& s, char c, std::vector<std::string>& v );
 
   /// RevCore: parses the feature string for the target core
   bool ParseFeatureStr( std::string Feature );

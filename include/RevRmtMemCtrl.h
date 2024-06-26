@@ -411,25 +411,25 @@ private:
   // uint64_t getTotalRqsts();
 
   // -- private data members;
-  RevMem*      Mem;       ///< RevBasicRmtMemCtrl: pointer to the memory object
-  xbgasNicAPI* xbgasNic;  ///< RevBasicRmtMemCtrl: xBGAS NIC interface
-  std::map<uint64_t, uint32_t>
-    nmspaceLB;  ///< RevBasicRmtMemCtrl: TODO: track in the LRU policy. namespace lookaside Buffer map; <Namespace, Dest>
-  std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts;   ///< RevBasicRmtMemCtrl: xbgas hosts list
-  unsigned                                           virtualHart;  ///< RevBasicRmtMemCtrl: virtual hart id
-  unsigned                                           myPEid;       ///< RevBasicRmtMemCtrl: My PE id
-  unsigned                                           numPEs;       ///< RevBasicRmtMemCtrl: number of PEs on distinct nodes
+  RevMem*                      Mem{};       ///< RevBasicRmtMemCtrl: pointer to the memory object
+  xbgasNicAPI*                 xbgasNic{};  ///< RevBasicRmtMemCtrl: xBGAS NIC interface
+  std::map<uint64_t, uint32_t> nmspaceLB{
+  };  ///< RevBasicRmtMemCtrl: TODO: track in the LRU policy. namespace lookaside Buffer map; <Namespace, Dest>
+  std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts{};   ///< RevBasicRmtMemCtrl: xbgas hosts list
+  unsigned                                           virtualHart{};  ///< RevBasicRmtMemCtrl: virtual hart id
+  unsigned                                           myPEid{};       ///< RevBasicRmtMemCtrl: My PE id
+  unsigned                                           numPEs{};       ///< RevBasicRmtMemCtrl: number of PEs on distinct nodes
 
-  unsigned max_loads;   ///< RevBasicRmtMemCtrl: maximum number of outstanding loads
-  unsigned max_stores;  ///< RevBasicRmtMemCtrl: maximum number of outstanding stores
-  unsigned max_ops;     ///< RevBasicRmtMemCtrl: maximum number of operations per cycle
+  unsigned max_loads{};   ///< RevBasicRmtMemCtrl: maximum number of outstanding loads
+  unsigned max_stores{};  ///< RevBasicRmtMemCtrl: maximum number of outstanding stores
+  unsigned max_ops{};     ///< RevBasicRmtMemCtrl: maximum number of operations per cycle
 
-  uint64_t num_read;   ///< RevBasicRmtMemCtrl: number of remote read requests
-  uint64_t num_write;  ///< RevBasicRmtMemCtrl: number of remote write requests
+  uint64_t num_read{};   ///< RevBasicRmtMemCtrl: number of remote read requests
+  uint64_t num_write{};  ///< RevBasicRmtMemCtrl: number of remote write requests
 
-  std::vector<uint32_t>            requests;     ///< RevBasicRmtMemCtrl: vector of outstanding remote memory requests
-  std::vector<RevRmtMemOp*>        rqstQ;        ///< RevBasicRmtMemCtrl: queued remote memory requests
-  std::map<uint32_t, RevRmtMemOp*> outstanding;  ///< RevBasicRmtMemCtrl: map of remote write requests
+  std::vector<uint32_t>            requests{};     ///< RevBasicRmtMemCtrl: vector of outstanding remote memory requests
+  std::vector<RevRmtMemOp*>        rqstQ{};        ///< RevBasicRmtMemCtrl: queued remote memory requests
+  std::map<uint32_t, RevRmtMemOp*> outstanding{};  ///< RevBasicRmtMemCtrl: map of remote write requests
 
 #define LOAD_RECORD_SRCID    0
 #define LOAD_RECORD_DESTID   0
@@ -453,13 +453,13 @@ private:
       RevFlag,   // Flags
       uint8_t*>  // Buffer
     >
-                                         LocalLoadRecord;     ///< RevBasicRmtMemCtrl: record the number of elements
-  std::unordered_map<uint64_t, uint32_t> LocalLoadCount;      ///< RevBasicRmtMemCtrl: the number of local load operations
-  std::unordered_map<uint64_t, uint64_t> LocalLoadTrack;      ///< RevBasicRmtMemCtrl: the association between address and SrcId+Id
-  std::unordered_map<uint64_t, RmtMemOp> LocalLoadType;       ///< RevBasicRmtMemCtrl: the purpose of the local load operation
-  std::unordered_map<uint64_t, xbgasNicEvent*> EventsToSend;  ///< RevBasicRmtMemCtrl: event to send
+                                         LocalLoadRecord{};  ///< RevBasicRmtMemCtrl: record the number of elements
+  std::unordered_map<uint64_t, uint32_t> LocalLoadCount{};   ///< RevBasicRmtMemCtrl: the number of local load operations
+  std::unordered_map<uint64_t, uint64_t> LocalLoadTrack{};   ///< RevBasicRmtMemCtrl: the association between address and SrcId+Id
+  std::unordered_map<uint64_t, RmtMemOp> LocalLoadType{};    ///< RevBasicRmtMemCtrl: the purpose of the local load operation
+  std::unordered_map<uint64_t, xbgasNicEvent*> EventsToSend{};  ///< RevBasicRmtMemCtrl: event to send
 
-  std::vector<Statistic<uint64_t>*> stats;  ///< RevBasicRmtMemCtrl: vector of statistics
+  std::vector<Statistic<uint64_t>*> stats{};  ///< RevBasicRmtMemCtrl: vector of statistics
 };  // class RevBasicRmtMemCtrl
 
 }  // namespace SST::RevCPU

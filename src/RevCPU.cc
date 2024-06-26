@@ -12,6 +12,7 @@
 #include "RevMem.h"
 #include "RevThread.h"
 #include <cmath>
+#include <fstream>
 #include <memory>
 
 namespace SST::RevCPU {
@@ -32,9 +33,8 @@ const char splash_msg[] = "\
 ";
 
 RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
-  : SST::Component( id ), testStage( 0 ), PrivTag( 0 ), address( -1 ), EnableMemH( false ), DisableCoprocClock( false ),
-    Nic( nullptr ), Ctrl( nullptr ), ClockHandler( nullptr ), EnableXBGAS( false ), EnableXBGASStats( false ),
-    SharedMemorySize( 0 ), SharedMemoryBase( 0x0 ), BarrierBase( 0x0 ), rmtCtrl( nullptr ) {
+  : SST::Component( id ), PrivTag( 0 ), address( -1 ), EnableMemH( false ), DisableCoprocClock( false ), Nic( nullptr ),
+    Ctrl( nullptr ), ClockHandler( nullptr ) {
 
   const int Verbosity = params.find<int>( "verbose", 0 );
 
@@ -64,15 +64,15 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
   );
 
   // read the binary executable name
-  Exe  = params.find<std::string>( "program", "a.out" );
-
-  // read the program arguments
-  Args = params.find<std::string>( "args", "" );
+  auto Exe = params.find<std::string>( "program", "a.out" );
 
   // Create the options object
-  Opts = new( std::nothrow ) RevOpts( numCores, numHarts, Verbosity );
+  Opts     = new( std::nothrow ) RevOpts( numCores, numHarts, Verbosity );
   if( !Opts )
     output.fatal( CALL_INFO, -1, "Error: failed to initialize the RevOpts object\n" );
+
+  // Program arguments
+  Opts->SetArgs( params );
 
   // Initialize the remaining options
   for( auto [ParamName, InitFunc] : {
@@ -158,22 +158,19 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
   Mem->SetMaxHeapSize( maxHeapSize );
 
   // Load the binary into memory
-  // TODO: Use std::nothrow to return null instead of throwing std::bad_alloc
-  Loader = new RevLoader( Exe, Args, Mem, &output );
+  Loader = new( std::nothrow ) RevLoader( Exe, Opts->GetArgv(), Mem, &output );
   if( !Loader ) {
     output.fatal( CALL_INFO, -1, "Error: failed to initialize the RISC-V loader\n" );
   }
 
-  Opts->SetArgs( Loader->GetArgv() );
+  // Create the processor objects
+  Procs.reserve( Procs.size() + numCores );
+  for( unsigned i = 0; i < numCores; i++ ) {
+    Procs.push_back( new RevCore( i, Opts, numHarts, Mem, Loader, this->GetNewTID(), &output ) );
+  }
 
   EnableCoProc = params.find<bool>( "enableCoProc", 0 );
   if( EnableCoProc ) {
-
-    // Create the processor objects
-    Procs.reserve( Procs.size() + numCores );
-    for( unsigned i = 0; i < numCores; i++ ) {
-      Procs.push_back( new RevCore( i, Opts, numHarts, Mem, Loader, this->GetNewTID(), &output ) );
-    }
     // Create the co-processor objects
     for( unsigned i = 0; i < numCores; i++ ) {
       RevCoProc* CoProc = loadUserSubComponent<RevCoProc>( "co_proc", SST::ComponentInfo::SHARE_NONE, Procs[i] );
@@ -183,11 +180,39 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
       CoProcs.push_back( CoProc );
       Procs[i]->SetCoProc( CoProc );
     }
-  } else {
-    // Create the processor objects
-    Procs.reserve( Procs.size() + numCores );
-    for( unsigned i = 0; i < numCores; i++ ) {
-      Procs.push_back( new RevCore( i, Opts, numHarts, Mem, Loader, this->GetNewTID(), &output ) );
+  }
+
+  // Memory dumping option(s)
+  std::vector<std::string> memDumpRanges;
+  params.find_array( "memDumpRanges", memDumpRanges );
+  if( !memDumpRanges.empty() ) {
+    for( auto& segName : memDumpRanges ) {
+      // FIXME: Figure out how to parse units (GB, MB, KB, etc.)
+      // segName is a string... Look for scoped params for this segment
+      const auto& scopedParams = params.get_scoped_params( segName );
+      // Check scopedParams for the following:
+      // - startAddr (hex)
+      // - size (bytes)
+      if( !scopedParams.contains( "startAddr" ) ) {
+        output.fatal(
+          CALL_INFO,
+          -1,
+          "Error: memDumpRanges requires startAddr. Please specify this scoped "
+          "param as %s.startAddr in the configuration file\n",
+          segName.c_str()
+        );
+      } else if( !scopedParams.contains( "size" ) ) {
+        output.fatal(
+          CALL_INFO,
+          -1,
+          "Error: memDumpRanges requires size. Please specify this "
+          "scoped param as %s.size in the configuration file\n",
+          segName.c_str()
+        );
+      }
+      const uint64_t startAddr = scopedParams.find<uint64_t>( "startAddr" );
+      const uint64_t size      = scopedParams.find<uint64_t>( "size" );
+      Mem->AddDumpRange( segName, startAddr, size );
     }
   }
 
@@ -339,6 +364,12 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
 
   // Done with initialization
   output.verbose( CALL_INFO, 1, 0, "Initialization of RevCPUs complete.\n" );
+
+  for( const auto& [Name, Seg] : Mem->GetDumpRanges() ) {
+    // Open a file called '{Name}.init.dump'
+    std::ofstream dumpFile( Name + ".dump.init", std::ios::binary );
+    Mem->DumpMemSeg( Seg, 16, dumpFile );
+  }
 }
 
 RevCPU::~RevCPU() {
@@ -695,6 +726,14 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ) {
       primaryComponentOKToEndSim();
       output.verbose( CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>( currentCycle ) );
     }
+
+    for( const auto& [Name, Seg] : Mem->GetDumpRanges() ) {
+      // Open a file called '{Name}.init.dump'
+      std::ofstream dumpFile( Name + ".dump.final", std::ios::binary );
+      Mem->DumpMemSeg( Seg, 16, dumpFile );
+    }
+    primaryComponentOKToEndSim();
+    output.verbose( CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>( currentCycle ) );
   } else {
     rtn = false;
   }
@@ -769,18 +808,15 @@ void RevCPU::CheckBlockedThreads() {
 }
 
 // ----------------------------------
-// We need to initialize the x10 register to include the value of ARGC
-// This is >= 1 (the executable name is always included)
+// We need to initialize the x10 register to include the value of
+// ARGC. This is >= 1 (the executable name is always included).
 // We also need to initialize the ARGV pointer to the value
-// of the ARGV base pointer in memory which is currently set to the
-// program header region.  When we come out of reset, this is StackTop+60 bytes
+// of the ARGV base pointer in memory which is currently set to
+// the top of stack.
 // ----------------------------------
 void RevCPU::SetupArgs( const std::unique_ptr<RevRegFile>& RegFile ) {
-  auto Argv = Opts->GetArgv();
-  // setup argc
-  RegFile->SetX( RevReg::a0, Argv.size() );
-  RegFile->SetX( RevReg::a1, Mem->GetStackTop() + 60 );
-  return;
+  RegFile->SetX( RevReg::a0, Opts->GetArgv().size() + 1 );
+  RegFile->SetX( RevReg::a1, Mem->GetStackTop() );
 }
 
 // Checks core 'i' to see if it has any available harts to assign work to
@@ -878,7 +914,7 @@ void RevCPU::HandleThreadStateChangesForProc( uint32_t ProcID ) {
 
 void RevCPU::InitMainThread( uint32_t MainThreadID, const uint64_t StartAddr ) {
   // @Lee: Is there a better way to get the feature info?
-  std::unique_ptr<RevRegFile> MainThreadRegState = std::make_unique<RevRegFile>( Procs[0]->GetRevFeature() );
+  std::unique_ptr<RevRegFile> MainThreadRegState = std::make_unique<RevRegFile>( Procs[0] );
   MainThreadRegState->SetPC( StartAddr );
   MainThreadRegState->SetX( RevReg::tp, Mem->GetThreadMemSegs().front()->getTopAddr() );
   MainThreadRegState->SetX( RevReg::sp, Mem->GetThreadMemSegs().front()->getTopAddr() - Mem->GetTLSSize() );

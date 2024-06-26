@@ -10,11 +10,9 @@
 
 #include "RevMem.h"
 #include "RevRand.h"
-#include <cmath>
 #include <cstring>
-#include <functional>
+#include <iomanip>
 #include <memory>
-#include <mutex>
 #include <utility>
 
 namespace SST::RevCPU {
@@ -747,6 +745,7 @@ bool RevMem::WriteMem( unsigned Hart, uint64_t Addr, size_t Len, const void* Dat
   return true;
 }
 
+// Deprecated
 bool RevMem::ReadMem( uint64_t Addr, size_t Len, void* Data ) {
 #ifdef _REV_DEBUG_
   std::cout << "OLD READMEM: Reading " << Len << " Bytes Starting at 0x" << std::hex << Addr << std::dec << std::endl;
@@ -789,6 +788,7 @@ bool RevMem::ReadMem( unsigned Hart, uint64_t Addr, size_t Len, void* Target, co
 #ifdef _REV_DEBUG_
   std::cout << "NEW READMEM: Reading " << Len << " Bytes Starting at 0x" << std::hex << Addr << std::dec << std::endl;
 #endif
+
   uint64_t pageNum     = Addr >> addrShift;
   uint64_t physAddr    = CalcPhysAddr( pageNum, Addr );
   //check to see if we're about to walk off the page....
@@ -809,6 +809,7 @@ bool RevMem::ReadMem( unsigned Hart, uint64_t Addr, size_t Len, void* Target, co
         DataMem[i] = BaseMem[i];
       }
     }
+
     BaseMem      = &physMem[adjPhysAddr];
     //If we are using memH, this paging scheme is not relevant, we already issued the ReadReq above
     //ctrl->sendREADRequest(Hart, Addr, (uint64_t)(BaseMem), Len, ((char*)Target)+Cur, req, flags);
@@ -817,6 +818,8 @@ bool RevMem::ReadMem( unsigned Hart, uint64_t Addr, size_t Len, void* Target, co
       DataMem[Cur] = BaseMem[i];
       Cur++;
     }
+    // Handle flag response
+    RevHandleFlagResp( Target, Len, flags );
     // clear the hazard - if this was an AMO operation then we will clear outside of this function in AMOMem()
     if( MemOp::MemOpAMO != req.ReqType ) {
       req.MarkLoadComplete();
@@ -832,6 +835,8 @@ bool RevMem::ReadMem( unsigned Hart, uint64_t Addr, size_t Len, void* Target, co
       for( unsigned i = 0; i < Len; i++ ) {
         DataMem[i] = BaseMem[i];
       }
+      // Handle flag response
+      RevHandleFlagResp( Target, Len, flags );
       // clear the hazard- if this was an AMO operation then we will clear outside of this function in AMOMem()
       if( MemOp::MemOpAMO != req.ReqType ) {
         TRACE_MEM_READ( Addr, Len, DataMem );
@@ -1067,6 +1072,76 @@ uint64_t RevMem::ExpandHeap( uint64_t Size ) {
   return heapend;
 }
 
+void RevMem::DumpMem( const uint64_t startAddr, const uint64_t numBytes, const uint64_t bytesPerRow, std::ostream& outputStream ) {
+  uint64_t       translatedStartAddr = startAddr;             //CalcPhysAddr( 0, startAddr );
+  const uint64_t endAddr             = startAddr + numBytes;  //translatedStartAddr + numBytes;
+
+  for( uint64_t addr = translatedStartAddr; addr < endAddr; addr += bytesPerRow ) {
+    outputStream << "0x" << std::setw( 16 ) << std::setfill( '0' ) << std::hex << addr << ": ";
+
+    for( uint64_t i = 0; i < bytesPerRow; ++i ) {
+      if( addr + i < endAddr ) {
+        uint8_t byte = physMem[addr + i];
+        outputStream << std::setw( 2 ) << std::setfill( '0' ) << std::hex << static_cast<uint32_t>( byte ) << " ";
+      } else {
+        outputStream << "   ";
+      }
+    }
+
+    outputStream << " ";
+
+    for( uint64_t i = 0; i < bytesPerRow; ++i ) {
+      if( addr + i < endAddr ) {
+        uint8_t byte = physMem[addr + i];
+        if( std::isprint( byte ) ) {
+          outputStream << static_cast<char>( byte );
+        } else {
+          outputStream << ".";
+        }
+      }
+    }
+    outputStream << std::endl;
+  }
+}
+
+void RevMem::DumpMemSeg( const std::shared_ptr<MemSegment>& MemSeg, const uint64_t bytesPerRow, std::ostream& outputStream ) {
+
+  outputStream << "// " << *MemSeg << std::endl;
+  DumpMem( MemSeg->getBaseAddr(), MemSeg->getSize(), bytesPerRow, outputStream );
+}
+
+void RevMem::DumpValidMem( const uint64_t bytesPerRow, std::ostream& outputStream ) {
+
+  std::sort( MemSegs.begin(), MemSegs.end() );
+  outputStream << "Memory Segments:" << std::endl;
+  for( unsigned i = 0; i < MemSegs.size(); i++ ) {
+    outputStream << "// SEGMENT #" << i << *MemSegs[i] << std::endl;
+    DumpMemSeg( MemSegs[i], bytesPerRow, outputStream );
+  }
+  for( const auto& MemSeg : MemSegs ) {
+    DumpMem( MemSeg->getBaseAddr(), MemSeg->getSize(), bytesPerRow, outputStream );
+  }
+
+  std::sort( ThreadMemSegs.begin(), ThreadMemSegs.end() );
+  for( const auto& MemSeg : ThreadMemSegs ) {
+    outputStream << "// " << *MemSeg << std::endl;
+    DumpMem( MemSeg->getBaseAddr(), MemSeg->getSize(), bytesPerRow, outputStream );
+  }
+}
+
+void RevMem::DumpThreadMem( const uint64_t bytesPerRow, std::ostream& outputStream ) {
+
+  outputStream << "Thread Memory Segments:" << std::endl;
+  std::sort( ThreadMemSegs.begin(), ThreadMemSegs.end() );
+  for( const auto& MemSeg : ThreadMemSegs ) {
+    outputStream << "// " << *MemSeg << std::endl;
+    DumpMem( MemSeg->getBaseAddr(), MemSeg->getSize(), bytesPerRow, outputStream );
+  }
+}
+
+void RevMem::AddDumpRange( const std::string& Name, const uint64_t BaseAddr, const uint64_t Size ) {
+  DumpRanges[Name] = std::make_shared<MemSegment>( BaseAddr, Size );
+}
 }  // namespace SST::RevCPU
 
 // EOF

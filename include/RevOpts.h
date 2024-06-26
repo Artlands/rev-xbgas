@@ -29,7 +29,7 @@ public:
   RevOpts( unsigned NumCores, unsigned NumHarts, const int Verbosity );
 
   /// RevOpts: options destructor
-  ~RevOpts();
+  ~RevOpts() = default;
 
   /// RevOpts: retrieve the number of configured cores
   unsigned GetNumCores() { return numCores; }
@@ -76,29 +76,36 @@ public:
   /// RevOpts: retrieve the prefetch depth for the target core
   bool GetPrefetchDepth( unsigned Core, unsigned& Depth );
 
-  /// RevOpts: set the argv arrary
-  void SetArgs( std::vector<std::string> A ) { Argv = A; }
+  /// RevOpts: set the argv array
+  void SetArgs( const SST::Params& params );
 
   /// RevOpts: retrieve the argv array
-  std::vector<std::string> GetArgv() { return Argv; }
-
-private:
-  unsigned numCores;   ///< RevOpts: number of initialized cores
-  unsigned numHarts;   ///< RevOpts: number of harts per core
-  int      verbosity;  ///< RevOpts: verbosity level
-
-  std::map<unsigned, uint64_t>    startAddr;      ///< RevOpts: map of core id to starting address
-  std::map<unsigned, std::string> startSym;       ///< RevOpts: map of core id to starting symbol
-  std::map<unsigned, std::string> machine;        ///< RevOpts: map of core id to machine model
-  std::map<unsigned, std::string> table;          ///< RevOpts: map of core id to inst table
-  std::map<unsigned, unsigned>    prefetchDepth;  ///< RevOpts: map of core id to prefretch depth
-
-  std::vector<std::pair<unsigned, unsigned>> memCosts;  ///< RevOpts: vector of memory cost ranges
-
-  std::vector<std::string> Argv;  ///< RevOpts: vector of function arguments
+  const std::vector<std::string>& GetArgv() const { return Argv; }
 
   /// RevOpts: splits a string into tokens
-  void splitStr( const std::string& s, char c, std::vector<std::string>& v );
+  static void splitStr( std::string s, const char* delim, std::vector<std::string>& v ) {
+    char* ptr     = s.data();
+    char* saveptr = nullptr;
+    for( v.clear(); auto token = strtok_r( ptr, delim, &saveptr ); ptr = nullptr )
+      v.push_back( token );
+  }
+
+private:
+  unsigned numCores{};   ///< RevOpts: number of initialized cores
+  unsigned numHarts{};   ///< RevOpts: number of harts per core
+  int      verbosity{};  ///< RevOpts: verbosity level
+
+  std::map<unsigned, uint64_t>    startAddr{};      ///< RevOpts: map of core id to starting address
+  std::map<unsigned, std::string> startSym{};       ///< RevOpts: map of core id to starting symbol
+  std::map<unsigned, std::string> machine{};        ///< RevOpts: map of core id to machine model
+  std::map<unsigned, std::string> table{};          ///< RevOpts: map of core id to inst table
+  std::map<unsigned, unsigned>    prefetchDepth{};  ///< RevOpts: map of core id to prefretch depth
+
+  std::vector<std::pair<unsigned, unsigned>> memCosts{};  ///< RevOpts: vector of memory cost ranges
+
+  std::vector<std::string> Argv{};  ///< RevOpts: vector of function arguments
+
+  std::vector<std::string> MemDumpRanges{};  ///< RevOpts: vector of function arguments
 
 };  // class RevOpts
 

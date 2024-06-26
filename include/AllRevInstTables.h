@@ -32,6 +32,7 @@
 #include "insns/RV64P.h"
 #include "insns/RV64X.h"
 #include "insns/Zicbom.h"
+#include "insns/Zicsr.h"
 #include "insns/Zifencei.h"
 
 #endif

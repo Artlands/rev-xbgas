@@ -20,7 +20,7 @@ namespace SST::RevCPU {
 
 class RevHart {
   ///< RevHart: Id for the Hart (0,1,2,3,etc)
-  unsigned ID;
+  unsigned ID{};
 
   ///< RevHart: State management object when a Hart is executing a system call
   EcallState Ecall{};
@@ -32,7 +32,7 @@ class RevHart {
   const std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>>& RmtLSQueue;
 
   ///< RevHart: Pointer to the Proc's MarkLoadCompleteFunc
-  std::function<void( const MemReq& )> MarkLoadCompleteFunc;
+  std::function<void( const MemReq& )> MarkLoadCompleteFunc{};
 
   ///< RevHart: Pointer to the Proc's MarkLoadCompleteFunc
   std::function<void( const RmtMemReq& )> MarkRmtLoadCompleteFunc;
@@ -73,7 +73,7 @@ public:
   uint16_t GetID() const { return ID; }
 
   ///< RevHart: Returns the ID of the assigned thread
-  uint32_t GetAssignedThreadID() const { return ( Thread != nullptr ) ? Thread->GetID() : _INVALID_TID_; }
+  uint32_t GetAssignedThreadID() const { return Thread ? Thread->GetID() : _INVALID_TID_; }
 
   ///< RevHart: Load the register file from the RevThread
   void LoadRegFile( std::unique_ptr<RevRegFile> regFile ) {
