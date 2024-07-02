@@ -4,6 +4,7 @@ set(InstructionSrcs
   RV32F.h
   RV32I.h
   RV32M.h
+  RV32X.h
   RV64A.h
   RV64D.h
   RV64F.h

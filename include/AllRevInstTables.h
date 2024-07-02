@@ -24,6 +24,7 @@
 #include "insns/RV32F.h"
 #include "insns/RV32I.h"
 #include "insns/RV32M.h"
+#include "insns/RV32X.h"
 #include "insns/RV64A.h"
 #include "insns/RV64D.h"
 #include "insns/RV64F.h"

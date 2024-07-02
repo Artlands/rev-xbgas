@@ -137,6 +137,7 @@ private:
   };
 
   union {                              // Anonymous union. We zero-initialize the register file
+    uint32_t ERV32[_REV_NUM_REGS_];    ///< RevRegFile: xBGAS RV32 extended register file
     uint64_t ERV64[_REV_NUM_REGS_]{};  ///< RevRegFile: xBGAS RV64 extended register file
   };
 
@@ -277,9 +278,15 @@ public:
   }
 
   /// GetE: Get the Extended E register for xBGAS
-  template<typename U>
-  uint64_t GetE( U rs ) const {
-    return static_cast<uint64_t>( ERV64[size_t( rs )] );
+  template<typename T, typename U>
+  T GetE( U rs ) const {
+    T res;
+    if( IsRV32 ) {
+      res = T( ERV32[size_t( rs )] );
+    } else {
+      res = T( ERV64[size_t( rs )] );
+    }
+    return res;
   }
 
   /// SetX: Set the specifed X register to a specific value
@@ -300,7 +307,11 @@ public:
   /// SetE: Set the Extended E register for xBGAS
   template<typename T, typename U>
   void SetE( U rd, T val ) {
-    ERV64[size_t( rd )] = uint64_t( val );
+    if( IsRV32 ) {
+      ERV32[size_t( rd )] = uint32_t( val );
+    } else {
+      ERV64[size_t( rd )] = uint64_t( val );
+    }
   }
 
   /// GetPC: Get the Program Counter

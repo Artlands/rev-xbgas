@@ -92,8 +92,14 @@ enum class RmtMemOp : uint8_t {
   BulkREADResp  = 0b0101,  ///< xbgasNicEvent: Bulk READ response
   WRITEResp     = 0b0110,  ///< xbgasNicEvent: WRITE response
   BulkWRITEResp = 0b0111,  ///< xbgasNicEvent: Bulk WRITE response
-  Finish        = 0b1111,  ///< xbgasNicEvent: Finish notification
-  Unknown       = 0b1000   ///< xbgasNicEvent: Unknown operation
+  LOADLINKRqst  = 0b1000,  ///< xbgasNicEvent: Load-Link request
+  LOADLINKResp  = 0b1001,  ///< xbgasNicEvent: Load-Link response
+  STORECONDRqst = 0b1010,  ///< xbgasNicEvent: Store-Conditional request
+  STORECONDResp = 0b1011,  ///< xbgasNicEvent: Store-Conditional response
+  AMORqst       = 0b1100,  ///< xbgasNicEvent: Atomic Memory Operation request
+  AMOResp       = 0b1101,  ///< xbgasNicEvent: Atomic Memory Operation response
+  Finish        = 0b1110,  ///< xbgasNicEvent: Finish notification
+  Unknown       = 0b1111   ///< xbgasNicEvent: Unknown operation
 };
 
 std::ostream& operator<<( std::ostream& os, MemOp op );
