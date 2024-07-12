@@ -104,6 +104,9 @@ public:
     {"enable_memH",     "Enable memHierarchy",                          "0"},
     {"enableRDMAMbox",  "Enable the RDMA mailbox",                      "1"},
     {"enableCoProc",    "Enable an attached coProcessor for all cores", "0"},
+    {"enable_xbgas",    "Enable xBGAS",                                 "0"},
+    {"enable_xbgas_stats", "Enable xBGAS statistics",                   "0"},
+    {"shared_memory_size", "Shared memory size in bytes",               "4096"},
     {"enable_faults",   "Enable the fault injection logic",             "0"},
     {"faults",          "Enable specific faults",                       "decode,mem,reg,alu"},
     {"fault_width",     "Specify the bit width of potential faults",    "single,word,N"},
@@ -132,6 +135,7 @@ public:
     {"pan_nic", "PAN Network interface", "SST::RevCPU::PanNet"},
     {"memory", "Memory interface to utilize for cache/memory hierachy", "SST::RevCPU::RevMemCtrl"},
     {"co_proc", "Co-processor attached to RevCore", "SST::RevCPU::RevSimpleCoProc"},
+    {"remote_memory", "Memory interface to utilize for remote memory operations", "SST::RevCPU::RevRmtMemCtrl"},
     )
 
   // -------------------------------------------------------
@@ -286,6 +290,13 @@ private:
 
   bool DisableCoprocClock{};  ///< RevCPU: Disables manual coproc clocking
 
+  bool           EnableXBGAS{};       ///< RevCPU: Enable xBGAS
+  bool           EnableXBGASStats{};  ///< RevCPU: Enable xBGAS statistics
+  uint64_t       SharedMemorySize{};  ///< RevCPU: Shared memory size
+  uint64_t       SharedMemoryBase{};  ///< RevCPU: Shared memory base address
+  uint64_t       BarrierBase{};       ///< RevCPU: Barrier base address
+  RevRmtMemCtrl* rmtCtrl{};           ///< RevCPU: xBGAS Remote memory controller
+
   TimeConverter* timeConverter{};  ///< RevCPU: SST time conversion handler
   SST::Output    output{};         ///< RevCPU: SST output handler
 
@@ -298,8 +309,8 @@ private:
 
   std::queue<std::pair<uint32_t, char*>> ZeroRqst{};   ///< RevCPU: tracks incoming zero address put requests; pair<Size, Data>
   std::list<std::pair<uint8_t, int>>     TrackTags{};  ///< RevCPU: tracks the outgoing messages; pair<Tag, Dest>
-  std::vector<std::tuple<uint8_t, uint64_t, uint32_t>>
-    TrackGets{};  ///< RevCPU: tracks the outstanding get messages; tuple<Tag, Addr, Sz>
+  std::vector<std::tuple<uint8_t, uint64_t, uint32_t>> TrackGets{
+  };  ///< RevCPU: tracks the outstanding get messages; tuple<Tag, Addr, Sz>
   std::vector<std::tuple<uint8_t, uint32_t, unsigned, int, uint64_t>> ReadQueue{};  ///< RevCPU: outgoing memory read queue
   ///<         - Tag
   ///<         - Size

@@ -216,6 +216,26 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params )
     }
   }
 
+  // See if we should load the xBGAS remote memory controller
+  EnableXBGAS      = params.find<bool>( "enable_xbgas", 0 );
+  EnableXBGASStats = params.find<bool>( "enable_xbgas_stats", 0 );
+  SharedMemorySize = params.find<unsigned long>( "shared_memory_size", 4096 );
+
+  if( EnableXBGAS ) {
+    // Load remote memory controller subcomponent
+    rmtCtrl = loadUserSubComponent<RevRmtMemCtrl>( "remote_memory" );
+    if( !rmtCtrl )
+      output.fatal( CALL_INFO, -1, "Error : failed to inintialize the remote memory controller subcomponent\n" );
+    // Set memory object for xBGAS
+    rmtCtrl->setMem( Mem );
+    // Set remote memory controller for Mem
+    Mem->setRmtMemCtrl( rmtCtrl );
+    // Allocate the xBGAS shared memory region
+    SharedMemoryBase = Mem->AllocMem( (uint64_t) ( SharedMemorySize ) );
+    // Get the base address of the barrier region
+    BarrierBase      = _REVMEM_BASE_ + memSize - __XBRTIME_RESERVED__;
+  }
+
 #ifndef NO_REV_TRACER
   // Configure tracer and assign to each core
   if( output.getVerboseLevel() >= 5 ) {
@@ -368,6 +388,9 @@ RevCPU::~RevCPU() {
   // delete the memory controller if present
   delete Ctrl;
 
+  // delete the remote memory controller if present
+  delete rmtCtrl;
+
   // delete the memory object
   delete Mem;
 
@@ -477,6 +500,25 @@ void RevCPU::setup() {
   if( EnableMemH ) {
     Ctrl->setup();
   }
+  if( EnableXBGAS ) {
+    rmtCtrl->setup();
+    // Setup the extended registers to have the xBGAS PE ID and total number of PEs
+    // e10 = contains the PE id
+    // e11 = contains the number of PEs
+    // e12 = contains the size of the shared memory region
+    // e13 = contains the base address of the shared memory region
+    // e14 = contains the base address of the barrier region
+
+    // Get the main thread
+    RevThread*  MainThread = ReadyThreads[0].get();
+    RevRegFile* RegState   = MainThread->GetVirtRegState();
+
+    RegState->SetE( RevReg::e10, rmtCtrl->getPEID() );
+    RegState->SetE( RevReg::e11, rmtCtrl->getNumPEs() );
+    RegState->SetE( RevReg::e12, SharedMemorySize );
+    RegState->SetE( RevReg::e13, SharedMemoryBase );
+    RegState->SetE( RevReg::e14, BarrierBase );
+  }
 }
 
 void RevCPU::finish() {}
@@ -486,6 +528,9 @@ void RevCPU::init( unsigned int phase ) {
     Nic->init( phase );
   if( EnableMemH )
     Ctrl->init( phase );
+  if( EnableXBGAS ) {
+    rmtCtrl->init( phase );
+  }
 }
 
 void RevCPU::handleMessage( Event* ev ) {

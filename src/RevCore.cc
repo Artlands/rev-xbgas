@@ -41,9 +41,18 @@ RevCore::RevCore(
   LSQueue = std::make_shared<std::unordered_multimap<uint64_t, MemReq>>();
   LSQueue->clear();
 
+  RmtLSQueue = std::make_shared<std::unordered_multimap<uint64_t, RmtMemReq>>();
+  RmtLSQueue->clear();
+
   // Create the Hart Objects
   for( size_t i = 0; i < numHarts; i++ ) {
-    Harts.emplace_back( std::make_unique<RevHart>( i, LSQueue, [=]( const MemReq& req ) { this->MarkLoadComplete( req ); } ) );
+    Harts.emplace_back( std::make_unique<RevHart>(
+      i,
+      LSQueue,
+      RmtLSQueue,
+      [=]( const MemReq& req ) { this->MarkLoadComplete( req ); },
+      [=]( const RmtMemReq& req ) { this->MarkRmtLoadComplete( req ); }
+    ) );
     ValidHarts.set( i, true );
   }
 
@@ -210,6 +219,14 @@ bool RevCore::SeedInstTable() {
   // Zfa Extension
   if( feature->IsModeEnabled( RV_ZFA ) ) {
     EnableExt( new Zfa( feature, mem, output ) );
+  }
+
+  // xBGAS Extension
+  if( feature->IsModeEnabled( RV_XBGAS ) ) {
+    EnableExt( new RV32X( feature, mem, output ) );
+    if( feature->IsRV64() ) {
+      EnableExt( new RV64X( feature, mem, output ) );
+    }
   }
 
   return true;
@@ -1178,7 +1195,7 @@ RevInst RevCore::DecodeJInst( uint32_t Inst, unsigned Entry ) const {
 
   // immA
   DInst.imm = ( ( Inst >> 11 ) & 0b100000000000000000000 ) |  // imm[20]
-              ( (Inst) &0b11111111000000000000 ) |            // imm[19:12]
+              ( ( Inst ) & 0b11111111000000000000 ) |         // imm[19:12]
               ( ( Inst >> 9 ) & 0b100000000000 ) |            // imm[11]
               ( ( Inst >> 20 ) & 0b11111111110 );             // imm[10:1]
 
@@ -1532,7 +1549,8 @@ bool RevCore::DependencyCheck( unsigned HartID, const RevInst* I ) const {
   // For ECALL, check for any outstanding dependencies on a0-a7
   if( I->opcode == 0b1110011 && I->imm == 0 && I->funct3 == 0 && I->rd == 0 && I->rs1 == 0 ) {
     for( RevReg reg : { RevReg::a7, RevReg::a0, RevReg::a1, RevReg::a2, RevReg::a3, RevReg::a4, RevReg::a5, RevReg::a6 } ) {
-      if( LSQCheck( HartToDecodeID, RegFile, uint16_t( reg ), RevRegClass::RegGPR ) || ScoreboardCheck( RegFile, uint16_t( reg ), RevRegClass::RegGPR ) ) {
+      if( LSQCheck( HartToDecodeID, RegFile, uint16_t( reg ), RevRegClass::RegGPR ) ||
+          ScoreboardCheck( RegFile, uint16_t( reg ), RevRegClass::RegGPR ) ) {
         return true;
       }
     }
@@ -1543,6 +1561,10 @@ bool RevCore::DependencyCheck( unsigned HartID, const RevInst* I ) const {
     // check LS queue for outstanding load
     LSQCheck( HartID, regFile, I->rs1, E->rs1Class ) || LSQCheck( HartID, regFile, I->rs2, E->rs2Class ) ||
     LSQCheck( HartID, regFile, I->rs3, E->rs3Class ) || LSQCheck( HartID, regFile, I->rd, E->rdClass ) ||
+
+    // xBGAS: check remote LS queue for outstanding load
+    RmtLSQCheck( HartID, regFile, I->rs1, E->rs1Class ) || RmtLSQCheck( HartID, regFile, I->rs2, E->rs2Class ) ||
+    RmtLSQCheck( HartID, regFile, I->rs3, E->rs3Class ) || RmtLSQCheck( HartID, regFile, I->rd, E->rdClass ) ||
 
     // Iterate through the source registers rs1, rs2, rs3 and find any dependency
     // based on the class of the source register and the associated scoreboard
@@ -1620,6 +1642,39 @@ void RevCore::MarkLoadComplete( const MemReq& req ) {
     req.Hart,
     req.DestReg,
     req.Addr
+  );
+}
+
+void RevCore::MarkRmtLoadComplete( const RmtMemReq& req ) {
+#ifdef _XBGAS_DEBUG_
+  std::cout << "Marking remote load complete for register: x" << std::dec << req.DestReg << "\n";
+#endif
+  // Iterate over all outstanding loads for this reg (if any)
+  for( auto [i, end] = RmtLSQueue->equal_range( req.LSQHash() ); i != end; ++i ) {
+    if( i->second.SrcAddr == req.SrcAddr ) {
+      // Only clear the dependency if this is the
+      // LAST outstanding load for this register
+      if( RmtLSQueue->count( req.LSQHash() ) == 1 ) {
+        DependencyClear( req.Hart, req.DestReg, req.RegType );
+      }
+      RmtLSQueue->erase( i );
+      return;
+    }
+  }
+
+  // Instruction prefetch fills target x0; we can ignore these
+  if( req.DestReg == 0 && req.RegType == RevRegClass::RegGPR )
+    return;
+  output->fatal(
+    CALL_INFO,
+    -1,
+    "Core %" PRIu32 "; Hart %" PRIu32 "; "
+    "Cannot find matching address for outstanding "
+    "load for reg %" PRIu32 " from address %" PRIx64 "\n",
+    id,
+    req.Hart,
+    req.DestReg,
+    req.SrcAddr
   );
 }
 
@@ -1711,7 +1766,8 @@ bool RevCore::ClockTick( SST::Cycle_t currentCycle ) {
     // -- BEGIN new pipelining implementation
     Pipeline.emplace_back( std::make_pair( HartToExecID, Inst ) );
 
-    if( ( Ext->GetName() == "RV32F" ) || ( Ext->GetName() == "RV32D" ) || ( Ext->GetName() == "RV64F" ) || ( Ext->GetName() == "RV64D" ) ) {
+    if( ( Ext->GetName() == "RV32F" ) || ( Ext->GetName() == "RV32D" ) || ( Ext->GetName() == "RV64F" ) ||
+        ( Ext->GetName() == "RV64D" ) ) {
       Stats.floatsExec++;
     }
 
@@ -1801,7 +1857,12 @@ bool RevCore::ClockTick( SST::Cycle_t currentCycle ) {
       ++RegFile->InstRet;
 
       // Only clear the dependency if there is no outstanding load
-      if( ( RegFile->GetLSQueue()->count( LSQHash( Pipeline.front().second.rd, InstTable[Pipeline.front().second.entry].rdClass, HartID ) ) ) == 0 ) {
+      if( ( RegFile->GetLSQueue()->count(
+            LSQHash( Pipeline.front().second.rd, InstTable[Pipeline.front().second.entry].rdClass, HartID )
+          ) ) == 0 &&
+          ( RegFile->GetRmtLSQueue()->count(
+            LSQHash( Pipeline.front().second.rd, InstTable[Pipeline.front().second.entry].rdClass, HartID )
+          ) ) == 0 ) {
         DependencyClear( HartID, &( Pipeline.front().second ) );
       }
       Pipeline.pop_front();

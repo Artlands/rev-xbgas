@@ -180,8 +180,14 @@ public:
   ///< RevCore: Mark a current request as complete
   void MarkLoadComplete( const MemReq& req );
 
+  ///< RevCore: Mark a current xBGAS remote request as complete
+  void MarkRmtLoadComplete( const RmtMemReq& req );
+
   ///< RevCore: Get pointer to Load / Store queue used to track memory operations
   std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>> GetLSQueue() const { return LSQueue; }
+
+  ///< RevCore: Get pointer to remote Load / Store queue used to track xBGAS remote memory operations
+  std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>> GetRmtLSQueue() { return RmtLSQueue; }
 
   ///< RevCore: Add a co-processor to the RevCore
   void SetCoProc( RevCoProc* coproc );
@@ -303,8 +309,8 @@ private:
   std::function<uint32_t()> const GetNewThreadID;
 
   // If a given assigned thread experiences a change of state, it sets the corresponding bit
-  std::vector<std::unique_ptr<RevThread>>
-    ThreadsThatChangedState{};  ///< RevCore: used to signal to RevCPU that the thread assigned to HART has changed state
+  std::vector<std::unique_ptr<RevThread>> ThreadsThatChangedState{
+  };  ///< RevCore: used to signal to RevCPU that the thread assigned to HART has changed state
 
   SST::Output* const             output;       ///< RevCore: output handler
   std::unique_ptr<RevFeature>    featureUP{};  ///< RevCore: feature handler
@@ -313,8 +319,11 @@ private:
   RevCoreStats                   StatsTotal{};  ///< RevCore: collection of total performance stats
   std::unique_ptr<RevPrefetcher> sfetch{};      ///< RevCore: stream instruction prefetcher
 
-  std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>>
-    LSQueue{};  ///< RevCore: Load / Store queue used to track memory operations. Currently only tracks outstanding loads.
+  std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>> LSQueue{
+  };  ///< RevCore: Load / Store queue used to track memory operations. Currently only tracks outstanding loads.
+  std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>> RmtLSQueue{
+  };  ///< RevCore: Remote Load / Store queue used to track xBGAS remote memory operations. Currently only tracks outstanding loads.
+
   TimeConverter* timeConverter{};  ///< RevCore: Time converter for RTC
 
   RevRegFile* RegFile        = nullptr;        ///< RevCore: Initial pointer to HartToDecodeID RegFile
@@ -810,6 +819,15 @@ private:
       return false;  // GPR x0 is not considered
     } else {
       return regFile->GetLSQueue()->count( LSQHash( reg, regClass, HartID ) ) > 0;
+    }
+  }
+
+  /// RevCore: Check remote LS queue for outstanding load - ignore r0 (xBGAS)
+  bool RmtLSQCheck( unsigned HartID, const RevRegFile* regFile, uint16_t reg, RevRegClass regClass ) const {
+    if( reg == 0 && regClass == RevRegClass::RegGPR ) {
+      return false;  // GPR x0 is not considered
+    } else {
+      return regFile->GetRmtLSQueue()->count( LSQHash( reg, regClass, HartID ) ) > 0;
     }
   }
 

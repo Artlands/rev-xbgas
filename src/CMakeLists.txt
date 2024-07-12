@@ -22,6 +22,8 @@ set(RevCPUSrcs
   RevCoProc.cc
   RevRegFile.cc
   RevThread.cc
+  RevRmtMemCtrl.cc
+  XbgasNIC.cc
   )
 
 add_subdirectory(../common common)
