@@ -65,8 +65,8 @@ inline constexpr double fpmin<double, uint64_t> = 0x0p+0;
 /// General template for converting between Floating Point and Integer.
 /// FP values outside the range of the target integer type are clipped
 /// at the integer type's numerical limits, whether signed or unsigned.
-template<typename FP, typename INT>
-bool CvtFpToInt( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+template<typename INT, typename FP>
+bool fcvtif( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   // Read the FP register. Round to integer according to current rounding mode.
   FP fp = std::rint( R->GetFP<FP>( Inst.rs1 ) );
 
@@ -115,6 +115,12 @@ uint32_t fclass( T val ) {
       uint32_t i32;
       memcpy( &i32, &val, sizeof( i32 ) );
       return ( i32 & uint32_t{ 1 } << 22 ) != 0 ? QuietNaN : SignalingNaN;
+#if 0
+    } else if constexpr( std::is_same_v<T, float16> ) {
+      uint16_t i16;
+      memcpy( &i16, &val, sizeof( i16 ) );
+      return ( i16 & uint16_t{ 1 } << 9 ) != 0 ? QuietNaN : SignalingNaN;
+#endif
     } else {
       uint64_t i64;
       memcpy( &i64, &val, sizeof( i64 ) );
@@ -130,7 +136,7 @@ bool load( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   if( sizeof( T ) < sizeof( int64_t ) && R->IsRV32 ) {
     static constexpr RevFlag flags =
       sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
-    auto   rs1 = R->GetX<uint32_t>( Inst.rs1 );  // read once for tracer
+    auto   rs1 = R->GetX<uint64_t>( Inst.rs1 );  // read once for tracer
     MemReq req{
       rs1 + Inst.ImmSignExt( 12 ),
       Inst.rd,
@@ -447,7 +453,88 @@ bool fnmadd( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   return true;
 }
 
-/// xBGAS remote load template
+// Square root
+template<typename T>
+static bool fsqrt( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  R->SetFP( Inst.rd, std::sqrt( R->GetFP<T>( Inst.rs1 ) ) );
+  R->AdvancePC( Inst );
+  return true;
+}
+
+// Transfer sign bit
+template<typename T>
+static bool fsgnj( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  R->SetFP( Inst.rd, std::copysign( R->GetFP<T>( Inst.rs1 ), R->GetFP<T>( Inst.rs2 ) ) );
+  R->AdvancePC( Inst );
+  return true;
+}
+
+// Negated transfer sign bit
+template<typename T>
+static bool fsgnjn( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  R->SetFP( Inst.rd, std::copysign( R->GetFP<T>( Inst.rs1 ), negate( R->GetFP<T>( Inst.rs2 ) ) ) );
+  R->AdvancePC( Inst );
+  return true;
+}
+
+// Xor transfer sign bit
+template<typename T>
+static bool fsgnjx( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  T rs1 = R->GetFP<T>( Inst.rs1 ), rs2 = R->GetFP<T>( Inst.rs2 );
+  R->SetFP( Inst.rd, std::copysign( rs1, std::signbit( rs1 ) ? negate( rs2 ) : rs2 ) );
+  R->AdvancePC( Inst );
+  return true;
+}
+
+// Move floating-point register to integer register
+template<typename T>
+static bool fmvif( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  std::make_signed_t<uint_type_t<T>> i;
+  T                                  fp = R->GetFP<T, true>( Inst.rs1 );  // The FP value
+  static_assert( sizeof( i ) == sizeof( fp ) );
+  memcpy( &i, &fp, sizeof( i ) );  // Reinterpreted as int
+  R->SetX( Inst.rd, i );           // Copied to the destination register
+  R->AdvancePC( Inst );
+  return true;
+}
+
+// Move integer register to floating-point register
+template<typename T>
+static bool fmvfi( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  T    fp;
+  auto i = R->GetX<uint_type_t<T>>( Inst.rs1 );  // The X register
+  static_assert( sizeof( i ) == sizeof( fp ) );
+  memcpy( &fp, &i, sizeof( fp ) );  // Reinterpreted as FP
+  R->SetFP( Inst.rd, fp );          // Copied to the destination register
+  R->AdvancePC( Inst );
+  return true;
+}
+
+// Floating-point classify
+template<typename T>
+static bool fclassify( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  R->SetX( Inst.rd, fclass( R->GetFP<T>( Inst.rs1 ) ) );
+  R->AdvancePC( Inst );
+  return true;
+}
+
+// Convert integer to floating point
+template<typename FP, typename INT>
+static bool fcvtfi( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  R->SetFP( Inst.rd, static_cast<FP>( R->GetX<INT>( Inst.rs1 ) ) );
+  R->AdvancePC( Inst );
+  return true;
+}
+
+// Convert floating point to floating point
+template<typename FP2, typename FP1>
+static bool fcvtff( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  R->SetFP( Inst.rd, static_cast<FP2>( R->GetFP<FP1>( Inst.rs1 ) ) );
+  R->AdvancePC( Inst );
+  return true;
+}
+
+// xBGAS remote load template
 template<typename T>
 bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   if( sizeof( T ) < sizeof( int64_t ) && R->IsRV32 ) {
@@ -543,7 +630,7 @@ bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   return true;
 }
 
-/// xBGAS remote store template
+// xBGAS remote store template
 template<typename T>
 bool estore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   if( R->IsRV32 ) {
@@ -589,7 +676,7 @@ bool estore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   return true;
 }
 
-/// xBGAS remote raw load template
+// xBGAS remote raw load template
 template<typename T>
 bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   if( sizeof( T ) < sizeof( int64_t ) && R->IsRV32 ) {
@@ -688,7 +775,7 @@ bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   return true;
 }
 
-/// xBGAS remote raw store template
+// xBGAS remote raw store template
 template<typename T>
 bool erstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   if( R->IsRV32 ) {
@@ -733,14 +820,14 @@ bool erstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   return true;
 }
 
-/// xBGAS remote bulk load template. Not supported in the current implementation.
+// xBGAS remote bulk load template. Not supported in the current implementation.
 template<typename T>
 bool ebload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   R->AdvancePC( Inst );
   return true;
 }
 
-/// xBGAS remote bulk store template. Not supported in the current implementation.
+// xBGAS remote bulk store template. Not supported in the current implementation.
 template<typename T>
 bool ebstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   R->AdvancePC( Inst );
