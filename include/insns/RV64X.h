@@ -74,9 +74,9 @@ class RV64X : public RevExt {
     { RevInstDefaults().SetMnemonic( "ersd %rs1, %rs2, %ext3"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b011 ).SetFunct2or7( 0b0100010 ).SetFormat( RVTypeR ).SetImplFunc( ersd ) },
     { RevInstDefaults().SetMnemonic( "erse %ext1, %rs2, %ext3"     ).SetOpcode( 0b0110011 ).SetFunct3( 0b111 ).SetFunct2or7( 0b0100011 ).SetFormat( RVTypeR ).SetImplFunc( erse ) },
     // Bulk Load instruction is encoded in the R4-type format
-    { RevInstDefaults().SetMnemonic( "ebld  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b011 ).SetFunct2( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebld ) },
+    { RevInstDefaults().SetMnemonic( "ebld  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b011 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebld ) },
     // Bulk Store instruction is encoded in the R4-type format
-    { RevInstDefaults().SetMnemonic( "ebsd  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b011 ).SetFunct2( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsd ) },
+    { RevInstDefaults().SetMnemonic( "ebsd  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b011 ).SetFunct2or7( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsd ) },
   };
   // clang-format on
 

@@ -560,7 +560,7 @@ bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
         Nmspace,
         SrcAddr,
         1,
-        0,
+        sizeof( T ),
         _INVALID_ADDR_,
         Inst.rd,
         RevRegClass::RegGPR,
@@ -570,7 +570,7 @@ bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
         R->GetMarkRmtLoadComplete()
       );
       R->RmtLSQueue->insert( req.LSQHashPair() );
-      M->RmtReadVal(
+      M->RmtRead(
         F->GetHartToExecID(),
         Nmspace,
         SrcAddr,
@@ -603,7 +603,7 @@ bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
         Nmspace,
         SrcAddr,
         1,
-        0,
+        sizeof( T ),
         _INVALID_ADDR_,
         Inst.rd,
         RevRegClass::RegGPR,
@@ -613,7 +613,7 @@ bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
         R->GetMarkRmtLoadComplete()
       );
       R->RmtLSQueue->insert( req.LSQHashPair() );
-      M->RmtReadVal(
+      M->RmtRead(
         F->GetHartToExecID(),
         Nmspace,
         SrcAddr,
@@ -703,7 +703,7 @@ bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
         Nmspace,
         SrcAddr,
         1,
-        0,
+        sizeof( T ),
         _INVALID_ADDR_,
         Inst.rd,
         RevRegClass::RegGPR,
@@ -713,7 +713,7 @@ bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
         R->GetMarkRmtLoadComplete()
       );
       R->RmtLSQueue->insert( req.LSQHashPair() );
-      M->RmtReadVal(
+      M->RmtRead(
         F->GetHartToExecID(),
         Nmspace,
         SrcAddr,
@@ -748,7 +748,7 @@ bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
         Nmspace,
         SrcAddr,
         1,
-        0,
+        sizeof( T ),
         _INVALID_ADDR_,
         Inst.rd,
         RevRegClass::RegGPR,
@@ -758,7 +758,7 @@ bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
         R->GetMarkRmtLoadComplete()
       );
       R->RmtLSQueue->insert( req.LSQHashPair() );
-      M->RmtReadVal(
+      M->RmtRead(
         F->GetHartToExecID(),
         Nmspace,
         SrcAddr,
@@ -823,6 +823,42 @@ bool erstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
 // xBGAS remote bulk load template. Not supported in the current implementation.
 template<typename T>
 bool ebload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  if( sizeof( T ) < sizeof( int64_t ) && R->IsRV32 ) {
+    static constexpr RevFlag flags =
+      sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
+    auto DestAddr = R->GetX<uint32_t>( Inst.rd );
+    auto SrcAddr  = R->GetX<uint32_t>( Inst.rs1 );
+    auto Nmspace  = R->GetE<uint32_t>( Inst.rs1 );
+    auto Nelem    = R->GetX<uint32_t>( Inst.rs2 );
+    auto Stride   = R->GetX<uint32_t>( Inst.rs3 );
+    // Remote memory controller or NIC handles the bulk load operation anyway, no matter the namespace
+
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint32_t>( 10 ) << " ebload-32: Nmspace: " << Nmspace << ", DestAddr: 0x"
+              << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem
+              << ", Stride: " << std::dec << Stride << std::endl;
+#endif
+
+    M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, Stride, DestAddr, flags );
+  } else {
+    static constexpr RevFlag flags =
+      sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
+    auto DestAddr = R->GetX<uint64_t>( Inst.rd );
+    auto SrcAddr  = R->GetX<uint64_t>( Inst.rs1 );
+    auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
+    auto Nelem    = R->GetX<uint64_t>( Inst.rs2 );
+    auto Stride   = R->GetX<uint64_t>( Inst.rs3 );
+
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint64_t>( 10 ) << " ebload-64: Nmspace: " << Nmspace << " Register: e" << Inst.rs1
+              << ", DestAddr: 0x" << std::hex << DestAddr << ", Register: x" << std::dec << Inst.rd << ", SrcAddr: 0x" << std::hex
+              << SrcAddr << ", Register: x" << std::dec << Inst.rs1 << ", Nelem: " << std::dec << Nelem << ", Register: x"
+              << std::dec << Inst.rs2 << ", Stride: " << std::dec << Stride << ", Register: x" << std::dec << Inst.rs3 << std::endl;
+#endif
+
+    // Remote memory controller or NIC handles the bulk load operation anyway, no matter the namespace
+    M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, Stride, DestAddr, flags );
+  }
   R->AdvancePC( Inst );
   return true;
 }
@@ -830,6 +866,37 @@ bool ebload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
 // xBGAS remote bulk store template. Not supported in the current implementation.
 template<typename T>
 bool ebstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  if( sizeof( T ) < sizeof( int64_t ) && R->IsRV32 ) {
+    auto SrcAddr  = R->GetX<uint32_t>( Inst.rd );
+    auto DestAddr = R->GetX<uint32_t>( Inst.rs1 );
+    auto Nmspace  = R->GetE<uint32_t>( Inst.rs1 );
+    auto Nelem    = R->GetX<uint32_t>( Inst.rs2 );
+    auto Stride   = R->GetX<uint32_t>( Inst.rs3 );
+
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint32_t>( 10 ) << " ebstore-32: Nmspace: " << Nmspace << ", DestAddr: 0x"
+              << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem
+              << ", Stride: " << std::dec << Stride << std::endl;
+#endif
+
+    // Remote memory controller or NIC handles the bulk load operation anyway, no matter the namespace
+    M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, Stride, SrcAddr );
+  } else {
+    auto SrcAddr  = R->GetX<uint64_t>( Inst.rd );
+    auto DestAddr = R->GetX<uint64_t>( Inst.rs1 );
+    auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
+    auto Nelem    = R->GetX<uint64_t>( Inst.rs2 );
+    auto Stride   = R->GetX<uint64_t>( Inst.rs3 );
+
+#ifdef XBGAS_DEBUG
+    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint64_t>( 10 ) << " ebstore-64: Nmspace: " << Nmspace << ", DestAddr: 0x"
+              << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem
+              << ", Stride: " << std::dec << Stride << std::endl;
+#endif
+
+    // Remote memory controller or NIC handles the bulk load operation anyway, no matter the namespace
+    M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, Stride, SrcAddr );
+  }
   R->AdvancePC( Inst );
   return true;
 }

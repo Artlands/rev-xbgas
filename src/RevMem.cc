@@ -852,41 +852,18 @@ bool RevMem::ReadMem( unsigned Hart, uint64_t Addr, size_t Len, void* Target, co
   return true;
 }
 
-// xBGAS remote memory operations
-bool RevMem::RmtReadMem(
-  unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, void* Target, const RmtMemReq& req, RevFlag flags
-) {
-  rmtCtrl->sendRmtReadRqst( Hart, Nmspace, SrcAddr, Size, Target, req, flags );
-  return true;
-}
+// bool RevMem::RmtWriteMem( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, const void* Data, RevFlag flags ) {
+//   char* DataMem = (char*) ( Data );
+//   rmtCtrl->sendRmtWriteRqst( Hart, Nmspace, DestAddr, Size, DataMem, flags );
+//   return true;
+// }
 
-bool RevMem::RmtBulkReadMem(
-  unsigned         Hart,
-  uint64_t         Nmspace,
-  uint64_t         SrcAddr,
-  size_t           Size,
-  uint32_t         Nelem,
-  uint32_t         Stride,
-  uint64_t         DestAddr,
-  const RmtMemReq& req,
-  RevFlag          flags
-) {
-  rmtCtrl->sendRmtBulkReadRqst( Hart, Nmspace, SrcAddr, Size, Nelem, Stride, DestAddr, req, flags );
-  return true;
-}
-
-bool RevMem::RmtWriteMem( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, const void* Data, RevFlag flags ) {
-  char* DataMem = (char*) ( Data );
-  rmtCtrl->sendRmtWriteRqst( Hart, Nmspace, DestAddr, Size, DataMem, flags );
-  return true;
-}
-
-bool RevMem::RmtBulkWriteMem(
-  unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr, RevFlag flags
-) {
-  rmtCtrl->sendRmtBulkWriteRqst( Hart, Nmspace, DestAddr, Size, Nelem, Stride, SrcAddr, flags );
-  return true;
-}
+// bool RevMem::RmtBulkWriteMem(
+//   unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr, RevFlag flags
+// ) {
+//   rmtCtrl->sendRmtBulkWriteRqst( Hart, Nmspace, DestAddr, Size, Nelem, Stride, SrcAddr, flags );
+//   return true;
+// }
 
 bool RevMem::FlushLine( unsigned Hart, uint64_t Addr ) {
   uint64_t pageNum  = Addr >> addrShift;

@@ -27,13 +27,17 @@ bool xbgasNicEvent::setData( uint8_t* In, uint32_t TotalSz ) {
 void xbgasNicEvent::getData( uint8_t* Buffer ) {
   if( Size == 0 )
     return;
-  for( size_t i = 0; i < Size; i++ ) {
+  for( size_t i = 0; i < Size * Nelem; i++ ) {
     Buffer[i] = Data[i];
   }
 }
 
 bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl ) {
-  Opcode = RmtMemOp::READRqst;
+  if( Nelem == 1 ) {
+    Opcode = RmtMemOp::READRqst;
+  } else {
+    Opcode = RmtMemOp::BulkREADRqst;
+  }
   if( !setId( main_id++ ) )
     return false;
   if( !setSrcAddr( SrcAddr ) )
@@ -52,7 +56,11 @@ bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t S
 }
 
 bool xbgasNicEvent::buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer ) {
-  Opcode = RmtMemOp::WRITERqst;
+  if( Nelem == 1 ) {
+    Opcode = RmtMemOp::WRITERqst;
+  } else {
+    Opcode = RmtMemOp::BulkWRITERqst;
+  }
   if( !setId( main_id++ ) )
     return false;
   if( !setDestAddr( DestAddr ) )
@@ -71,7 +79,11 @@ bool xbgasNicEvent::buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nel
 }
 
 bool xbgasNicEvent::buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint8_t* Buffer ) {
-  Opcode = RmtMemOp::READResp;
+  if( Nelem == 1 ) {
+    Opcode = RmtMemOp::READResp;
+  } else {
+    Opcode = RmtMemOp::BulkREADResp;
+  }
   if( !setId( Id ) )
     return false;
   if( !setDestAddr( DestAddr ) )
@@ -88,7 +100,11 @@ bool xbgasNicEvent::buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, 
 }
 
 bool xbgasNicEvent::buildWRITEResp( uint64_t Id ) {
-  Opcode = RmtMemOp::WRITEResp;
+  if( Nelem == 1 ) {
+    Opcode = RmtMemOp::WRITEResp;
+  } else {
+    Opcode = RmtMemOp::BulkWRITEResp;
+  }
   if( !setId( Id ) )
     return false;
   return true;

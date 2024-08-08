@@ -1371,6 +1371,9 @@ RevInst RevCore::DecodeInst( uint32_t Inst ) const {
   } else if( ( inst65 == 0b10 ) && ( inst42 < 0b100 ) ) {
     // R4-Type encodings -- we store the Funct2 precision field in Funct2or7
     Funct2or7 = DECODE_FUNCT2( Inst );
+  } else if( ( inst65 == 0b10 ) && ( inst42 == 0b110 ) ) {
+    // R4-Type encodings -- for xBGAS bulk instructions
+    Funct2or7 = DECODE_FUNCT2( Inst );
   } else if( ( inst65 == 0b10 ) && ( inst42 == 0b100 ) ) {
     // R-Type encodings
     Funct2or7 = DECODE_FUNCT7( Inst );

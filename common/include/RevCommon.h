@@ -26,11 +26,15 @@
 #define _REV_INVALID_HART_ID_ ( unsigned( ~0 ) )
 #endif
 
-#define _INVALID_ADDR_ ( ~uint64_t{ 0 } )
+#define _INVALID_ADDR_   ( ~uint64_t{ 0 } )
 
-#define _INVALID_TID_  ( uint32_t{ 0 } )
+#define _INVALID_TID_    ( uint32_t{ 0 } )
 
-#define _MAX_HARTS_    4096
+#define _MAX_HARTS_      4096
+
+// FNV-1a 64-bit hash constants
+#define FNV_OFFSET_BASIS 0xcbf29ce484222325
+#define FNV_PRIME        0x100000001b3
 
 namespace SST::RevCPU {
 
@@ -111,9 +115,28 @@ constexpr uint64_t LSQHash( T DestReg, RevRegClass RegType, unsigned Hart ) {
   return static_cast<uint64_t>( RegType ) << ( 16 + 8 ) | static_cast<uint64_t>( DestReg ) << 16 | Hart;
 }
 
-constexpr uint64_t RmtOptHash( uint32_t SrcId, uint32_t PktId ) {
+constexpr uint64_t RmtOpIDHash( uint32_t SrcId, uint32_t PktId ) {
   return static_cast<uint64_t>( SrcId ) << 32 | PktId;
-};
+}
+
+constexpr uint64_t fnv1a_hash( uint64_t hash, const void* data, size_t len ) {
+  const unsigned char* bytes = (const unsigned char*) data;
+  for( size_t i = 0; i < len; ++i ) {
+    hash ^= (uint64_t) bytes[i];
+    hash *= FNV_PRIME;
+  }
+  return hash;
+}
+
+constexpr uint64_t LocalReadHash( uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint32_t Nelem, uint32_t Stride ) {
+  uint64_t hash = FNV_OFFSET_BASIS;
+  hash          = fnv1a_hash( hash, &Nmspace, sizeof( Nmspace ) );
+  hash          = fnv1a_hash( hash, &SrcAddr, sizeof( SrcAddr ) );
+  hash          = fnv1a_hash( hash, &Size, sizeof( Size ) );
+  hash          = fnv1a_hash( hash, &Nelem, sizeof( Nelem ) );
+  hash          = fnv1a_hash( hash, &Stride, sizeof( Stride ) );
+  return hash;
+}
 
 struct MemReq {
   MemReq()                           = default;

@@ -203,42 +203,6 @@ public:
   }
 
   // ----------------------------------------------------
-  // ---- xBGAS Remote Memory Interfaces
-  // ----------------------------------------------------
-
-  /// RevMem: read data from the target remote memory location
-  bool
-    RmtReadMem( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, void* Target, const RmtMemReq& req, RevFlag flags );
-
-  /// RevMem: read bulk data from the target remote memory location
-  bool RmtBulkReadMem(
-    unsigned         Hart,
-    uint64_t         Nmspace,
-    uint64_t         SrcAddr,
-    size_t           Size,
-    uint32_t         Nelem,
-    uint32_t         Stride,
-    uint64_t         DestAddr,
-    const RmtMemReq& req,
-    RevFlag          flags
-  );
-
-  /// RevMem: write data to the target remote memory location
-  bool RmtWriteMem( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, const void* Data, RevFlag flags );
-
-  /// RevMem: write bulk data to the target remote memory location
-  bool RmtBulkWriteMem(
-    unsigned Hart,
-    uint64_t Nmspace,
-    uint64_t DestAddr,
-    size_t   Size,
-    uint32_t Nelem,
-    uint32_t Stride,
-    uint64_t SrcAddr,
-    RevFlag  flags
-  );
-
-  // ----------------------------------------------------
   // ---- Read Memory Interfaces
   // ----------------------------------------------------
   /// RevMem: template read memory interface
@@ -292,23 +256,22 @@ public:
   // ----------------------------------------------------
   /// RevMem: template remote read memory interface
   template<typename T>
-  bool RmtReadVal( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, T* Target, const RmtMemReq& req, RevFlag flags ) {
-    return RmtReadMem( Hart, Nmspace, SrcAddr, sizeof( T ), Target, req, flags );
+  void RmtRead( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, T* Target, const RmtMemReq& Req, RevFlag Flags ) {
+    rmtCtrl->sendRmtReadRqst( Hart, Nmspace, SrcAddr, sizeof( T ), Target, Req, Flags );
   }
 
-  /// RevMem: template remote bulk read memory interface
-  bool RmtBulkReadVal(
-    unsigned         Hart,
-    uint64_t         Nmspace,
-    uint64_t         SrcAddr,
-    uint32_t         Nelem,
-    uint32_t         Stride,
-    uint64_t         DestAddr,
-    size_t           Size,
-    const RmtMemReq& req,
-    RevFlag          flags
+  /// RevMem: template bulk read memory interface
+  void RmtBulkRead(
+    unsigned Hart,
+    uint64_t Nmspace,
+    uint64_t SrcAddr,
+    size_t   Size,
+    uint32_t Nelem,
+    uint32_t Stride,
+    uint64_t DestAddr,
+    RevFlag  Flags
   ) {
-    return RmtBulkReadMem( Hart, Nmspace, SrcAddr, Size, Nelem, Stride, DestAddr, req, flags );
+    rmtCtrl->sendRmtBulkReadRqst( Hart, Nmspace, SrcAddr, Size, Nelem, Stride, DestAddr, Flags );
   }
 
   // ----------------------------------------------------
@@ -317,24 +280,15 @@ public:
   /// RevMem: template remote write memory interface
   template<typename T>
   void RmtWrite( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, T Value ) {
-    if( !RmtWriteMem( Hart, Nmspace, DestAddr, sizeof( T ), &Value, RevFlag::F_NONE ) ) {
-      output->fatal(
-        CALL_INFO,
-        -1,
-        std::is_floating_point_v<T> ? "Error: could not write remote memory (FP%zu)\n" :
-                                      "Error: could not write remote memory (U%zu)\n",
-        sizeof( T ) * 8
-      );
-    }
+    uint8_t* DataMem = (uint8_t*) ( &Value );
+    rmtCtrl->sendRmtWriteRqst( Hart, Nmspace, DestAddr, sizeof( T ), DataMem, RevFlag::F_NONE );
   }
 
   /// RevMem: template remote bulk write memory interface
   void RmtBulkWrite(
     unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr
   ) {
-    if( !RmtBulkWriteMem( Hart, Nmspace, DestAddr, Size, Nelem, Stride, SrcAddr, RevFlag::F_NONE ) ) {
-      output->fatal( CALL_INFO, -1, "Error: could not bulk write remote memory\n" );
-    }
+    rmtCtrl->sendRmtBulkWriteRqst( Hart, Nmspace, DestAddr, Size, Nelem, Stride, SrcAddr, RevFlag::F_NONE );
   }
 
   // ----------------------------------------------------
