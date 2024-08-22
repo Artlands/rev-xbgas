@@ -45,6 +45,9 @@ public:
 
   ~xbgasNicEvent() {}
 
+  /// xbgasNicEvent: retrieve the Hart ID
+  unsigned getHart() { return Hart; }
+
   /// xbgasNicEvent: retrieve the packet Id
   uint32_t getID() { return Id; }
 
@@ -74,6 +77,18 @@ public:
 
   /// xbgasNicEvent: retrieve the flags
   RevFlag getFlags() { return Flags; }
+
+  /// xbgasNicEvent: retrieve the Aq flags
+  uint8_t getAq() { return Aq; }
+
+  /// xbgasNicEvent: retrieve the Rl flags
+  uint8_t getRl() { return Rl; }
+
+  /// xbgasNicEvent: set the Hart ID
+  bool setHart( unsigned H ) {
+    Hart = H;
+    return true;
+  }
 
   /// xbgasNicEvent: set the event Id
   bool setId( uint32_t I ) {
@@ -120,9 +135,27 @@ public:
   /// xbgasNicEvent: set the packet data
   bool setData( uint8_t* Buffer, uint32_t TotalSz );
 
+  /// xbgasNicEvent: set the Opcode
+  bool setOp( RmtMemOp Op ) {
+    Opcode = Op;
+    return true;
+  }
+
   /// xbgasNicEvent: set the flags
   bool setFlags( RevFlag Fl ) {
     Flags = Fl;
+    return true;
+  }
+
+  /// xbgasNicEvent: set the Aq flags
+  bool setAq( uint8_t Aq ) {
+    Aq = Aq;
+    return true;
+  }
+
+  /// xbgasNicEvent: set the Rl flags
+  bool setRl( uint8_t Rl ) {
+    Rl = Rl;
     return true;
   }
 
@@ -133,14 +166,26 @@ public:
   /// xbgasNicEvent: build a READ request packet
   bool buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl );
 
+  /// xbgasNicEvent: build a READ LOCK request packet
+  bool buildREADLOCKRqst( uint64_t SrcAddr, size_t Size, RevFlag Fl, uint8_t Aq, uint8_t Rl );
+
   /// xbgasNicEvent: build a WRITE request packet
   bool buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer );
+
+  /// xbgasNicEvent: build a WRITE UNLOCK request packet
+  bool buildWRITEUNLOCKRqst( uint64_t DestAddr, size_t Size, RevFlag Fl, uint8_t* Buffer, uint8_t Aq, uint8_t Rl );
 
   /// xbgasNicEvent: build a READ respond packet
   bool buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint8_t* Buffer );
 
+  /// xbgasNicEvent: build a READ LOCK respond packet
+  bool buildREADLOCKResp( uint64_t Id, size_t Size, uint8_t* Buffer );
+
   /// xbgasNicEvent: build a WRITE respond packet
   bool buildWRITEResp( uint64_t Id );
+
+  /// xbgasNicEvent: build a WRITE UNLOCK respond packet
+  bool buildWRITEUNLOCKResp( uint64_t Id, size_t Size, uint8_t* Target );
 
   /// xbgasNicEvent: virtual function to clone an event
   virtual Event* clone( void ) override {
@@ -149,17 +194,20 @@ public:
   }
 
 protected:
-  uint32_t             Id;        ///< xbgasNicEvent: Id for the packet
-  std::string          SrcName;   ///< xbgasNicEvent: Name of the sending device
-  uint32_t             SrcId;     ///< xbgasNicEvent: Source node ID
-  uint64_t             SrcAddr;   ///< xbgasNicEvent: source address for read
-  uint64_t             DestAddr;  ///< xbgasNicEvent: destination address for write
-  size_t               Size;      ///< xbgasNicEvent: Size of each data elements
-  uint32_t             Nelem;     ///< xbgasNicEvent: Number of elements
-  uint32_t             Stride;    ///< xbgasNicEvent: Stride for bulk transfers
-  std::vector<uint8_t> Data;      ///< xbgasNicEvent: Data payload
-  RmtMemOp             Opcode;    ///< xbgasNicEvent: Operation code
-  RevFlag              Flags;     ///< xbgasNicEvent: Memory request flags
+  unsigned             Hart{};      ///< xbgasNicEvent: Hart ID
+  uint32_t             Id{};        ///< xbgasNicEvent: Id for the packet
+  std::string          SrcName{};   ///< xbgasNicEvent: Name of the sending device
+  uint32_t             SrcId{};     ///< xbgasNicEvent: Source node ID
+  uint64_t             SrcAddr{};   ///< xbgasNicEvent: source address for read
+  uint64_t             DestAddr{};  ///< xbgasNicEvent: destination address for write
+  size_t               Size{};      ///< xbgasNicEvent: Size of each data elements
+  uint32_t             Nelem{};     ///< xbgasNicEvent: Number of elements
+  uint32_t             Stride{};    ///< xbgasNicEvent: Stride for bulk transfers
+  std::vector<uint8_t> Data{};      ///< xbgasNicEvent: Data payload
+  RmtMemOp             Opcode{};    ///< xbgasNicEvent: Operation code
+  RevFlag              Flags{};     ///< xbgasNicEvent: Memory request flags
+  uint8_t              Aq{};        ///< xbgasNicEvent: Acquire flag
+  uint8_t              Rl{};        ///< xbgasNicEvent: Release flag
 
 private:
   static std::atomic<uint32_t> main_id;  ///< xbgasNicEvent: main request id counter
@@ -168,6 +216,7 @@ public:
   /// xbgasNicEvent: event serializer
   void serialize_order( SST::Core::Serialization::serializer& ser ) override {
     Event::serialize_order( ser );
+    ser & Hart;
     ser & Id;
     ser & SrcName;
     ser & SrcId;
@@ -179,6 +228,8 @@ public:
     ser & Data;
     ser & Opcode;
     ser & Flags;
+    ser & Aq;
+    ser & Rl;
   }
 
   /// xbgasNicEvent: implements the NIC serialization

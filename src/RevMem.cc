@@ -166,7 +166,10 @@ bool RevMem::SCBase( unsigned Hart, uint64_t Addr, size_t Len, void* Data, void*
       uint64_t* TmpTarget = std::get<LRSC_VAL>( *it );
       uint64_t* TmpData   = static_cast<uint64_t*>( Data );
 
-      if( Len == 32 ) {
+      // Potential issue here with the Len. Len should be either 4 or 8 in bytes.
+      // if( Len == 32 ) {
+      size_t TotalBits    = Len * 8;
+      if( TotalBits == 32 ) {
         uint32_t A = 0;
         uint32_t B = 0;
         for( size_t i = 0; i < Len; i++ ) {
@@ -553,7 +556,10 @@ uint64_t RevMem::AllocMemAt( const uint64_t& BaseAddr, const uint64_t& SegSize )
 
 bool RevMem::FenceMem( unsigned Hart ) {
   if( ctrl ) {
-    return ctrl->sendFENCE( Hart );
+    ctrl->sendFENCE( Hart );
+  }
+  if( rmtCtrl ) {
+    rmtCtrl->sendFENCE( Hart );
   }
   return true;  // base RevMem support does nothing here
 }

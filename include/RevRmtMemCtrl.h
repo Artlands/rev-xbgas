@@ -101,6 +101,25 @@ public:
     RevFlag  Flags
   );
 
+  /// RevRmtMemOp: overloaded constructor - AMO- Read lock
+  RevRmtMemOp(
+    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, void* Target, RmtMemOp Op, RevFlag Flags, uint8_t Aq, uint8_t Rl
+  );
+
+  /// RevRmtMemOp: overloaded constructor - AMO- Write unlock
+  RevRmtMemOp(
+    unsigned Hart,
+    uint64_t Nmspace,
+    uint64_t DestAddr,
+    size_t   Size,
+    void*    Target,
+    uint8_t* Buffer,
+    RmtMemOp Op,
+    RevFlag  Flags,
+    uint8_t  Aq,
+    uint8_t  Rl
+  );
+
   /// RevRmtMemOp: destructor
   ~RevRmtMemOp()                               = default;
 
@@ -138,6 +157,12 @@ public:
   /// RevRmtMemOp: retrieve the memory operation flags
   RevFlag getFlags() const { return Flags; }
 
+  /// RevRmtMemOp: retrieve the acquire flag
+  uint8_t getAq() const { return Aq; }
+
+  /// RevRmtMemOp: retrieve the release flag
+  uint8_t getRl() const { return Rl; }
+
   /// RevRmtMemOp: retrieve the standard set of memory flags for MemEventBase
   RevFlag getStdFlags() const { return RevFlag{ static_cast<uint32_t>( Flags ) & 0xFFFF }; }
 
@@ -171,6 +196,12 @@ public:
   /// RevRmtMemOp: set the flags
   void setFlags( RevFlag F ) { Flags = F; }
 
+  /// RevRmtMemOp: set the acquire flag
+  void setAq( uint8_t A ) { Aq = A; }
+
+  /// RevRmtMemOp: set the release flag
+  void setRl( uint8_t R ) { Rl = R; }
+
   /// RevRmtMemOp: set the memory operation request
   void setRmtMemReq( const RmtMemReq& Req ) { ProcReq = Req; }
 
@@ -185,6 +216,8 @@ private:
   RmtMemOp             Op{};        ///< RevRmtMemOp: memory operation
   std::vector<uint8_t> Membuf{};    ///< RevRmtMemOp: Buffer
   RevFlag              Flags{};     ///< RevRmtMemOp: request Flags
+  uint8_t              Aq{};        ///< RevRmtMemOp: acquire flag
+  uint8_t              Rl{};        ///< RevRmtMemOp: release flag
   void*                Target{};    ///< RevRmtMemOp: Target register pointer
   RmtMemReq            ProcReq{};   ///< RevRmtMemOp: remote memory request from RevProc
 };
@@ -239,6 +272,32 @@ public:
     unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, void* Target, const RmtMemReq& Req, RevFlag Flags
   ) = 0;
 
+  /// RevRmtMemCtrl: send a remote memory read lock request
+  virtual bool sendRmtReadLockRqst(
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         SrcAddr,
+    size_t           Size,
+    void*            Target,
+    const RmtMemReq& Req,
+    RevFlag          Flags,
+    uint8_t          aq,
+    uint8_t          rl
+  ) = 0;
+
+  virtual bool sendRmtWriteUnLockRqst(
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         DestAddr,
+    size_t           Size,
+    uint8_t*         Buffer,
+    void*            Target,
+    const RmtMemReq& Req,
+    RevFlag          Flags,
+    uint8_t          aq,
+    uint8_t          rl
+  ) = 0;
+
   /// RevRmtMemCtrl: send a remote bulk memory read request
   virtual bool sendRmtBulkReadRqst(
     unsigned Hart,
@@ -266,6 +325,9 @@ public:
     uint64_t SrcAddr,
     RevFlag  Flags
   )                                                 = 0;
+
+  /// RevRmtMemCtrl: send a FENCE request
+  virtual bool sendFENCE( unsigned Hart )           = 0;
 
   /// RevRmtMemCtrl: handle a remote memory read request
   virtual void handleReadRqst( xbgasNicEvent* ev )  = 0;
@@ -315,7 +377,9 @@ public:
     { "RmtReadBytes", "Counts the number of bytes of remote reads", "bytes", 1 },
     { "RmtWriteInFlight", "Counts the number of remote writes in flight", "count", 1 },
     { "RmtWritePending", "Counts the number of remote writes pending", "count", 1 },
-    { "RmtWritesBytes", "Counts the number of bytes of remote writes", "bytes", 1 }
+    { "RmtWritesBytes", "Counts the number of bytes of remote writes", "bytes", 1 },
+    { "RmtFenceInFlight", "Counts the number of FENCE requests in flight", "count", 1 },
+    { "RmtFencePending", "Counts the number of FENCE requests pending", "count", 1 }
   )
 
   enum RmtMemCtrlStats : uint32_t {
@@ -324,7 +388,9 @@ public:
     RmtReadBytes     = 2,
     RmtWriteInFlight = 3,
     RmtWritePending  = 4,
-    RmtWritesBytes   = 5
+    RmtWritesBytes   = 5,
+    RmtFenceInFlight = 6,
+    RmtFencePending  = 7
   };
 
   /// RevBasicRmtMemCtrl: constructor
@@ -371,6 +437,33 @@ public:
     unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, void* Target, const RmtMemReq& Req, RevFlag Flags
   ) override;
 
+  /// RevRmtMemCtrl: send a remote memory read lock request
+  bool sendRmtReadLockRqst(
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         SrcAddr,
+    size_t           Size,
+    void*            Target,
+    const RmtMemReq& Req,
+    RevFlag          Flags,
+    uint8_t          aq,
+    uint8_t          rl
+  ) override;
+
+  // RevRmtMemCtrl: send a remote memory store conditional request
+  bool sendRmtWriteUnLockRqst(
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         DestAddr,
+    size_t           Size,
+    uint8_t*         Buffer,
+    void*            Target,
+    const RmtMemReq& Req,
+    RevFlag          Flags,
+    uint8_t          aq,
+    uint8_t          rl
+  ) override;
+
   /// RevBasicRmtMemCtrl: send a remote bulk memory read request
   bool sendRmtBulkReadRqst(
     unsigned Hart,
@@ -397,6 +490,9 @@ public:
     uint64_t SrcAddr,
     RevFlag  Flags
   ) override;
+
+  /// RevRmtMemCtrl: send a FENCE request
+  bool sendFENCE( unsigned Hart ) override;
 
   /// RevBasicRmtMemCtrl: handle a remote memory read request
   void handleReadRqst( xbgasNicEvent* ev ) override;
@@ -472,6 +568,7 @@ private:
 
   uint64_t num_read{};   ///< RevBasicRmtMemCtrl: number of remote read requests
   uint64_t num_write{};  ///< RevBasicRmtMemCtrl: number of remote write requests
+  uint64_t num_fence{};  ///< RevBasicRmtMemCtrl: number of FENCE requests
 
   std::vector<uint32_t>            requests{};     ///< RevBasicRmtMemCtrl: vector of outstanding remote memory requests
   std::vector<RevRmtMemOp*>        rqstQ{};        ///< RevBasicRmtMemCtrl: queued remote memory requests

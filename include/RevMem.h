@@ -291,6 +291,23 @@ public:
     rmtCtrl->sendRmtBulkWriteRqst( Hart, Nmspace, DestAddr, Size, Nelem, Stride, SrcAddr, RevFlag::F_NONE );
   }
 
+  ///  RevMem: template remote LOAD RESERVE memory interface
+  template<typename T>
+  void RmtLR(
+    unsigned Hart, uint64_t Nmspace, uint64_t Addr, T* Target, uint8_t Aq, uint8_t Rl, const RmtMemReq& Req, RevFlag Flags
+  ) {
+    rmtCtrl->sendRmtReadLockRqst( Hart, Nmspace, Addr, sizeof( T ), Target, Req, Flags, Aq, Rl );
+  }
+
+  ///  RevMem: template remote STORE CONDITIONAL memory interface
+  template<typename T>
+  void RmtSC(
+    unsigned Hart, uint64_t Nmspace, uint64_t Addr, T* Data, T* Target, uint8_t Aq, uint8_t Rl, const RmtMemReq& Req, RevFlag Flags
+  ) {
+    uint8_t* DataMem = (uint8_t*) ( Data );
+    rmtCtrl->sendRmtWriteUnLockRqst( Hart, Nmspace, Addr, sizeof( T ), DataMem, Target, Req, Flags, Aq, Rl );
+  }
+
   // ----------------------------------------------------
   // ---- Atomic/Future/LRSC Interfaces
   // ----------------------------------------------------

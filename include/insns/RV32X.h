@@ -91,6 +91,156 @@ class RV32X : public RevExt {
   static constexpr auto& ebsh  = ebstore<uint16_t>;
   static constexpr auto& ebsb  = ebstore<uint8_t>;
 
+  // xBGAS remote atomic operations
+  static bool elrw( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+    if( R->IsRV32 ) {
+      auto Nmspace = R->GetE<uint32_t>( Inst.rs1 );
+      if( Nmspace == 0 ) {
+        MemReq req(
+          uint64_t( R->RV32[Inst.rs1] ),
+          Inst.rd,
+          RevRegClass::RegGPR,
+          F->GetHartToExecID(),
+          MemOp::MemOpAMO,
+          true,
+          R->GetMarkLoadComplete()
+        );
+        R->LSQueue->insert( req.LSQHashPair() );
+        M->LR( F->GetHartToExecID(), uint64_t( R->RV32[Inst.rs1] ), &R->RV32[Inst.rd], Inst.aq, Inst.rl, req, RevFlag::F_SEXT32 );
+      } else {
+        // Send load-reserve (Remote READLOCK) request to the remote node
+        RmtMemReq req(
+          Nmspace,
+          uint64_t( R->RV32[Inst.rs1] ),
+          Inst.rd,
+          RevRegClass::RegGPR,
+          F->GetHartToExecID(),
+          RmtMemOp::READLOCKRqst,
+          true,
+          R->GetMarkRmtLoadComplete()
+        );
+        M->RmtLR(
+          F->GetHartToExecID(), Nmspace, uint64_t( R->RV32[Inst.rs1] ), &R->RV32[Inst.rd], Inst.aq, Inst.rl, req, RevFlag::F_SEXT32
+        );
+      }
+    } else {
+      auto Nmspace = R->GetE<uint64_t>( Inst.rs1 );
+      if( Nmspace == 0 ) {
+        MemReq req(
+          R->RV64[Inst.rs1], Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpAMO, true, R->GetMarkLoadComplete()
+        );
+        R->LSQueue->insert( req.LSQHashPair() );
+        M->LR(
+          F->GetHartToExecID(),
+          R->RV64[Inst.rs1],
+          reinterpret_cast<uint32_t*>( &R->RV64[Inst.rd] ),
+          Inst.aq,
+          Inst.rl,
+          req,
+          RevFlag::F_SEXT64
+        );
+      } else {
+        // Send load-reserve (Remote READLOCK) request to the remote node
+        RmtMemReq req(
+          Nmspace,
+          R->RV64[Inst.rs1],
+          Inst.rd,
+          RevRegClass::RegGPR,
+          F->GetHartToExecID(),
+          RmtMemOp::READLOCKRqst,
+          true,
+          R->GetMarkRmtLoadComplete()
+        );
+        M->RmtLR(
+          F->GetHartToExecID(),
+          Nmspace,
+          R->RV64[Inst.rs1],
+          reinterpret_cast<uint32_t*>( &R->RV64[Inst.rd] ),
+          Inst.aq,
+          Inst.rl,
+          req,
+          RevFlag::F_SEXT64
+        );
+      }
+    }
+    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+    R->AdvancePC( Inst );
+    return true;
+  }
+
+  static bool escw( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+    if( R->IsRV32 ) {
+      auto Nmspace = R->GetE<uint32_t>( Inst.rs1 );
+      if( Nmspace == 0 ) {
+        M->SC(
+          F->GetHartToExecID(), R->RV32[Inst.rs1], &R->RV32[Inst.rs2], &R->RV32[Inst.rd], Inst.aq, Inst.rl, RevFlag::F_SEXT32
+        );
+      } else {
+        RmtMemReq req(
+          Nmspace,
+          R->RV32[Inst.rs1],
+          Inst.rd,
+          RevRegClass::RegGPR,
+          F->GetHartToExecID(),
+          RmtMemOp::WRITEUNLOCKRqst,
+          true,
+          R->GetMarkRmtLoadComplete()
+        );
+        // Send store-conditional request to the remote node
+        M->RmtSC(
+          F->GetHartToExecID(),
+          Nmspace,
+          R->RV32[Inst.rs1],
+          &R->RV32[Inst.rs2],
+          &R->RV32[Inst.rd],
+          Inst.aq,
+          Inst.rl,
+          req,
+          RevFlag::F_SEXT32
+        );
+      }
+    } else {
+      auto Nmspace = R->GetE<uint64_t>( Inst.rs1 );
+      if( Nmspace == 0 ) {
+        M->SC(
+          F->GetHartToExecID(),
+          R->RV64[Inst.rs1],
+          reinterpret_cast<uint32_t*>( &R->RV64[Inst.rs2] ),
+          reinterpret_cast<uint32_t*>( &R->RV64[Inst.rd] ),
+          Inst.aq,
+          Inst.rl,
+          RevFlag::F_SEXT64
+        );
+      } else {
+        // We use the Req data structure to update the rd register once the remote store-conditional is finished
+        RmtMemReq req(
+          Nmspace,
+          R->RV64[Inst.rs1],
+          Inst.rd,
+          RevRegClass::RegGPR,
+          F->GetHartToExecID(),
+          RmtMemOp::WRITEUNLOCKRqst,
+          true,
+          R->GetMarkRmtLoadComplete()
+        );
+        // Send store-conditional request to the remote node
+        M->RmtSC(
+          F->GetHartToExecID(),
+          Nmspace,
+          R->RV64[Inst.rs1],
+          reinterpret_cast<uint32_t*>( &R->RV64[Inst.rs2] ),
+          reinterpret_cast<uint32_t*>( &R->RV64[Inst.rd] ),
+          Inst.aq,
+          Inst.rl,
+          req,
+          RevFlag::F_SEXT64
+        );
+      }
+    }
+    R->AdvancePC( Inst );
+    return true;
+  }
+
   // ----------------------------------------------------------------------
   //
   // RISC-V RV32X Instructions
@@ -133,6 +283,10 @@ class RV32X : public RevExt {
     { RevInstDefaults().SetMnemonic( "ebsw  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b110 ).SetFunct2or7( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsw ) },
     { RevInstDefaults().SetMnemonic( "ebsh  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsh ) },
     { RevInstDefaults().SetMnemonic( "ebsb  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b000 ).SetFunct2or7( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsb ) },
+    // Remote Atomic operations
+    { RevInstDefaults().SetMnemonic("elr.w %rd, (%rs1)"            ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0000010).Setrs2Class(RevRegClass::RegUNKNOWN).SetImplFunc( elrw ) },
+    { RevInstDefaults().SetMnemonic("esc.w %rd, %rs1, %rs2"        ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0000011).SetImplFunc( escw ) },
+
   };
   // clang-format on
 

@@ -90,22 +90,23 @@ enum class MemOp : uint8_t {
 };
 
 enum class RmtMemOp : uint8_t {
-  READRqst      = 0b0000,  ///< xbgasNicEvent: READ request
-  BulkREADRqst  = 0b0001,  ///< xbgasNicEvent: Bulk READ request
-  WRITERqst     = 0b0010,  ///< xbgasNicEvent: WRITE request
-  BulkWRITERqst = 0b0011,  ///< xbgasNicEvent: Bulk WRITE request
-  READResp      = 0b0100,  ///< xbgasNicEvent: READ response
-  BulkREADResp  = 0b0101,  ///< xbgasNicEvent: Bulk READ response
-  WRITEResp     = 0b0110,  ///< xbgasNicEvent: WRITE response
-  BulkWRITEResp = 0b0111,  ///< xbgasNicEvent: Bulk WRITE response
-  LOADLINKRqst  = 0b1000,  ///< xbgasNicEvent: Load-Link request
-  LOADLINKResp  = 0b1001,  ///< xbgasNicEvent: Load-Link response
-  STORECONDRqst = 0b1010,  ///< xbgasNicEvent: Store-Conditional request
-  STORECONDResp = 0b1011,  ///< xbgasNicEvent: Store-Conditional response
-  AMORqst       = 0b1100,  ///< xbgasNicEvent: Atomic Memory Operation request
-  AMOResp       = 0b1101,  ///< xbgasNicEvent: Atomic Memory Operation response
-  Finish        = 0b1110,  ///< xbgasNicEvent: Finish notification
-  Unknown       = 0b1111   ///< xbgasNicEvent: Unknown operation
+  READRqst        = 0,   ///< xbgasNicEvent: READ request
+  BulkREADRqst    = 1,   ///< xbgasNicEvent: Bulk READ request
+  WRITERqst       = 2,   ///< xbgasNicEvent: WRITE request
+  BulkWRITERqst   = 3,   ///< xbgasNicEvent: Bulk WRITE request
+  READResp        = 4,   ///< xbgasNicEvent: READ response
+  BulkREADResp    = 5,   ///< xbgasNicEvent: Bulk READ response
+  WRITEResp       = 6,   ///< xbgasNicEvent: WRITE response
+  BulkWRITEResp   = 7,   ///< xbgasNicEvent: Bulk WRITE response
+  READLOCKRqst    = 8,   ///< xbgasNicEvent: Load-Link request
+  WRITEUNLOCKRqst = 9,   ///< xbgasNicEvent: Load-Link response
+  READLOCKResp    = 10,  ///< xbgasNicEvent: Load-Link request
+  WRITEUNLOCKResp = 11,  ///< xbgasNicEvent: Load-Link response
+  AMORqst         = 12,  ///< xbgasNicEvent: Atomic Memory Operation request
+  AMOResp         = 13,  ///< xbgasNicEvent: Atomic Memory Operation response
+  FENCE           = 14,  ///< xbgasNicEvent: Fence operation
+  Finish          = 15,  ///< xbgasNicEvent: Finish notification
+  Unknown         = 16   ///< xbgasNicEvent: Unknown operation
 };
 
 std::ostream& operator<<( std::ostream& os, MemOp op );
@@ -135,6 +136,14 @@ constexpr uint64_t LocalReadHash( uint64_t Nmspace, uint64_t SrcAddr, size_t Siz
   hash          = fnv1a_hash( hash, &Size, sizeof( Size ) );
   hash          = fnv1a_hash( hash, &Nelem, sizeof( Nelem ) );
   hash          = fnv1a_hash( hash, &Stride, sizeof( Stride ) );
+  return hash;
+}
+
+constexpr uint64_t HartHash( unsigned virtualHart, unsigned Hart, uint32_t SrcId ) {
+  uint64_t hash = FNV_OFFSET_BASIS;
+  hash          = fnv1a_hash( hash, &virtualHart, sizeof( virtualHart ) );
+  hash          = fnv1a_hash( hash, &Hart, sizeof( Hart ) );
+  hash          = fnv1a_hash( hash, &SrcId, sizeof( SrcId ) );
   return hash;
 }
 
@@ -202,6 +211,20 @@ struct RmtMemReq {
     : Nmspace( Nmspace ), SrcAddr( SrcAddr ), Nelem( Nelem ), Stride( Stride ), DestAddr( DestAddr ),
       DestReg( uint16_t( DestReg ) ), RegType( RegType ), Hart( Hart ), ReqType( ReqType ), isOutstanding( isOutstanding ),
       MarkRmtLoadCompleteFunc( std::move( MarkRmtLoadCompleteFunc ) ) {}
+
+  template<typename T>
+  RmtMemReq(
+    uint64_t                                Nmspace,
+    uint64_t                                SrcAddr,
+    T                                       DestReg,
+    RevRegClass                             RegType,
+    unsigned                                Hart,
+    RmtMemOp                                ReqType,
+    bool                                    isOutstanding,
+    std::function<void( const RmtMemReq& )> MarkRmtLoadCompleteFunc
+  )
+    : Nmspace( Nmspace ), SrcAddr( SrcAddr ), DestReg( uint16_t( DestReg ) ), RegType( RegType ), Hart( Hart ), ReqType( ReqType ),
+      isOutstanding( isOutstanding ), MarkRmtLoadCompleteFunc( std::move( MarkRmtLoadCompleteFunc ) ) {}
 
   void MarkRmtLoadComplete() const { MarkRmtLoadCompleteFunc( *this ); }
 

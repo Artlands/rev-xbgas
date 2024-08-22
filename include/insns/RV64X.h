@@ -54,6 +54,67 @@ class RV64X : public RevExt {
   // xBGAS remote bulk stores
   static constexpr auto& ebsd = ebstore<uint64_t>;
 
+  // xBGAS remote atomic operations
+  static bool elrd( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+    auto Nmspace = R->GetE<uint64_t>( Inst.rs1 );
+    if( Nmspace == 0 ) {
+      MemReq req(
+        R->RV64[Inst.rs1], Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpAMO, true, R->GetMarkLoadComplete()
+      );
+      R->LSQueue->insert( req.LSQHashPair() );
+      M->LR( F->GetHartToExecID(), R->RV64[Inst.rs1], &R->RV64[Inst.rd], Inst.aq, Inst.rl, req, RevFlag::F_SEXT64 );
+    } else {
+      // Send load-reserve (Remote READLOCK) request to the remote node
+      RmtMemReq req(
+        Nmspace,
+        R->RV64[Inst.rs1],
+        Inst.rd,
+        RevRegClass::RegGPR,
+        F->GetHartToExecID(),
+        RmtMemOp::READLOCKRqst,
+        true,
+        R->GetMarkRmtLoadComplete()
+      );
+      M->RmtLR( F->GetHartToExecID(), Nmspace, R->RV64[Inst.rs1], &R->RV64[Inst.rd], Inst.aq, Inst.rl, req, RevFlag::F_SEXT64 );
+    }
+    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+    R->AdvancePC( Inst );
+    return true;
+  }
+
+  static bool escd( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+    auto Nmspace = R->GetE<uint64_t>( Inst.rs1 );
+    if( Nmspace == 0 ) {
+      M->SC( F->GetHartToExecID(), R->RV64[Inst.rs1], &R->RV64[Inst.rs2], &R->RV64[Inst.rd], Inst.aq, Inst.rl, RevFlag::F_SEXT64 );
+    } else {
+      // We use the Req data structure to update the rd register once the remote store-conditional is finished
+      RmtMemReq req(
+        Nmspace,
+        R->RV64[Inst.rs1],
+        Inst.rd,
+        RevRegClass::RegGPR,
+        F->GetHartToExecID(),
+        RmtMemOp::WRITEUNLOCKRqst,
+        true,
+        R->GetMarkRmtLoadComplete()
+      );
+      // Send store-conditional request to the remote node
+      M->RmtSC(
+        F->GetHartToExecID(),
+        Nmspace,
+        R->RV64[Inst.rs1],
+        &R->RV64[Inst.rs2],
+        &R->RV64[Inst.rd],
+        Inst.aq,
+        Inst.rl,
+        req,
+        RevFlag::F_SEXT64
+      );
+    }
+    R->AdvancePC( Inst );
+    return true;
+  }
+
   // ----------------------------------------------------------------------
   //
   // RISC-V RV64X Instructions
@@ -77,6 +138,10 @@ class RV64X : public RevExt {
     { RevInstDefaults().SetMnemonic( "ebld  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b011 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebld ) },
     // Bulk Store instruction is encoded in the R4-type format
     { RevInstDefaults().SetMnemonic( "ebsd  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b011 ).SetFunct2or7( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsd ) },
+    // Remote Atomic operations
+    { RevInstDefaults().SetMnemonic("elr.d %rd, (%rs1)"            ).SetOpcode( 0b1101011 ).SetFunct3( 0b011 ).SetFunct2or7(0b0000010).Setrs2Class(RevRegClass::RegUNKNOWN).SetImplFunc( elrd ) },
+    { RevInstDefaults().SetMnemonic("esc.d %rd, %rs1, %rs2"        ).SetOpcode( 0b1101011 ).SetFunct3( 0b011 ).SetFunct2or7(0b0000011).SetImplFunc( escd ) },
+
   };
   // clang-format on
 

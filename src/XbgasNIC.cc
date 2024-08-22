@@ -34,9 +34,11 @@ void xbgasNicEvent::getData( uint8_t* Buffer ) {
 
 bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl ) {
   if( Nelem == 1 ) {
-    Opcode = RmtMemOp::READRqst;
+    if( !setOp( RmtMemOp::READRqst ) )
+      return false;
   } else {
-    Opcode = RmtMemOp::BulkREADRqst;
+    if( !setOp( RmtMemOp::BulkREADRqst ) )
+      return false;
   }
   if( !setId( main_id++ ) )
     return false;
@@ -55,11 +57,35 @@ bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t S
   return true;
 }
 
+bool xbgasNicEvent::buildREADLOCKRqst( uint64_t SrcAddr, size_t Size, RevFlag Fl, uint8_t Aq, uint8_t Rl ) {
+  if( !setOp( RmtMemOp::READLOCKRqst ) )
+    return false;
+  if( !setId( main_id++ ) )
+    return false;
+  if( !setSrcAddr( SrcAddr ) )
+    return false;
+  if( !setSize( Size ) )
+    return false;
+  if( !setNelem( 1 ) )
+    return false;
+  if( !setStride( Size ) )
+    return false;
+  if( !setFlags( Fl ) )
+    return false;
+  if( !setAq( Aq ) )
+    return false;
+  if( !setRl( Rl ) )
+    return false;
+  return true;
+}
+
 bool xbgasNicEvent::buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer ) {
   if( Nelem == 1 ) {
-    Opcode = RmtMemOp::WRITERqst;
+    if( !setOp( RmtMemOp::WRITERqst ) )
+      return false;
   } else {
-    Opcode = RmtMemOp::BulkWRITERqst;
+    if( !setOp( RmtMemOp::BulkWRITERqst ) )
+      return false;
   }
   if( !setId( main_id++ ) )
     return false;
@@ -78,11 +104,37 @@ bool xbgasNicEvent::buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nel
   return true;
 }
 
+bool xbgasNicEvent::buildWRITEUNLOCKRqst( uint64_t DestAddr, size_t Size, RevFlag Fl, uint8_t* Buffer, uint8_t Aq, uint8_t Rl ) {
+  if( !setOp( RmtMemOp::WRITEUNLOCKRqst ) )
+    return false;
+  if( !setId( main_id++ ) )
+    return false;
+  if( !setDestAddr( DestAddr ) )
+    return false;
+  if( !setSize( Size ) )
+    return false;
+  if( !setNelem( 1 ) )
+    return false;
+  if( !setStride( Size ) )
+    return false;
+  if( !setFlags( Fl ) )
+    return false;
+  if( !setAq( Aq ) )
+    return false;
+  if( !setRl( Rl ) )
+    return false;
+  if( !setData( Buffer, Size ) )
+    return false;
+  return true;
+}
+
 bool xbgasNicEvent::buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint8_t* Buffer ) {
   if( Nelem == 1 ) {
-    Opcode = RmtMemOp::READResp;
+    if( !setOp( RmtMemOp::READResp ) )
+      return false;
   } else {
-    Opcode = RmtMemOp::BulkREADResp;
+    if( !setOp( RmtMemOp::BulkREADResp ) )
+      return false;
   }
   if( !setId( Id ) )
     return false;
@@ -99,13 +151,39 @@ bool xbgasNicEvent::buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, 
   return true;
 }
 
+bool xbgasNicEvent::buildREADLOCKResp( uint64_t Id, size_t Size, uint8_t* Buffer ) {
+  if( !setOp( RmtMemOp::READLOCKResp ) )
+    return false;
+  if( !setId( Id ) )
+    return false;
+  if( !setSize( Size ) )
+    return false;
+  if( !setData( Buffer, Size * Nelem ) )
+    return false;
+  return true;
+}
+
 bool xbgasNicEvent::buildWRITEResp( uint64_t Id ) {
   if( Nelem == 1 ) {
-    Opcode = RmtMemOp::WRITEResp;
+    if( !setOp( RmtMemOp::WRITEResp ) )
+      return false;
   } else {
-    Opcode = RmtMemOp::BulkWRITEResp;
+    if( !setOp( RmtMemOp::BulkWRITEResp ) )
+      return false;
   }
   if( !setId( Id ) )
+    return false;
+  return true;
+}
+
+bool xbgasNicEvent::buildWRITEUNLOCKResp( uint64_t Id, size_t Size, uint8_t* Target ) {
+  if( !setOp( RmtMemOp::WRITEUNLOCKResp ) )
+    return false;
+  if( !setId( Id ) )
+    return false;
+  if( !setSize( Size ) )
+    return false;
+  if( !setData( Target, Size ) )
     return false;
   return true;
 }
