@@ -101,7 +101,7 @@ class RV32X : public RevExt {
           Inst.rd,
           RevRegClass::RegGPR,
           F->GetHartToExecID(),
-          MemOp::MemOpAMO,
+          MemOp::MemOpREADLOCK,
           true,
           R->GetMarkLoadComplete()
         );
@@ -119,6 +119,7 @@ class RV32X : public RevExt {
           true,
           R->GetMarkRmtLoadComplete()
         );
+        R->RmtLSQueue->insert( req.LSQHashPair() );
         M->RmtLR(
           F->GetHartToExecID(), Nmspace, uint64_t( R->RV32[Inst.rs1] ), &R->RV32[Inst.rd], Inst.aq, Inst.rl, req, RevFlag::F_SEXT32
         );
@@ -126,8 +127,19 @@ class RV32X : public RevExt {
     } else {
       auto Nmspace = R->GetE<uint64_t>( Inst.rs1 );
       if( Nmspace == 0 ) {
+
+#ifdef _XBGAS_DEBUG_
+        std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
+#endif
+
         MemReq req(
-          R->RV64[Inst.rs1], Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpAMO, true, R->GetMarkLoadComplete()
+          R->RV64[Inst.rs1],
+          Inst.rd,
+          RevRegClass::RegGPR,
+          F->GetHartToExecID(),
+          MemOp::MemOpREADLOCK,
+          true,
+          R->GetMarkLoadComplete()
         );
         R->LSQueue->insert( req.LSQHashPair() );
         M->LR(
@@ -140,6 +152,11 @@ class RV32X : public RevExt {
           RevFlag::F_SEXT64
         );
       } else {
+
+#ifdef _XBGAS_DEBUG_
+        std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " elrw: Nmspace: " << Nmspace << ", SrcAddr: 0x"
+                  << std::hex << R->RV64[Inst.rs1] << std::endl;
+#endif
         // Send load-reserve (Remote READLOCK) request to the remote node
         RmtMemReq req(
           Nmspace,
@@ -151,6 +168,7 @@ class RV32X : public RevExt {
           true,
           R->GetMarkRmtLoadComplete()
         );
+        R->RmtLSQueue->insert( req.LSQHashPair() );
         M->RmtLR(
           F->GetHartToExecID(),
           Nmspace,
@@ -186,6 +204,7 @@ class RV32X : public RevExt {
           true,
           R->GetMarkRmtLoadComplete()
         );
+        R->RmtLSQueue->insert( req.LSQHashPair() );
         // Send store-conditional request to the remote node
         M->RmtSC(
           F->GetHartToExecID(),
@@ -202,6 +221,11 @@ class RV32X : public RevExt {
     } else {
       auto Nmspace = R->GetE<uint64_t>( Inst.rs1 );
       if( Nmspace == 0 ) {
+
+#ifdef _XBGAS_DEBUG_
+        std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
+#endif
+
         M->SC(
           F->GetHartToExecID(),
           R->RV64[Inst.rs1],
@@ -212,6 +236,14 @@ class RV32X : public RevExt {
           RevFlag::F_SEXT64
         );
       } else {
+
+#ifdef _XBGAS_DEBUG_
+        std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " escw: Nmspace: " << Nmspace << ", rd=x" << std::dec
+                  << Inst.rd << ", val=" << std::hex << R->RV64[Inst.rd] << ", rs1=x" << std::dec << Inst.rs1
+                  << ", val=" << std::hex << R->RV64[Inst.rs1] << ", rs2=x" << std::dec << Inst.rs2 << ", val=" << std::hex
+                  << R->RV64[Inst.rs2] << std::endl;
+#endif
+
         // We use the Req data structure to update the rd register once the remote store-conditional is finished
         RmtMemReq req(
           Nmspace,
@@ -223,6 +255,7 @@ class RV32X : public RevExt {
           true,
           R->GetMarkRmtLoadComplete()
         );
+        R->RmtLSQueue->insert( req.LSQHashPair() );
         // Send store-conditional request to the remote node
         M->RmtSC(
           F->GetHartToExecID(),

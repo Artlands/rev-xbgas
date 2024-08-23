@@ -75,6 +75,7 @@ class RV64X : public RevExt {
         true,
         R->GetMarkRmtLoadComplete()
       );
+      R->RmtLSQueue->insert( req.LSQHashPair() );
       M->RmtLR( F->GetHartToExecID(), Nmspace, R->RV64[Inst.rs1], &R->RV64[Inst.rd], Inst.aq, Inst.rl, req, RevFlag::F_SEXT64 );
     }
     R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
@@ -98,6 +99,7 @@ class RV64X : public RevExt {
         true,
         R->GetMarkRmtLoadComplete()
       );
+      R->RmtLSQueue->insert( req.LSQHashPair() );
       // Send store-conditional request to the remote node
       M->RmtSC(
         F->GetHartToExecID(),

@@ -1019,8 +1019,8 @@ RevInst RevCore::DecodeRInst( uint32_t Inst, unsigned Entry ) const {
   // Size
   DInst.instSize = 4;
 
-  // Decode the atomic RL/AQ fields
-  if( DInst.opcode == 0b0101111 ) {
+  // Decode the atomic RL/AQ fields. Opcode 0b1101011 is for xBGAS atomic instructions
+  if( ( DInst.opcode == 0b0101111 ) || ( DInst.opcode == 0b1101011 ) ) {
     DInst.rl = DECODE_RL( Inst );
     DInst.aq = DECODE_AQ( Inst );
   }
@@ -1383,6 +1383,13 @@ RevInst RevCore::DecodeInst( uint32_t Inst ) const {
   } else if( ( inst65 == 0b00 ) && ( inst42 == 0b100 ) && ( Funct3 == 0b101 ) ) {
     // Special I-Type encoding for SRAI - also, Funct7 is only 6 bits in this case
     Funct2or7 = ( ( Inst >> 26 ) & 0b1111111 );
+  } else if( ( inst65 == 0b11 ) && ( inst42 == 0b010 ) ) {
+    // xBGAS enxtended atomic operations in R-Type encodings
+    Funct2or7 = DECODE_FUNCT7( Inst );
+    //Atomics have a smaller funct7 field - trim out the aq and rl fields
+    if( Opcode == 0b1101011 ) {
+      Funct2or7 = ( Funct2or7 & 0b01111100 ) >> 2;
+    }
   }
 
   uint64_t rs2fcvtOp = 0;
@@ -1649,9 +1656,6 @@ void RevCore::MarkLoadComplete( const MemReq& req ) {
 }
 
 void RevCore::MarkRmtLoadComplete( const RmtMemReq& req ) {
-#ifdef _XBGAS_DEBUG_
-  std::cout << "Marking remote load complete for register: x" << std::dec << req.DestReg << "\n";
-#endif
   // Iterate over all outstanding loads for this reg (if any)
   for( auto [i, end] = RmtLSQueue->equal_range( req.LSQHash() ); i != end; ++i ) {
     if( i->second.SrcAddr == req.SrcAddr ) {

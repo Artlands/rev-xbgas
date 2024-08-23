@@ -166,13 +166,11 @@ bool RevMem::SCBase( unsigned Hart, uint64_t Addr, size_t Len, void* Data, void*
       uint64_t* TmpTarget = std::get<LRSC_VAL>( *it );
       uint64_t* TmpData   = static_cast<uint64_t*>( Data );
 
-      // Potential issue here with the Len. Len should be either 4 or 8 in bytes.
-      // if( Len == 32 ) {
       size_t TotalBits    = Len * 8;
       if( TotalBits == 32 ) {
         uint32_t A = 0;
         uint32_t B = 0;
-        for( size_t i = 0; i < Len; i++ ) {
+        for( size_t i = 0; i < TotalBits; i++ ) {
           A |= uint32_t( TmpTarget[i] ) << i;
           B |= uint32_t( TmpData[i] ) << i;
         }
@@ -183,7 +181,7 @@ bool RevMem::SCBase( unsigned Hart, uint64_t Addr, size_t Len, void* Data, void*
       } else {
         uint64_t A = 0;
         uint64_t B = 0;
-        for( size_t i = 0; i < Len; i++ ) {
+        for( size_t i = 0; i < TotalBits; i++ ) {
           A |= TmpTarget[i] << i;
           B |= TmpData[i] << i;
         }
@@ -198,9 +196,9 @@ bool RevMem::SCBase( unsigned Hart, uint64_t Addr, size_t Len, void* Data, void*
       WriteMem( Hart, Addr, Len, Data, flags );
 
       // write zeros to target
+      uint8_t* Tmp = reinterpret_cast<uint8_t*>( Target );
       for( unsigned i = 0; i < Len; i++ ) {
-        uint64_t* Tmp = reinterpret_cast<uint64_t*>( Target );
-        Tmp[i]        = 0x0;
+        Tmp[i] = 0x0;
       }
 
       // erase the entry

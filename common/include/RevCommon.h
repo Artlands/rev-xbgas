@@ -98,10 +98,10 @@ enum class RmtMemOp : uint8_t {
   BulkREADResp    = 5,   ///< xbgasNicEvent: Bulk READ response
   WRITEResp       = 6,   ///< xbgasNicEvent: WRITE response
   BulkWRITEResp   = 7,   ///< xbgasNicEvent: Bulk WRITE response
-  READLOCKRqst    = 8,   ///< xbgasNicEvent: Load-Link request
-  WRITEUNLOCKRqst = 9,   ///< xbgasNicEvent: Load-Link response
-  READLOCKResp    = 10,  ///< xbgasNicEvent: Load-Link request
-  WRITEUNLOCKResp = 11,  ///< xbgasNicEvent: Load-Link response
+  READLOCKRqst    = 8,   ///< xbgasNicEvent: Load-reserved request
+  WRITEUNLOCKRqst = 9,   ///< xbgasNicEvent: Store-conditional request
+  READLOCKResp    = 10,  ///< xbgasNicEvent: Load-reserved response
+  WRITEUNLOCKResp = 11,  ///< xbgasNicEvent: Store-conditional response
   AMORqst         = 12,  ///< xbgasNicEvent: Atomic Memory Operation request
   AMOResp         = 13,  ///< xbgasNicEvent: Atomic Memory Operation response
   FENCE           = 14,  ///< xbgasNicEvent: Fence operation

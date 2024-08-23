@@ -544,15 +544,15 @@ bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto SrcAddr = R->GetX<uint32_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
     if( Nmspace == 0 ) {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
 #endif
 
       return load<T>( F, R, M, Inst );
     } else {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
                 << SrcAddr << std::endl;
 #endif
 
@@ -587,15 +587,15 @@ bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto SrcAddr = R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
     if( Nmspace == 0 ) {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
 #endif
 
       return load<T>( F, R, M, Inst );
     } else {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
                 << SrcAddr << std::endl;
 #endif
 
@@ -637,15 +637,15 @@ bool estore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto Nmspace  = R->GetE<uint32_t>( Inst.rs1 );
     auto DestAddr = R->GetX<uint32_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
 
-#ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint32_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
               << DestAddr << ", Value: 0x" << std::hex << (uint32_t) ( R->GetX<T>( Inst.rs1 ) ) << std::endl;
 #endif
 
     if( Nmspace == 0 ) {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
 #endif
 
       return store<T>( F, R, M, Inst );
@@ -656,15 +656,15 @@ bool estore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
     auto DestAddr = R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
 
-#ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint64_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
               << DestAddr << ", Value: 0x" << std::hex << (uint64_t) ( R->GetX<T>( Inst.rs1 ) ) << std::endl;
 #endif
 
     if( Nmspace == 0 ) {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
 #endif
 
       return store<T>( F, R, M, Inst );
@@ -686,16 +686,16 @@ bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto SrcAddr = R->GetX<uint32_t>( Inst.rs1 );
     if( Nmspace == 0 ) {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
 #endif
       MemReq req{ SrcAddr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpREAD, true, R->GetMarkLoadComplete() };
       R->LSQueue->insert( req.LSQHashPair() );
       M->ReadVal( F->GetHartToExecID(), SrcAddr, reinterpret_cast<T*>( &R->RV32[Inst.rd] ), std::move( req ), flags );
     } else {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
                 << SrcAddr << std::endl;
 #endif
 
@@ -730,8 +730,8 @@ bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto SrcAddr = R->GetX<uint64_t>( Inst.rs1 );
     if( Nmspace == 0 ) {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
 #endif
 
       MemReq req{ SrcAddr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpREAD, true, R->GetMarkLoadComplete() };
@@ -739,8 +739,8 @@ bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
       M->ReadVal( F->GetHartToExecID(), SrcAddr, reinterpret_cast<T*>( &R->RV64[Inst.rd] ), std::move( req ), flags );
     } else {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
                 << SrcAddr << std::endl;
 #endif
 
@@ -782,15 +782,15 @@ bool erstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto Nmspace  = R->GetE<uint32_t>( Inst.rd );
     auto DestAddr = R->GetX<uint32_t>( Inst.rs2 );
 
-#ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint32_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
               << DestAddr << ", Value: 0x" << std::hex << (uint32_t) ( R->GetX<T>( Inst.rs1 ) ) << std::endl;
 #endif
 
     if( Nmspace == 0 ) {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
 #endif
 
       M->Write( F->GetHartToExecID(), DestAddr, R->GetX<T>( Inst.rs1 ) );
@@ -801,15 +801,15 @@ bool erstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto Nmspace  = R->GetE<uint64_t>( Inst.rd );
     auto DestAddr = R->GetX<uint64_t>( Inst.rs2 );
 
-#ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint64_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
               << DestAddr << ", Value: 0x" << std::hex << (uint64_t) ( R->GetX<T>( Inst.rs1 ) ) << std::endl;
 #endif
 
     if( Nmspace == 0 ) {
 
-#ifdef XBGAS_DEBUG
-      std::cout << "XBGAS_DEBUG : Namespace is 0, go to the local memory access" << std::endl;
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
 #endif
       M->Write( F->GetHartToExecID(), DestAddr, R->GetX<T>( Inst.rs1 ) );
     } else {
@@ -833,8 +833,8 @@ bool ebload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto Stride   = R->GetX<uint32_t>( Inst.rs3 );
     // Remote memory controller or NIC handles the bulk load operation anyway, no matter the namespace
 
-#ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint32_t>( 10 ) << " ebload-32: Nmspace: " << Nmspace << ", DestAddr: 0x"
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " ebload-32: Nmspace: " << Nmspace << ", DestAddr: 0x"
               << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem
               << ", Stride: " << std::dec << Stride << std::endl;
 #endif
@@ -849,11 +849,12 @@ bool ebload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto Nelem    = R->GetX<uint64_t>( Inst.rs2 );
     auto Stride   = R->GetX<uint64_t>( Inst.rs3 );
 
-#ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint64_t>( 10 ) << " ebload-64: Nmspace: " << Nmspace << " Register: e" << Inst.rs1
-              << ", DestAddr: 0x" << std::hex << DestAddr << ", Register: x" << std::dec << Inst.rd << ", SrcAddr: 0x" << std::hex
-              << SrcAddr << ", Register: x" << std::dec << Inst.rs1 << ", Nelem: " << std::dec << Nelem << ", Register: x"
-              << std::dec << Inst.rs2 << ", Stride: " << std::dec << Stride << ", Register: x" << std::dec << Inst.rs3 << std::endl;
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebload-64: Nmspace: " << Nmspace << " Register: e"
+              << Inst.rs1 << ", DestAddr: 0x" << std::hex << DestAddr << ", Register: x" << std::dec << Inst.rd << ", SrcAddr: 0x"
+              << std::hex << SrcAddr << ", Register: x" << std::dec << Inst.rs1 << ", Nelem: " << std::dec << Nelem
+              << ", Register: x" << std::dec << Inst.rs2 << ", Stride: " << std::dec << Stride << ", Register: x" << std::dec
+              << Inst.rs3 << std::endl;
 #endif
 
     // Remote memory controller or NIC handles the bulk load operation anyway, no matter the namespace
@@ -873,8 +874,8 @@ bool ebstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto Nelem    = R->GetX<uint32_t>( Inst.rs2 );
     auto Stride   = R->GetX<uint32_t>( Inst.rs3 );
 
-#ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint32_t>( 10 ) << " ebstore-32: Nmspace: " << Nmspace << ", DestAddr: 0x"
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " ebstore-32: Nmspace: " << Nmspace << ", DestAddr: 0x"
               << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem
               << ", Stride: " << std::dec << Stride << std::endl;
 #endif
@@ -888,8 +889,8 @@ bool ebstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto Nelem    = R->GetX<uint64_t>( Inst.rs2 );
     auto Stride   = R->GetX<uint64_t>( Inst.rs3 );
 
-#ifdef XBGAS_DEBUG
-    std::cout << "XBGAS_DEBUG : PE " << R->GetE<uint64_t>( 10 ) << " ebstore-64: Nmspace: " << Nmspace << ", DestAddr: 0x"
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebstore-64: Nmspace: " << Nmspace << ", DestAddr: 0x"
               << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem
               << ", Stride: " << std::dec << Stride << std::endl;
 #endif

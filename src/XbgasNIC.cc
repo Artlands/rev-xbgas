@@ -158,7 +158,11 @@ bool xbgasNicEvent::buildREADLOCKResp( uint64_t Id, size_t Size, uint8_t* Buffer
     return false;
   if( !setSize( Size ) )
     return false;
-  if( !setData( Buffer, Size * Nelem ) )
+  if( !setNelem( 1 ) )
+    return false;
+  if( !setStride( Size ) )
+    return false;
+  if( !setData( Buffer, Size ) )
     return false;
   return true;
 }
@@ -182,6 +186,10 @@ bool xbgasNicEvent::buildWRITEUNLOCKResp( uint64_t Id, size_t Size, uint8_t* Tar
   if( !setId( Id ) )
     return false;
   if( !setSize( Size ) )
+    return false;
+  if( !setNelem( 1 ) )
+    return false;
+  if( !setStride( Size ) )
     return false;
   if( !setData( Target, Size ) )
     return false;
