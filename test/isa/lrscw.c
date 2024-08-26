@@ -10,9 +10,6 @@
  * See LICENSE in the top level directory for licensing details
  *
  */
-#include "../../common/syscalls/syscalls.h"
-#include "../syscalls/malloc/malloc.h"
-#include "../syscalls/printf/printf.h"
 #include "isa_test_macros.h"
 #include <stdbool.h>
 #include <unistd.h>
@@ -38,7 +35,6 @@ int atomic_cas( volatile uint32_t* ptr, uint32_t expected, uint32_t desired ) {
 }
 
 int main() {
-  printf( "Hello\n" );
   volatile uint32_t test_val = 42;
   uint32_t          expected = 42;
   uint32_t          desired  = 100;
