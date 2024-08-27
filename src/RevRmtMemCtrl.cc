@@ -133,10 +133,12 @@ RevBasicRmtMemCtrl::RevBasicRmtMemCtrl( ComponentId_t id, const Params& params )
 
   xbgasNic->setMsgHandler( new Event::Handler<RevBasicRmtMemCtrl>( this, &RevBasicRmtMemCtrl::rmtMemEventHandler ) );
 
-  virtualHart = params.find<uint16_t>( "numHarts", "1" );
-  max_loads   = params.find<uint32_t>( "max_loads", 64 );
-  max_stores  = params.find<uint32_t>( "max_stores", 64 );
-  max_ops     = params.find<uint32_t>( "ops_per_cycle", 2 );
+  virtualHart     = params.find<uint16_t>( "numHarts", "1" );
+  max_loads       = params.find<uint32_t>( "max_loads", 64 );
+  max_stores      = params.find<uint32_t>( "max_stores", 64 );
+  max_readlock    = params.find<uint32_t>( "max_readlock", 64 );
+  max_writeunlock = params.find<uint32_t>( "max_writeunlock", 64 );
+  max_ops         = params.find<uint32_t>( "ops_per_cycle", 2 );
 
   rqstQ.reserve( max_ops );
 
@@ -152,14 +154,20 @@ RevBasicRmtMemCtrl::~RevBasicRmtMemCtrl() {
 }
 
 void RevBasicRmtMemCtrl::registerStats() {
-  for( auto* stat : {
-         "RmtReadInFlight",
+  for( auto* stat :
+       { "RmtReadInFlight",
          "RmtReadPending",
          "RmtReadBytes",
          "RmtWriteInFlight",
          "RmtWritePending",
          "RmtWritesBytes",
-       } ) {
+         "RmtReadLockInFlight",
+         "RmtReadLockPending",
+         "RmtReadLockBytes",
+         "RmtWriteUnlockInFlight",
+         "RmtWriteUnlockPending",
+         "RmtWriteUnlockBytes",
+         "RmtFencePending" } ) {
     stats.push_back( registerStatistic<uint64_t>( stat ) );
   }
 }
@@ -364,11 +372,17 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent* ev ) {
       output->fatal( CALL_INFO, -1, "Error: unknown remote memory response\n" );
     }
     outstanding.erase( Id );
+
+    // Update the stats
+    if( ( Opcode == RmtMemOp::READResp ) || ( Opcode == RmtMemOp::BulkREADResp ) )
+      num_read--;
+    else if( Opcode == RmtMemOp::READLOCKResp )
+      num_readlock--;
+
     delete ev;
   } else {
     output->fatal( CALL_INFO, -1, "Error: found unknown ReadResp\n" );
   }
-  num_read--;
   return;
 }
 
@@ -393,15 +407,15 @@ void RevBasicRmtMemCtrl::handleWriteResp( xbgasNicEvent* ev ) {
       uint8_t*         Target = static_cast<uint8_t*>( Op->getTarget() );
       ev->getData( Target );    // Copy the data to the target register
       r.MarkRmtLoadComplete();  // Mark the remote load complete
+      num_writeunlock--;
     } else {
-      // Do nothing
+      num_write--;
     }
     outstanding.erase( Id );
     delete ev;
   } else {
     output->fatal( CALL_INFO, -1, "Error: found unknown WriteResp\n" );
   }
-  num_write--;
   return;
 }
 
@@ -557,7 +571,7 @@ bool RevBasicRmtMemCtrl::sendRmtReadLockRqst(
   // Op->setFlags( TmpFlags );
   Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
-  recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtReadPending, 1 );
+  recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtReadLockPending, 1 );
   return true;
 }
 
@@ -581,7 +595,7 @@ bool RevBasicRmtMemCtrl::sendRmtWriteUnLockRqst(
   // Op->setFlags(TmpFlags);
   Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
-  recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWritePending, 1 );
+  recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWriteUnlockPending, 1 );
   return true;
 }
 
@@ -644,6 +658,7 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst(
     LocalLoadOpMap.insert( { SrcAddr + i * Stride, LocalReadHash( Nmspace, SrcAddr, Size, Nelem, Stride ) } );
     Mem->ReadMem( virtualHart, SrcAddr + i * Stride, Size, (void*) ( &Buffer[i * Size] ), std::move( Req ), Flags );
   }
+  recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWritePending, 1 );
   return true;
 }
 
@@ -655,14 +670,25 @@ bool RevBasicRmtMemCtrl::sendFENCE( unsigned Hart ) {
 }
 
 bool RevBasicRmtMemCtrl::clockTick( Cycle_t cycle ) {
+  // Check to see if the top request is a FENCE request
+  if( num_fence > 0 ) {
+    if( ( num_read + num_write + num_readlock + num_writeunlock ) != 0 ) {
+      recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtFencePending, 1 );
+      return false;
+    } else {
+      num_fence--;
+    }
+  }
   // process the remote memory requests
-  bool     done         = false;
-  unsigned t_max_ops    = 0;
-  unsigned t_max_loads  = 0;
-  unsigned t_max_stores = 0;
+  bool     done              = false;
+  unsigned t_max_ops         = 0;
+  unsigned t_max_loads       = 0;
+  unsigned t_max_stores      = 0;
+  unsigned t_max_readlock    = 0;
+  unsigned t_max_writeunlock = 0;
 
   while( !done ) {
-    if( !processNextRqst( t_max_loads, t_max_stores, t_max_ops ) ) {
+    if( !processNextRqst( t_max_loads, t_max_stores, t_max_readlock, t_max_writeunlock, t_max_ops ) ) {
       // error occurred
       output->fatal( CALL_INFO, -1, "Error: unable to process next remote memory request\n" );
     }
@@ -677,7 +703,10 @@ bool RevBasicRmtMemCtrl::isDone() {
   return requests.size() == 0;
 }
 
-bool RevBasicRmtMemCtrl::processNextRqst( unsigned& t_max_loads, unsigned& t_max_stores, unsigned& t_max_ops ) {
+bool RevBasicRmtMemCtrl::processNextRqst(
+  unsigned& t_max_loads, unsigned& t_max_stores, unsigned& t_max_readlock, unsigned& t_max_writeunlock, unsigned& t_max_ops
+
+) {
   if( rqstQ.size() == 0 ) {
     // nothing to do, saturate and exit this cycle
     t_max_ops = max_ops;
@@ -685,10 +714,11 @@ bool RevBasicRmtMemCtrl::processNextRqst( unsigned& t_max_loads, unsigned& t_max
   }
 
   bool success = false;
+
   // retrieve the next candidate remote memory operation
   for( unsigned i = 0; i < rqstQ.size(); i++ ) {
     RevRmtMemOp* op = rqstQ[i];
-    if( isRmtMemOpAvailable( op, t_max_loads, t_max_stores ) ) {
+    if( isRmtMemOpAvailable( op, t_max_loads, t_max_stores, t_max_readlock, t_max_writeunlock ) ) {
       // op is good to execute, build a remote memory request packet
       t_max_ops++;
 
@@ -696,10 +726,13 @@ bool RevBasicRmtMemCtrl::processNextRqst( unsigned& t_max_loads, unsigned& t_max
         // time to fence!
         // saturate and exit this cycle
         // no need to build a remote memory request
+        // We only consider the fence is done when the xBGAS NIC queue does not contain messages
         t_max_ops = max_ops;
-        rqstQ.erase( rqstQ.begin() + i );
-        num_fence++;
-        delete op;
+        if( xbgasNic->isQueueEmpty() ) {
+          rqstQ.erase( rqstQ.begin() + i );
+          num_fence++;
+          delete op;
+        }
         return true;
       }
 
@@ -728,26 +761,45 @@ bool RevBasicRmtMemCtrl::processNextRqst( unsigned& t_max_loads, unsigned& t_max
   return true;
 }
 
-bool RevBasicRmtMemCtrl::isRmtMemOpAvailable( RevRmtMemOp* Op, unsigned& t_max_loads, unsigned& t_max_stores ) {
+bool RevBasicRmtMemCtrl::isRmtMemOpAvailable(
+  RevRmtMemOp* Op, unsigned& t_max_loads, unsigned& t_max_stores, unsigned& t_max_readlock, unsigned& t_max_writeunlock
+) {
   switch( Op->getOp() ) {
   case RmtMemOp::READRqst:
   case RmtMemOp::BulkREADRqst:
-  case RmtMemOp::READLOCKRqst:
     if( t_max_loads < max_loads ) {
       t_max_loads++;
       return true;
     }
+    return false;
+    break;
+  case RmtMemOp::READLOCKRqst:
+    if( t_max_readlock < max_readlock ) {
+      t_max_readlock++;
+      return true;
+    }
+    return false;
     break;
   case RmtMemOp::WRITERqst:
   case RmtMemOp::BulkWRITERqst:
-  case RmtMemOp::WRITEUNLOCKRqst:
     if( t_max_stores < max_stores ) {
       t_max_stores++;
       return true;
     }
+    return false;
+    break;
+  case RmtMemOp::WRITEUNLOCKRqst:
+    if( t_max_writeunlock < max_writeunlock ) {
+      t_max_writeunlock++;
+      return true;
+    }
+    return false;
     break;
   case RmtMemOp::FENCE: return true; break;
-  default: output->fatal( CALL_INFO, -1, "Error: unknown remote memory operation\n" ); break;
+  default:
+    output->fatal( CALL_INFO, -1, "Error: unknown remote memory operation\n" );
+    return false;
+    break;
   }
   return false;
 }
@@ -785,7 +837,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     requests.push_back( Id );
     outstanding[Id] = Op;
     recordStat( RmtReadInFlight, 1 );
-    num_read++;
+    num_read += 1;
     break;
   case RmtMemOp::READLOCKRqst:
     RmtEvent->buildREADLOCKRqst( SrcAddr, Size, Flags, Aq, Rl );
@@ -798,8 +850,8 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     xbgasNic->send( RmtEvent, DestId );
     requests.push_back( Id );
     outstanding[Id] = Op;
-    recordStat( RmtReadInFlight, 1 );
-    num_read++;
+    recordStat( RmtReadLockInFlight, 1 );
+    num_readlock += 1;
     break;
   case RmtMemOp::WRITERqst:
   case RmtMemOp::BulkWRITERqst:
@@ -813,7 +865,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     requests.push_back( Id );
     outstanding[Id] = Op;
     recordStat( RmtWriteInFlight, 1 );
-    num_write++;
+    num_write += 1;
     delete[] Buffer;
     break;
   case RmtMemOp::WRITEUNLOCKRqst:
@@ -827,8 +879,8 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     xbgasNic->send( RmtEvent, DestId );
     requests.push_back( Id );
     outstanding[Id] = Op;
-    recordStat( RmtWriteInFlight, 1 );
-    num_write++;
+    recordStat( RmtWriteUnlockInFlight, 1 );
+    num_writeunlock += 1;
     delete[] Buffer;
     break;
   default: return false; break;

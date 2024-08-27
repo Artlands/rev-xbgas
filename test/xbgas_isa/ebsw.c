@@ -56,5 +56,7 @@ int main( int argc, char** argv ) {
       assert( dest[i] == src2[i] );
     }
   }
+  // Free the allocated memory
+  free( dest );
   return 0;
 }

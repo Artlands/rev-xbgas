@@ -364,6 +364,8 @@ public:
     { "clock", "Set the clock frequency of the remote memory controller", "1Ghz" },
     { "max_loads", "Set the maximum number of outstanding loads", "64" },
     { "max_stores", "Set the maximum number of outstanding stores", "64" },
+    { "max_readlock", "Set the maximum number of outstanding read locks", "64" },
+    { "max_writeunlock", "Set the maximum number of outstanding write unlocks", "64" },
     { "ops_per_cycle", "Set the maximum number of operations to issue per cycle", "2" }
   )
 
@@ -378,19 +380,29 @@ public:
     { "RmtWriteInFlight", "Counts the number of remote writes in flight", "count", 1 },
     { "RmtWritePending", "Counts the number of remote writes pending", "count", 1 },
     { "RmtWritesBytes", "Counts the number of bytes of remote writes", "bytes", 1 },
-    { "RmtFenceInFlight", "Counts the number of FENCE requests in flight", "count", 1 },
+    { "RmtReadLockInFlight", "Counts the number of remote read locks in flight", "count", 1 },
+    { "RmtReadLockPending", "Counts the number of remote read locks pending", "count", 1 },
+    { "RmtReadLockBytes", "Counts the number of bytes of remote read locks", "bytes", 1 },
+    { "RmtWriteUnlockInFlight", "Counts the number of remote write unlocks in flight", "count", 1 },
+    { "RmtWriteUnlockPending", "Counts the number of remote write unlocks pending", "count", 1 },
+    { "RmtWriteUnlockBytes", "Counts the number of bytes of remote write unlocks", "bytes", 1 },
     { "RmtFencePending", "Counts the number of FENCE requests pending", "count", 1 }
   )
 
   enum RmtMemCtrlStats : uint32_t {
-    RmtReadInFlight  = 0,
-    RmtReadPending   = 1,
-    RmtReadBytes     = 2,
-    RmtWriteInFlight = 3,
-    RmtWritePending  = 4,
-    RmtWritesBytes   = 5,
-    RmtFenceInFlight = 6,
-    RmtFencePending  = 7
+    RmtReadInFlight        = 0,
+    RmtReadPending         = 1,
+    RmtReadBytes           = 2,
+    RmtWriteInFlight       = 3,
+    RmtWritePending        = 4,
+    RmtWritesBytes         = 5,
+    RmtReadLockInFlight    = 6,
+    RmtReadLockPending     = 7,
+    RmtReadLockBytes       = 8,
+    RmtWriteUnlockInFlight = 9,
+    RmtWriteUnlockPending  = 10,
+    RmtWriteUnlockBytes    = 11,
+    RmtFencePending        = 12,
   };
 
   /// RevBasicRmtMemCtrl: constructor
@@ -526,10 +538,14 @@ public:
 
 private:
   /// RevBasicRmtMemCtrl: process the next memory request
-  bool processNextRqst( unsigned& t_max_loads, unsigned& t_max_stores, unsigned& t_max_ops );
+  bool processNextRqst(
+    unsigned& t_max_loads, unsigned& t_max_stores, unsigned& t_max_readlock, unsigned& t_max_writeunlock, unsigned& t_max_ops
+  );
 
   /// RevBasicRmtMemCtrl: determine if we can instantiate the target remote memory operation
-  bool isRmtMemOpAvailable( RevRmtMemOp* Op, unsigned& t_max_loads, unsigned& t_max_stores );
+  bool isRmtMemOpAvailable(
+    RevRmtMemOp* Op, unsigned& t_max_loads, unsigned& t_max_stores, unsigned& t_max_readlock, unsigned& t_max_writeunlock
+  );
 
   /// RevBasicRmtMemCtrl: build a remote memory request packet
   bool buildRmtMemRqst( RevRmtMemOp* Op, bool& Success );
@@ -559,13 +575,17 @@ private:
   unsigned                                           myPEid{};       ///< RevBasicRmtMemCtrl: My PE id
   unsigned                                           numPEs{};       ///< RevBasicRmtMemCtrl: number of PEs on distinct nodes
 
-  unsigned max_loads{};   ///< RevBasicRmtMemCtrl: maximum number of outstanding loads
-  unsigned max_stores{};  ///< RevBasicRmtMemCtrl: maximum number of outstanding stores
-  unsigned max_ops{};     ///< RevBasicRmtMemCtrl: maximum number of operations per cycle
+  unsigned max_loads{};        ///< RevBasicRmtMemCtrl: maximum number of outstanding loads
+  unsigned max_stores{};       ///< RevBasicRmtMemCtrl: maximum number of outstanding stores
+  unsigned max_readlock{};     ///< RevBasicRmtMemCtrl: maximum number of outstanding read locks
+  unsigned max_writeunlock{};  ///< RevBasicRmtMemCtrl: maximum number of outstanding write unlocks
+  unsigned max_ops{};          ///< RevBasicRmtMemCtrl: maximum number of operations per cycle
 
-  uint64_t num_read{};   ///< RevBasicRmtMemCtrl: number of remote read requests
-  uint64_t num_write{};  ///< RevBasicRmtMemCtrl: number of remote write requests
-  uint64_t num_fence{};  ///< RevBasicRmtMemCtrl: number of FENCE requests
+  uint64_t num_read{};         ///< RevBasicRmtMemCtrl: number of remote read requests
+  uint64_t num_write{};        ///< RevBasicRmtMemCtrl: number of remote write requests
+  uint64_t num_readlock{};     ///< RevBasicRmtMemCtrl: number of remote read lock requests
+  uint64_t num_writeunlock{};  ///< RevBasicRmtMemCtrl: number of remote write unlock requests
+  uint64_t num_fence{};        ///< RevBasicRmtMemCtrl: number of FENCE requests
 
   std::vector<uint32_t>            requests{};     ///< RevBasicRmtMemCtrl: vector of outstanding remote memory requests
   std::vector<RevRmtMemOp*>        rqstQ{};        ///< RevBasicRmtMemCtrl: queued remote memory requests

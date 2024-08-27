@@ -318,4 +318,18 @@ bool XbgasNIC::clockTick( Cycle_t cycle ) {
   return false;
 }
 
+// bool XbgasNIC::isQueueEmpty( unsigned Hart ) {
+//   // Search all the requests in the queue
+//   std::queue<SST::Interfaces::SimpleNetwork::Request*> tmpQ = sendQ;
+//   while( !tmpQ.empty() ) {
+//     SST::Interfaces::SimpleNetwork::Request* req = tmpQ.front();
+//     xbgasNicEvent* ev                            = static_cast<xbgasNicEvent*>( req->takePayload() );
+//     if( ev->getHart() == Hart ) {
+//       return false;
+//     }
+//     tmpQ.pop();
+//   }
+//   return true;
+// }
+
 // EOF

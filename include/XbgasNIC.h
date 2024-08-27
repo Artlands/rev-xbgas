@@ -275,6 +275,9 @@ public:
   /// xbgasNicAPI: retrieve the hosts
   virtual std::vector<SST::Interfaces::SimpleNetwork::nid_t> getXbgasHosts() = 0;
 
+  /// xbgasNicAPI: check if the queue is empty
+  virtual bool isQueueEmpty()                                                = 0;
+
 protected:
   SST::Output* output;  ///< xbgasNicEvent: SST output object
 };  /// end xbgasNicAPI
@@ -337,6 +340,9 @@ public:
 
   /// XbgasNIC: clock function
   bool clockTick( Cycle_t cycle );
+
+  /// XbgasNIC: check if the queue is empty
+  bool isQueueEmpty() { return sendQ.empty(); };
 
 protected:
   SST::Output* output;  ///< XbgasNIC: SST output object

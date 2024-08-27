@@ -556,9 +556,9 @@ bool RevMem::FenceMem( unsigned Hart ) {
   if( ctrl ) {
     ctrl->sendFENCE( Hart );
   }
-  // if( rmtCtrl ) {
-  //   rmtCtrl->sendFENCE( Hart );
-  // }
+  if( rmtCtrl ) {
+    rmtCtrl->sendFENCE( Hart );
+  }
   return true;  // base RevMem support does nothing here
 }
 
