@@ -10,6 +10,7 @@
 
 #ifndef _SST_REVCPU_REVINSTHELPERS_H_
 #define _SST_REVCPU_REVINSTHELPERS_H_
+#define _XBGAS_DEBUG_
 
 #include <cmath>
 #include <cstdint>

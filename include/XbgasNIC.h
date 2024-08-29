@@ -175,6 +175,9 @@ public:
   /// xbgasNicEvent: build a WRITE UNLOCK request packet
   bool buildWRITEUNLOCKRqst( uint64_t DestAddr, size_t Size, RevFlag Fl, uint8_t* Buffer, uint8_t Aq, uint8_t Rl );
 
+  // xbgasNicEvent: build a AMO request packet
+  bool buildAMORqst( uint64_t SrcAddr, size_t Size, uint8_t* Buffer, RevFlag Fl );
+
   /// xbgasNicEvent: build a READ respond packet
   bool buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint8_t* Buffer );
 
@@ -186,6 +189,9 @@ public:
 
   /// xbgasNicEvent: build a WRITE UNLOCK respond packet
   bool buildWRITEUNLOCKResp( uint64_t Id, size_t Size, uint8_t* Target );
+
+  // xbgasNicEvent: build a AMO response packet
+  bool buildAMOResp( uint64_t Id, size_t Size, uint8_t* Buffer );
 
   /// xbgasNicEvent: virtual function to clone an event
   virtual Event* clone( void ) override {

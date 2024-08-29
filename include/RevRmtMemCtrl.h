@@ -101,12 +101,12 @@ public:
     RevFlag  Flags
   );
 
-  /// RevRmtMemOp: overloaded constructor - AMO- Read lock
+  /// RevRmtMemOp: overloaded constructor - Read lock
   RevRmtMemOp(
     unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, void* Target, RmtMemOp Op, RevFlag Flags, uint8_t Aq, uint8_t Rl
   );
 
-  /// RevRmtMemOp: overloaded constructor - AMO- Write unlock
+  /// RevRmtMemOp: overloaded constructor - Write unlock
   RevRmtMemOp(
     unsigned Hart,
     uint64_t Nmspace,
@@ -118,6 +118,11 @@ public:
     RevFlag  Flags,
     uint8_t  Aq,
     uint8_t  Rl
+  );
+
+  /// RevRmtMemOp: overloaded constructor - AMO
+  RevRmtMemOp(
+    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint8_t* Buffer, void* Target, RmtMemOp Op, RevFlag Flags
   );
 
   /// RevRmtMemOp: destructor
@@ -324,6 +329,17 @@ public:
     uint32_t Stride,
     uint64_t SrcAddr,
     RevFlag  Flags
+  ) = 0;
+
+  virtual bool sendRmtAMORqst(
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         SrcAddr,
+    size_t           Size,
+    uint8_t*         Buffer,
+    void*            Target,
+    const RmtMemReq& Req,
+    RevFlag          Flags
   )                                                 = 0;
 
   /// RevRmtMemCtrl: send a FENCE request
@@ -335,11 +351,17 @@ public:
   /// RevRmtMemCtrl: handle a remote memory write request
   virtual void handleWriteRqst( xbgasNicEvent* ev ) = 0;
 
+  /// RevRmtMemCtrl: handle a remote AMO request
+  virtual void handleAMORqst( xbgasNicEvent* ev )   = 0;
+
   /// RevRmtMemCtrl: handle a remote memory read response
   virtual void handleReadResp( xbgasNicEvent* ev )  = 0;
 
   /// RevRmtMemCtrl: handle a remote memory write response
   virtual void handleWriteResp( xbgasNicEvent* ev ) = 0;
+
+  /// RevRmtMemCtrl: handle a remote AMO response
+  virtual void handleAMOResp( xbgasNicEvent* ev )   = 0;
 
 protected:
   SST::Output* output;  ///< RevRmtMemCtrl: sst output object
@@ -503,6 +525,18 @@ public:
     RevFlag  Flags
   ) override;
 
+  /// RevBasicRmtMemCtrl: send a remote AMO request
+  bool sendRmtAMORqst(
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         SrcAddr,
+    size_t           Size,
+    uint8_t*         Buffer,
+    void*            Target,
+    const RmtMemReq& Req,
+    RevFlag          Flags
+  ) override;
+
   /// RevRmtMemCtrl: send a FENCE request
   bool sendFENCE( unsigned Hart ) override;
 
@@ -512,11 +546,17 @@ public:
   /// RevBasicRmtMemCtrl: handle a remote memory write request
   void handleWriteRqst( xbgasNicEvent* ev ) override;
 
+  /// RevRmtMemCtrl: handle a remote AMO request
+  void handleAMORqst( xbgasNicEvent* ev ) override;
+
   /// RevBasicRmtMemCtrl: handle a remote memory read response
   void handleReadResp( xbgasNicEvent* ev ) override;
 
   /// RevRmtMemCtrl: handle a remote memory write response
   void handleWriteResp( xbgasNicEvent* ev ) override;
+
+  /// RevRmtMemCtrl: handle a remote AMO response
+  void handleAMOResp( xbgasNicEvent* ev ) override;
 
   // protected:
   //   class RevRmtMemHandlers : public Event::HandlerBase {

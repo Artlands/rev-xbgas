@@ -308,6 +308,13 @@ public:
     rmtCtrl->sendRmtWriteUnLockRqst( Hart, Nmspace, Addr, sizeof( T ), DataMem, Target, Req, Flags, Aq, Rl );
   }
 
+  /// RevMem: template remote AMO memory interface
+  template<typename T>
+  void RmtAMOVal( unsigned Hart, uint64_t Nmspace, uint64_t Addr, T* Data, T* Target, const RmtMemReq& req, RevFlag flags ) {
+    uint8_t* DataMem = (uint8_t*) ( Data );
+    rmtCtrl->sendRmtAMORqst( Hart, Nmspace, Addr, sizeof( T ), DataMem, Target, req, flags );
+  }
+
   // ----------------------------------------------------
   // ---- Atomic/Future/LRSC Interfaces
   // ----------------------------------------------------

@@ -274,6 +274,104 @@ class RV32X : public RevExt {
     return true;
   }
 
+  template<RevFlag F_AMO>
+  static bool eamooper( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+    uint32_t flags = static_cast<uint32_t>( F_AMO );
+
+    if( Inst.aq && Inst.rl ) {
+      flags |= uint32_t( RevFlag::F_AQ ) | uint32_t( RevFlag::F_RL );
+    } else if( Inst.aq ) {
+      flags |= uint32_t( RevFlag::F_AQ );
+    } else if( Inst.rl ) {
+      flags |= uint32_t( RevFlag::F_RL );
+    }
+
+    if( R->IsRV32 ) {
+      auto Nmspace = R->GetE<uint32_t>( Inst.rs1 );
+      if( Nmspace == 0 ) {
+        MemReq req(
+          R->RV32[Inst.rs1], Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpAMO, true, R->GetMarkLoadComplete()
+        );
+        R->LSQueue->insert( req.LSQHashPair() );
+        M->AMOVal( F->GetHartToExecID(), R->RV32[Inst.rs1], &R->RV32[Inst.rs2], &R->RV32[Inst.rd], req, RevFlag{ flags } );
+      } else {
+        RmtMemReq req(
+          Nmspace,
+          R->RV32[Inst.rs1],
+          Inst.rd,
+          RevRegClass::RegGPR,
+          F->GetHartToExecID(),
+          RmtMemOp::AMORqst,
+          true,
+          R->GetMarkRmtLoadComplete()
+        );
+        R->RmtLSQueue->insert( req.LSQHashPair() );
+        M->RmtAMOVal(
+          F->GetHartToExecID(),
+          Nmspace,
+          R->RV32[Inst.rs1],
+          reinterpret_cast<int32_t*>( &R->RV32[Inst.rs2] ),
+          reinterpret_cast<int32_t*>( &R->RV32[Inst.rd] ),
+          req,
+          RevFlag{ flags }
+        );
+      }
+
+    } else {
+      flags |= uint32_t( RevFlag::F_SEXT64 );
+      auto Nmspace = R->GetE<uint64_t>( Inst.rs1 );
+      if( Nmspace == 0 ) {
+        MemReq req(
+          R->RV64[Inst.rs1], Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpAMO, true, R->GetMarkLoadComplete()
+        );
+        R->LSQueue->insert( req.LSQHashPair() );
+        M->AMOVal(
+          F->GetHartToExecID(),
+          R->RV64[Inst.rs1],
+          reinterpret_cast<int32_t*>( &R->RV64[Inst.rs2] ),
+          reinterpret_cast<int32_t*>( &R->RV64[Inst.rd] ),
+          req,
+          RevFlag{ flags }
+        );
+      } else {
+        RmtMemReq req(
+          Nmspace,
+          R->RV64[Inst.rs1],
+          Inst.rd,
+          RevRegClass::RegGPR,
+          F->GetHartToExecID(),
+          RmtMemOp::AMORqst,
+          true,
+          R->GetMarkRmtLoadComplete()
+        );
+        R->RmtLSQueue->insert( req.LSQHashPair() );
+        M->RmtAMOVal(
+          F->GetHartToExecID(),
+          Nmspace,
+          R->RV64[Inst.rs1],
+          reinterpret_cast<int32_t*>( &R->RV64[Inst.rs2] ),
+          reinterpret_cast<int32_t*>( &R->RV64[Inst.rd] ),
+          req,
+          RevFlag{ flags }
+        );
+      }
+    }
+    // update the cost
+    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+    R->AdvancePC( Inst );
+    return true;
+  }
+
+  static constexpr auto& eamoswapw = eamooper<RevFlag::F_AMOSWAP>;
+  static constexpr auto& eamoaddw  = eamooper<RevFlag::F_AMOADD>;
+  static constexpr auto& eamoxorw  = eamooper<RevFlag::F_AMOXOR>;
+  static constexpr auto& eamoandw  = eamooper<RevFlag::F_AMOAND>;
+  static constexpr auto& eamoorw   = eamooper<RevFlag::F_AMOOR>;
+  static constexpr auto& eamominw  = eamooper<RevFlag::F_AMOMIN>;
+  static constexpr auto& eamomaxw  = eamooper<RevFlag::F_AMOMAX>;
+  static constexpr auto& eamominuw = eamooper<RevFlag::F_AMOMINU>;
+  static constexpr auto& eamomaxuw = eamooper<RevFlag::F_AMOMAXU>;
+
   // ----------------------------------------------------------------------
   //
   // RISC-V RV32X Instructions
@@ -283,42 +381,51 @@ class RV32X : public RevExt {
   // clang-format off
   std::vector<RevInstEntry> RV32XTable = {
     // Load instructions are encoded in the I-type format
-    { RevInstDefaults().SetMnemonic( "elw %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b110 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elw  ) },
-    { RevInstDefaults().SetMnemonic( "elh %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b001 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elh  ) },
-    { RevInstDefaults().SetMnemonic( "elhu %rd, $imm(%rs1)"        ).SetOpcode( 0b1110111 ).SetFunct3( 0b101 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elhu ) },
-    { RevInstDefaults().SetMnemonic( "elb %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b000 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elb  ) },
-    { RevInstDefaults().SetMnemonic( "elbu %rd, $imm(%rs1)"        ).SetOpcode( 0b1110111 ).SetFunct3( 0b100 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elbu ) },
+    RevInstDefaults().SetMnemonic( "elw %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b110 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elw  ),
+    RevInstDefaults().SetMnemonic( "elh %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b001 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elh  ),
+    RevInstDefaults().SetMnemonic( "elhu %rd, $imm(%rs1)"        ).SetOpcode( 0b1110111 ).SetFunct3( 0b101 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elhu ),
+    RevInstDefaults().SetMnemonic( "elb %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b000 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elb  ),
+    RevInstDefaults().SetMnemonic( "elbu %rd, $imm(%rs1)"        ).SetOpcode( 0b1110111 ).SetFunct3( 0b100 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elbu ),
     // Store instructions are encoded in the S-type format
-    { RevInstDefaults().SetMnemonic( "esw %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b110 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeS ).SetImplFunc( esw ) },
-    { RevInstDefaults().SetMnemonic( "esh %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b001 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeS ).SetImplFunc( esh ) },
-    { RevInstDefaults().SetMnemonic( "esb %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b000 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeS ).SetImplFunc( esb ) },
+    RevInstDefaults().SetMnemonic( "esw %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b110 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeS ).SetImplFunc( esw ),
+    RevInstDefaults().SetMnemonic( "esh %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b001 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeS ).SetImplFunc( esh ),
+    RevInstDefaults().SetMnemonic( "esb %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b000 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeS ).SetImplFunc( esb ),
     // Raw Load instructions are encoded in the R-type format
-    { RevInstDefaults().SetMnemonic( "erlw %rd, %rs1, %ext2"       ).SetOpcode( 0b0110011 ).SetFunct3( 0b110 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlw  ) },
-    { RevInstDefaults().SetMnemonic( "erlh %rd, %rs1, %ext2"       ).SetOpcode( 0b0110011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlh  ) },
-    { RevInstDefaults().SetMnemonic( "erlhu %rd, %rs1, %ext2"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b101 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlhu ) },
-    { RevInstDefaults().SetMnemonic( "erlb %rd, %rs1, %ext2"       ).SetOpcode( 0b0110011 ).SetFunct3( 0b000 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlb  ) },
-    { RevInstDefaults().SetMnemonic( "erlbu %rd, %rs1, %ext2"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b100 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlbu ) },
+    RevInstDefaults().SetMnemonic( "erlw %rd, %rs1, %ext2"       ).SetOpcode( 0b0110011 ).SetFunct3( 0b110 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlw  ),
+    RevInstDefaults().SetMnemonic( "erlh %rd, %rs1, %ext2"       ).SetOpcode( 0b0110011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlh  ),
+    RevInstDefaults().SetMnemonic( "erlhu %rd, %rs1, %ext2"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b101 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlhu ),
+    RevInstDefaults().SetMnemonic( "erlb %rd, %rs1, %ext2"       ).SetOpcode( 0b0110011 ).SetFunct3( 0b000 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlb  ),
+    RevInstDefaults().SetMnemonic( "erlbu %rd, %rs1, %ext2"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b100 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlbu ),
     // Raw Store instructions are encoded in the R-type format
-    { RevInstDefaults().SetMnemonic( "ersw %rs1, %rs2, %ext3"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b110 ).SetFunct2or7( 0b0100010 ).SetFormat( RVTypeR ).SetImplFunc( ersw ) },
-    { RevInstDefaults().SetMnemonic( "ersh %rs1, %rs2, %ext3"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b0100010 ).SetFormat( RVTypeR ).SetImplFunc( ersh ) },
-    { RevInstDefaults().SetMnemonic( "ersb %rs1, %rs2, %ext3"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b000 ).SetFunct2or7( 0b0100010 ).SetFormat( RVTypeR ).SetImplFunc( ersb ) },
+    RevInstDefaults().SetMnemonic( "ersw %rs1, %rs2, %ext3"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b110 ).SetFunct2or7( 0b0100010 ).SetFormat( RVTypeR ).SetImplFunc( ersw ),
+    RevInstDefaults().SetMnemonic( "ersh %rs1, %rs2, %ext3"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b0100010 ).SetFormat( RVTypeR ).SetImplFunc( ersh ),
+    RevInstDefaults().SetMnemonic( "ersb %rs1, %rs2, %ext3"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b000 ).SetFunct2or7( 0b0100010 ).SetFormat( RVTypeR ).SetImplFunc( ersb ),
     // Address Management Instructions are encoded in the I-type format
-    { RevInstDefaults().SetMnemonic( "eaddi %rd, %ext1, $imm"      ).SetOpcode( 0b1111011 ).SetFunct3( 0b010 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddi  ) },
-    { RevInstDefaults().SetMnemonic( "eaddie %extd, %rs1, $imm"    ).SetOpcode( 0b1111011 ).SetFunct3( 0b101 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddie ) },
-    { RevInstDefaults().SetMnemonic( "eaddix %extd, %ext1, $imm"   ).SetOpcode( 0b1111011 ).SetFunct3( 0b100 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddix ) },
+    RevInstDefaults().SetMnemonic( "eaddi %rd, %ext1, $imm"      ).SetOpcode( 0b1111011 ).SetFunct3( 0b010 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddi  ),
+    RevInstDefaults().SetMnemonic( "eaddie %extd, %rs1, $imm"    ).SetOpcode( 0b1111011 ).SetFunct3( 0b101 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddie ),
+    RevInstDefaults().SetMnemonic( "eaddix %extd, %ext1, $imm"   ).SetOpcode( 0b1111011 ).SetFunct3( 0b100 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddix ),
     // Bulk Load instruction is encoded in the R4-type format
-    { RevInstDefaults().SetMnemonic( "eblw  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b110 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblw  ) },
-    { RevInstDefaults().SetMnemonic( "eblh  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblh  ) },
-    { RevInstDefaults().SetMnemonic( "eblhu %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b101 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblhu ) },
-    { RevInstDefaults().SetMnemonic( "eblb  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b000 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblb  ) },
-    { RevInstDefaults().SetMnemonic( "eblbu %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b100 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblbu ) },
+    RevInstDefaults().SetMnemonic( "eblw  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b110 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblw  ),
+    RevInstDefaults().SetMnemonic( "eblh  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblh  ),
+    RevInstDefaults().SetMnemonic( "eblhu %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b101 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblhu ),
+    RevInstDefaults().SetMnemonic( "eblb  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b000 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblb  ),
+    RevInstDefaults().SetMnemonic( "eblbu %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b100 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblbu ),
     // Bulk Store instruction is encoded in the R4-type format
-    { RevInstDefaults().SetMnemonic( "ebsw  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b110 ).SetFunct2or7( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsw ) },
-    { RevInstDefaults().SetMnemonic( "ebsh  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsh ) },
-    { RevInstDefaults().SetMnemonic( "ebsb  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b000 ).SetFunct2or7( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsb ) },
+    RevInstDefaults().SetMnemonic( "ebsw  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b110 ).SetFunct2or7( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsw ),
+    RevInstDefaults().SetMnemonic( "ebsh  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsh ),
+    RevInstDefaults().SetMnemonic( "ebsb  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b000 ).SetFunct2or7( 0b10 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( ebsb ),
     // Remote Atomic operations
-    { RevInstDefaults().SetMnemonic("elr.w %rd, (%rs1)"            ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0000010).Setrs2Class(RevRegClass::RegUNKNOWN).SetImplFunc( elrw ) },
-    { RevInstDefaults().SetMnemonic("esc.w %rd, %rs1, %rs2"        ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0000011).SetImplFunc( escw ) },
+    RevInstDefaults().SetMnemonic("elr.w %rd, (%rs1)"            ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0000010).Setrs2Class(RevRegClass::RegUNKNOWN).SetImplFunc( elrw ),
+    RevInstDefaults().SetMnemonic("esc.w %rd, %rs1, %rs2"        ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0000011).SetImplFunc( escw ),
+    RevInstDefaults().SetMnemonic("eamoswap.w %rd, %rs1, %rs2"   ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0000001).SetImplFunc( eamoswapw) ,
+    RevInstDefaults().SetMnemonic("eamoadd.w %rd, %rs1, %rs2"    ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0000000).SetImplFunc( eamoaddw  ),
+    RevInstDefaults().SetMnemonic("eamoxor.w %rd, %rs1, %rs2"    ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0000100).SetImplFunc( eamoxorw  ),
+    RevInstDefaults().SetMnemonic("eamoand.w %rd, %rs1, %rs2"    ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0001100).SetImplFunc( eamoandw  ),
+    RevInstDefaults().SetMnemonic("eamoor.w %rd, %rs1, %rs2"     ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0001000).SetImplFunc( eamoorw   ),
+    RevInstDefaults().SetMnemonic("eamomin.w %rd, %rs1, %rs2"    ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0010000).SetImplFunc( eamominw  ),
+    RevInstDefaults().SetMnemonic("eamomax.w %rd, %rs1, %rs2"    ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0010100).SetImplFunc( eamomaxw  ),
+    RevInstDefaults().SetMnemonic("eamominu.w %rd, %rs1, %rs2"   ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0011000).SetImplFunc( eamominuw ),
+    RevInstDefaults().SetMnemonic("eamomaxu.w %rd, %rs1, %rs2"   ).SetOpcode( 0b1101011 ).SetFunct3( 0b010 ).SetFunct2or7(0b0011100).SetImplFunc( eamomaxuw ),
 
   };
   // clang-format on
