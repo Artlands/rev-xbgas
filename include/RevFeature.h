@@ -82,7 +82,7 @@ public:
   bool IsRV32() const { return xlen == 32; }
 
   /// IsRV64: Is the device an RV64
-  bool IsRV64() const { return xlen == 64; }
+  bool IsRV64() const { return xlen >= 64; }
 
   /// HasF: Does the device support F?
   bool HasF() const { return IsModeEnabled( RV_F ); }

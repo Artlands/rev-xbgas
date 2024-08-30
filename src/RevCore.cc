@@ -224,6 +224,8 @@ bool RevCore::SeedInstTable() {
   // xBGAS Extension
   if( feature->IsModeEnabled( RV_XBGAS ) ) {
     EnableExt( new RV32X( feature, mem, output ) );
+    EnableExt( new Xamo( feature, mem, output ) );
+    EnableExt( new Xlrsc( feature, mem, output ) );
     if( feature->IsRV64() ) {
       EnableExt( new RV64X( feature, mem, output ) );
     }

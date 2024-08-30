@@ -162,6 +162,7 @@ class RevRegFile {
 public:
   RevCore* const Core;    ///< RevRegFile: Owning core of this register file's hart
   const bool     IsRV32;  ///< RevRegFile: Cached copy of Features->IsRV32()
+  const bool     IsRV64;  ///< RevRegFile: Cached copy of Features->IsRV64()
   const bool     HasD;    ///< RevRegFile: Cached copy of Features->HasD()
 
 private:
@@ -232,7 +233,7 @@ public:
   // Constructor which takes a RevCore to indicate its hart's parent core
   // Template is to prevent circular dependencies by not requiring RevCore to be a complete type now
   template<typename T, typename = std::enable_if_t<std::is_same_v<T, RevCore>>>
-  explicit RevRegFile( T* core ) : Core( core ), IsRV32( core->GetRevFeature()->IsRV32() ), HasD( core->GetRevFeature()->HasD() ) {}
+  explicit RevRegFile( T* core ) : Core( core ), IsRV64( core->GetRevFeature()->IsRV64() ), HasD( core->GetRevFeature()->HasD() ) {}
 
   /// RevRegFile: disallow copying and assignment
   RevRegFile( const RevRegFile& )            = delete;
@@ -564,8 +565,8 @@ public:
   friend class RevCore;
   friend class RV32A;
   friend class RV64A;
-  friend class RV32X;
-  friend class RV64X;
+  friend class Xamo;
+  friend class Xlrsc;
 };  // class RevRegFile
 
 }  // namespace SST::RevCPU
