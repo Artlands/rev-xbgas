@@ -57,7 +57,7 @@ bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t S
   return true;
 }
 
-bool xbgasNicEvent::buildREADLOCKRqst( uint64_t SrcAddr, size_t Size, RevFlag Fl, uint8_t Aq, uint8_t Rl ) {
+bool xbgasNicEvent::buildREADLOCKRqst( uint64_t SrcAddr, size_t Size, RevFlag Fl ) {
   if( !setOp( RmtMemOp::READLOCKRqst ) )
     return false;
   if( !setId( main_id++ ) )
@@ -71,10 +71,6 @@ bool xbgasNicEvent::buildREADLOCKRqst( uint64_t SrcAddr, size_t Size, RevFlag Fl
   if( !setStride( Size ) )
     return false;
   if( !setFlags( Fl ) )
-    return false;
-  if( !setAq( Aq ) )
-    return false;
-  if( !setRl( Rl ) )
     return false;
   return true;
 }
@@ -104,7 +100,7 @@ bool xbgasNicEvent::buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nel
   return true;
 }
 
-bool xbgasNicEvent::buildWRITEUNLOCKRqst( uint64_t DestAddr, size_t Size, RevFlag Fl, uint8_t* Buffer, uint8_t Aq, uint8_t Rl ) {
+bool xbgasNicEvent::buildWRITEUNLOCKRqst( uint64_t DestAddr, size_t Size, RevFlag Fl, uint8_t* Buffer ) {
   if( !setOp( RmtMemOp::WRITEUNLOCKRqst ) )
     return false;
   if( !setId( main_id++ ) )
@@ -118,10 +114,6 @@ bool xbgasNicEvent::buildWRITEUNLOCKRqst( uint64_t DestAddr, size_t Size, RevFla
   if( !setStride( Size ) )
     return false;
   if( !setFlags( Fl ) )
-    return false;
-  if( !setAq( Aq ) )
-    return false;
-  if( !setRl( Rl ) )
     return false;
   if( !setData( Buffer, Size ) )
     return false;

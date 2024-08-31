@@ -22,8 +22,8 @@ class Xlrsc : public RevExt {
   template<typename XLEN>
   static bool elr( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     static_assert( std::is_unsigned_v<XLEN>, "XLEN must be unsigned integral type" );
-    auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
-    auto Addr     = R->GetX<uint64_t>( Inst.rs1 );
+    auto nmspace  = R->GetE<uint64_t>( Inst.rs1 );
+    auto addr     = R->GetX<uint64_t>( Inst.rs1 );
 
     // Flags for LR memory load
     RevFlag flags = RevFlag::F_NONE;
@@ -42,17 +42,17 @@ class Xlrsc : public RevExt {
       target = &R->RV32[Inst.rd];
     }
 
-    if( Nmspace == 0 ) {
-      MemReq req( Addr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpREADLOCK, true, R->GetMarkLoadComplete() );
+    if( nmspace == 0 ) {
+      MemReq req( addr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpREADLOCK, true, R->GetMarkLoadComplete() );
       R->LSQueue->insert( req.LSQHashPair() );
-      M->LR( F->GetHartToExecID(), Addr, target, Inst.aq, Inst.rl, req, flags );
+      M->LR( F->GetHartToExecID(), addr, sizeof( XLEN ), target, req, flags );
     } else {
       // Send load-reserve (Remote READLOCK) request to the remote node
       RmtMemReq req(
-        Nmspace, Addr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), RmtMemOp::READLOCKRqst, true, R->GetMarkRmtLoadComplete()
+        nmspace, addr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), RmtMemOp::READLOCKRqst, true, R->GetMarkRmtLoadComplete()
       );
       R->RmtLSQueue->insert( req.LSQHashPair() );
-      M->RmtLR( F->GetHartToExecID(), Nmspace, Addr, target, Inst.aq, Inst.rl, req, flags );
+      M->RmtLR( F->GetHartToExecID(), nmspace, addr, sizeof( XLEN ), target, req, flags );
     }
 
     R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
@@ -64,9 +64,9 @@ class Xlrsc : public RevExt {
   template<typename XLEN>
   static bool esc( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     static_assert( std::is_unsigned_v<XLEN>, "TYPE must be unsigned integral type" );
-    auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
-    auto Addr     = R->GetX<uint64_t>( Inst.rs1 );
-    auto Val      = R->GetX<XLEN>( Inst.rs2 );
+    auto nmspace  = R->GetE<uint64_t>( Inst.rs1 );
+    auto addr     = R->GetX<uint64_t>( Inst.rs1 );
+    auto val      = R->GetX<XLEN>( Inst.rs2 );
 
     // Flags for SC Store Conditional
     RevFlag flags = RevFlag::F_NONE;
@@ -83,12 +83,13 @@ class Xlrsc : public RevExt {
       target = &R->RV32[Inst.rd];
     }
 
-    if( Nmspace == 0 ) {
-      M->SC( F->GetHartToExecID(), Addr, &Val, target, Inst.aq, Inst.rl, flags );
+    if( nmspace == 0 ) {
+      bool sc = M->SC( F->GetHartToExecID(), addr, sizeof( XLEN ), &val, flags );
+      R->SetX( Inst.rd, !sc );
     } else {
       RmtMemReq req(
-        Nmspace,
-        Addr,
+        nmspace,
+        addr,
         Inst.rd,
         RevRegClass::RegGPR,
         F->GetHartToExecID(),
@@ -98,7 +99,7 @@ class Xlrsc : public RevExt {
       );
       R->RmtLSQueue->insert( req.LSQHashPair() );
       // Send store-conditional request to the remote node
-      M->RmtSC( F->GetHartToExecID(), Nmspace, Addr, &Val, target, Inst.aq, Inst.rl, req, flags );
+      M->RmtSC( F->GetHartToExecID(), nmspace, addr, sizeof( XLEN ), &val, target, req, flags );
     }
     R->AdvancePC( Inst );
     return true;

@@ -44,37 +44,22 @@ class RV32X : public RevExt {
 
   // xBGAS register operations
   static bool eaddi( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-    if( R->IsRV32 ) {
-      auto rs1 = R->GetE<uint32_t>( Inst.rs1 );
-      R->SetX( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
-    } else {
-      auto rs1 = R->GetE<uint64_t>( Inst.rs1 );
-      R->SetX( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
-    }
+    auto rs1 = R->GetE<uint64_t>( Inst.rs1 );
+    R->SetX( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
     R->AdvancePC( Inst );
     return true;
   }
 
   static bool eaddie( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-    if( R->IsRV32 ) {
-      auto rs1 = R->GetX<uint32_t>( Inst.rs1 );
-      R->SetE( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
-    } else {
-      auto rs1 = R->GetX<uint64_t>( Inst.rs1 );
-      R->SetE( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
-    }
+    auto rs1 = R->GetX<uint64_t>( Inst.rs1 );
+    R->SetE( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
     R->AdvancePC( Inst );
     return true;
   }
 
   static bool eaddix( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-    if( R->IsRV32 ) {
-      auto rs1 = R->GetX<uint32_t>( Inst.rs1 );
-      R->SetE( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
-    } else {
-      auto rs1 = R->GetX<uint64_t>( Inst.rs1 );
-      R->SetE( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
-    }
+    auto rs1 = R->GetX<uint64_t>( Inst.rs1 );
+    R->SetE( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
     R->AdvancePC( Inst );
     return true;
   }

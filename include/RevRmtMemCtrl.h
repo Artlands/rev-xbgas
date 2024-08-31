@@ -69,60 +69,44 @@ struct LocalLoadRecord {
 // ----------------------------------------
 class RevRmtMemOp {
 public:
-  /// RevRmtMemOp: constructor
-  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, RmtMemOp Op, RevFlag Flags );
+  /// RevRmtMemOp: constructor - fence
+  RevRmtMemOp( unsigned Hart, RmtMemOp Op );
 
-  /// RevRmtMemOp: overloaded constructor - read
-  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, void* Target, RmtMemOp Op, RevFlag Flags );
+  /// RevRmtMemOp: constructor - read
+  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, RmtMemOp Op, RevFlag Flags, void* Target );
 
-  /// RevRmtMemOp: overloaded constructor - write/bulk write
-  RevRmtMemOp(
-    unsigned Hart,
-    uint64_t Nmspace,
-    uint64_t DestAddr,
-    size_t   Size,
-    uint32_t Nelem,
-    uint32_t Stride,
-    uint8_t* Buffer,
-    RmtMemOp Op,
-    RevFlag  Flags
-  );
-
-  /// RevRmtMemOp: overloaded constructor - bulk read
+  /// RevRmtMemOp: constructor - bulk read
   RevRmtMemOp(
     unsigned Hart,
     uint64_t Nmspace,
     uint64_t SrcAddr,
+    uint64_t DestAddr,
     size_t   Size,
     uint32_t Nelem,
     uint32_t Stride,
-    uint64_t DestAddr,
     RmtMemOp Op,
     RevFlag  Flags
   );
 
-  /// RevRmtMemOp: overloaded constructor - Read lock
-  RevRmtMemOp(
-    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, void* Target, RmtMemOp Op, RevFlag Flags, uint8_t Aq, uint8_t Rl
-  );
+  /// RevRmtMemOp: overloaded constructor - write
+  RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, RmtMemOp Op, RevFlag Flags, uint8_t* Buffer );
 
-  /// RevRmtMemOp: overloaded constructor - Write unlock
+  /// RevRmtMemOp: overloaded constructor - bulk write
   RevRmtMemOp(
     unsigned Hart,
     uint64_t Nmspace,
     uint64_t DestAddr,
     size_t   Size,
-    void*    Target,
-    uint8_t* Buffer,
+    uint32_t Nelem,
+    uint32_t Stride,
     RmtMemOp Op,
     RevFlag  Flags,
-    uint8_t  Aq,
-    uint8_t  Rl
+    uint8_t* Buffer
   );
 
   /// RevRmtMemOp: overloaded constructor - AMO
   RevRmtMemOp(
-    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint8_t* Buffer, void* Target, RmtMemOp Op, RevFlag Flags
+    unsigned Hart, uint64_t Nmspace, uint64_t Addr, size_t Size, RmtMemOp Op, RevFlag Flags, void* Target, uint8_t* Buffer
   );
 
   /// RevRmtMemOp: destructor
@@ -162,12 +146,6 @@ public:
   /// RevRmtMemOp: retrieve the memory operation flags
   RevFlag getFlags() const { return Flags; }
 
-  /// RevRmtMemOp: retrieve the acquire flag
-  uint8_t getAq() const { return Aq; }
-
-  /// RevRmtMemOp: retrieve the release flag
-  uint8_t getRl() const { return Rl; }
-
   /// RevRmtMemOp: retrieve the standard set of memory flags for MemEventBase
   RevFlag getStdFlags() const { return RevFlag{ static_cast<uint32_t>( Flags ) & 0xFFFF }; }
 
@@ -201,12 +179,6 @@ public:
   /// RevRmtMemOp: set the flags
   void setFlags( RevFlag F ) { Flags = F; }
 
-  /// RevRmtMemOp: set the acquire flag
-  void setAq( uint8_t A ) { Aq = A; }
-
-  /// RevRmtMemOp: set the release flag
-  void setRl( uint8_t R ) { Rl = R; }
-
   /// RevRmtMemOp: set the memory operation request
   void setRmtMemReq( const RmtMemReq& Req ) { ProcReq = Req; }
 
@@ -219,11 +191,9 @@ private:
   uint32_t             Nelem{};     ///< RevRmtMemOp: number of elements
   uint32_t             Stride{};    ///< RevRmtMemOp: stride between elements
   RmtMemOp             Op{};        ///< RevRmtMemOp: memory operation
-  std::vector<uint8_t> Membuf{};    ///< RevRmtMemOp: Buffer
   RevFlag              Flags{};     ///< RevRmtMemOp: request Flags
-  uint8_t              Aq{};        ///< RevRmtMemOp: acquire flag
-  uint8_t              Rl{};        ///< RevRmtMemOp: release flag
   void*                Target{};    ///< RevRmtMemOp: Target register pointer
+  std::vector<uint8_t> Membuf{};    ///< RevRmtMemOp: Buffer
   RmtMemReq            ProcReq{};   ///< RevRmtMemOp: remote memory request from RevProc
 };
 
@@ -279,15 +249,7 @@ public:
 
   /// RevRmtMemCtrl: send a remote memory read lock request
   virtual bool sendRmtReadLockRqst(
-    unsigned         Hart,
-    uint64_t         Nmspace,
-    uint64_t         SrcAddr,
-    size_t           Size,
-    void*            Target,
-    const RmtMemReq& Req,
-    RevFlag          Flags,
-    uint8_t          aq,
-    uint8_t          rl
+    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, void* Target, const RmtMemReq& Req, RevFlag Flags
   ) = 0;
 
   virtual bool sendRmtWriteUnLockRqst(
@@ -295,12 +257,10 @@ public:
     uint64_t         Nmspace,
     uint64_t         DestAddr,
     size_t           Size,
-    uint8_t*         Buffer,
-    void*            Target,
     const RmtMemReq& Req,
     RevFlag          Flags,
-    uint8_t          aq,
-    uint8_t          rl
+    uint8_t*         Buffer,
+    void*            Target
   ) = 0;
 
   /// RevRmtMemCtrl: send a remote bulk memory read request
@@ -473,15 +433,7 @@ public:
 
   /// RevRmtMemCtrl: send a remote memory read lock request
   bool sendRmtReadLockRqst(
-    unsigned         Hart,
-    uint64_t         Nmspace,
-    uint64_t         SrcAddr,
-    size_t           Size,
-    void*            Target,
-    const RmtMemReq& Req,
-    RevFlag          Flags,
-    uint8_t          aq,
-    uint8_t          rl
+    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, void* Target, const RmtMemReq& Req, RevFlag Flags
   ) override;
 
   // RevRmtMemCtrl: send a remote memory store conditional request
@@ -490,12 +442,10 @@ public:
     uint64_t         Nmspace,
     uint64_t         DestAddr,
     size_t           Size,
-    uint8_t*         Buffer,
-    void*            Target,
     const RmtMemReq& Req,
     RevFlag          Flags,
-    uint8_t          aq,
-    uint8_t          rl
+    uint8_t*         Buffer,
+    void*            Target
   ) override;
 
   /// RevBasicRmtMemCtrl: send a remote bulk memory read request

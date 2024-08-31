@@ -78,12 +78,6 @@ public:
   /// xbgasNicEvent: retrieve the flags
   RevFlag getFlags() { return Flags; }
 
-  /// xbgasNicEvent: retrieve the Aq flags
-  uint8_t getAq() { return Aq; }
-
-  /// xbgasNicEvent: retrieve the Rl flags
-  uint8_t getRl() { return Rl; }
-
   /// xbgasNicEvent: set the Hart ID
   bool setHart( unsigned H ) {
     Hart = H;
@@ -147,18 +141,6 @@ public:
     return true;
   }
 
-  /// xbgasNicEvent: set the Aq flags
-  bool setAq( uint8_t Aq ) {
-    Aq = Aq;
-    return true;
-  }
-
-  /// xbgasNicEvent: set the Rl flags
-  bool setRl( uint8_t Rl ) {
-    Rl = Rl;
-    return true;
-  }
-
   // ------------------------------------------------
   // Packet Building Functions
   // ------------------------------------------------
@@ -167,13 +149,13 @@ public:
   bool buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl );
 
   /// xbgasNicEvent: build a READ LOCK request packet
-  bool buildREADLOCKRqst( uint64_t SrcAddr, size_t Size, RevFlag Fl, uint8_t Aq, uint8_t Rl );
+  bool buildREADLOCKRqst( uint64_t SrcAddr, size_t Size, RevFlag Fl );
 
   /// xbgasNicEvent: build a WRITE request packet
   bool buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer );
 
   /// xbgasNicEvent: build a WRITE UNLOCK request packet
-  bool buildWRITEUNLOCKRqst( uint64_t DestAddr, size_t Size, RevFlag Fl, uint8_t* Buffer, uint8_t Aq, uint8_t Rl );
+  bool buildWRITEUNLOCKRqst( uint64_t DestAddr, size_t Size, RevFlag Fl, uint8_t* Buffer );
 
   // xbgasNicEvent: build a AMO request packet
   bool buildAMORqst( uint64_t SrcAddr, size_t Size, uint8_t* Buffer, RevFlag Fl );
@@ -212,8 +194,6 @@ protected:
   std::vector<uint8_t> Data{};      ///< xbgasNicEvent: Data payload
   RmtMemOp             Opcode{};    ///< xbgasNicEvent: Operation code
   RevFlag              Flags{};     ///< xbgasNicEvent: Memory request flags
-  uint8_t              Aq{};        ///< xbgasNicEvent: Acquire flag
-  uint8_t              Rl{};        ///< xbgasNicEvent: Release flag
 
 private:
   static std::atomic<uint32_t> main_id;  ///< xbgasNicEvent: main request id counter
@@ -234,8 +214,6 @@ public:
     ser & Data;
     ser & Opcode;
     ser & Flags;
-    ser & Aq;
-    ser & Rl;
   }
 
   /// xbgasNicEvent: implements the NIC serialization

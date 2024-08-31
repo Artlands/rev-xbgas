@@ -134,7 +134,7 @@ uint32_t fclass( T val ) {
 /// Load template
 template<typename T>
 bool load( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  if( sizeof( T ) < sizeof( int64_t ) && R->IsRV32 ) {
+  if( sizeof( T ) < sizeof( int64_t ) && !R->IsRV64 ) {
     static constexpr RevFlag flags =
       sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
     auto   rs1 = R->GetX<uint64_t>( Inst.rs1 );  // read once for tracer
@@ -289,7 +289,7 @@ enum class OpKind { Imm, Reg };
 // The optional fourth parameter indicates W mode (32-bit on XLEN == 64)
 template<template<class> class OP, OpKind KIND, template<class> class SIGN = std::make_signed_t, bool W_MODE = false>
 bool oper( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  if( !W_MODE && R->IsRV32 ) {
+  if( !W_MODE && !R->IsRV64 ) {
     using T = SIGN<int32_t>;
     T rs1   = R->GetX<T>( Inst.rs1 );
     T rs2   = KIND == OpKind::Imm ? T( Inst.ImmSignExt( 12 ) ) : R->GetX<T>( Inst.rs2 );
@@ -328,22 +328,22 @@ struct ShiftRight {
 // Computes the UPPER half of multiplication, based on signedness
 template<bool rs1_is_signed, bool rs2_is_signed>
 bool uppermul( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  if( R->IsRV32 ) {
-    uint32_t rs1 = R->GetX<uint32_t>( Inst.rs1 );
-    uint32_t rs2 = R->GetX<uint32_t>( Inst.rs2 );
-    uint32_t mul = static_cast<uint32_t>( rs1 * int64_t( rs2 ) >> 32 );
-    if( rs1_is_signed && ( rs1 & ( uint32_t{ 1 } << 31 ) ) != 0 )
-      mul -= rs2;
-    if( rs2_is_signed && ( rs2 & ( uint32_t{ 1 } << 31 ) ) != 0 )
-      mul -= rs1;
-    R->SetX( Inst.rd, mul );
-  } else {
+  if( R->IsRV64 ) {
     uint64_t rs1 = R->GetX<uint64_t>( Inst.rs1 );
     uint64_t rs2 = R->GetX<uint64_t>( Inst.rs2 );
     uint64_t mul = static_cast<uint64_t>( rs1 * __int128( rs2 ) >> 64 );
     if( rs1_is_signed && ( rs1 & ( uint64_t{ 1 } << 63 ) ) != 0 )
       mul -= rs2;
     if( rs2_is_signed && ( rs2 & ( uint64_t{ 1 } << 63 ) ) != 0 )
+      mul -= rs1;
+    R->SetX( Inst.rd, mul );
+  } else {
+    uint32_t rs1 = R->GetX<uint32_t>( Inst.rs1 );
+    uint32_t rs2 = R->GetX<uint32_t>( Inst.rs2 );
+    uint32_t mul = static_cast<uint32_t>( rs1 * int64_t( rs2 ) >> 32 );
+    if( rs1_is_signed && ( rs1 & ( uint32_t{ 1 } << 31 ) ) != 0 )
+      mul -= rs2;
+    if( rs2_is_signed && ( rs2 & ( uint32_t{ 1 } << 31 ) ) != 0 )
       mul -= rs1;
     R->SetX( Inst.rd, mul );
   }
@@ -359,7 +359,7 @@ enum class DivRem { Div, Rem };
 // The optional third parameter indicates W mode (32-bit on XLEN == 64)
 template<DivRem DIVREM, template<class> class SIGN, bool W_MODE = false>
 bool divrem( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  if( !W_MODE && R->IsRV32 ) {
+  if( !W_MODE && !R->IsRV64 ) {
     using T = SIGN<int32_t>;
     T rs1   = R->GetX<T>( Inst.rs1 );
     T rs2   = R->GetX<T>( Inst.rs2 );
@@ -393,10 +393,10 @@ bool divrem( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
 template<template<class> class OP, template<class> class SIGN = std::make_unsigned_t>
 bool bcond( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   bool cond;
-  if( R->IsRV32 ) {
-    cond = OP()( R->GetX<SIGN<int32_t>>( Inst.rs1 ), R->GetX<SIGN<int32_t>>( Inst.rs2 ) );
-  } else {
+  if( R->IsRV64 ) {
     cond = OP()( R->GetX<SIGN<int64_t>>( Inst.rs1 ), R->GetX<SIGN<int64_t>>( Inst.rs2 ) );
+  } else {
+    cond = OP()( R->GetX<SIGN<int32_t>>( Inst.rs1 ), R->GetX<SIGN<int32_t>>( Inst.rs2 ) );
   }
   if( cond ) {
     R->SetPC( R->GetPC() + Inst.ImmSignExt( 13 ) );
@@ -538,237 +538,104 @@ static bool fcvtff( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst
 // xBGAS remote load template
 template<typename T>
 bool eload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  if( sizeof( T ) < sizeof( int64_t ) && R->IsRV32 ) {
-    static constexpr RevFlag flags =
-      sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
-    auto Nmspace = R->GetE<uint32_t>( Inst.rs1 );
-    auto SrcAddr = R->GetX<uint32_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
-    if( Nmspace == 0 ) {
+  auto    Nmspace = R->GetE<uint64_t>( Inst.rs1 );
+  auto    SrcAddr = R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
+  RevFlag Flags;
+  T*      DestReg;
 
-#ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
-#endif
-
-      return load<T>( F, R, M, Inst );
-    } else {
-
-#ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
-                << SrcAddr << std::endl;
-#endif
-
-      RmtMemReq req(
-        Nmspace,
-        SrcAddr,
-        1,
-        sizeof( T ),
-        _INVALID_ADDR_,
-        Inst.rd,
-        RevRegClass::RegGPR,
-        F->GetHartToExecID(),
-        RmtMemOp::READRqst,
-        true,
-        R->GetMarkRmtLoadComplete()
-      );
-      R->RmtLSQueue->insert( req.LSQHashPair() );
-      M->RmtRead(
-        F->GetHartToExecID(),
-        Nmspace,
-        SrcAddr,
-        reinterpret_cast<std::make_unsigned_t<T>*>( &R->RV32[Inst.rd] ),
-        std::move( req ),
-        flags
-      );
-    }
-    R->SetX( Inst.rd, static_cast<T>( R->RV32[Inst.rd] ) );
+  if( sizeof( T ) < sizeof( int64_t ) && !R->IsRV64 ) {
+    Flags   = sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
+    DestReg = reinterpret_cast<T*>( &R->RV32[Inst.rd] );
   } else {
-    static constexpr RevFlag flags =
-      sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
-    auto Nmspace = R->GetE<uint64_t>( Inst.rs1 );
-    auto SrcAddr = R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
-    if( Nmspace == 0 ) {
-
-#ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
-#endif
-
-      return load<T>( F, R, M, Inst );
-    } else {
-
-#ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
-                << SrcAddr << std::endl;
-#endif
-
-      RmtMemReq req(
-        Nmspace,
-        SrcAddr,
-        1,
-        sizeof( T ),
-        _INVALID_ADDR_,
-        Inst.rd,
-        RevRegClass::RegGPR,
-        F->GetHartToExecID(),
-        RmtMemOp::READRqst,
-        true,
-        R->GetMarkRmtLoadComplete()
-      );
-      R->RmtLSQueue->insert( req.LSQHashPair() );
-      M->RmtRead(
-        F->GetHartToExecID(),
-        Nmspace,
-        SrcAddr,
-        reinterpret_cast<std::make_unsigned_t<T>*>( &R->RV64[Inst.rd] ),
-        std::move( req ),
-        flags
-      );
-      R->SetX( Inst.rd, static_cast<T>( R->RV64[Inst.rd] ) );
-    }
+    Flags   = sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
+    DestReg = reinterpret_cast<T*>( &R->RV64[Inst.rd] );
   }
-  // update the cost
-  R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
-  R->AdvancePC( Inst );
-  return true;
+
+  if( Nmspace == 0 ) {
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory load" << std::endl;
+#endif
+    return load<T>( F, R, M, Inst );
+  } else {
+    RmtMemReq req(
+      Nmspace,
+      SrcAddr,
+      1,
+      sizeof( T ),
+      _INVALID_ADDR_,
+      Inst.rd,
+      RevRegClass::RegGPR,
+      F->GetHartToExecID(),
+      RmtMemOp::READRqst,
+      true,
+      R->GetMarkRmtLoadComplete()
+    );
+    R->RmtLSQueue->insert( req.LSQHashPair() );
+    M->RmtRead( F->GetHartToExecID(), Nmspace, SrcAddr, DestReg, std::move( req ), Flags );
+    // update the cost
+    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+    R->AdvancePC( Inst );
+    return true;
+  }
 }
 
 // xBGAS remote store template
 template<typename T>
 bool estore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  if( R->IsRV32 ) {
-    auto Nmspace  = R->GetE<uint32_t>( Inst.rs1 );
-    auto DestAddr = R->GetX<uint32_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
+  auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
+  auto DestAddr = R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
 
+  if( Nmspace == 0 ) {
 #ifdef _XBGAS_DEBUG_
-    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
-              << DestAddr << ", Value: 0x" << std::hex << (uint32_t) ( R->GetX<T>( Inst.rs1 ) ) << std::endl;
+    std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory store" << std::endl;
 #endif
-
-    if( Nmspace == 0 ) {
-
-#ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
-#endif
-
-      return store<T>( F, R, M, Inst );
-    } else {
-      M->RmtWrite( F->GetHartToExecID(), Nmspace, DestAddr, R->GetX<T>( Inst.rs2 ) );
-    }
+    return store<T>( F, R, M, Inst );
   } else {
-    auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
-    auto DestAddr = R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
-
-#ifdef _XBGAS_DEBUG_
-    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
-              << DestAddr << ", Value: 0x" << std::hex << (uint64_t) ( R->GetX<T>( Inst.rs1 ) ) << std::endl;
-#endif
-
-    if( Nmspace == 0 ) {
-
-#ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
-#endif
-
-      return store<T>( F, R, M, Inst );
-    } else {
-      M->RmtWrite( F->GetHartToExecID(), Nmspace, DestAddr, R->GetX<T>( Inst.rs2 ) );
-    }
+    M->RmtWrite( F->GetHartToExecID(), Nmspace, DestAddr, R->GetX<T>( Inst.rs2 ) );
+    R->AdvancePC( Inst );
+    return true;
   }
-  R->AdvancePC( Inst );
-  return true;
 }
 
 // xBGAS remote raw load template
 template<typename T>
 bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  if( sizeof( T ) < sizeof( int64_t ) && R->IsRV32 ) {
-    static constexpr RevFlag flags =
-      sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
-    auto Nmspace = R->GetE<uint32_t>( Inst.rs2 );
-    auto SrcAddr = R->GetX<uint32_t>( Inst.rs1 );
-    if( Nmspace == 0 ) {
+  auto    Nmspace = R->GetE<uint64_t>( Inst.rs2 );
+  auto    SrcAddr = R->GetX<uint64_t>( Inst.rs1 );
+  RevFlag Flags;
+  T*      DestReg;
 
-#ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
-#endif
-      MemReq req{ SrcAddr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpREAD, true, R->GetMarkLoadComplete() };
-      R->LSQueue->insert( req.LSQHashPair() );
-      M->ReadVal( F->GetHartToExecID(), SrcAddr, reinterpret_cast<T*>( &R->RV32[Inst.rd] ), std::move( req ), flags );
-    } else {
-
-#ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
-                << SrcAddr << std::endl;
-#endif
-
-      RmtMemReq req(
-        Nmspace,
-        SrcAddr,
-        1,
-        sizeof( T ),
-        _INVALID_ADDR_,
-        Inst.rd,
-        RevRegClass::RegGPR,
-        F->GetHartToExecID(),
-        RmtMemOp::READRqst,
-        true,
-        R->GetMarkRmtLoadComplete()
-      );
-      R->RmtLSQueue->insert( req.LSQHashPair() );
-      M->RmtRead(
-        F->GetHartToExecID(),
-        Nmspace,
-        SrcAddr,
-        reinterpret_cast<std::make_unsigned_t<T>*>( &R->RV32[Inst.rd] ),
-        std::move( req ),
-        flags
-      );
-    }
-    R->SetX( Inst.rd, static_cast<T>( R->RV32[Inst.rd] ) );
+  if( sizeof( T ) < sizeof( int64_t ) && !R->IsRV64 ) {
+    Flags   = sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
+    DestReg = reinterpret_cast<T*>( &R->RV32[Inst.rd] );
   } else {
-    static constexpr RevFlag flags =
-      sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
-    auto Nmspace = R->GetE<uint64_t>( Inst.rs2 );
-    auto SrcAddr = R->GetX<uint64_t>( Inst.rs1 );
-    if( Nmspace == 0 ) {
+    Flags   = sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
+    DestReg = reinterpret_cast<T*>( &R->RV64[Inst.rd] );
+  }
 
+  if( Nmspace == 0 ) {
 #ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
+    std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory load" << std::endl;
 #endif
-
-      MemReq req{ SrcAddr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpREAD, true, R->GetMarkLoadComplete() };
-      R->LSQueue->insert( req.LSQHashPair() );
-      M->ReadVal( F->GetHartToExecID(), SrcAddr, reinterpret_cast<T*>( &R->RV64[Inst.rd] ), std::move( req ), flags );
-    } else {
-
-#ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " eload: Nmspace: " << Nmspace << ", SrcAddr: 0x" << std::hex
-                << SrcAddr << std::endl;
-#endif
-
-      RmtMemReq req(
-        Nmspace,
-        SrcAddr,
-        1,
-        sizeof( T ),
-        _INVALID_ADDR_,
-        Inst.rd,
-        RevRegClass::RegGPR,
-        F->GetHartToExecID(),
-        RmtMemOp::READRqst,
-        true,
-        R->GetMarkRmtLoadComplete()
-      );
-      R->RmtLSQueue->insert( req.LSQHashPair() );
-      M->RmtRead(
-        F->GetHartToExecID(),
-        Nmspace,
-        SrcAddr,
-        reinterpret_cast<std::make_unsigned_t<T>*>( &R->RV64[Inst.rd] ),
-        std::move( req ),
-        flags
-      );
-      R->SetX( Inst.rd, static_cast<T>( R->RV64[Inst.rd] ) );
-    }
+    MemReq req{ SrcAddr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpREAD, true, R->GetMarkLoadComplete() };
+    R->LSQueue->insert( req.LSQHashPair() );
+    M->ReadVal( F->GetHartToExecID(), SrcAddr, DestReg, std::move( req ), Flags );
+  } else {
+    RmtMemReq req(
+      Nmspace,
+      SrcAddr,
+      1,
+      sizeof( T ),
+      _INVALID_ADDR_,
+      Inst.rd,
+      RevRegClass::RegGPR,
+      F->GetHartToExecID(),
+      RmtMemOp::READRqst,
+      true,
+      R->GetMarkRmtLoadComplete()
+    );
+    R->RmtLSQueue->insert( req.LSQHashPair() );
+    M->RmtRead( F->GetHartToExecID(), Nmspace, SrcAddr, DestReg, std::move( req ), Flags );
   }
   // update the cost
   R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
@@ -779,43 +646,16 @@ bool erload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
 // xBGAS remote raw store template
 template<typename T>
 bool erstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  if( R->IsRV32 ) {
-    auto Nmspace  = R->GetE<uint32_t>( Inst.rd );
-    auto DestAddr = R->GetX<uint32_t>( Inst.rs2 );
+  auto Nmspace  = R->GetE<uint64_t>( Inst.rd );
+  auto DestAddr = R->GetX<uint64_t>( Inst.rs2 );
 
+  if( Nmspace == 0 ) {
 #ifdef _XBGAS_DEBUG_
-    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
-              << DestAddr << ", Value: 0x" << std::hex << (uint32_t) ( R->GetX<T>( Inst.rs1 ) ) << std::endl;
+    std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory store" << std::endl;
 #endif
-
-    if( Nmspace == 0 ) {
-
-#ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
-#endif
-
-      M->Write( F->GetHartToExecID(), DestAddr, R->GetX<T>( Inst.rs1 ) );
-    } else {
-      M->RmtWrite( F->GetHartToExecID(), Nmspace, DestAddr, R->GetX<T>( Inst.rs1 ) );
-    }
+    M->Write( F->GetHartToExecID(), DestAddr, R->GetX<T>( Inst.rs1 ) );
   } else {
-    auto Nmspace  = R->GetE<uint64_t>( Inst.rd );
-    auto DestAddr = R->GetX<uint64_t>( Inst.rs2 );
-
-#ifdef _XBGAS_DEBUG_
-    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " estore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
-              << DestAddr << ", Value: 0x" << std::hex << (uint64_t) ( R->GetX<T>( Inst.rs1 ) ) << std::endl;
-#endif
-
-    if( Nmspace == 0 ) {
-
-#ifdef _XBGAS_DEBUG_
-      std::cout << "_XBGAS_DEBUG_ : Namespace is 0, go to the local memory access" << std::endl;
-#endif
-      M->Write( F->GetHartToExecID(), DestAddr, R->GetX<T>( Inst.rs1 ) );
-    } else {
-      M->RmtWrite( F->GetHartToExecID(), Nmspace, DestAddr, R->GetX<T>( Inst.rs1 ) );
-    }
+    M->RmtWrite( F->GetHartToExecID(), Nmspace, DestAddr, R->GetX<T>( Inst.rs1 ) );
   }
   R->AdvancePC( Inst );
   return true;
@@ -824,43 +664,29 @@ bool erstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
 // xBGAS remote bulk load template. Not supported in the current implementation.
 template<typename T>
 bool ebload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  if( sizeof( T ) < sizeof( int64_t ) && R->IsRV32 ) {
-    static constexpr RevFlag flags =
-      sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
-    auto DestAddr = R->GetX<uint32_t>( Inst.rd );
-    auto SrcAddr  = R->GetX<uint32_t>( Inst.rs1 );
-    auto Nmspace  = R->GetE<uint32_t>( Inst.rs1 );
-    auto Nelem    = R->GetX<uint32_t>( Inst.rs2 );
-    auto Stride   = R->GetX<uint32_t>( Inst.rs3 );
-    // Remote memory controller or NIC handles the bulk load operation anyway, no matter the namespace
+  auto DestAddr = R->GetX<uint64_t>( Inst.rd );
+  auto SrcAddr  = R->GetX<uint64_t>( Inst.rs1 );
+  auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
+  auto Nelem    = R->GetX<uint32_t>( Inst.rs2 );
+  auto Stride   = R->GetX<uint32_t>( Inst.rs3 );
 
-#ifdef _XBGAS_DEBUG_
-    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " ebload-32: Nmspace: " << Nmspace << ", DestAddr: 0x"
-              << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem
-              << ", Stride: " << std::dec << Stride << std::endl;
-#endif
+  RevFlag Flags;
 
-    M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, Stride, DestAddr, flags );
+  if( sizeof( T ) < sizeof( int64_t ) && !R->IsRV64 ) {
+    Flags = sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
   } else {
-    static constexpr RevFlag flags =
-      sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
-    auto DestAddr = R->GetX<uint64_t>( Inst.rd );
-    auto SrcAddr  = R->GetX<uint64_t>( Inst.rs1 );
-    auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
-    auto Nelem    = R->GetX<uint64_t>( Inst.rs2 );
-    auto Stride   = R->GetX<uint64_t>( Inst.rs3 );
+    Flags = sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
+  }
 
 #ifdef _XBGAS_DEBUG_
-    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebload-64: Nmspace: " << Nmspace << " Register: e"
-              << Inst.rs1 << ", DestAddr: 0x" << std::hex << DestAddr << ", Register: x" << std::dec << Inst.rd << ", SrcAddr: 0x"
-              << std::hex << SrcAddr << ", Register: x" << std::dec << Inst.rs1 << ", Nelem: " << std::dec << Nelem
-              << ", Register: x" << std::dec << Inst.rs2 << ", Stride: " << std::dec << Stride << ", Register: x" << std::dec
-              << Inst.rs3 << std::endl;
+  std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebload: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
+            << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem << ", Stride: " << std::dec
+            << Stride << std::endl;
 #endif
 
-    // Remote memory controller or NIC handles the bulk load operation anyway, no matter the namespace
-    M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, Stride, DestAddr, flags );
-  }
+  M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, Stride, DestAddr, Flags );
+  // update the cost
+  R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
   R->AdvancePC( Inst );
   return true;
 }
@@ -868,37 +694,19 @@ bool ebload( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
 // xBGAS remote bulk store template. Not supported in the current implementation.
 template<typename T>
 bool ebstore( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  if( sizeof( T ) < sizeof( int64_t ) && R->IsRV32 ) {
-    auto SrcAddr  = R->GetX<uint32_t>( Inst.rd );
-    auto DestAddr = R->GetX<uint32_t>( Inst.rs1 );
-    auto Nmspace  = R->GetE<uint32_t>( Inst.rs1 );
-    auto Nelem    = R->GetX<uint32_t>( Inst.rs2 );
-    auto Stride   = R->GetX<uint32_t>( Inst.rs3 );
+  auto SrcAddr  = R->GetX<uint64_t>( Inst.rd );
+  auto DestAddr = R->GetX<uint64_t>( Inst.rs1 );
+  auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
+  auto Nelem    = R->GetX<uint32_t>( Inst.rs2 );
+  auto Stride   = R->GetX<uint32_t>( Inst.rs3 );
 
 #ifdef _XBGAS_DEBUG_
-    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint32_t>( 10 ) << " ebstore-32: Nmspace: " << Nmspace << ", DestAddr: 0x"
-              << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem
-              << ", Stride: " << std::dec << Stride << std::endl;
+  std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebstore-32: Nmspace: " << Nmspace << ", DestAddr: 0x"
+            << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem
+            << ", Stride: " << std::dec << Stride << std::endl;
 #endif
 
-    // Remote memory controller or NIC handles the bulk load operation anyway, no matter the namespace
-    M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, Stride, SrcAddr );
-  } else {
-    auto SrcAddr  = R->GetX<uint64_t>( Inst.rd );
-    auto DestAddr = R->GetX<uint64_t>( Inst.rs1 );
-    auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
-    auto Nelem    = R->GetX<uint64_t>( Inst.rs2 );
-    auto Stride   = R->GetX<uint64_t>( Inst.rs3 );
-
-#ifdef _XBGAS_DEBUG_
-    std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebstore-64: Nmspace: " << Nmspace << ", DestAddr: 0x"
-              << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem
-              << ", Stride: " << std::dec << Stride << std::endl;
-#endif
-
-    // Remote memory controller or NIC handles the bulk load operation anyway, no matter the namespace
-    M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, Stride, SrcAddr );
-  }
+  M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, Stride, SrcAddr );
   R->AdvancePC( Inst );
   return true;
 }
