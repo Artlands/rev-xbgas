@@ -30,13 +30,13 @@
 #include "insns/RV64M.h"
 #include "insns/RV64P.h"
 #include "insns/RV64X.h"
+#include "insns/Xamo.h"
+#include "insns/Xlrsc.h"
 #include "insns/Zaamo.h"
 #include "insns/Zalrsc.h"
 #include "insns/Zfa.h"
 #include "insns/Zicbom.h"
 #include "insns/Zicsr.h"
 #include "insns/Zifencei.h"
-// #include "insns/Xamo.h"
-#include "insns/Xlrsc.h"
 
 #endif
