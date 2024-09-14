@@ -47,8 +47,7 @@ enum RevFeatureType : uint32_t {
   RV_XBGAS    = 1 << 21,  ///< RevFeatureType: xBGAS-extension
 };
 
-class RevFeature {
-public:
+struct RevFeature {
   /// RevFeature: standard constructor
   RevFeature( std::string Machine, SST::Output* Output, unsigned Min, unsigned Max, unsigned Id );
 
@@ -101,14 +100,14 @@ public:
   void SetHartToExecID( unsigned hart ) { HartToExecID = hart; }
 
 private:
-  std::string    machine{};       ///< RevFeature: feature string
-  SST::Output*   output{};        ///< RevFeature: output handler
-  unsigned       MinCost{};       ///< RevFeature: min memory cost
-  unsigned       MaxCost{};       ///< RevFeature: max memory cost
-  unsigned       ProcID{};        ///< RevFeature: RISC-V Proc ID
-  unsigned       HartToExecID{};  ///< RevFeature: The current executing Hart on RevCore
-  RevFeatureType features{};      ///< RevFeature: feature elements
-  unsigned       xlen{};          ///< RevFeature: RISC-V Xlen
+  const std::string  machine;                 ///< RevFeature: feature string
+  SST::Output* const output;                  ///< RevFeature: output handler
+  const unsigned     MinCost;                 ///< RevFeature: min memory cost
+  const unsigned     MaxCost;                 ///< RevFeature: max memory cost
+  const unsigned     ProcID;                  ///< RevFeature: RISC-V Proc ID
+  unsigned           HartToExecID{};          ///< RevFeature: The current executing Hart on RevCore
+  RevFeatureType     features{ RV_UNKNOWN };  ///< RevFeature: feature elements
+  unsigned           xlen{};                  ///< RevFeature: RISC-V Xlen
 
   /// ParseMachineModel: parse the machine model string
   bool ParseMachineModel();

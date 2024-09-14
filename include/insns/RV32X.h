@@ -43,21 +43,21 @@ class RV32X : public RevExt {
   static constexpr auto& ersb  = erstore<uint8_t>;
 
   // xBGAS register operations
-  static bool eaddi( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  static bool eaddi( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto rs1 = R->GetE<uint64_t>( Inst.rs1 );
     R->SetX( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
     R->AdvancePC( Inst );
     return true;
   }
 
-  static bool eaddie( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  static bool eaddie( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto rs1 = R->GetX<uint64_t>( Inst.rs1 );
     R->SetE( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
     R->AdvancePC( Inst );
     return true;
   }
 
-  static bool eaddix( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  static bool eaddix( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto rs1 = R->GetX<uint64_t>( Inst.rs1 );
     R->SetE( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
     R->AdvancePC( Inst );
@@ -85,15 +85,15 @@ class RV32X : public RevExt {
   // clang-format off
   std::vector<RevInstEntry> RV32XTable = {
     // Load instructions are encoded in the I-type format
-    RevInstDefaults().SetMnemonic( "elw %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b110 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elw  ),
-    RevInstDefaults().SetMnemonic( "elh %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b001 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elh  ),
-    RevInstDefaults().SetMnemonic( "elhu %rd, $imm(%rs1)"        ).SetOpcode( 0b1110111 ).SetFunct3( 0b101 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elhu ),
-    RevInstDefaults().SetMnemonic( "elb %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b000 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elb  ),
-    RevInstDefaults().SetMnemonic( "elbu %rd, $imm(%rs1)"        ).SetOpcode( 0b1110111 ).SetFunct3( 0b100 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( elbu ),
+    RevInstDefaults().SetMnemonic( "elw %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b110 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( elw  ),
+    RevInstDefaults().SetMnemonic( "elh %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b001 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( elh  ),
+    RevInstDefaults().SetMnemonic( "elhu %rd, $imm(%rs1)"        ).SetOpcode( 0b1110111 ).SetFunct3( 0b101 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( elhu ),
+    RevInstDefaults().SetMnemonic( "elb %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b000 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( elb  ),
+    RevInstDefaults().SetMnemonic( "elbu %rd, $imm(%rs1)"        ).SetOpcode( 0b1110111 ).SetFunct3( 0b100 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( elbu ),
     // Store instructions are encoded in the S-type format
-    RevInstDefaults().SetMnemonic( "esw %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b110 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeS ).SetImplFunc( esw ),
-    RevInstDefaults().SetMnemonic( "esh %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b001 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeS ).SetImplFunc( esh ),
-    RevInstDefaults().SetMnemonic( "esb %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b000 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeS ).SetImplFunc( esb ),
+    RevInstDefaults().SetMnemonic( "esw %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b110 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeS ).SetImplFunc( esw ),
+    RevInstDefaults().SetMnemonic( "esh %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b001 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeS ).SetImplFunc( esh ),
+    RevInstDefaults().SetMnemonic( "esb %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b000 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeS ).SetImplFunc( esb ),
     // Raw Load instructions are encoded in the R-type format
     RevInstDefaults().SetMnemonic( "erlw %rd, %rs1, %ext2"       ).SetOpcode( 0b0110011 ).SetFunct3( 0b110 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlw  ),
     RevInstDefaults().SetMnemonic( "erlh %rd, %rs1, %ext2"       ).SetOpcode( 0b0110011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erlh  ),
@@ -105,9 +105,9 @@ class RV32X : public RevExt {
     RevInstDefaults().SetMnemonic( "ersh %rs1, %rs2, %ext3"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b0100010 ).SetFormat( RVTypeR ).SetImplFunc( ersh ),
     RevInstDefaults().SetMnemonic( "ersb %rs1, %rs2, %ext3"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b000 ).SetFunct2or7( 0b0100010 ).SetFormat( RVTypeR ).SetImplFunc( ersb ),
     // Address Management Instructions are encoded in the I-type format
-    RevInstDefaults().SetMnemonic( "eaddi %rd, %ext1, $imm"      ).SetOpcode( 0b1111011 ).SetFunct3( 0b010 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddi  ),
-    RevInstDefaults().SetMnemonic( "eaddie %extd, %rs1, $imm"    ).SetOpcode( 0b1111011 ).SetFunct3( 0b101 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddie ),
-    RevInstDefaults().SetMnemonic( "eaddix %extd, %ext1, $imm"   ).SetOpcode( 0b1111011 ).SetFunct3( 0b100 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddix ),
+    RevInstDefaults().SetMnemonic( "eaddi %rd, %ext1, $imm"      ).SetOpcode( 0b1111011 ).SetFunct3( 0b010 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddi  ),
+    RevInstDefaults().SetMnemonic( "eaddie %extd, %rs1, $imm"    ).SetOpcode( 0b1111011 ).SetFunct3( 0b101 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddie ),
+    RevInstDefaults().SetMnemonic( "eaddix %extd, %ext1, $imm"   ).SetOpcode( 0b1111011 ).SetFunct3( 0b100 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( eaddix ),
     // Bulk Load instruction is encoded in the R4-type format
     RevInstDefaults().SetMnemonic( "eblw  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b110 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblw  ),
     RevInstDefaults().SetMnemonic( "eblh  %rd, %rs1, %rs2, %rs3" ).SetOpcode( 0b1011011 ).SetFunct3( 0b001 ).SetFunct2or7( 0b11 ).Setrs3Class( RevRegClass::RegGPR ).SetFormat( RVTypeR4 ).SetImplFunc( eblh  ),
@@ -123,7 +123,7 @@ class RV32X : public RevExt {
 
 public:
   /// RV32X: standard constructor
-  RV32X( RevFeature* Feature, RevMem* RevMem, SST::Output* Output ) : RevExt( "RV32X", Feature, RevMem, Output ) {
+  RV32X( const RevFeature* Feature, RevMem* RevMem, SST::Output* Output ) : RevExt( "RV32X", Feature, RevMem, Output ) {
     SetTable( std::move( RV32XTable ) );
   }
 

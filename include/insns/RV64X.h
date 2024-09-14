@@ -21,22 +21,22 @@ class RV64X : public RevExt {
   // xBGAS remote loads
   static constexpr auto& eld = eload<int64_t>;
 
-  static bool ele( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) { return true; }
+  static bool ele( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) { return true; }
 
   // xBGAS remote stores
   static constexpr auto& esd = estore<uint64_t>;
 
-  static bool ese( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) { return true; }
+  static bool ese( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) { return true; }
 
   // xBGAS remote raw loads
   static constexpr auto& erld = erload<int64_t>;
 
-  static bool erle( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) { return true; }
+  static bool erle( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) { return true; }
 
   // xBGAS remote raw stores
   static constexpr auto& ersd = erstore<uint64_t>;
 
-  static bool erse( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) { return true; }
+  static bool erse( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) { return true; }
 
   // xBGAS remote bulk loads
   static constexpr auto& ebld = ebload<int64_t>;
@@ -52,11 +52,11 @@ class RV64X : public RevExt {
   // clang-format off
   std::vector<RevInstEntry> RV64XTable = {
     // Load instructions are encoded in the I-type format
-    RevInstDefaults().SetMnemonic( "eld %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b011 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( eld ),
-    RevInstDefaults().SetMnemonic( "ele %extd, $imm(%rs1)"       ).SetOpcode( 0b1110111 ).SetFunct3( 0b111 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeI ).SetImplFunc( ele ),
+    RevInstDefaults().SetMnemonic( "eld %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b011 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( eld ),
+    RevInstDefaults().SetMnemonic( "ele %extd, $imm(%rs1)"       ).SetOpcode( 0b1110111 ).SetFunct3( 0b111 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( ele ),
     // Store instructions are encoded in the S-type format
-    RevInstDefaults().SetMnemonic( "esd %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b011 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeS ).SetImplFunc( esd ),
-    RevInstDefaults().SetMnemonic( "ese %ext1, $imm(%rs2)"       ).SetOpcode( 0b1111011 ).SetFunct3( 0b111 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( FImm ).SetFormat( RVTypeS ).SetImplFunc( ese ),
+    RevInstDefaults().SetMnemonic( "esd %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b011 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeS ).SetImplFunc( esd ),
+    RevInstDefaults().SetMnemonic( "ese %ext1, $imm(%rs2)"       ).SetOpcode( 0b1111011 ).SetFunct3( 0b111 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeS ).SetImplFunc( ese ),
     // Raw Load instructions are encoded in the R-type format
     RevInstDefaults().SetMnemonic( "erld %rd, %rs1, %ext2"       ).SetOpcode( 0b0110011 ).SetFunct3( 0b011 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erld ),
     RevInstDefaults().SetMnemonic( "erle %extd, %rs1, %ext2"     ).SetOpcode( 0b0110011 ).SetFunct3( 0b111 ).SetFunct2or7( 0b1010110 ).SetrdClass( RevRegClass::RegUNKNOWN ).SetFormat( RVTypeR ).SetImplFunc( erle ),
@@ -72,7 +72,7 @@ class RV64X : public RevExt {
 
 public:
   /// RV64X: standard constructor
-  RV64X( RevFeature* Feature, RevMem* RevMem, SST::Output* Output ) : RevExt( "RV64X", Feature, RevMem, Output ) {
+  RV64X( const RevFeature* Feature, RevMem* RevMem, SST::Output* Output ) : RevExt( "RV64X", Feature, RevMem, Output ) {
     SetTable( std::move( RV64XTable ) );
   }
 

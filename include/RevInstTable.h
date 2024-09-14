@@ -64,11 +64,11 @@ enum RevInstF : int {  ///< Rev CPU Instruction Formats
   RVCTypeCJ     = 18,  ///< RevInstF: Compressed CJ-Type
 };
 
-enum RevImmFunc : int {  ///< Rev Immediate Values
-  FUnk = 0,              ///< RevRegClass: Imm12 is not used
-  FImm = 1,              ///< RevRegClass: Imm12 is an immediate
-  FEnc = 2,              ///< RevRegClass: Imm12 is an encoding value
-  FVal = 3,              ///< RevRegClass: Imm12 is an incoming register value
+enum class RevImmFunc : int {  ///< Rev Immediate Values
+  FUnk = 0,                    ///< RevRegClass: Imm12 is not used
+  FImm = 1,                    ///< RevRegClass: Imm12 is an immediate
+  FEnc = 2,                    ///< RevRegClass: Imm12 is an encoding value
+  FVal = 3,                    ///< RevRegClass: Imm12 is an incoming register value
 };
 
 /*! \struct RevInst
@@ -140,7 +140,7 @@ struct RevInstEntry {
   RevRegClass rs2Class = RevRegClass::RegGPR;      ///< RevInstEntry: Rs2 register class
   RevRegClass rs3Class = RevRegClass::RegUNKNOWN;  ///< RevInstEntry: Rs3 register class
   uint16_t    imm12    = 0;                        ///< RevInstEntry: imm12 value
-  RevImmFunc  imm      = FUnk;                     ///< RevInstEntry: does the imm12 exist?
+  RevImmFunc  imm      = RevImmFunc::FUnk;         ///< RevInstEntry: does the imm12 exist?
 
   // formatting
   RevInstF format      = RVTypeR;  ///< RevInstEntry: instruction format
@@ -149,7 +149,7 @@ struct RevInstEntry {
   bool     raisefpe    = false;    ///<RevInstEntry: Whether FP exceptions are raised
 
   /// Instruction implementation function
-  bool ( *func )( RevFeature*, RevRegFile*, RevMem*, const RevInst& ){};
+  bool ( *func )( const RevFeature*, RevRegFile*, RevMem*, const RevInst& ){};
 
   /// Predicate for enabling table entries for only certain encodings
   bool ( *predicate )( uint32_t Inst ) = []( uint32_t ) { return true; };
@@ -176,7 +176,7 @@ struct RevInstEntry {
   auto& SetCompressed(bool c)        { this->compressed = c;     return *this; }
   auto& Setrs2fcvtOp(uint8_t op)     { this->rs2fcvtOp  = op;    return *this; }
   auto& SetRaiseFPE(bool c)          { this->raisefpe   = c;     return *this; }
-  auto& SetImplFunc( bool func( RevFeature *, RevRegFile *, RevMem *, const RevInst& ) )
+  auto& SetImplFunc( bool func( const RevFeature *, RevRegFile *, RevMem *, const RevInst& ) )
                                      { this->func       = func;  return *this; }
   auto& SetPredicate( bool pred( uint32_t ) )
                                      { this->predicate  = pred;  return *this; }

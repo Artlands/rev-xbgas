@@ -16,6 +16,20 @@ namespace SST::RevCPU {
 
 using MemSegment = RevMem::MemSegment;
 
+std::unique_ptr<RevFeature> RevCore::CreateFeature() {
+  // initialize the machine model for the target core
+  std::string Machine;
+  if( !opts->GetMachineModel( id, Machine ) )
+    output->fatal( CALL_INFO, -1, "Error: failed to retrieve the machine model for core=%" PRIu32 "\n", id );
+
+  unsigned MinCost = 0;
+  unsigned MaxCost = 0;
+
+  opts->GetMemCost( id, MinCost, MaxCost );
+
+  return std::make_unique<RevFeature>( std::move( Machine ), output, MinCost, MaxCost, id );
+}
+
 RevCore::RevCore(
   unsigned                  id,
   RevOpts*                  opts,
@@ -26,17 +40,7 @@ RevCore::RevCore(
   SST::Output*              output
 )
   : id( id ), numHarts( numHarts ), opts( opts ), mem( mem ), loader( loader ), GetNewThreadID( std::move( GetNewTID ) ),
-    output( output ) {
-
-  // initialize the machine model for the target core
-  std::string Machine;
-  if( !opts->GetMachineModel( id, Machine ) )
-    output->fatal( CALL_INFO, -1, "Error: failed to retrieve the machine model for core=%" PRIu32 "\n", id );
-
-  unsigned MinCost = 0;
-  unsigned MaxCost = 0;
-
-  opts->GetMemCost( id, MinCost, MaxCost );
+    output( output ), featureUP( CreateFeature() ) {
 
   LSQueue = std::make_shared<std::unordered_multimap<uint64_t, MemReq>>();
   LSQueue->clear();
@@ -55,11 +59,6 @@ RevCore::RevCore(
     ) );
     ValidHarts.set( i, true );
   }
-
-  featureUP = std::make_unique<RevFeature>( Machine, output, MinCost, MaxCost, id );
-  feature   = featureUP.get();
-  if( !feature )
-    output->fatal( CALL_INFO, -1, "Error: failed to create the RevFeature object for core=%" PRIu32 "\n", id );
 
   unsigned Depth = 0;
   opts->GetPrefetchDepth( id, Depth );
@@ -1017,7 +1016,7 @@ RevInst RevCore::DecodeRInst( uint32_t Inst, unsigned Entry ) const {
   }
 
   // imm
-  if( ( InstTable[Entry].imm == FImm ) && ( InstTable[Entry].rs2Class == RevRegClass::RegUNKNOWN ) ) {
+  if( InstTable[Entry].imm == RevImmFunc::FImm && InstTable[Entry].rs2Class == RevRegClass::RegUNKNOWN ) {
     DInst.imm = DECODE_IMM12( Inst ) & 0b011111;
   } else {
     DInst.imm = 0x0;
@@ -1425,9 +1424,9 @@ RevInst RevCore::DecodeInst( uint32_t Inst ) const {
     // clang-format on
   }
 
-  // Stage 5: Determine if we have an imm12 field (ECALL and EBREAK)
+  // Stage 5: Determine if we have an imm12 field (ECALL and EBREAK, CBO)
   uint32_t Imm12 = 0x00ul;
-  if( inst42 == 0b100 && inst65 == 0b11 && Funct3 == 0 ) {
+  if( ( inst42 == 0b100 && inst65 == 0b11 && Funct3 == 0b000 ) || ( inst42 == 0b011 && inst65 == 0b00 && Funct3 == 0b010 ) ) {
     Imm12 = DECODE_IMM12( Inst );
   }
 
@@ -1566,8 +1565,7 @@ bool RevCore::DependencyCheck( unsigned HartID, const RevInst* I ) const {
   // For ECALL, check for any outstanding dependencies on a0-a7
   if( I->opcode == 0b1110011 && I->imm == 0 && I->funct3 == 0 && I->rd == 0 && I->rs1 == 0 ) {
     for( RevReg reg : { RevReg::a7, RevReg::a0, RevReg::a1, RevReg::a2, RevReg::a3, RevReg::a4, RevReg::a5, RevReg::a6 } ) {
-      if( LSQCheck( HartToDecodeID, RegFile, uint16_t( reg ), RevRegClass::RegGPR ) ||
-          ScoreboardCheck( RegFile, uint16_t( reg ), RevRegClass::RegGPR ) ) {
+      if( LSQCheck( HartToDecodeID, RegFile, uint16_t( reg ), RevRegClass::RegGPR ) || ScoreboardCheck( RegFile, uint16_t( reg ), RevRegClass::RegGPR ) ) {
         return true;
       }
     }
@@ -1780,8 +1778,7 @@ bool RevCore::ClockTick( SST::Cycle_t currentCycle ) {
     // -- BEGIN new pipelining implementation
     Pipeline.emplace_back( std::make_pair( HartToExecID, Inst ) );
 
-    if( ( Ext->GetName() == "RV32F" ) || ( Ext->GetName() == "RV32D" ) || ( Ext->GetName() == "RV64F" ) ||
-        ( Ext->GetName() == "RV64D" ) ) {
+    if( ( Ext->GetName() == "RV32F" ) || ( Ext->GetName() == "RV32D" ) || ( Ext->GetName() == "RV64F" ) || ( Ext->GetName() == "RV64D" ) ) {
       Stats.floatsExec++;
     }
 

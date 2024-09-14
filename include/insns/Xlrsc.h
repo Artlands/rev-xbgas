@@ -20,7 +20,7 @@ class Xlrsc : public RevExt {
 
   // xBGAS remote Load Resreved instruction
   template<typename XLEN>
-  static bool elr( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  static bool elr( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     static_assert( std::is_unsigned_v<XLEN>, "XLEN must be unsigned integral type" );
     auto nmspace  = R->GetE<uint64_t>( Inst.rs1 );
     auto addr     = R->GetX<uint64_t>( Inst.rs1 );
@@ -62,7 +62,7 @@ class Xlrsc : public RevExt {
 
   // xBGAS remote Store Conditional instruction
   template<typename XLEN>
-  static bool esc( RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
+  static bool esc( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     static_assert( std::is_unsigned_v<XLEN>, "TYPE must be unsigned integral type" );
     auto nmspace  = R->GetE<uint64_t>( Inst.rs1 );
     auto addr     = R->GetX<uint64_t>( Inst.rs1 );
@@ -136,7 +136,7 @@ class Xlrsc : public RevExt {
 
 public:
   /// Xlrsc: standard constructor
-  Xlrsc( RevFeature* Feature, RevMem* RevMem, SST::Output* Output ) : RevExt( "Xlrsc", Feature, RevMem, Output ) {
+  Xlrsc( const RevFeature* Feature, RevMem* RevMem, SST::Output* Output ) : RevExt( "Xlrsc", Feature, RevMem, Output ) {
     if( Feature->IsRV64() ) {
       auto Table{ RV64XlrscTable() };
       XlrscTable.insert( XlrscTable.end(), std::move_iterator( Table.begin() ), std::move_iterator( Table.end() ) );
