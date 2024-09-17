@@ -129,6 +129,8 @@ bool xbgasNicEvent::buildAMORqst( uint64_t SrcAddr, size_t Size, uint8_t* Buffer
     return false;
   if( !setSize( Size ) )
     return false;
+  if( !setNelem( 1 ) )
+    return false;
   if( !setData( Buffer, Size ) )
     return false;
   if( !setFlags( Fl ) )
@@ -210,6 +212,8 @@ bool xbgasNicEvent::buildAMOResp( uint64_t Id, size_t Size, uint8_t* Buffer ) {
   if( !setId( Id ) )
     return false;
   if( !setSize( Size ) )
+    return false;
+  if( !setNelem( 1 ) )
     return false;
   if( !setData( Buffer, Size ) )
     return false;

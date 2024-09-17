@@ -284,6 +284,7 @@ endif()
 
 add_subdirectory(isa)
 add_subdirectory(xbgas_isa)
+add_subdirectory(xbgas_amo)
 add_subdirectory(amo)
 add_subdirectory(benchmarks)
 add_subdirectory(syscalls)

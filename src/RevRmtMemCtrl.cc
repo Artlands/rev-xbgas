@@ -796,6 +796,7 @@ bool RevBasicRmtMemCtrl::isRmtMemOpAvailable(
   switch( Op->getOp() ) {
   case RmtMemOp::READRqst:
   case RmtMemOp::BulkREADRqst:
+  case RmtMemOp::AMORqst:
     if( t_max_loads < max_loads ) {
       t_max_loads++;
       return true;
