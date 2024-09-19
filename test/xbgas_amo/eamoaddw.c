@@ -47,7 +47,7 @@ int main( int argc, char** argv ) {
   // Set the remote namespace
   asm volatile( " eaddie e13, %0, 0 \n\t " : : "r"( namespace ) );
 
-  // Execute EAMOADD instruction
+  // Execute EAMOADD instruction: eamoadd.w rd rs2 rs1
   // Puts the value in the memory address pointed to by the value in the test_val (rs1) register (in the extended address space) into the ret (rd) register,
   // then adds the data in val (rs2) to the data in the memory unit pointed to by test_val (rs1) (in the extended address space), and writes the result to the memory unit at that address.
   // For id = 0, the ret should be changed to 1 (test_val on PE 1) and test_val should be 3 (val on PE 1 + test_val on PE 0).

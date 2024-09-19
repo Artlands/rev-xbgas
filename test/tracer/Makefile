@@ -40,10 +40,10 @@ compile: $(EXES) $(DIASMS)
 %.c.exe: GCC = $(CC)
 %.cpp.exe: GCC = $(CXX)
 
-%.rv32i.c.exe %.rv32i.cpp.exe: ARCH=rv32i
+%.rv32i.c.exe %.rv32i.cpp.exe: ARCH=rv32imafdc
 %.rv32i.c.exe %.rv32i.cpp.exe: OPTS=-mabi=ilp32
 
-%.rv64g.c.exe %.rv64g.cpp.exe: ARCH=rv64g
+%.rv64g.c.exe %.rv64g.cpp.exe: ARCH=rv64imafdc
 %.rv64g.c.exe %.rv64g.cpp.exe: OPTS=-DRV64G
 
 %.mem.rv32i.c.log %.mem.rv32i.cpp.log:   REVCFG=./rev-test-tracer.py
@@ -55,8 +55,8 @@ compile: $(EXES) $(DIASMS)
 %.exe: tracer.c
 	$(GCC) -g -O0 -march=$(ARCH) $(OPTS) $(INCLUDE) -o  $@ $<
 
-%.rv64g.c.log %.rv64g.cpp.log: ARCH=rv64g
-%.rv32i.c.log %.rv32i.cpp.log: ARCH=rv32i
+%.rv64g.c.log %.rv64g.cpp.log: ARCH=rv64imafdc
+%.rv32i.c.log %.rv32i.cpp.log: ARCH=rv32imafdc
 
 %.log: %.exe
 	@$(eval tmp := $(basename $@).tmplog)

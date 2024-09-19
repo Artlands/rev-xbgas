@@ -10,7 +10,6 @@
 
 #include "RevInstTable.h"
 #include "RevRmtMemCtrl.h"
-#define _XBGAS_DEBUG_
 
 namespace SST::RevCPU {
 

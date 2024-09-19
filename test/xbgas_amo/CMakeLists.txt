@@ -48,6 +48,6 @@ foreach(testSrc ${TEST_SRCS})
       PROPERTIES
       ENVIRONMENT "RVASM=${testName}; RVCC=${RVCC}"
       TIMEOUT 30
-      LABELS "rv64;isa"
+      LABELS "rv64;xbgas_isa"
       PASS_REGULAR_EXPRESSION "${passRegex}")
 endforeach(testSrc)
