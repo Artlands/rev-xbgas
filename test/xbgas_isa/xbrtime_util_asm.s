@@ -32,3 +32,12 @@ __xbrtime_asm_get_npes:
   eaddi a0,e11,0
   ret
   .size __xbrtime_asm_get_npes, .-__xbrtime_asm_get_npes
+
+  .global wait_for_bulk_completion
+  .type wait_for_bulk_completion, @function
+wait_for_bulk_completion:
+  .wait_loop:
+    csrr t0, 0xca0
+    beqz t0, .wait_loop
+  ret
+  .size wait_for_bulk_completion, .-wait_for_bulk_completion

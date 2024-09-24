@@ -17,8 +17,9 @@
 #include <unistd.h>
 #define printf rev_fast_printf
 
-extern int __xbrtime_asm_get_id();
-extern int __xbrtime_asm_get_npes();
+extern int  __xbrtime_asm_get_id();
+extern int  __xbrtime_asm_get_npes();
+extern void wait_for_bulk_completion();
 
 int main( int argc, char** argv ) {
 
@@ -51,19 +52,13 @@ int main( int argc, char** argv ) {
   if( id == 0 ) {
     // Remote bulk load
     asm volatile( " eblhu %0, %1, %2, %3 \n\t " : : "r"( dest ), "r"( src2 ), "r"( nelem ), "r"( sizeof( uint16_t ) ) );
-  }
-
-  // Wait for a few cycles
-  for( int i = 0; i < 100; i++ ) {
-    asm( "nop" );
-  }
-
-  for( int i = 0; i < nelem; i++ ) {
-    if( id == 0 ) {
+    wait_for_bulk_completion();
+    for( int i = 0; i < nelem; i++ ) {
       printf( "PE %d: dest[%d] = 0x%02x\n", id, i, dest[i] );
       assert( dest[i] == src2[i] );
     }
   }
+
   // Free the allocated memory
   free( dest );
   return 0;

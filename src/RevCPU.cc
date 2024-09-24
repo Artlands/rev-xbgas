@@ -15,6 +15,8 @@
 #include <fstream>
 #include <memory>
 
+bool SST::RevCPU::RevMem::bulkCompleted = false;
+
 namespace SST::RevCPU {
 
 using MemSegment        = RevMem::MemSegment;
