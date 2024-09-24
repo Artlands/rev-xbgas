@@ -36,7 +36,7 @@
 #include "SST.h"
 
 // -- RevCPU Headers
-#include "../common/include/RevCommon.h"
+#include "RevCommon.h"
 #include "RevMemCtrl.h"
 #include "RevOpts.h"
 #include "RevRand.h"
@@ -486,7 +486,7 @@ private:
 
   std::vector<uint64_t>                                     FutureRes{};  ///< RevMem: future operation reservations
   std::unordered_map<unsigned, std::pair<uint64_t, size_t>> LRSC{};       ///< RevMem: load reserve/store conditional set
-};  // class RevMem
+};                                                                        // class RevMem
 
 }  // namespace SST::RevCPU
 

@@ -17,6 +17,8 @@ AS=${RVAS}
 ARCH=rv64imafdc
 RV_OBJDUMP=riscv64-unknown-elf-objdump
 
+INCLUDE = -I../../common/syscalls
+
 ISA_SOURCES := $(wildcard *.c)
 ISA_HEADERS := $(wildcard *.h)
 ISA_EXES=$(ISA_SOURCES:.c=.exe)
@@ -30,7 +32,7 @@ all:$(ISA_EXES)
 $(ISA_TESTS): $(ISA_EXES)
 %.exe:%.c $(ISA_HEADERS) xbrtime_util_asm.o
 #	@echo "RISCV_GCC_OPTS = $(RISCV_GCC_OPTS)"
-	$(CC) $(RISCV_GCC_OPTS)  -o $@ $^ -static -lm -Wl,-e,main
+	$(CC) $(RISCV_GCC_OPTS)  $(INCLUDE) -o $@ $^ -static -lm -Wl,-e,main
 xbrtime_util_asm.o: xbrtime_util_asm.s
 	$(AS) -o $@ $^
 

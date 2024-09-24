@@ -10,11 +10,12 @@
  * See LICENSE in the top level directory for licensing details
  *
  */
-#include "../../common/syscalls/syscalls.h"
-#include "../isa/isa_test_macros.h"
-#include "../syscalls/printf/printf.h"
+#include "isa_test_macros.h"
+#include "malloc.h"
+#include "syscalls.h"
 #include <stdbool.h>
 #include <unistd.h>
+#define printf rev_fast_printf
 
 extern int __xbrtime_asm_get_id();
 extern int __xbrtime_asm_get_npes();

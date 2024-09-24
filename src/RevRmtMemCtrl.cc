@@ -8,7 +8,7 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#include "RevInstTable.h"
+#include "RevMem.h"
 #include "RevRmtMemCtrl.h"
 
 namespace SST::RevCPU {
@@ -375,6 +375,7 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent* ev ) {
       for( uint32_t i = 0; i < Nelem; i++ ) {
         Mem->WriteMem( virtualHart, DestAddr + i * Stride, Size, (void*) ( &Buffer[i * Size] ), Flags );
       }
+      // TODO: Update the memory-mapped flag/CSR to indicate the remote memory bulk read operation is complete
       delete[] Buffer;
     } else {
       output->fatal( CALL_INFO, -1, "Error: unknown remote memory response\n" );

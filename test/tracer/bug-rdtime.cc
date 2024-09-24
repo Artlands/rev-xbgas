@@ -1,7 +1,7 @@
 /*
  * tracer.c
  *
- * RISC-V ISA: RV32I
+ * RISC-V ISA: RV32G/RV64G
  *
  * Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
  * All Rights Reserved
@@ -20,16 +20,18 @@
 
 #define printf rev_fast_printf
 
-#if 1
-#define REV_TIME( X )                         \
+#define RDTIME( X )                           \
   do {                                        \
     asm volatile( " rdtime %0" : "=r"( X ) ); \
   } while( 0 )
-#else
-#define REV_TIME( X ) \
-  do {                \
-    X = 0;            \
+
+#ifndef RV64G
+#define RDTIMEH( X )                           \
+  do {                                         \
+    asm volatile( " rdtimeh %0" : "=r"( X ) ); \
   } while( 0 )
+#else
+#define RDTIMEH( X )
 #endif
 
 // inefficient calculation of r-s
@@ -95,14 +97,14 @@ int main( int argc, char** argv ) {
   res     = long_sub( res, 1000 );
   // res == 2000;
 
-  // printf( "Enable Tracing\n" );
+  printf( "Enable Tracing\n" );
   // enable tracing
   TRACE_ON;
   res = long_sub( res, 20 );
   // res == 1980
   assert( res == 1980 );
   TRACE_OFF;
-  // printf( "Tracing Disabled\n" );
+  printf( "Tracing Disabled\n" );
 
   // not traced
   for( int i = 0; i < 1980 / 2; i++ )
@@ -184,10 +186,13 @@ check_tight_loop:
 
 #if 1
   // use CSR to get time
+  size_t timeh = 0;
   size_t time1, time2;
-  REV_TIME( time1 );
+  RDTIMEH( timeh );
+  assert( timeh == 0 );
+  RDTIME( time1 );
   int fubar = long_sub( 100, 20 );
-  REV_TIME( time2 );
+  RDTIME( time2 );
   assert( fubar == 80 );
   printf( "Time check: %ld\n", time2 - time1 );
 #endif
