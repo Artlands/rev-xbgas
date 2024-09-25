@@ -50,7 +50,7 @@ int main( int argc, char** argv ) {
   asm volatile( " eaddie e14, %0, 0 \n\t " : : "r"( namespace ) );
 
   // Declare src2 and dest based on the chosen assembly instruction
-  if( strcmp( instruction, "eblb" ) == 0 || strcmp( instruction, "eblbu" ) == 0 ) {
+  if( strcmp( instruction, "ebsb" ) == 0 ) {
     // For int8_t
     int8_t* dest = malloc( sizeof( int8_t ) * nelem );
     int8_t* src2 = malloc( sizeof( int8_t ) * nelem );
@@ -58,23 +58,9 @@ int main( int argc, char** argv ) {
       src2[i] = 0x01;  // Fill with 0x01 as per the example
     }
     if( id == 0 ) {
-      asm volatile( " eblb %0, %1, %2, %3 \n\t " : : "r"( dest ), "r"( src2 ), "r"( nelem ), "r"( sizeof( int8_t ) ) );
+      asm volatile( " ebsb %0, %1, %2, %3 \n\t " : : "r"( src2 ), "r"( dest ), "r"( nelem ), "r"( sizeof( int8_t ) ) );
     }
-    //free( dest );
-    //free( src2 );
-  } else if( strcmp( instruction, "eblb" ) == 0 || strcmp( instruction, "eblbu" ) == 0 ) {
-    // For uint8_t
-    uint8_t* dest = malloc( sizeof( uint8_t ) * nelem );
-    uint8_t* src2 = malloc( sizeof( uint8_t ) * nelem );
-    for( int i = 0; i < nelem; i++ ) {
-      src2[i] = 0x01;  // Fill with 0x01 as per the example
-    }
-    if( id == 0 ) {
-      asm volatile( " eblb %0, %1, %2, %3 \n\t " : : "r"( dest ), "r"( src2 ), "r"( nelem ), "r"( sizeof( uint8_t ) ) );
-    }
-    //free( dest );
-    //free( src2 );
-  } else if( strcmp( instruction, "eblh" ) == 0 ) {
+  } else if( strcmp( instruction, "ebsh" ) == 0 ) {
     // For int16_t
     int16_t* dest = malloc( sizeof( int16_t ) * nelem );
     int16_t* src2 = malloc( sizeof( int16_t ) * nelem );
@@ -82,21 +68,9 @@ int main( int argc, char** argv ) {
       src2[i] = 0x01ff;  // Fill with 0x01ff as per the example
     }
     if( id == 0 ) {
-      asm volatile( " eblh %0, %1, %2, %3 \n\t " : : "r"( dest ), "r"( src2 ), "r"( nelem ), "r"( sizeof( int16_t ) ) );
+      asm volatile( " ebsh %0, %1, %2, %3 \n\t " : : "r"( src2 ), "r"( dest ), "r"( nelem ), "r"( sizeof( int16_t ) ) );
     }
-    //free( dest );
-    //free( src2 );
-  } else if( strcmp( instruction, "eblhu" ) == 0 ) {
-    // For uint16_t
-    uint16_t* dest = malloc( sizeof( uint16_t ) * nelem );
-    uint16_t* src2 = malloc( sizeof( uint16_t ) * nelem );
-    for( int i = 0; i < nelem; i++ ) {
-      src2[i] = 0x01ff;  // Fill with 0x01ff as per the example
-    }
-    if( id == 0 ) {
-      asm volatile( " eblh %0, %1, %2, %3 \n\t " : : "r"( dest ), "r"( src2 ), "r"( nelem ), "r"( sizeof( uint16_t ) ) );
-    }
-  } else if( strcmp( instruction, "eblw" ) == 0 ) {
+  } else if( strcmp( instruction, "ebsw" ) == 0 ) {
     // For uint32_t
     uint32_t* dest = malloc( sizeof( uint32_t ) * nelem );
     uint32_t* src2 = malloc( sizeof( uint32_t ) * nelem );
@@ -104,11 +78,9 @@ int main( int argc, char** argv ) {
       src2[i] = 0x00ff01ff;  // Fill with 0x00ff01ff as per the example
     }
     if( id == 0 ) {
-      asm volatile( " eblw %0, %1, %2, %3 \n\t " : : "r"( dest ), "r"( src2 ), "r"( nelem ), "r"( sizeof( uint32_t ) ) );
+      asm volatile( " ebsw %0, %1, %2, %3 \n\t " : : "r"( src2 ), "r"( dest ), "r"( nelem ), "r"( sizeof( uint32_t ) ) );
     }
-    //free( dest );
-    //free( src2 );
-  } else if( strcmp( instruction, "ebld" ) == 0 ) {
+  } else if( strcmp( instruction, "ebsd" ) == 0 ) {
     // For uint64_t
     uint64_t* dest = malloc( sizeof( uint64_t ) * nelem );
     uint64_t* src2 = malloc( sizeof( uint64_t ) * nelem );
@@ -116,24 +88,12 @@ int main( int argc, char** argv ) {
       src2[i] = 0x10ff00ff00ff00ff;  // Fill with 0x10ff00ff00ff00ff as per the example
     }
     if( id == 0 ) {
-      asm volatile( " ebld %0, %1, %2, %3 \n\t " : : "r"( dest ), "r"( src2 ), "r"( nelem ), "r"( sizeof( uint64_t ) ) );
+      asm volatile( " ebsd %0, %1, %2, %3 \n\t " : : "r"( src2 ), "r"( dest ), "r"( nelem ), "r"( sizeof( uint64_t ) ) );
     }
-    //free( dest );
-    //free( src2 );
   } else {
     printf( "Unsupported instruction: %s\n", instruction );
     return 1;
   }
-
-  // for( int i = 0; i < nelem; i++ ) {
-  //   if( id == 0 ) {
-  //     if (DEBUG) {
-  //       printf( "PE %d: dest[%d] = 0x%02x\n", id, i, dest[i] );
-  //     }
-  //   }
-  // }
-
-  // // Free the allocated memory
 
   return 0;
 }
