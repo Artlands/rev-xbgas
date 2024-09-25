@@ -11,3 +11,5 @@
 *.out
 *.asm
 *.dump
+*.png
+/build

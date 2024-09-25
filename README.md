@@ -40,9 +40,10 @@ version for this is `3.19`.
 
 Building the Rev SST component from source using CMake (>= 3.19) can be performed as follows:
 
-    git clone
+    git clone https://github.com/Artlands/rev-xbgas.git
+    cd rev-xbgas
     git config core.hooksPath .githooks
-    cd rev/build
+    mkdir build && cd build
     cmake -DRVCC=/path/to/riscv/c/compiler/exe -DRVCXX=/path/to/riscv/c++/compiler/exe ..
     make -j
     make install
