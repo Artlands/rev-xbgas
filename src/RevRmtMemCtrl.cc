@@ -11,6 +11,8 @@
 #include "RevMem.h"
 #include "RevRmtMemCtrl.h"
 
+bool SST::RevCPU::RevRmtMemCtrl::bulkCompleted = false;
+
 namespace SST::RevCPU {
 
 /// MemOp: Formatted Output
@@ -376,7 +378,7 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent* ev ) {
         Mem->WriteMem( virtualHart, DestAddr + i * Stride, Size, (void*) ( &Buffer[i * Size] ), Flags );
       }
       // Update the memory-mapped flag/CSR to indicate the remote memory bulk read operation is complete
-      Mem->SetBulkCompleted( true );
+      SetBulkCompleted( true );
       delete[] Buffer;
     } else {
       output->fatal( CALL_INFO, -1, "Error: unknown remote memory response\n" );
@@ -625,7 +627,7 @@ bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst(
 ) {
   if( Size == 0 )
     return true;
-  Mem->SetBulkCompleted( false );
+  SetBulkCompleted( false );
   RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, DestAddr, Size, Nelem, Stride, RmtMemOp::BulkREADRqst, Flags );
   // To be decided if Remote memory operations need to be not cached
   // RevFlag      TmpFlags = Op->getNonCacheFlags();

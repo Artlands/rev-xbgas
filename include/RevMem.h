@@ -335,12 +335,6 @@ public:
   /// RevMem: Used to set the size of the TLBSize
   void SetMaxHeapSize( const unsigned MaxHeapSize ) { maxHeapSize = MaxHeapSize; }
 
-  /// RevMem: Used to set the bulk operation completion flag
-  void SetBulkCompleted( bool Completed ) { bulkCompleted = Completed; }
-
-  /// RevMem: Used to get the bulk operation completion flag
-  static bool GetBulkCompleted() { return bulkCompleted; }
-
   /// RevMem: Get memSize value set in .py file
   uint64_t GetMemSize() const { return memSize; }
 
@@ -457,12 +451,11 @@ private:
   unsigned      tlbSize{};      ///< RevMem: number of entries in the TLB
   unsigned      maxHeapSize{};  ///< RevMem: maximum size of the heap
   std::unordered_map<uint64_t, std::pair<uint64_t, std::list<uint64_t>::iterator>> TLB{};
-  std::list<uint64_t> LRUQueue{};     ///< RevMem: List ordered by last access for implementing LRU policy when TLB fills up
-  RevOpts*            opts{};         ///< RevMem: options object
-  RevMemCtrl*         ctrl{};         ///< RevMem: memory controller object
-  RevRmtMemCtrl*      rmtCtrl{};      ///< RevMem: remote memory controller object for xBGAS
-  static bool         bulkCompleted;  ///< RevMem: flag to indicate bulk operation completion
-  SST::Output*        output{};       ///< RevMem: output handler
+  std::list<uint64_t> LRUQueue{};  ///< RevMem: List ordered by last access for implementing LRU policy when TLB fills up
+  RevOpts*            opts{};      ///< RevMem: options object
+  RevMemCtrl*         ctrl{};      ///< RevMem: memory controller object
+  RevRmtMemCtrl*      rmtCtrl{};   ///< RevMem: remote memory controller object for xBGAS
+  SST::Output*        output{};    ///< RevMem: output handler
 
   std::vector<std::shared_ptr<MemSegment>> MemSegs{};        // Currently Allocated MemSegs
   std::vector<std::shared_ptr<MemSegment>> FreeMemSegs{};    // MemSegs that have been unallocated

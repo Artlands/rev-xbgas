@@ -300,10 +300,16 @@ public:
     void*            Target,
     const RmtMemReq& Req,
     RevFlag          Flags
-  )                                                 = 0;
+  )                                       = 0;
 
   /// RevRmtMemCtrl: send a FENCE request
-  virtual bool sendFENCE( unsigned Hart )           = 0;
+  virtual bool sendFENCE( unsigned Hart ) = 0;
+
+  /// RevRmtMemCtrl: Set the bulk operation completion flag
+  void SetBulkCompleted( bool Completed ) { bulkCompleted = Completed; }
+
+  /// RevRmtMemCtrl: Used to get the bulk operation completion flag
+  static bool GetBulkCompleted() { return bulkCompleted; }
 
   /// RevRmtMemCtrl: handle a remote memory read request
   virtual void handleReadRqst( xbgasNicEvent* ev )  = 0;
@@ -325,7 +331,10 @@ public:
 
 protected:
   SST::Output* output;  ///< RevRmtMemCtrl: sst output object
-};  // class RevRmtMemCtrl
+
+private:
+  static bool bulkCompleted;  ///< RevRmtMemCtrl: bulk operation completion flag
+};                            // class RevRmtMemCtrl
 
 // ----------------------------------------
 // RevBasicRmtMemCtrl
@@ -587,7 +596,7 @@ private:
   std::unordered_map<uint64_t, uint64_t> LocalLoadOpMap{};  ///< RevBasicRmtMemCtrl: the association between address and SrcId+Id
 
   std::vector<Statistic<uint64_t>*> stats{};  ///< RevBasicRmtMemCtrl: vector of statistics
-};  // class RevBasicRmtMemCtrl
+};                                            // class RevBasicRmtMemCtrl
 
 }  // namespace SST::RevCPU
 

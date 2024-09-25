@@ -33,11 +33,11 @@ __xbrtime_asm_get_npes:
   ret
   .size __xbrtime_asm_get_npes, .-__xbrtime_asm_get_npes
 
-  .global wait_for_bulk_completion
-  .type wait_for_bulk_completion, @function
-wait_for_bulk_completion:
+  .global __xbrtime_wait_bulk_comp
+  .type __xbrtime_wait_bulk_comp, @function
+__xbrtime_wait_bulk_comp:
   .wait_loop:
     csrr t0, 0xca0
     beqz t0, .wait_loop
-  ret
-  .size wait_for_bulk_completion, .-wait_for_bulk_completion
+    ret
+  .size __xbrtime_wait_bulk_comp, .-__xbrtime_wait_bulk_comp

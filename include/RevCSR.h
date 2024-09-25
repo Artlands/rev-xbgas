@@ -12,7 +12,7 @@
 
 #include "RevFCSR.h"
 #include "RevFeature.h"
-#include "RevMem.h"
+#include "RevRmtMemCtrl.h"
 #include "RevZicntr.h"
 #include "SST.h"
 #include <array>
@@ -60,7 +60,7 @@ namespace SST::RevCPU {
 ////////////////////////////////////////////////////////////////////////////////
 
 class RevCore;
-class RevMem;
+class RevRmtMemCtrl;
 
 class RevCSR : public RevZicntr {
   static constexpr size_t         CSR_LIMIT = 0x1000;
@@ -470,7 +470,7 @@ public:
       case instreth: return GetPerfCounter<XLEN, Half::Hi, rdinstret>();
 
       // Memory-mapped CSR
-      case bulkcompleted: return RevMem::GetBulkCompleted();
+      case bulkcompleted: return RevRmtMemCtrl::GetBulkCompleted();
 
       default:       return static_cast<XLEN>( CSR.at( csr ) );
     }
