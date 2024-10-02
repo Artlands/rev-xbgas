@@ -470,7 +470,13 @@ public:
       case instreth: return GetPerfCounter<XLEN, Half::Hi, rdinstret>();
 
       // Memory-mapped CSR
-      case bulkcompleted: return RevRmtMemCtrl::GetBulkCompleted();
+      case bulkcompleted:
+
+#ifdef _XBGAS_DEBUG_
+        std::cout << "Check Bulk Completed CSR: "
+        << RevRmtMemCtrl::GetBulkCompleted() << std::endl;
+#endif
+        return RevRmtMemCtrl::GetBulkCompleted();
 
       default:       return static_cast<XLEN>( CSR.at( csr ) );
     }

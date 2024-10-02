@@ -219,7 +219,7 @@ void RevMem::AddToTLB( uint64_t vAddr, uint64_t physAddr ) {
     // Insert the vAddr and physAddr into the TLB and LRU list
     LRUQueue.push_front( vAddr );
     TLB.insert( {
-      vAddr, { physAddr, LRUQueue.begin() }
+      vAddr, {physAddr, LRUQueue.begin()}
     } );
   }
 }
@@ -514,9 +514,6 @@ uint64_t RevMem::AllocMemAt( const uint64_t& BaseAddr, const uint64_t& SegSize )
 bool RevMem::FenceMem( unsigned Hart ) {
   if( ctrl ) {
     ctrl->sendFENCE( Hart );
-  }
-  if( rmtCtrl ) {
-    rmtCtrl->sendFENCE( Hart );
   }
   return true;  // base RevMem support does nothing here
 }

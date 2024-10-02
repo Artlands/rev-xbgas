@@ -69,9 +69,6 @@ struct LocalLoadRecord {
 // ----------------------------------------
 class RevRmtMemOp {
 public:
-  /// RevRmtMemOp: constructor - fence
-  RevRmtMemOp( unsigned Hart, RmtMemOp Op );
-
   /// RevRmtMemOp: constructor - read
   RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, RmtMemOp Op, RevFlag Flags, void* Target );
 
@@ -300,10 +297,7 @@ public:
     void*            Target,
     const RmtMemReq& Req,
     RevFlag          Flags
-  )                                       = 0;
-
-  /// RevRmtMemCtrl: send a FENCE request
-  virtual bool sendFENCE( unsigned Hart ) = 0;
+  ) = 0;
 
   /// RevRmtMemCtrl: Set the bulk operation completion flag
   void SetBulkCompleted( bool Completed ) { bulkCompleted = Completed; }
@@ -377,7 +371,6 @@ public:
     { "RmtWriteUnlockInFlight", "Counts the number of remote write unlocks in flight", "count", 1 },
     { "RmtWriteUnlockPending", "Counts the number of remote write unlocks pending", "count", 1 },
     { "RmtWriteUnlockBytes", "Counts the number of bytes of remote write unlocks", "bytes", 1 },
-    { "RmtFencePending", "Counts the number of FENCE requests pending", "count", 1 }
   )
 
   enum RmtMemCtrlStats : uint32_t {
@@ -393,7 +386,6 @@ public:
     RmtWriteUnlockInFlight = 9,
     RmtWriteUnlockPending  = 10,
     RmtWriteUnlockBytes    = 11,
-    RmtFencePending        = 12,
   };
 
   /// RevBasicRmtMemCtrl: constructor
@@ -496,9 +488,6 @@ public:
     RevFlag          Flags
   ) override;
 
-  /// RevRmtMemCtrl: send a FENCE request
-  bool sendFENCE( unsigned Hart ) override;
-
   /// RevBasicRmtMemCtrl: handle a remote memory read request
   void handleReadRqst( xbgasNicEvent* ev ) override;
 
@@ -584,7 +573,6 @@ private:
   uint64_t num_write{};        ///< RevBasicRmtMemCtrl: number of remote write requests
   uint64_t num_readlock{};     ///< RevBasicRmtMemCtrl: number of remote read lock requests
   uint64_t num_writeunlock{};  ///< RevBasicRmtMemCtrl: number of remote write unlock requests
-  uint64_t num_fence{};        ///< RevBasicRmtMemCtrl: number of FENCE requests
 
   std::vector<uint32_t>            requests{};     ///< RevBasicRmtMemCtrl: vector of outstanding remote memory requests
   std::vector<RevRmtMemOp*>        rqstQ{};        ///< RevBasicRmtMemCtrl: queued remote memory requests
@@ -594,6 +582,7 @@ private:
   };  ///< RevBasicRmtMemCtrl: the association between hashed id and local load record
   std::unordered_map<uint64_t, uint32_t> LocalLoadCount{};  ///< RevBasicRmtMemCtrl: the number of local load operations
   std::unordered_map<uint64_t, uint64_t> LocalLoadOpMap{};  ///< RevBasicRmtMemCtrl: the association between address and SrcId+Id
+  std::unordered_map<uint64_t, uint32_t> PacketSegCount{};  ///< RevBasicRmtMemCtrl: the number of segments for a packet
 
   std::vector<Statistic<uint64_t>*> stats{};  ///< RevBasicRmtMemCtrl: vector of statistics
 };                                            // class RevBasicRmtMemCtrl

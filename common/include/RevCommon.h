@@ -104,9 +104,7 @@ enum class RmtMemOp : uint8_t {
   WRITEUNLOCKResp = 11,  ///< xbgasNicEvent: Store-conditional response
   AMORqst         = 12,  ///< xbgasNicEvent: Atomic Memory Operation request
   AMOResp         = 13,  ///< xbgasNicEvent: Atomic Memory Operation response
-  FENCE           = 14,  ///< xbgasNicEvent: Fence operation
-  Finish          = 15,  ///< xbgasNicEvent: Finish notification
-  Unknown         = 16   ///< xbgasNicEvent: Unknown operation
+  Unknown         = 14,  ///< xbgasNicEvent: Unknown operation
 };
 
 std::ostream& operator<<( std::ostream& os, MemOp op );

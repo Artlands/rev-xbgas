@@ -26,6 +26,8 @@
 #include "../common/include/RevCommon.h"
 #include "RevMemCtrl.h"
 
+#define _MAX_PAYLOAD_ 4096
+
 namespace SST::RevCPU {
 
 using namespace SST::Interfaces;
@@ -38,7 +40,7 @@ public:
   /// xbgasNicEvent: standard constructor
   xbgasNicEvent( std::string name )
     : Event(), Id( 0 ), SrcName( name ), SrcId( 0 ), SrcAddr( 0 ), DestAddr( 0 ), Size( 0 ), Nelem( 0 ), Stride( 0 ), Data(),
-      Opcode( RmtMemOp::Unknown ), Flags( RevFlag::F_NONE ) {}
+      Opcode( RmtMemOp::Unknown ), Flags( RevFlag::F_NONE ), isSeg( false ), SegSz( 0 ) {}
 
   /// xbgasNicEvent: secondary constructor
   xbgasNicEvent() : Event() {}
@@ -77,6 +79,12 @@ public:
 
   /// xbgasNicEvent: retrieve the flags
   RevFlag getFlags() { return Flags; }
+
+  /// xbgasNicEvent: retrieve the segment flag
+  bool isSegmented() { return isSeg; }
+
+  /// xbgasNicEvent: retrieve the segment size
+  size_t getSegSz() { return SegSz; }
 
   /// xbgasNicEvent: set the Hart ID
   bool setHart( unsigned H ) {
@@ -141,6 +149,18 @@ public:
     return true;
   }
 
+  /// xbgasNicEvent: set the segment flag
+  bool setSegmented( bool Seg ) {
+    isSeg = Seg;
+    return true;
+  }
+
+  /// xbgasNicEvent: set the segment size
+  bool setSegSz( size_t Sz ) {
+    SegSz = Sz;
+    return true;
+  }
+
   // ------------------------------------------------
   // Packet Building Functions
   // ------------------------------------------------
@@ -154,6 +174,11 @@ public:
   /// xbgasNicEvent: build a WRITE request packet
   bool buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer );
 
+  /// xbgasNicEvent: build a WRITE request packet that is segmented
+  bool buildSegWRITERqst(
+    uint32_t SegId, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer, uint32_t SegSz
+  );
+
   /// xbgasNicEvent: build a WRITE UNLOCK request packet
   bool buildWRITEUNLOCKRqst( uint64_t DestAddr, size_t Size, RevFlag Fl, uint8_t* Buffer );
 
@@ -162,6 +187,11 @@ public:
 
   /// xbgasNicEvent: build a READ respond packet
   bool buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint8_t* Buffer );
+
+  /// xbgasNicEvent: build a READ respond packet that is segmented
+  bool buildSegREADResp(
+    uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint8_t* Buffer, uint32_t SegSz
+  );
 
   /// xbgasNicEvent: build a READ LOCK respond packet
   bool buildREADLOCKResp( uint64_t Id, size_t Size, uint8_t* Buffer );
@@ -194,6 +224,8 @@ protected:
   std::vector<uint8_t> Data{};      ///< xbgasNicEvent: Data payload
   RmtMemOp             Opcode{};    ///< xbgasNicEvent: Operation code
   RevFlag              Flags{};     ///< xbgasNicEvent: Memory request flags
+  bool                 isSeg{};     ///< xbgasNicEvent: Is this a segmented packet?
+  uint32_t             SegSz{};     ///< xbgasNicEvent: Segment size
 
 private:
   static std::atomic<uint32_t> main_id;  ///< xbgasNicEvent: main request id counter
@@ -214,6 +246,8 @@ public:
     ser & Data;
     ser & Opcode;
     ser & Flags;
+    ser & isSeg;
+    ser & SegSz;
   }
 
   /// xbgasNicEvent: implements the NIC serialization
@@ -264,7 +298,7 @@ public:
 
 protected:
   SST::Output* output;  ///< xbgasNicEvent: SST output object
-};  /// end xbgasNicAPI
+};                      /// end xbgasNicAPI
 
 // ----------------------------------------
 // XbgasNIC: the Rev network interface controller subcomponent
@@ -343,7 +377,7 @@ protected:
 
 private:
   std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts;  ///< XbgasNIC: xbgas hosts list
-};  // end XbgasNIC
+};                                                                // end XbgasNIC
 
 }  // namespace SST::RevCPU
 
