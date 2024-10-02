@@ -33,6 +33,7 @@ std::ostream& operator<<( std::ostream& os, RmtMemOp op ) {
     case RmtMemOp::WRITEUNLOCKResp:  return os << "WRITEUNLOCKResp";
     case RmtMemOp::AMORqst:          return os << "AMORqst";
     case RmtMemOp::AMOResp:          return os << "AMOResp";
+    case RmtMemOp::FENCE:            return os << "FENCE";
     case RmtMemOp::Unknown:          return os << "Unknown";
   }
   // clang-format on
@@ -42,6 +43,8 @@ std::ostream& operator<<( std::ostream& os, RmtMemOp op ) {
 // ----------------------------------------
 // RevRmtMemOp
 // ----------------------------------------
+
+RevRmtMemOp::RevRmtMemOp( unsigned Hart, RmtMemOp Op ) : Hart( Hart ), Op( Op ) {}
 
 RevRmtMemOp::RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, RmtMemOp Op, RevFlag Flags, void* Target )
   : Hart( Hart ), Nmspace( Nmspace ), SrcAddr( SrcAddr ), Size( Size ), Nelem( 1 ), Stride( Size ), Op( Op ), Flags( Flags ),
@@ -158,7 +161,11 @@ void RevBasicRmtMemCtrl::registerStats() {
          "RmtReadLockBytes",
          "RmtWriteUnlockInFlight",
          "RmtWriteUnlockPending",
-         "RmtWriteUnlockBytes" } ) {
+         "RmtWriteUnlockBytes",
+         "RmtAMOInFlight",
+         "RmtAMOPending",
+         "RmtAMOBytes",
+         "RmtFencePending" } ) {
     stats.push_back( registerStatistic<uint64_t>( stat ) );
   }
 }
@@ -184,7 +191,6 @@ void RevBasicRmtMemCtrl::rmtMemEventHandler( Event* ev ) {
   case RmtMemOp::WRITEUNLOCKResp: handleWriteResp( event ); break;
   case RmtMemOp::AMORqst: handleAMORqst( event ); break;
   case RmtMemOp::AMOResp: handleAMOResp( event ); break;
-  case RmtMemOp::Unknown: break;
   default: output->fatal( CALL_INFO, -1, "Error : unknown remote memory operation type\n" ); break;
   }
 }
@@ -293,6 +299,7 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent* ev ) {
     // Update TmpTarget with 0 if rtn is true, 1 if rtn is false.
     TmpTarget[0] = !rtn;
     RmtEvent->buildWRITEUNLOCKResp( Id, Size, TmpTarget );
+    xbgasNic->send( RmtEvent, SrcId );
   } else {
     for( uint32_t i = 0; i < Nelem; i++ ) {
       Mem->WriteMem( virtualHart, DestAddr + i * Stride, Size, (void*) ( &Buffer[i * Size] ), Flags );
@@ -300,6 +307,7 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent* ev ) {
     bool isSeg = ev->isSegmented();
     if( !isSeg ) {
       RmtEvent->buildWRITEResp( Id );
+      xbgasNic->send( RmtEvent, SrcId );
     } else {
       if( PacketSegCount.find( Id ) != PacketSegCount.end() ) {
         PacketSegCount[Id]++;
@@ -307,13 +315,13 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent* ev ) {
         if( PacketSegCount[Id] == ev->getSegSz() ) {
           PacketSegCount.erase( Id );
           RmtEvent->buildWRITEResp( Id );
+          xbgasNic->send( RmtEvent, SrcId );
         }
       } else {
         PacketSegCount.insert( { Id, 1 } );
       }
     }
   }
-  xbgasNic->send( RmtEvent, SrcId );
   delete[] Buffer;
   delete[] TmpTarget;
 }
@@ -372,6 +380,11 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent* ev ) {
       r.MarkRmtLoadComplete();  // Mark the remote load complete
       requests.erase( std::find( requests.begin(), requests.end(), Id ) );
       outstanding.erase( Id );
+      // Update the stats
+      if( Opcode == RmtMemOp::READResp )
+        num_read_rqst--;
+      else if( Opcode == RmtMemOp::READLOCKResp )
+        num_read_lock_rqst--;
     } else if( Opcode == RmtMemOp::BulkREADResp ) {
 
       uint64_t DestAddr = ev->getDestAddr();
@@ -405,6 +418,7 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent* ev ) {
 
         requests.erase( std::find( requests.begin(), requests.end(), Id ) );
         outstanding.erase( Id );
+        num_read_rqst--;
       } else {
         if( PacketSegCount.find( Id ) != PacketSegCount.end() ) {
           PacketSegCount[Id]++;
@@ -420,7 +434,7 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent* ev ) {
 
             requests.erase( std::find( requests.begin(), requests.end(), Id ) );
             outstanding.erase( Id );
-
+            num_read_rqst--;
 #ifdef _XBGAS_DEBUG_
             std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " finish Bulk Read" << std::endl;
 #endif
@@ -432,11 +446,6 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent* ev ) {
     } else {
       output->fatal( CALL_INFO, -1, "Error: unknown remote memory response\n" );
     }
-    // Update the stats
-    if( ( Opcode == RmtMemOp::READResp ) || ( Opcode == RmtMemOp::BulkREADResp ) )
-      num_read--;
-    else if( Opcode == RmtMemOp::READLOCKResp )
-      num_readlock--;
   } else {
     output->fatal( CALL_INFO, -1, "Error: found unknown ReadResp\n" );
   }
@@ -465,9 +474,9 @@ void RevBasicRmtMemCtrl::handleWriteResp( xbgasNicEvent* ev ) {
       uint8_t*         Target = static_cast<uint8_t*>( Op->getTarget() );
       ev->getData( Target );    // Copy the data to the target register
       r.MarkRmtLoadComplete();  // Mark the remote load complete
-      num_writeunlock--;
+      num_write_unlock_rqst--;
     } else {
-      num_write--;
+      num_write_rqst--;
     }
     outstanding.erase( Id );
   } else {
@@ -489,6 +498,7 @@ void RevBasicRmtMemCtrl::handleAMOResp( xbgasNicEvent* ev ) {
       uint8_t*         Target = static_cast<uint8_t*>( Op->getTarget() );
       ev->getData( Target );    // Copy the data to the target register
       r.MarkRmtLoadComplete();  // Mark the remote load complete
+      num_amo_rqst--;
     } else {
       output->fatal( CALL_INFO, -1, "Error: unknown remote memory response\n" );
     }
@@ -539,8 +549,8 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
 
 #ifdef _XBGAS_DEBUG_
         std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Mark Local Load Complete, "
-                  << ", Size: " << std::dec << Size << ", Nelem: " << Nelem;
-        << ", SegSz: " << std::dec << SegSz << ", Rem: " << Rem << std::endl;
+                  << ", Size: " << std::dec << Size << ", Nelem: " << Nelem << ", SegSz: " << std::dec << SegSz << ", Rem: " << Rem
+                  << std::endl;
 #endif
 
         for( uint32_t i = 0; i < SegSz; i++ ) {
@@ -779,7 +789,31 @@ bool RevBasicRmtMemCtrl::sendRmtAMORqst(
   return true;
 }
 
+bool RevBasicRmtMemCtrl::sendFENCE( unsigned Hart ) {
+  RevRmtMemOp* Op = new RevRmtMemOp( Hart, RmtMemOp::FENCE );
+  rqstQ.push_back( Op );
+  recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtFencePending, 1 );
+  return true;
+}
+
 bool RevBasicRmtMemCtrl::clockTick( Cycle_t cycle ) {
+  // Check to see if the top request is a FENCE request
+  if( num_fence > 0 ) {
+
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " FENCE request, num_fence: " << std::dec << num_fence
+              << ", num_read_rqst: " << num_read_rqst << ", num_write_rqst: " << num_write_rqst
+              << ", num_read_lock_rqst: " << num_read_lock_rqst << ", num_write_unlock_rqst: " << num_write_unlock_rqst
+              << std::endl;
+#endif
+
+    if( ( num_read_rqst + num_write_rqst + num_read_lock_rqst + num_write_unlock_rqst ) != 0 ) {
+      recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtFencePending, 1 );
+      return false;
+    } else {
+      num_fence--;
+    }
+  }
   // process the remote memory requests
   bool     done              = false;
   unsigned t_max_ops         = 0;
@@ -822,6 +856,19 @@ bool RevBasicRmtMemCtrl::processNextRqst(
     if( isRmtMemOpAvailable( op, t_max_loads, t_max_stores, t_max_readlock, t_max_writeunlock ) ) {
       // op is good to execute, build a remote memory request packet
       t_max_ops++;
+
+      if( op->getOp() == RmtMemOp::FENCE ) {
+        // time to fence! Saturate and exit this cycle
+        // no need to build a remote memory request
+        // We only consider the fence is done when the xBGAS NIC queue does not contain messages
+        t_max_ops = max_ops;
+        if( xbgasNic->isQueueEmpty() ) {
+          rqstQ.erase( rqstQ.begin() + i );
+          num_fence++;
+          delete op;
+        }
+        return true;
+      }
 
       // build the remote memory request
       if( !buildRmtMemRqst( op, success ) ) {
@@ -883,6 +930,7 @@ bool RevBasicRmtMemCtrl::isRmtMemOpAvailable(
     }
     return false;
     break;
+  case RmtMemOp::FENCE: return true; break;
   default:
     output->fatal( CALL_INFO, -1, "Error: unknown remote memory operation\n" );
     return false;
@@ -922,7 +970,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     requests.push_back( Id );
     outstanding[Id] = Op;
     recordStat( RmtReadInFlight, 1 );
-    num_read += 1;
+    num_read_rqst += 1;
     break;
   case RmtMemOp::READLOCKRqst:
     RmtEvent->buildREADLOCKRqst( SrcAddr, Size, Flags );
@@ -936,7 +984,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     requests.push_back( Id );
     outstanding[Id] = Op;
     recordStat( RmtReadLockInFlight, 1 );
-    num_readlock += 1;
+    num_read_lock_rqst += 1;
     break;
   case RmtMemOp::WRITERqst:
   case RmtMemOp::BulkWRITERqst:
@@ -964,7 +1012,6 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
         }
         xbgasNic->send( RmtEvent, DestId );
         recordStat( RmtWriteInFlight, 1 );
-        num_write += 1;
         delete[] SegBuf;
       }
     } else {
@@ -978,9 +1025,9 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
       requests.push_back( Id );
       outstanding[Id] = Op;
       recordStat( RmtWriteInFlight, 1 );
-      num_write += 1;
       delete[] Buffer;
     }
+    num_write_rqst += 1;
     break;
   case RmtMemOp::WRITEUNLOCKRqst:
     Buffer = new uint8_t[Size];
@@ -994,7 +1041,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     requests.push_back( Id );
     outstanding[Id] = Op;
     recordStat( RmtWriteUnlockInFlight, 1 );
-    num_writeunlock += 1;
+    num_write_unlock_rqst += 1;
     delete[] Buffer;
     break;
   case RmtMemOp::AMORqst:
@@ -1007,6 +1054,8 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     xbgasNic->send( RmtEvent, DestId );
     requests.push_back( Id );
     outstanding[Id] = Op;
+    recordStat( RmtAMOInFlight, 1 );
+    num_amo_rqst += 1;
     delete[] Buffer;
     break;
   default: return false; break;

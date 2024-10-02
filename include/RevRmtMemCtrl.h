@@ -69,6 +69,9 @@ struct LocalLoadRecord {
 // ----------------------------------------
 class RevRmtMemOp {
 public:
+  /// RevRmtMemOp: constructor - fence
+  RevRmtMemOp( unsigned Hart, RmtMemOp Op );
+
   /// RevRmtMemOp: constructor - read
   RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, RmtMemOp Op, RevFlag Flags, void* Target );
 
@@ -297,7 +300,10 @@ public:
     void*            Target,
     const RmtMemReq& Req,
     RevFlag          Flags
-  ) = 0;
+  )                                       = 0;
+
+  /// RevRmtMemCtrl: send a FENCE request
+  virtual bool sendFENCE( unsigned Hart ) = 0;
 
   /// RevRmtMemCtrl: Set the bulk operation completion flag
   void SetBulkCompleted( bool Completed ) { bulkCompleted = Completed; }
@@ -371,6 +377,10 @@ public:
     { "RmtWriteUnlockInFlight", "Counts the number of remote write unlocks in flight", "count", 1 },
     { "RmtWriteUnlockPending", "Counts the number of remote write unlocks pending", "count", 1 },
     { "RmtWriteUnlockBytes", "Counts the number of bytes of remote write unlocks", "bytes", 1 },
+    { "RmtAMOInFlight", "Counts the number of AMO requests in flight", "count", 1 },
+    { "RmtAMOPending", "Counts the number of AMO requests pending", "count", 1 },
+    { "RmtAMOBytes", "Counts the number of bytes of AMO requests", "bytes", 1 },
+    { "RmtFencePending", "Counts the number of FENCE requests pending", "count", 1 }
   )
 
   enum RmtMemCtrlStats : uint32_t {
@@ -386,6 +396,10 @@ public:
     RmtWriteUnlockInFlight = 9,
     RmtWriteUnlockPending  = 10,
     RmtWriteUnlockBytes    = 11,
+    RmtAMOInFlight         = 12,
+    RmtAMOPending          = 13,
+    RmtAMOBytes            = 14,
+    RmtFencePending        = 15,
   };
 
   /// RevBasicRmtMemCtrl: constructor
@@ -488,6 +502,9 @@ public:
     RevFlag          Flags
   ) override;
 
+  /// RevBasicRmtMemCtrl: send a FENCE request
+  bool sendFENCE( unsigned Hart ) override;
+
   /// RevBasicRmtMemCtrl: handle a remote memory read request
   void handleReadRqst( xbgasNicEvent* ev ) override;
 
@@ -569,10 +586,12 @@ private:
   unsigned max_writeunlock{};  ///< RevBasicRmtMemCtrl: maximum number of outstanding write unlocks
   unsigned max_ops{};          ///< RevBasicRmtMemCtrl: maximum number of operations per cycle
 
-  uint64_t num_read{};         ///< RevBasicRmtMemCtrl: number of remote read requests
-  uint64_t num_write{};        ///< RevBasicRmtMemCtrl: number of remote write requests
-  uint64_t num_readlock{};     ///< RevBasicRmtMemCtrl: number of remote read lock requests
-  uint64_t num_writeunlock{};  ///< RevBasicRmtMemCtrl: number of remote write unlock requests
+  uint64_t num_read_rqst{};          ///< RevBasicRmtMemCtrl: number of remote read requests
+  uint64_t num_write_rqst{};         ///< RevBasicRmtMemCtrl: number of remote write requests
+  uint64_t num_read_lock_rqst{};     ///< RevBasicRmtMemCtrl: number of remote read lock requests
+  uint64_t num_write_unlock_rqst{};  ///< RevBasicRmtMemCtrl: number of remote write unlock requests
+  uint64_t num_amo_rqst{};           ///< RevBasicRmtMemCtrl: number of remote AMO requests
+  uint64_t num_fence{};              ///< RevBasicRmtMemCtrl: number of FENCE requests
 
   std::vector<uint32_t>            requests{};     ///< RevBasicRmtMemCtrl: vector of outstanding remote memory requests
   std::vector<RevRmtMemOp*>        rqstQ{};        ///< RevBasicRmtMemCtrl: queued remote memory requests

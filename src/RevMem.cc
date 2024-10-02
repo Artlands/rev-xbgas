@@ -515,6 +515,10 @@ bool RevMem::FenceMem( unsigned Hart ) {
   if( ctrl ) {
     ctrl->sendFENCE( Hart );
   }
+  // For xBGAS, the fence operation is to drain all the outstanding requests
+  if( rmtCtrl ) {
+    rmtCtrl->sendFENCE( Hart );
+  }
   return true;  // base RevMem support does nothing here
 }
 
