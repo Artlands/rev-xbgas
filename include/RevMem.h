@@ -474,10 +474,11 @@ private:
     CalcPhysAddr( uint64_t pageNum, uint64_t vAddr );  ///< RevMem: Used to calculate the physical address based on virtual address
   bool isValidVirtAddr( uint64_t vAddr );              ///< RevMem: Used to check if a virtual address exists in MemSegs
 
-  std::map<uint64_t, std::pair<uint32_t, bool>> pageMap{};    ///< RevMem: map of logical to pair<physical addresses, allocated>
-  uint32_t                                      pageSize{};   ///< RevMem: size of allocated pages
-  uint32_t                                      addrShift{};  ///< RevMem: Bits to shift to caclulate page of address
-  uint32_t                                      nextPage{};   ///< RevMem: next physical page to be allocated. Will result in index
+  std::map<uint64_t, std::pair<uint32_t, bool>> pageMap{};  ///< RevMem: map of logical to pair<physical addresses, allocated>
+  // uint32_t                                      pageSize{};   ///< RevMem: size of allocated pages
+  uint64_t pageSize{};   ///< RevMem: size of allocated pages
+  uint32_t addrShift{};  ///< RevMem: Bits to shift to caclulate page of address
+  uint32_t nextPage{};   ///< RevMem: next physical page to be allocated. Will result in index
   /// nextPage * pageSize into physMem
 
   uint64_t heapend{};    ///< RevMem: top of the stack
