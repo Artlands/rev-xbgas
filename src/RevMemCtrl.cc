@@ -10,6 +10,7 @@
 
 #include "RevMemCtrl.h"
 #include "RevRegFile.h"
+#include "RevRmtMemCtrl.h"
 
 namespace SST::RevCPU {
 
@@ -1461,6 +1462,13 @@ bool RevBasicMemCtrl::clockTick( Cycle_t cycle ) {
       recordStat( RevBasicMemCtrl::MemCtrlStats::FencePending, 1 );
       return false;
     } else {
+      // Check if remote memory requests are pending
+      if( rmtMemCtrl ) {
+        if( rmtMemCtrl->outstandingRqsts() ) {
+          recordStat( RevBasicMemCtrl::MemCtrlStats::FencePending, 1 );
+          return false;
+        }
+      }
       // clear the fence and continue processing
       num_fence--;
     }

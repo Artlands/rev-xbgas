@@ -35,6 +35,8 @@
 
 namespace SST::RevCPU {
 
+class RevRmtMemCtrl;
+
 using namespace SST::Interfaces;
 
 // ----------------------------------------
@@ -294,9 +296,13 @@ public:
   /// Assign processor tracer
   virtual void setTracer( RevTracer* tracer )                  = 0;
 
+  /// Set the remote memory controller
+  virtual void setRmtMemCtrl( RevRmtMemCtrl* ctrl )            = 0;
+
 protected:
-  SST::Output* output{};  ///< RevMemCtrl: sst output object
-  RevTracer*   Tracer{};  ///< RevMemCtrl: tracer pointer
+  SST::Output*   output{};      ///< RevMemCtrl: sst output object
+  RevTracer*     Tracer{};      ///< RevMemCtrl: tracer pointer
+  RevRmtMemCtrl* rmtMemCtrl{};  ///< RevMemCtrl: remote memory controller
 
 };  // class RevMemCtrl
 
@@ -622,6 +628,8 @@ private:
 
   /// RevBasicMemCtrl: perform the MODIFY portion of the AMO (READ+MODIFY+WRITE)
   void performAMO( std::tuple<unsigned, char*, void*, RevFlag, RevMemOp*, bool> Entry );
+
+  void setRmtMemCtrl( RevRmtMemCtrl* ctrl ) { rmtMemCtrl = ctrl; }
 
   // -- private data members
   StandardMem*       memIface{};         ///< StandardMem memory interface

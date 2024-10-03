@@ -233,8 +233,8 @@ public:
   /// RevRmtMemCtrl: check is remote memory operation is done
   virtual bool isDone()                   = 0;
 
-  /// RevRmtMemCtrl: determines if outstanding requests exist
-  // virtual bool outstandingRqsts() = 0;
+  // RevRmtMemCtrl: determines if outstanding requests exist
+  virtual bool outstandingRqsts()         = 0;
 
   /// RevRmtMemCtrl: set the local memory object
   virtual void setMem( RevMem* mem )      = 0;
@@ -429,8 +429,8 @@ public:
   /// RevBasicRmtMemCtrl: check is remote memory operation is done
   bool isDone() override;
 
-  /// RevBasicRmtMemCtrl: determines if outstanding requests exist
-  // bool outstandingRqsts() override;
+  // RevBasicRmtMemCtrl: determines if outstanding requests exist
+  bool outstandingRqsts() { return ( num_read_rqst + num_write_rqst + num_read_lock_rqst + num_write_unlock_rqst ) != 0; };
 
   /// RevBasicRmtMemCtrl: xBGAS event processing handler
   // void processEvent( xbgasNicEvent *ev );

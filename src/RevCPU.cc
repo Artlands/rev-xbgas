@@ -208,6 +208,9 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params ) : SST::Compon
     rmtCtrl->setMem( Mem.get() );
     // Set remote memory controller for Mem
     Mem->setRmtMemCtrl( rmtCtrl.get() );
+    // Set remote memory controller for MemCtrl
+    if( EnableMemH )
+      Ctrl->setRmtMemCtrl( rmtCtrl.get() );
     // Allocate the xBGAS shared memory region
     SharedMemoryBase = Mem->AllocMem( (uint64_t) ( SharedMemorySize ) );
     // Get the base address of the barrier region
