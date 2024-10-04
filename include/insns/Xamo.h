@@ -31,7 +31,7 @@ class Xamo : public RevExt {
       flags = RevFlag{ uint32_t( flags ) | uint32_t( RevFlag::F_RL ) };
     }
 
-    if( !R->IsRV64() ) {
+    if( !F->IsRV64() ) {
       auto Nmspace = R->GetE<uint32_t>( Inst.rs1 );
       if( Nmspace == 0 ) {
         MemReq req(

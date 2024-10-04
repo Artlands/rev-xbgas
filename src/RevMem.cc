@@ -22,8 +22,7 @@ using MemSegment = RevMem::MemSegment;
 RevMem::RevMem( uint64_t memSize, RevOpts* opts, RevMemCtrl* ctrl, SST::Output* output )
   : memSize( memSize ), opts( opts ), ctrl( ctrl ), output( output ) {
   // Note: this constructor assumes the use of the memHierarchy backend
-  // pageSize  = 262144;  //Page Size (in Bytes)
-  pageSize = 1024 * 1024 * 10;  // 10M Page Size (in Bytes) for temporary avoid the page fault when testing large memory allocation.
+  pageSize  = 262144;  //Page Size (in Bytes)
   addrShift = lg( pageSize );
   nextPage  = 0;
 

@@ -542,7 +542,7 @@ bool eload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst )
   RevFlag Flags;
   T*      DestReg;
 
-  if( sizeof( T ) < sizeof( int64_t ) && !R->IsRV64() ) {
+  if( sizeof( T ) < sizeof( int64_t ) && !F->IsRV64() ) {
     Flags   = sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
     DestReg = reinterpret_cast<T*>( &R->RV32[Inst.rd] );
   } else {
@@ -604,7 +604,7 @@ bool erload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst 
   RevFlag Flags;
   T*      DestReg;
 
-  if( sizeof( T ) < sizeof( int64_t ) && !R->IsRV64() ) {
+  if( sizeof( T ) < sizeof( int64_t ) && !F->IsRV64() ) {
     Flags   = sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
     DestReg = reinterpret_cast<T*>( &R->RV32[Inst.rd] );
   } else {
@@ -671,7 +671,7 @@ bool ebload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst 
 
   RevFlag Flags;
 
-  if( sizeof( T ) < sizeof( int64_t ) && !R->IsRV64() ) {
+  if( sizeof( T ) < sizeof( int64_t ) && !F->IsRV64() ) {
     Flags = sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
   } else {
     Flags = sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;

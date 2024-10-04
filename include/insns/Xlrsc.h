@@ -27,7 +27,7 @@ class Xlrsc : public RevExt {
 
     // Flags for LR memory load
     RevFlag flags = RevFlag::F_NONE;
-    if( sizeof( XLEN ) < sizeof( int64_t ) && R->IsRV64() )
+    if( sizeof( XLEN ) < sizeof( int64_t ) && F->IsRV64() )
       RevFlagSet( flags, RevFlag::F_SEXT64 );
     if( Inst.aq )
       RevFlagSet( flags, RevFlag::F_AQ );
@@ -36,7 +36,7 @@ class Xlrsc : public RevExt {
 
     // Where the data will eventually end up
     void* target;
-    if( sizeof( XLEN ) >= sizeof( int64_t ) || R->IsRV64() ) {
+    if( sizeof( XLEN ) >= sizeof( int64_t ) || F->IsRV64() ) {
       target = &R->RV64[Inst.rd];
     } else {
       target = &R->RV32[Inst.rd];
@@ -77,7 +77,7 @@ class Xlrsc : public RevExt {
 
     // Where the data will eventually end up
     void* target;
-    if( sizeof( XLEN ) >= sizeof( int64_t ) || R->IsRV64() ) {
+    if( sizeof( XLEN ) >= sizeof( int64_t ) || F->IsRV64() ) {
       target = &R->RV64[Inst.rd];
     } else {
       target = &R->RV32[Inst.rd];

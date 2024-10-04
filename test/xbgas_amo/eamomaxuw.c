@@ -41,7 +41,7 @@ int main( int argc, char** argv ) {
   }
 
   // Before AMO
-  printf( "Before AMO MaxU: PE %d: test_val = 0x%x, ret = 0x%x, val = 0x%x\n", id, test_val, ret, val );
+  printf( "Before AMO MaxU: PE %d: test_val = 0x%x, ret = 0x%x, val = 0x%x ", id, test_val, ret, val );
 
   // Set the remote namespace
   asm volatile( " eaddie e13, %0, 0 \n\t " : : "r"( namespace ) );
@@ -52,5 +52,5 @@ int main( int argc, char** argv ) {
   // For id = 0, the ret should be changed to 1 (test_val on PE 1) and test_val should be 0xff00 (max(val on PE 1, test_val on PE 0)).
   asm volatile( "eamomaxu.w %1, %2, %0" : "+A"( test_val ), "+r"( ret ) : "r"( val ) : "memory" );
 
-  printf( "After AMO MaxU: PE %d: test_val = 0x%x, ret = 0x%x, val = 0x%x\n", id, test_val, ret, val );
+  printf( "After AMO MaxU: PE %d: test_val = 0x%x, ret = 0x%x, val = 0x%x ", id, test_val, ret, val );
 }

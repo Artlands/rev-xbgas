@@ -83,7 +83,7 @@ for i in range(0, NPES):
     "machine" : "[0:RV64GC_Xbgas]",               # Machine type
     "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
     "enable_xbgas" : 1,                           # Enable XBGAS support
-    "enableMemH": 1,                             # Enable memHierarchy support
+    "enableMemH": 1,                              # Enable memHierarchy support
     "splash" : 0                                  # Display the splash message
   })
   # print("Created xBGAS CPU component " + str(i) + ": " + xbgas_cpu.getFullName())

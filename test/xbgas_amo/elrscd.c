@@ -65,7 +65,7 @@ int main( int argc, char** argv ) {
 
   // Before CAS
   if( id == 0 ) {
-    printf( "Before CAS: PE %d: test_val = 0x%x\n", id, test_val );
+    printf( "Before CAS: PE %d: test_val = 0x%x ", id, test_val );
   }
 
   // Set the remote namespace
@@ -73,13 +73,13 @@ int main( int argc, char** argv ) {
 
   if( id == 1 ) {
     cas_result = atomic_cas( &test_val, expected, desired );
-    printf( "PE %d: cas_result = %d\n", id, cas_result );
-    printf( "PE %d: desired = 0x%x\n", id, desired );
+    printf( "PE %d: cas_result = %d ", id, cas_result );
+    printf( "PE %d: desired = 0x%x ", id, desired );
   } else {
     //Wait for a few cycles
     for( int i = 0; i < 100; i++ ) {
       asm volatile( "" );
     }
-    printf( "After CAS: PE %d: test_val = 0x%x\n", id, test_val );
+    printf( "After CAS: PE %d: test_val = 0x%x ", id, test_val );
   }
 }

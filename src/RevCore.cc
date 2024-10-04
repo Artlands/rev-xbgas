@@ -1577,7 +1577,7 @@ bool RevCore::DependencyCheck( unsigned HartID, const RevInst* I ) const {
     LSQCheck( HartID, regFile, I->rs1, E->rs1Class ) || LSQCheck( HartID, regFile, I->rs2, E->rs2Class ) ||
     LSQCheck( HartID, regFile, I->rs3, E->rs3Class ) || LSQCheck( HartID, regFile, I->rd, E->rdClass ) ||
 
-    // xBGAS: check remote LS queue for outstanding load
+    // xBGAS: check remote LS queue for outstanding load and store-conditional
     RmtLSQCheck( HartID, regFile, I->rs1, E->rs1Class ) || RmtLSQCheck( HartID, regFile, I->rs2, E->rs2Class ) ||
     RmtLSQCheck( HartID, regFile, I->rs3, E->rs3Class ) || RmtLSQCheck( HartID, regFile, I->rd, E->rdClass ) ||
 

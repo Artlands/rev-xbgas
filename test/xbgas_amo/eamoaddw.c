@@ -41,7 +41,7 @@ int main( int argc, char** argv ) {
   }
 
   // Before AMO
-  printf( "Before AMO Add: PE %d: test_val = %d, ret = %d, val = %d\n", id, test_val, ret, val );
+  printf( "Before AMO Add: PE %d: test_val = %d, ret = %d, val = %d ", id, test_val, ret, val );
 
   // Set the remote namespace
   asm volatile( " eaddie e13, %0, 0 \n\t " : : "r"( namespace ) );
@@ -52,5 +52,5 @@ int main( int argc, char** argv ) {
   // For id = 0, the ret should be changed to 1 (test_val on PE 1) and test_val should be 3 (val on PE 1 + test_val on PE 0).
   asm volatile( "eamoadd.w %1, %2, %0" : "+A"( test_val ), "+r"( ret ) : "r"( val ) : "memory" );
 
-  printf( "After AMO Add: PE %d: test_val = %d, ret = %d, val = %d\n", id, test_val, ret, val );
+  printf( "After AMO Add: PE %d: test_val = %d, ret = %d, val = %d ", id, test_val, ret, val );
 }

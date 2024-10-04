@@ -295,9 +295,15 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent* ev ) {
   xbgasNicEvent* RmtEvent = new xbgasNicEvent( getName() );
 
   if( Opcode == RmtMemOp::WRITEUNLOCKRqst ) {
-    rtn          = Mem->SC( RmtHartId, DestAddr, Size, (void*) ( Buffer ), Flags );
+    rtn = Mem->SC( RmtHartId, DestAddr, Size, (void*) ( Buffer ), Flags );
     // Update TmpTarget with 0 if rtn is true, 1 if rtn is false.
-    TmpTarget[0] = !rtn;
+    for( size_t i = 0; i < Size; i++ ) {
+      TmpTarget[i] = !rtn;
+    }
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " handle write unlock rqst, "
+              << "SC return value: " << (int) TmpTarget[0] << std::endl;
+#endif
     RmtEvent->buildWRITEUNLOCKResp( Id, Size, TmpTarget );
     xbgasNic->send( RmtEvent, SrcId );
   } else {
@@ -812,6 +818,9 @@ bool RevBasicRmtMemCtrl::clockTick( Cycle_t cycle ) {
       return false;
     } else {
       num_fence--;
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " FENCE request, num_fence: " << std::dec << num_fence << std::endl;
+#endif
     }
   }
   // process the remote memory requests
@@ -963,9 +972,11 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
 
   switch( Op->getOp() ) {
   case RmtMemOp::READRqst:
-  case RmtMemOp::BulkREADRqst:
-    RmtEvent->buildREADRqst( SrcAddr, DestAddr, Size, Nelem, Stride, Flags );
-    Id = RmtEvent->getID();
+  case RmtMemOp::BulkREADRqst: RmtEvent->buildREADRqst( SrcAddr, DestAddr, Size, Nelem, Stride, Flags ); Id = RmtEvent->getID();
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Sending READRqst to PE " << DestId << " from PE " << SrcId
+              << " with Event ID " << Id << std::endl;
+#endif
     xbgasNic->send( RmtEvent, DestId );
     requests.push_back( Id );
     outstanding[Id] = Op;
@@ -1021,6 +1032,10 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
       }
       RmtEvent->buildWRITERqst( DestAddr, Size, Nelem, Stride, Flags, Buffer );
       Id = RmtEvent->getID();
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Sending WRITERqst to PE " << DestId << " from PE " << SrcId
+                << " with Event ID " << Id << std::endl;
+#endif
       xbgasNic->send( RmtEvent, DestId );
       requests.push_back( Id );
       outstanding[Id] = Op;
