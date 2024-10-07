@@ -22,8 +22,7 @@ using MemSegment = RevMem::MemSegment;
 RevMem::RevMem( uint64_t memSize, RevOpts* opts, RevMemCtrl* ctrl, SST::Output* output )
   : memSize( memSize ), opts( opts ), ctrl( ctrl ), output( output ) {
   // Note: this constructor assumes the use of the memHierarchy backend
-  // pageSize  = 262144;  //Page Size (in Bytes)
-  pageSize  = 4096;
+  pageSize  = 262144;  //Page Size (in Bytes)
   addrShift = lg( pageSize );
   nextPage  = 0;
 
@@ -580,160 +579,50 @@ bool RevMem::WriteMem( unsigned Hart, uint64_t Addr, size_t Len, const void* Dat
 
   InvalidateLRReservations( Hart, Addr, Len );
 
-  if( Addr == 0xDEADBEEF ) {
-    std::cout << "Found special write. Val = " << std::hex << *(int*) ( Data ) << std::dec << std::endl;
-  }
-  RevokeFuture( Addr );  // revoke the future if it is present; ignore the return
-  uint64_t pageNum     = Addr >> addrShift;
-  uint64_t physAddr    = CalcPhysAddr( pageNum, Addr );
-
-  //check to see if we're about to walk off the page....
-  uint32_t adjPageNum  = 0;
-  uint64_t adjPhysAddr = 0;
-  uint64_t endOfPage   = ( pageMap[pageNum].first << addrShift ) + pageSize;
-  char*    BaseMem     = &physMem[physAddr];
-  char*    DataMem     = (char*) ( Data );
-
-  if( ctrl ) {
-    ctrl->sendWRITERequest( Hart, Addr, (uint64_t) ( BaseMem ), Len, DataMem, flags );
-  } else {
-    if( ( physAddr + Len ) > endOfPage ) {
-      uint32_t span = ( physAddr + Len ) - endOfPage;
-      adjPageNum    = ( ( Addr + Len ) - span ) >> addrShift;
-      adjPhysAddr   = CalcPhysAddr( adjPageNum, ( ( Addr + Len ) - span ) );
-#ifdef _REV_DEBUG_
-      std::cout << "Warning: Writing off end of page... " << std::endl;
-#endif
-      for( unsigned i = 0; i < ( Len - span ); i++ ) {
-        BaseMem[i] = DataMem[i];
-      }
-      BaseMem      = &physMem[adjPhysAddr];
-      // write the memory using the internal RevMem model
-      unsigned Cur = ( Len - span );
-      for( unsigned i = 0; i < span; i++ ) {
-        BaseMem[i] = DataMem[Cur];
-        Cur++;
-      }
-    } else {
-      // write the memory using the internal RevMem model
-      for( unsigned i = 0; i < Len; i++ ) {
-        BaseMem[i] = DataMem[i];
-      }
-    }
-  }
-  memStats.bytesWritten += Len;
-  return true;
-}
-
-bool RevMem::WriteMem( unsigned Hart, uint64_t Addr, size_t Len, const void* Data ) {
-#ifdef _REV_DEBUG_
-  std::cout << "Writing " << Len << " Bytes Starting at 0x" << std::hex << Addr << std::dec << std::endl;
-#endif
-
-  InvalidateLRReservations( Hart, Addr, Len );
-
   TRACE_MEM_WRITE( Addr, Len, Data );
 
   if( Addr == 0xDEADBEEF ) {
     std::cout << "Found special write. Val = " << std::hex << *(int*) ( Data ) << std::dec << std::endl;
   }
-  RevokeFuture( Addr );  // revoke the future if it is present; ignore the return
-  uint64_t pageNum     = Addr >> addrShift;
-  uint64_t physAddr    = CalcPhysAddr( pageNum, Addr );
-
-  //check to see if we're about to walk off the page....
-  uint32_t adjPageNum  = 0;
-  uint64_t adjPhysAddr = 0;
-  uint64_t endOfPage   = ( pageMap[pageNum].first << addrShift ) + pageSize;
-  char*    BaseMem     = &physMem[physAddr];
-  char*    DataMem     = (char*) ( Data );
+  RevokeFuture( Addr );  // revoke the future if it is present
+  const char* DataMem = static_cast<const char*>( Data );
 
   if( ctrl ) {
-    ctrl->sendWRITERequest( Hart, Addr, (uint64_t) ( BaseMem ), Len, DataMem, RevFlag::F_NONE );
+    // write the memory using RevMemCtrl
+    ctrl->sendWRITERequest( Hart, Addr, 0, Len, const_cast<char*>( DataMem ), flags );
   } else {
-    if( ( physAddr + Len ) > endOfPage ) {
-      uint32_t span = ( physAddr + Len ) - endOfPage;
-      adjPageNum    = ( ( Addr + Len ) - span ) >> addrShift;
-      adjPhysAddr   = CalcPhysAddr( adjPageNum, ( ( Addr + Len ) - span ) );
+    // write the memory using the internal RevMem model
 
-#ifdef _REV_DEBUG_
-      std::cout << "ENDOFPAGE = " << std::hex << endOfPage << std::dec << std::endl;
-      for( unsigned i = 0; i < ( Len - span ); i++ ) {
-        std::cout << "WRITE TO: " << std::hex << (uint64_t) ( &BaseMem[i] ) << std::dec << "; FROM LOGICAL PHYS=" << std::hex
-                  << physAddr + i << std::dec << "; DATA=" << std::hex << (uint8_t) ( BaseMem[i] ) << std::dec
-                  << "; VIRTUAL ADDR=" << std::hex << Addr + i << std::dec << std::endl;
-      }
-
-      std::cout << "TOTAL WRITE = " << Len << " Bytes" << std::endl;
-      std::cout << "PHYS Writing " << Len - span << " Bytes Starting at 0x" << std::hex << physAddr << std::dec
-                << "; translates to: " << std::hex << (uint64_t) ( BaseMem ) << std::dec << std::endl;
-      std::cout << "ADJ PHYS Writing " << span << " Bytes Starting at 0x" << std::hex << adjPhysAddr << std::dec
-                << "; translates to: " << std::hex << (uint64_t) ( &physMem[adjPhysAddr] ) << std::dec << std::endl;
-      std::cout << "Warning: Writing off end of page... " << std::endl;
-#endif
-      for( unsigned i = 0; i < ( Len - span ); i++ ) {
-        BaseMem[i] = DataMem[i];
-      }
-      BaseMem      = &physMem[adjPhysAddr];
-      // write the memory using the internal RevMem model
-      unsigned Cur = ( Len - span );
-      for( unsigned i = 0; i < span; i++ ) {
-        BaseMem[i] = DataMem[Cur];
-#ifdef _REV_DEBUG_
-        std::cout << "ADJ WRITE TO: " << std::hex << (uint64_t) ( &BaseMem[i] ) << std::dec << "; FROM LOGICAL PHYS=" << std::hex
-                  << adjPhysAddr + i << std::dec << "; DATA=" << std::hex << (uint8_t) ( BaseMem[i] ) << std::dec
-                  << "; VIRTUAL ADDR=" << std::hex << Addr + Cur << std::dec << std::endl;
-#endif
-        Cur++;
-      }
-    } else {
-      // write the memory using the internal RevMem model
-      for( unsigned i = 0; i < Len; i++ ) {
-        BaseMem[i] = DataMem[i];
-      }
-    }
+    //check to see if we're about to walk off the page....
+    auto [remainder, physAddr, adjPhysAddr] = AdjPageAddr( Addr, Len );
+    memcpy( &physMem[physAddr], DataMem, remainder );
+    memcpy( &physMem[adjPhysAddr], DataMem + remainder, Len - remainder );
   }
   memStats.bytesWritten += Len;
   return true;
 }
 
-// Deprecated
-bool RevMem::ReadMem( uint64_t Addr, size_t Len, void* Data ) {
-#ifdef _REV_DEBUG_
-  std::cout << "OLD READMEM: Reading " << Len << " Bytes Starting at 0x" << std::hex << Addr << std::dec << std::endl;
-#endif
-  uint64_t pageNum     = Addr >> addrShift;
-  uint64_t physAddr    = CalcPhysAddr( pageNum, Addr );
-
-  //check to see if we're about to walk off the page....
-  uint32_t adjPageNum  = 0;
-  uint64_t adjPhysAddr = 0;
-  uint64_t endOfPage   = ( pageMap[pageNum].first << addrShift ) + pageSize;
-  char*    BaseMem     = &physMem[physAddr];
-  char*    DataMem     = (char*) ( Data );
-  if( ( physAddr + Len ) > endOfPage ) {
-    uint32_t span = ( physAddr + Len ) - endOfPage;
-    adjPageNum    = ( ( Addr + Len ) - span ) >> addrShift;
-    adjPhysAddr   = CalcPhysAddr( adjPageNum, ( ( Addr + Len ) - span ) );
-    for( unsigned i = 0; i < ( Len - span ); i++ ) {
-      DataMem[i] = BaseMem[i];
-    }
-    BaseMem      = &physMem[adjPhysAddr];
-    unsigned Cur = ( Len - span );
-    for( unsigned i = 0; i < span; i++ ) {
-      DataMem[Cur] = BaseMem[i];
-    }
-#ifdef _REV_DEBUG_
-    std::cout << "Warning: Reading off end of page... " << std::endl;
-#endif
-  } else {
-    for( unsigned i = 0; i < Len; i++ ) {
-      DataMem[i] = BaseMem[i];
-    }
+// RevMem: check to see if we're about to walk off the page....
+std::tuple<uint64_t, uint64_t, uint64_t> RevMem::AdjPageAddr( uint64_t Addr, uint64_t Len ) {
+  if( Len > pageSize ) {
+    output->fatal(
+      CALL_INFO, 7, "Error: Attempting to read/write %" PRIu64 " bytes > pageSize (= %" PRIu32 " bytes)\n", Len, pageSize
+    );
   }
 
-  memStats.bytesRead += Len;
-  return true;
+  uint64_t pageNum     = Addr >> addrShift;
+  uint64_t physAddr    = CalcPhysAddr( pageNum, Addr );
+  uint64_t endOfPage   = ( pageMap[pageNum].first << addrShift ) + pageSize;
+  uint64_t remainder   = 0;
+  uint64_t adjPhysAddr = physAddr;
+
+  if( physAddr + Len > endOfPage ) {
+    remainder           = endOfPage - physAddr;
+    uint64_t adjAddr    = Addr + remainder;
+    uint64_t adjPageNum = adjAddr >> addrShift;
+    adjPhysAddr         = CalcPhysAddr( adjPageNum, adjAddr );
+  }
+  return { remainder, physAddr, adjPhysAddr };
 }
 
 bool RevMem::ReadMem( unsigned Hart, uint64_t Addr, size_t Len, void* Target, const MemReq& req, RevFlag flags ) {
@@ -741,52 +630,27 @@ bool RevMem::ReadMem( unsigned Hart, uint64_t Addr, size_t Len, void* Target, co
   std::cout << "NEW READMEM: Reading " << Len << " Bytes Starting at 0x" << std::hex << Addr << std::dec << std::endl;
 #endif
 
-  uint64_t pageNum     = Addr >> addrShift;
-  uint64_t physAddr    = CalcPhysAddr( pageNum, Addr );
-  //check to see if we're about to walk off the page....
-  uint32_t adjPageNum  = 0;
-  uint64_t adjPhysAddr = 0;
-  uint64_t endOfPage   = ( pageMap[pageNum].first << addrShift ) + pageSize;
-  char*    BaseMem     = &physMem[physAddr];
-  char*    DataMem     = static_cast<char*>( Target );
+  char* DataMem = static_cast<char*>( Target );
 
   if( ctrl ) {
-    ctrl->sendREADRequest( Hart, Addr, (uint64_t) ( BaseMem ), Len, Target, req, flags );
+    // read the memory using RevMemCtrl
+    TRACE_MEMH_SENDREAD( req.Addr, Len, req.DestReg );
+    ctrl->sendREADRequest( Hart, Addr, 0, Len, DataMem, req, flags );
   } else {
-    if( ( physAddr + Len ) > endOfPage ) {
-      uint32_t span = ( physAddr + Len ) - endOfPage;
-      adjPageNum    = ( ( Addr + Len ) - span ) >> addrShift;
-      adjPhysAddr   = CalcPhysAddr( adjPageNum, ( ( Addr + Len ) - span ) );
-      for( unsigned i = 0; i < ( Len - span ); i++ ) {
-        DataMem[i] = BaseMem[i];
-      }
-      BaseMem      = &physMem[adjPhysAddr];
-      //If we are using memH, this paging scheme is not relevant, we already issued the ReadReq above
-      //ctrl->sendREADRequest(Hart, Addr, (uint64_t)(BaseMem), Len, ((char*)Target)+Cur, req, flags);
-      unsigned Cur = ( Len - span );
-      for( unsigned i = 0; i < span; i++ ) {
-        DataMem[Cur] = BaseMem[i];
-        Cur++;
-      }
-      // Handle flag response
-      RevHandleFlagResp( Target, Len, flags );
-      // clear the hazard - if this was an AMO operation then we will clear outside of this function in AMOMem()
-      if( MemOp::MemOpAMO != req.ReqType ) {
-        req.MarkLoadComplete();
-      }
-#ifdef _REV_DEBUG_
-      std::cout << "Warning: Reading off end of page... " << std::endl;
-#endif
-    } else {
-      memcpy( DataMem, BaseMem, Len );
-      // Handle flag response
-      RevHandleFlagResp( Target, Len, flags );
-      // clear the hazard- if this was an AMO operation then we will clear outside of this function in AMOMem()
-      if( MemOp::MemOpAMO != req.ReqType ) {
-        TRACE_MEM_READ( Addr, Len, DataMem );
-        req.MarkLoadComplete();
-      }
-    }
+    // read the memory using the internal RevMem model
+    TRACE_MEM_READ( Addr, Len, DataMem );
+
+    //check to see if we're about to walk off the page....
+    auto [remainder, physAddr, adjPhysAddr] = AdjPageAddr( Addr, Len );
+    memcpy( DataMem, &physMem[physAddr], remainder );
+    memcpy( DataMem + remainder, &physMem[adjPhysAddr], Len - remainder );
+
+    // Handle flag response
+    RevHandleFlagResp( Target, Len, flags );
+
+    // clear the hazard - if this was an AMO operation then we will clear outside of this function in AMOMem()
+    if( MemOp::MemOpAMO != req.ReqType )
+      req.MarkLoadComplete();
   }
   memStats.bytesRead += Len;
   return true;
