@@ -665,6 +665,15 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ) {
     rtn = false;
   }
 
+  // Check if MemCtrl and RmtMemCtrl have any outstanding requests
+  if( Ctrl && Ctrl->getTotalRqsts() > 0 ) {
+    rtn = false;
+  }
+
+  if( rmtCtrl && rmtCtrl->getTotalRqsts() > 0 ) {
+    rtn = false;
+  }
+
   if( rtn && CompletedThreads.size() ) {
     for( unsigned i = 0; i < numCores; i++ ) {
       UpdateCoreStatistics( i );

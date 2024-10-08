@@ -1464,7 +1464,7 @@ bool RevBasicMemCtrl::clockTick( Cycle_t cycle ) {
     } else {
       // Check if remote memory requests are pending
       if( rmtMemCtrl ) {
-        if( rmtMemCtrl->outstandingRqsts() ) {
+        if( rmtMemCtrl->getTotalRqsts() > 0 ) {
           recordStat( RevBasicMemCtrl::MemCtrlStats::FencePending, 1 );
           return false;
         }

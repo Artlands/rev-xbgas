@@ -226,6 +226,9 @@ public:
   /// RevMemCtrl: determines if outstanding requests exist
   virtual bool outstandingRqsts()                                                                                       = 0;
 
+  /// RevMemCtrl: returns the total number of outstanding requests
+  virtual uint64_t getTotalRqsts()                                                                                      = 0;
+
   /// RevMemCtrl: send flush request
   virtual bool sendFLUSHRequest( unsigned Hart, uint64_t Addr, uint64_t PAddr, uint32_t Size, bool Inv, RevFlag flags ) = 0;
 

@@ -234,7 +234,7 @@ public:
   virtual bool isDone()                   = 0;
 
   // RevRmtMemCtrl: determines if outstanding requests exist
-  virtual bool outstandingRqsts()         = 0;
+  virtual uint64_t getTotalRqsts()        = 0;
 
   /// RevRmtMemCtrl: set the local memory object
   virtual void setMem( RevMem* mem )      = 0;
@@ -430,7 +430,7 @@ public:
   bool isDone() override;
 
   // RevBasicRmtMemCtrl: determines if outstanding requests exist
-  bool outstandingRqsts() { return ( num_read_rqst + num_write_rqst + num_read_lock_rqst + num_write_unlock_rqst ) != 0; };
+  uint64_t getTotalRqsts() { return num_read_rqst + num_write_rqst + num_read_lock_rqst + num_write_unlock_rqst; };
 
   /// RevBasicRmtMemCtrl: xBGAS event processing handler
   // void processEvent( xbgasNicEvent *ev );
@@ -566,9 +566,6 @@ private:
 
   /// RevBasicRmtMemCtrl: function to mark a local load as complete
   void MarkLocalLoadComplete( const MemReq& Req );
-
-  /// RevBasicRmtMemCtrl: return the total number of outstanding requests
-  // uint64_t getTotalRqsts();
 
   // -- private data members;
   RevMem*                      Mem{};       ///< RevBasicRmtMemCtrl: pointer to the memory object

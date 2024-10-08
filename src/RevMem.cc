@@ -656,19 +656,6 @@ bool RevMem::ReadMem( unsigned Hart, uint64_t Addr, size_t Len, void* Target, co
   return true;
 }
 
-// bool RevMem::RmtWriteMem( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, const void* Data, RevFlag flags ) {
-//   char* DataMem = (char*) ( Data );
-//   rmtCtrl->sendRmtWriteRqst( Hart, Nmspace, DestAddr, Size, DataMem, flags );
-//   return true;
-// }
-
-// bool RevMem::RmtBulkWriteMem(
-//   unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr, RevFlag flags
-// ) {
-//   rmtCtrl->sendRmtBulkWriteRqst( Hart, Nmspace, DestAddr, Size, Nelem, Stride, SrcAddr, flags );
-//   return true;
-// }
-
 bool RevMem::FlushLine( unsigned Hart, uint64_t Addr ) {
   uint64_t pageNum  = Addr >> addrShift;
   uint64_t physAddr = CalcPhysAddr( pageNum, Addr );
