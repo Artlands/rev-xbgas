@@ -125,7 +125,7 @@ void RevMem::LR( unsigned hart, uint64_t addr, size_t len, void* target, const M
   char*    BaseMem  = &physMem[physAddr];
 
   if( ctrl ) {
-    ctrl->sendREADLOCKRequest( hart, addr, reinterpret_cast<uint64_t>( BaseMem ), len, target, req, flags );
+    ctrl->sendREADRequest( hart, addr, reinterpret_cast<uint64_t>( BaseMem ), len, target, req, flags );
   } else {
     memcpy( target, BaseMem, len );
     RevHandleFlagResp( target, len, flags );
