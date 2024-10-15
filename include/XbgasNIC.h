@@ -176,21 +176,21 @@ public:
 
   /// xbgasNicEvent: build a WRITE request packet that is segmented
   bool buildSegWRITERqst(
-    uint32_t SegId, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer, uint32_t SegSz
+    uint32_t SegId, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer
   );
 
   /// xbgasNicEvent: build a WRITE UNLOCK request packet
   bool buildWRITEUNLOCKRqst( uint64_t DestAddr, size_t Size, RevFlag Fl, uint8_t* Buffer );
 
   // xbgasNicEvent: build a AMO request packet
-  bool buildAMORqst( uint64_t SrcAddr, size_t Size, uint8_t* Buffer, RevFlag Fl );
+  bool buildAMORqst( uint64_t SrcAddr, size_t Size, RevFlag Fl, uint8_t* Buffer );
 
   /// xbgasNicEvent: build a READ respond packet
-  bool buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint8_t* Buffer );
+  bool buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer );
 
   /// xbgasNicEvent: build a READ respond packet that is segmented
   bool buildSegREADResp(
-    uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint8_t* Buffer, uint32_t SegSz
+    uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer
   );
 
   /// xbgasNicEvent: build a READ LOCK respond packet

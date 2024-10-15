@@ -572,13 +572,13 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
             SegBuf[j] = Buffer[i * _MAX_PAYLOAD_ + j];
           }
           RmtEvent = new xbgasNicEvent( getName() );
-          RmtEvent->buildSegREADResp( Id, DestAddr + i * _MAX_PAYLOAD_, Size, SegNelem, Stride, SegBuf, SegSz );
+          RmtEvent->buildSegREADResp( Id, DestAddr + i * _MAX_PAYLOAD_, Size, SegNelem, Stride, Flags, SegSz, SegBuf );
           xbgasNic->send( RmtEvent, SrcId );
           delete[] SegBuf;
         }
       } else {
         RmtEvent = new xbgasNicEvent( getName() );
-        RmtEvent->buildREADResp( Id, DestAddr, Size, Nelem, Stride, Buffer );
+        RmtEvent->buildREADResp( Id, DestAddr, Size, Nelem, Stride, Flags, Buffer );
         // Destination is the source of the request
         xbgasNic->send( RmtEvent, SrcId );
       }
@@ -594,9 +594,6 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
       break;
     case RmtMemOp::BulkWRITERqst:
       Op = new RevRmtMemOp( Hart, Nmspace, DestAddr, Size, Nelem, Stride, RmtMemOp::BulkWRITERqst, Flags, Buffer );
-      // Remote memory operations are not cached
-      // RevFlag TmpFlags = Op->getNonCacheFlags();
-      // Op->setFlags( TmpFlags );
       rqstQ.push_back( Op );
       recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWritePending, 1 );
       break;
@@ -671,10 +668,10 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst(
 
   if( Size == 0 )
     return true;
-  RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, RmtMemOp::READRqst, Flags, Target );
-  // To be decided if Remote memory operations need to be not cached
-  // RevFlag TmpFlags = Op->getNonCacheFlags();
-  // Op->setFlags( TmpFlags );
+  RevRmtMemOp* Op  = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, RmtMemOp::READRqst, Flags, Target );
+  // Remote memory operations are not cached
+  RevFlag TmpFlags = Op->getNonCacheFlags();
+  Op->setFlags( TmpFlags );
   Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtReadPending, 1 );
@@ -686,10 +683,10 @@ bool RevBasicRmtMemCtrl::sendRmtReadLockRqst(
 ) {
   if( Size == 0 )
     return true;
-  RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, RmtMemOp::READLOCKRqst, Flags, Target );
-  // To be decided if Remote memory operations need to be not cached
-  // RevFlag TmpFlags = Op->getNonCacheFlags();
-  // Op->setFlags( TmpFlags );
+  RevRmtMemOp* Op  = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, RmtMemOp::READLOCKRqst, Flags, Target );
+  // Remote memory operations are not cached
+  RevFlag TmpFlags = Op->getNonCacheFlags();
+  Op->setFlags( TmpFlags );
   Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtReadLockPending, 1 );
@@ -708,10 +705,10 @@ bool RevBasicRmtMemCtrl::sendRmtWriteUnLockRqst(
 ) {
   if( Size == 0 )
     return true;
-  RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, DestAddr, Size, RmtMemOp::WRITEUNLOCKRqst, Flags, Target, Buffer );
-  // To be decided if Remote memory operations need to be not cached
-  // RevFlag TmpFlags = Op->getNonCacheFlags();
-  // Op->setFlags(TmpFlags);
+  RevRmtMemOp* Op  = new RevRmtMemOp( Hart, Nmspace, DestAddr, Size, RmtMemOp::WRITEUNLOCKRqst, Flags, Target, Buffer );
+  // Remote memory operations are not cached
+  RevFlag TmpFlags = Op->getNonCacheFlags();
+  Op->setFlags( TmpFlags );
   Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWriteUnlockPending, 1 );
@@ -729,10 +726,10 @@ bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst(
   std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Mark Bulk Read Complete to false" << std::endl;
 #endif
 
-  RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, DestAddr, Size, Nelem, Stride, RmtMemOp::BulkREADRqst, Flags );
-  // To be decided if Remote memory operations need to be not cached
-  // RevFlag      TmpFlags = Op->getNonCacheFlags();
-  // Op->setFlags( TmpFlags );
+  RevRmtMemOp* Op  = new RevRmtMemOp( Hart, Nmspace, SrcAddr, DestAddr, Size, Nelem, Stride, RmtMemOp::BulkREADRqst, Flags );
+  // Remote memory operations are not cached
+  RevFlag TmpFlags = Op->getNonCacheFlags();
+  Op->setFlags( TmpFlags );
   rqstQ.push_back( Op );
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtReadPending, 1 );
   return true;
@@ -743,10 +740,10 @@ bool RevBasicRmtMemCtrl::sendRmtWriteRqst(
 ) {
   if( Size == 0 )
     return true;
-  RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, DestAddr, Size, RmtMemOp::WRITERqst, Flags, Buffer );
-  // To be decided if Remote memory operations need to be not cached
-  // RevFlag TmpFlags = Op->getNonCacheFlags();
-  // Op->setFlags( TmpFlags );
+  RevRmtMemOp* Op  = new RevRmtMemOp( Hart, Nmspace, DestAddr, Size, RmtMemOp::WRITERqst, Flags, Buffer );
+  // Remote memory operations are not cached
+  RevFlag TmpFlags = Op->getNonCacheFlags();
+  Op->setFlags( TmpFlags );
   rqstQ.push_back( Op );
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWritePending, 1 );
   return true;
@@ -757,11 +754,14 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst(
 ) {
   if( Size == 0 )
     return true;
+  // Convert the Flags to non-cacheable
+  RevFlag NonCacheFlags = RevFlag{ static_cast<uint32_t>( Flags ) & 0xFFFD };
   // The bulk write request will be put into the rqstQ after the data is read from the local memory
-  uint8_t* Buffer = new uint8_t[Size * Nelem];
+  uint8_t* Buffer       = new uint8_t[Size * Nelem];
   LocalLoadTrack.insert(
     { LocalReadHash( Nmspace, SrcAddr, Size, Nelem, Stride ),
-      LocalLoadRecord( Hart, Nmspace, 0, 0, SrcAddr, DestAddr, Size, Nelem, Stride, Flags, Buffer, RmtMemOp::BulkWRITERqst ) }
+      LocalLoadRecord( Hart, Nmspace, 0, 0, SrcAddr, DestAddr, Size, Nelem, Stride, NonCacheFlags, Buffer, RmtMemOp::BulkWRITERqst )
+    }
   );
 
   LocalLoadCount.insert( { LocalReadHash( Nmspace, SrcAddr, Size, Nelem, Stride ), 0 } );
@@ -778,7 +778,7 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst(
       }
     );
     LocalLoadOpMap.insert( { SrcAddr + i * Stride, LocalReadHash( Nmspace, SrcAddr, Size, Nelem, Stride ) } );
-    Mem->ReadMem( virtualHart, SrcAddr + i * Stride, Size, (void*) ( &Buffer[i * Size] ), std::move( Req ), Flags );
+    Mem->ReadMem( virtualHart, SrcAddr + i * Stride, Size, (void*) ( &Buffer[i * Size] ), std::move( Req ), NonCacheFlags );
   }
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWritePending, 1 );
   return true;
@@ -789,7 +789,10 @@ bool RevBasicRmtMemCtrl::sendRmtAMORqst(
 ) {
   if( Size == 0 )
     return true;
-  RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, RmtMemOp::AMORqst, Flags, Target, Buffer );
+  RevRmtMemOp* Op  = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, RmtMemOp::AMORqst, Flags, Target, Buffer );
+  // Remote memory operations are not cached
+  RevFlag TmpFlags = Op->getNonCacheFlags();
+  Op->setFlags( TmpFlags );
   Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
   return true;
@@ -1013,7 +1016,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
           SegBuf[j] = tmpBuf[i * _MAX_PAYLOAD_ + j];
         }
         RmtEvent = new xbgasNicEvent( getName() );
-        RmtEvent->buildSegWRITERqst( i, DestAddr + i * _MAX_PAYLOAD_, Size, SegNelem, Stride, Flags, SegBuf, SegSz );
+        RmtEvent->buildSegWRITERqst( i, DestAddr + i * _MAX_PAYLOAD_, Size, SegNelem, Stride, Flags, SegSz, SegBuf );
         if( i == 0 ) {
           Id = RmtEvent->getID();
           requests.push_back( Id );
@@ -1064,7 +1067,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     for( unsigned i = 0; i < Size; ++i ) {
       Buffer[i] = tmpBuf[i];
     }
-    RmtEvent->buildAMORqst( SrcAddr, Size, Buffer, Flags );
+    RmtEvent->buildAMORqst( SrcAddr, Size, Flags, Buffer );
     Id = RmtEvent->getID();
     xbgasNic->send( RmtEvent, DestId );
     requests.push_back( Id );

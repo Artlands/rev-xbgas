@@ -101,7 +101,7 @@ bool xbgasNicEvent::buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nel
 }
 
 bool xbgasNicEvent::buildSegWRITERqst(
-  uint32_t SegId, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer, uint32_t SegSz
+  uint32_t SegId, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer
 ) {
   if( SegId == 0 ) {
     if( !setId( main_id++ ) )
@@ -117,13 +117,13 @@ bool xbgasNicEvent::buildSegWRITERqst(
     return false;
   if( !setStride( Stride ) )
     return false;
-  if( !setData( Buffer, Size * Nelem ) )
-    return false;
   if( !setFlags( Fl ) )
     return false;
-  if( !setSegmented( true ) )
-    return false;
   if( !setSegSz( SegSz ) )
+    return false;
+  if( !setData( Buffer, Size * Nelem ) )
+    return false;
+  if( !setSegmented( true ) )
     return false;
   return true;
 }
@@ -148,7 +148,7 @@ bool xbgasNicEvent::buildWRITEUNLOCKRqst( uint64_t DestAddr, size_t Size, RevFla
   return true;
 }
 
-bool xbgasNicEvent::buildAMORqst( uint64_t SrcAddr, size_t Size, uint8_t* Buffer, RevFlag Fl ) {
+bool xbgasNicEvent::buildAMORqst( uint64_t SrcAddr, size_t Size, RevFlag Fl, uint8_t* Buffer ) {
   if( !setOp( RmtMemOp::AMORqst ) )
     return false;
   if( !setId( main_id++ ) )
@@ -159,14 +159,16 @@ bool xbgasNicEvent::buildAMORqst( uint64_t SrcAddr, size_t Size, uint8_t* Buffer
     return false;
   if( !setNelem( 1 ) )
     return false;
-  if( !setData( Buffer, Size ) )
-    return false;
   if( !setFlags( Fl ) )
+    return false;
+  if( !setData( Buffer, Size ) )
     return false;
   return true;
 }
 
-bool xbgasNicEvent::buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint8_t* Buffer ) {
+bool xbgasNicEvent::buildREADResp(
+  uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer
+) {
   if( Nelem == 1 ) {
     if( !setOp( RmtMemOp::READResp ) )
       return false;
@@ -184,13 +186,15 @@ bool xbgasNicEvent::buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, 
     return false;
   if( !setStride( Stride ) )
     return false;
+  if( !setFlags( Fl ) )
+    return false;
   if( !setData( Buffer, Size * Nelem ) )
     return false;
   return true;
 }
 
 bool xbgasNicEvent::buildSegREADResp(
-  uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint8_t* Buffer, uint32_t SegSz
+  uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer
 ) {
   if( !setOp( RmtMemOp::BulkREADResp ) )
     return false;
@@ -204,11 +208,13 @@ bool xbgasNicEvent::buildSegREADResp(
     return false;
   if( !setStride( Stride ) )
     return false;
+  if( !setFlags( Fl ) )
+    return false;
+  if( !setSegSz( SegSz ) )
+    return false;
   if( !setData( Buffer, Size * Nelem ) )
     return false;
   if( !setSegmented( true ) )
-    return false;
-  if( !setSegSz( SegSz ) )
     return false;
   return true;
 }
