@@ -789,10 +789,7 @@ bool RevBasicRmtMemCtrl::sendRmtAMORqst(
 ) {
   if( Size == 0 )
     return true;
-  RevRmtMemOp* Op  = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, RmtMemOp::AMORqst, Flags, Target, Buffer );
-  // Remote memory operations are not cached
-  RevFlag TmpFlags = Op->getNonCacheFlags();
-  Op->setFlags( TmpFlags );
+  RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, RmtMemOp::AMORqst, Flags, Target, Buffer );
   Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
   return true;
