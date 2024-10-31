@@ -118,20 +118,7 @@ void RevMem::LR( unsigned hart, uint64_t addr, size_t len, void* target, const M
   // Create a reservation for this hart, overwriting one if it already exists
   // A reservation maps a hart to an (addr, len) range and is invalidated if any other hart writes to this range
   LRSC.insert_or_assign( hart, std::pair( addr, len ) );
-
-  // now handle the memory operation
-  uint64_t pageNum  = addr >> addrShift;
-  uint64_t physAddr = CalcPhysAddr( pageNum, addr );
-  char*    BaseMem  = &physMem[physAddr];
-
-  if( ctrl ) {
-    ctrl->sendREADRequest( hart, addr, reinterpret_cast<uint64_t>( BaseMem ), len, target, req, flags );
-  } else {
-    memcpy( target, BaseMem, len );
-    RevHandleFlagResp( target, len, flags );
-    // clear the hazard
-    req.MarkLoadComplete();
-  }
+  ReadMem( hart, addr, len, target, req, flags );
 }
 
 bool RevMem::InvalidateLRReservations( unsigned hart, uint64_t addr, size_t len ) {

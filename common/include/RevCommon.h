@@ -138,12 +138,8 @@ constexpr uint64_t LocalReadHash( uint64_t Nmspace, uint64_t SrcAddr, size_t Siz
   return hash;
 }
 
-constexpr uint64_t HartHash( unsigned virtualHart, unsigned Hart, uint32_t SrcId ) {
-  uint64_t hash = FNV_OFFSET_BASIS;
-  hash          = fnv1a_hash( hash, &virtualHart, sizeof( virtualHart ) );
-  hash          = fnv1a_hash( hash, &Hart, sizeof( Hart ) );
-  hash          = fnv1a_hash( hash, &SrcId, sizeof( SrcId ) );
-  return hash;
+constexpr unsigned HartHash( unsigned virtualHart, unsigned Hart, uint32_t SrcId ) {
+  return static_cast<unsigned>( virtualHart ) << ( 16 + 8 ) | static_cast<unsigned>( Hart ) << 16 | static_cast<unsigned>( SrcId );
 }
 
 struct MemReq {
@@ -167,6 +163,18 @@ struct MemReq {
     : Addr( Addr ), DestReg( uint16_t( DestReg ) ), RegType( RegType ), Hart( Hart ), ReqType( ReqType ),
       isOutstanding( isOutstanding ), MarkLoadCompleteFunc( std::move( MarkLoadCompleteFunc ) ) {}
 
+  // The following constructor is used for xBGAS operations
+  MemReq(
+    uint64_t                             Addr,
+    size_t                               Size,
+    unsigned                             Hart,
+    MemOp                                ReqType,
+    bool                                 isOutstanding,
+    std::function<void( const MemReq& )> MarkLoadCompleteFunc
+  )
+    : Addr( Addr ), Size( Size ), Hart( Hart ), ReqType( ReqType ), isOutstanding( isOutstanding ),
+      MarkLoadCompleteFunc( std::move( MarkLoadCompleteFunc ) ) {}
+
   void MarkLoadComplete() const { MarkLoadCompleteFunc( *this ); }
 
   auto LSQHash() const { return SST::RevCPU::LSQHash( DestReg, RegType, Hart ); }
@@ -174,6 +182,7 @@ struct MemReq {
   auto LSQHashPair() const { return std::make_pair( LSQHash(), *this ); }
 
   uint64_t    Addr                                          = _INVALID_ADDR_;
+  size_t      Size                                          = 0;
   uint16_t    DestReg                                       = 0;
   RevRegClass RegType                                       = RevRegClass::RegUNKNOWN;
   unsigned    Hart                                          = _REV_INVALID_HART_ID_;

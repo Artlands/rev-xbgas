@@ -19,16 +19,20 @@ namespace SST::RevCPU {
 class Xlrsc : public RevExt {
 
   // xBGAS remote Load Resreved instruction
-  template<typename XLEN>
+  template<typename TYPE>
   static bool elr( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-    static_assert( std::is_unsigned_v<XLEN>, "XLEN must be unsigned integral type" );
+    static_assert( std::is_unsigned_v<TYPE>, "TYPE must be unsigned integral type" );
     auto nmspace  = R->GetE<uint64_t>( Inst.rs1 );
     auto addr     = R->GetX<uint64_t>( Inst.rs1 );
 
-    // Flags for LR memory load
     RevFlag flags = RevFlag::F_NONE;
-    if( sizeof( XLEN ) < sizeof( int64_t ) && F->IsRV64() )
-      RevFlagSet( flags, RevFlag::F_SEXT64 );
+    if( sizeof( TYPE ) < sizeof( int64_t ) && !F->IsRV64() ) {
+      flags = RevFlag::F_SEXT32;
+    } else {
+      flags = RevFlag::F_SEXT64;
+    }
+
+    // Flags for LR memory load
     if( Inst.aq )
       RevFlagSet( flags, RevFlag::F_AQ );
     if( Inst.rl )
@@ -36,7 +40,7 @@ class Xlrsc : public RevExt {
 
     // Where the data will eventually end up
     void* target;
-    if( sizeof( XLEN ) >= sizeof( int64_t ) || F->IsRV64() ) {
+    if( sizeof( TYPE ) >= sizeof( int64_t ) || F->IsRV64() ) {
       target = &R->RV64[Inst.rd];
     } else {
       target = &R->RV32[Inst.rd];
@@ -45,14 +49,14 @@ class Xlrsc : public RevExt {
     if( nmspace == 0 ) {
       MemReq req( addr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), MemOp::MemOpREADLOCK, true, R->GetMarkLoadComplete() );
       R->LSQueue->insert( req.LSQHashPair() );
-      M->LR( F->GetHartToExecID(), addr, sizeof( XLEN ), target, req, flags );
+      M->LR( F->GetHartToExecID(), addr, sizeof( TYPE ), target, req, flags );
     } else {
       // Send load-reserve (Remote READLOCK) request to the remote node
       RmtMemReq req(
         nmspace, addr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), RmtMemOp::READLOCKRqst, true, R->GetMarkRmtLoadComplete()
       );
       R->RmtLSQueue->insert( req.LSQHashPair() );
-      M->RmtLR( F->GetHartToExecID(), nmspace, addr, sizeof( XLEN ), target, req, flags );
+      M->RmtLR( F->GetHartToExecID(), nmspace, addr, sizeof( TYPE ), target, req, flags );
     }
 
     R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
@@ -61,15 +65,21 @@ class Xlrsc : public RevExt {
   }
 
   // xBGAS remote Store Conditional instruction
-  template<typename XLEN>
+  template<typename TYPE>
   static bool esc( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-    static_assert( std::is_unsigned_v<XLEN>, "TYPE must be unsigned integral type" );
+    static_assert( std::is_unsigned_v<TYPE>, "TYPE must be unsigned integral type" );
     auto nmspace  = R->GetE<uint64_t>( Inst.rs1 );
     auto addr     = R->GetX<uint64_t>( Inst.rs1 );
-    auto val      = R->GetX<XLEN>( Inst.rs2 );
+    auto val      = R->GetX<TYPE>( Inst.rs2 );
+
+    RevFlag flags = RevFlag::F_NONE;
+    if( sizeof( TYPE ) < sizeof( int64_t ) && !F->IsRV64() ) {
+      flags = RevFlag::F_SEXT32;
+    } else {
+      flags = RevFlag::F_SEXT64;
+    }
 
     // Flags for SC Store Conditional
-    RevFlag flags = RevFlag::F_NONE;
     if( Inst.aq )
       RevFlagSet( flags, RevFlag::F_AQ );
     if( Inst.rl )
@@ -77,14 +87,14 @@ class Xlrsc : public RevExt {
 
     // Where the data will eventually end up
     void* target;
-    if( sizeof( XLEN ) >= sizeof( int64_t ) || F->IsRV64() ) {
+    if( sizeof( TYPE ) >= sizeof( int64_t ) || F->IsRV64() ) {
       target = &R->RV64[Inst.rd];
     } else {
       target = &R->RV32[Inst.rd];
     }
 
     if( nmspace == 0 ) {
-      bool sc = M->SC( F->GetHartToExecID(), addr, sizeof( XLEN ), &val, flags );
+      bool sc = M->SC( F->GetHartToExecID(), addr, sizeof( TYPE ), &val, flags );
       R->SetX( Inst.rd, !sc );
     } else {
       RmtMemReq req(
@@ -99,7 +109,7 @@ class Xlrsc : public RevExt {
       );
       R->RmtLSQueue->insert( req.LSQHashPair() );
       // Send store-conditional request to the remote node
-      M->RmtSC( F->GetHartToExecID(), nmspace, addr, sizeof( XLEN ), &val, target, req, flags );
+      M->RmtSC( F->GetHartToExecID(), nmspace, addr, sizeof( TYPE ), &val, target, req, flags );
     }
     R->AdvancePC( Inst );
     return true;

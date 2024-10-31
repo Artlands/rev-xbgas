@@ -28,7 +28,8 @@ void xbgasNicEvent::getData( uint8_t* Buffer ) {
   if( Size == 0 )
     return;
   for( size_t i = 0; i < Size * Nelem; i++ ) {
-    Buffer[i] = Data[i];
+    *Buffer = Data[i];
+    Buffer++;
   }
 }
 
