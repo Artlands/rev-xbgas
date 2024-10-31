@@ -312,25 +312,40 @@ public:
   static bool GetBulkCompleted() { return bulkCompleted; }
 
   /// RevRmtMemCtrl: handle a remote memory read request
-  virtual void handleReadRqst( xbgasNicEvent* ev )  = 0;
+  virtual void handleReadRqst( xbgasNicEvent* ev )                                                                      = 0;
+
+  /// RevRmtMemCtrl: handle a remote memory read lock request
+  virtual void handleReadLockRqst( xbgasNicEvent* ev )                                                                  = 0;
+
+  /// RevRmtMemCtrl: process a remote memory read lock request
+  virtual bool processReadLockRqst( xbgasNicEvent* ev )                                                                 = 0;
+
+  /// RevRmtMemCtrl: apply a remote memory read lock request
+  virtual void applyReadLockRqst( xbgasNicEvent* ev )                                                                   = 0;
 
   /// RevRmtMemCtrl: handle a remote memory write request
-  virtual void handleWriteRqst( xbgasNicEvent* ev ) = 0;
+  virtual void handleWriteRqst( xbgasNicEvent* ev )                                                                     = 0;
+
+  /// RevRmtMemCtrl: handle a remote memory write request
+  virtual void handleWriteUnlockRqst( xbgasNicEvent* ev )                                                               = 0;
 
   /// RevRmtMemCtrl: handle a remote AMO request
-  virtual void handleAMORqst( xbgasNicEvent* ev )   = 0;
+  virtual void handleAMORqst( xbgasNicEvent* ev )                                                                       = 0;
 
   /// RevRmtMemCtrl: handle a remote memory read response
-  virtual void handleReadResp( xbgasNicEvent* ev )  = 0;
+  virtual void handleReadResp( xbgasNicEvent* ev )                                                                      = 0;
 
   /// RevRmtMemCtrl: handle a remote memory write response
-  virtual void handleWriteResp( xbgasNicEvent* ev ) = 0;
+  virtual void handleWriteResp( xbgasNicEvent* ev )                                                                     = 0;
 
   /// RevRmtMemCtrl: handle a remote AMO response
-  virtual void handleAMOResp( xbgasNicEvent* ev )   = 0;
+  virtual void handleAMOResp( xbgasNicEvent* ev )                                                                       = 0;
 
   /// RevRmtMemCtrl: handle flags for read responses
-  virtual void handleFlagResp( RevRmtMemOp* op )    = 0;
+  virtual void handleFlagResp( RevRmtMemOp* op )                                                                        = 0;
+
+  /// RevRmtMemCtrl: check if a range overlaps with any LR operations
+  virtual bool checkRangeOverlap( const std::vector<std::pair<uint64_t, size_t>>& RmtLRSC, uint64_t Addr, size_t Size ) = 0;
 
 protected:
   SST::Output* output;  ///< RevRmtMemCtrl: sst output object
@@ -511,8 +526,20 @@ public:
   /// RevBasicRmtMemCtrl: handle a remote memory read request
   void handleReadRqst( xbgasNicEvent* ev ) override;
 
+  /// RevBasicRmtMemCtrl: handle a remote memory read lock request
+  void handleReadLockRqst( xbgasNicEvent* ev ) override;
+
+  /// RevBasicRmtMemCtrl: process a remote memory read lock request
+  bool processReadLockRqst( xbgasNicEvent* ev ) override;
+
+  /// RevBasicRmtMemCtrl: apply a remote memory read lock request
+  void applyReadLockRqst( xbgasNicEvent* ev ) override;
+
   /// RevBasicRmtMemCtrl: handle a remote memory write request
   void handleWriteRqst( xbgasNicEvent* ev ) override;
+
+  /// RevRmtMemCtrl: handle a remote memory write request
+  void handleWriteUnlockRqst( xbgasNicEvent* ev ) override;
 
   /// RevRmtMemCtrl: handle a remote AMO request
   void handleAMORqst( xbgasNicEvent* ev ) override;
@@ -528,6 +555,9 @@ public:
 
   /// RevBasicRmtMemCtrl: handle flags for read responses
   void handleFlagResp( RevRmtMemOp* op ) override { RevHandleFlagResp( op->getTarget(), op->getSize(), op->getFlags() ); }
+
+  /// RevBasicRmtMemCtrl: check if a range overlaps with any LR operations
+  bool checkRangeOverlap( const std::vector<std::pair<uint64_t, size_t>>& RmtLRSC, uint64_t Addr, size_t Size ) override;
 
   // protected:
   //   class RevRmtMemHandlers : public Event::HandlerBase {
@@ -600,11 +630,14 @@ private:
   std::vector<RevRmtMemOp*>        rqstQ{};        ///< RevBasicRmtMemCtrl: queued remote memory requests
   std::map<uint32_t, RevRmtMemOp*> outstanding{};  ///< RevBasicRmtMemCtrl: map of remote write requests
 
+  static std::atomic<uint32_t>                  local_read_id;  ///< RevBasicRmtMemCtrl: load read id counter
   std::unordered_map<uint64_t, LocalLoadRecord> LocalLoadTrack{
   };  ///< RevBasicRmtMemCtrl: the association between hashed id and local load record
   std::unordered_map<uint64_t, uint32_t> LocalLoadCount{};  ///< RevBasicRmtMemCtrl: the number of local load operations
-  std::unordered_map<uint64_t, uint64_t> LocalLoadOpMap{};  ///< RevBasicRmtMemCtrl: the association between address and SrcId+Id
   std::unordered_map<uint64_t, uint32_t> PacketSegCount{};  ///< RevBasicRmtMemCtrl: the number of segments for a packet
+
+  std::vector<std::pair<uint64_t, size_t>> RmtLRSC{};  ///< RevBasicRmtMemCtrl: remote load-reserve/store-conditional container
+  std::vector<xbgasNicEvent*>              PendingRmtLRSC{};  ///< RevBasicRmtMemCtrl: remote memory events container
 
   std::vector<Statistic<uint64_t>*> stats{};  ///< RevBasicRmtMemCtrl: vector of statistics
 };                                            // class RevBasicRmtMemCtrl
