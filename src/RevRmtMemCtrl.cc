@@ -206,7 +206,7 @@ void RevBasicRmtMemCtrl::handleReadRqst( xbgasNicEvent* ev ) {
   uint32_t Stride    = ev->getStride();
   RmtMemOp Opcode    = ev->getOp();
   RevFlag  Flags     = ev->getFlags();
-  uint64_t RmtHartId = HartHash( virtualHart, Hart, SrcId );
+  unsigned RmtHartId = HartHash( virtualHart, Hart, SrcId );
   RmtMemOp ReqPurp;
   MemOp    LocalMemOp;
 
@@ -277,7 +277,7 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent* ev ) {
   uint32_t Stride    = ev->getStride();
   RmtMemOp Opcode    = ev->getOp();
   RevFlag  Flags     = ev->getFlags();
-  uint64_t RmtHartId = HartHash( virtualHart, Hart, SrcId );
+  unsigned RmtHartId = HartHash( virtualHart, Hart, SrcId );
   bool     rtn;
 
   uint8_t* Buffer    = new uint8_t[Size * Nelem];
@@ -339,7 +339,7 @@ void RevBasicRmtMemCtrl::handleAMORqst( xbgasNicEvent* ev ) {
   uint64_t SrcAddr   = ev->getSrcAddr();
   size_t   Size      = ev->getSize();
   RevFlag  Flags     = ev->getFlags();
-  uint64_t RmtHartId = HartHash( virtualHart, Hart, SrcId );
+  unsigned RmtHartId = HartHash( virtualHart, Hart, SrcId );
   RmtMemOp ReqPurp   = RmtMemOp::AMOResp;
 
   uint8_t* Buffer    = new uint8_t[Size];
@@ -383,6 +383,7 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent* ev ) {
       const RmtMemReq& r      = Op->getRmtMemReq();
       uint8_t*         Target = static_cast<uint8_t*>( Op->getTarget() );
       ev->getData( Target );    // Copy the data to the target register
+      handleFlagResp( Op );     // determine if we need to sign/zero extend
       r.MarkRmtLoadComplete();  // Mark the remote load complete
       requests.erase( std::find( requests.begin(), requests.end(), Id ) );
       outstanding.erase( Id );
@@ -479,6 +480,7 @@ void RevBasicRmtMemCtrl::handleWriteResp( xbgasNicEvent* ev ) {
       const RmtMemReq& r      = Op->getRmtMemReq();
       uint8_t*         Target = static_cast<uint8_t*>( Op->getTarget() );
       ev->getData( Target );    // Copy the data to the target register
+      handleFlagResp( Op );     // determine if we need to sign/zero extend
       r.MarkRmtLoadComplete();  // Mark the remote load complete
       num_write_unlock_rqst--;
     } else {
@@ -503,6 +505,7 @@ void RevBasicRmtMemCtrl::handleAMOResp( xbgasNicEvent* ev ) {
       const RmtMemReq& r      = Op->getRmtMemReq();
       uint8_t*         Target = static_cast<uint8_t*>( Op->getTarget() );
       ev->getData( Target );    // Copy the data to the target register
+      handleFlagResp( Op );     // determine if we need to sign/zero extend
       r.MarkRmtLoadComplete();  // Mark the remote load complete
       num_amo_rqst--;
     } else {

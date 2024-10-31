@@ -138,12 +138,8 @@ constexpr uint64_t LocalReadHash( uint64_t Nmspace, uint64_t SrcAddr, size_t Siz
   return hash;
 }
 
-constexpr uint64_t HartHash( unsigned virtualHart, unsigned Hart, uint32_t SrcId ) {
-  uint64_t hash = FNV_OFFSET_BASIS;
-  hash          = fnv1a_hash( hash, &virtualHart, sizeof( virtualHart ) );
-  hash          = fnv1a_hash( hash, &Hart, sizeof( Hart ) );
-  hash          = fnv1a_hash( hash, &SrcId, sizeof( SrcId ) );
-  return hash;
+constexpr unsigned HartHash( unsigned virtualHart, unsigned Hart, uint32_t SrcId ) {
+  return static_cast<unsigned>( virtualHart ) << ( 16 + 8 ) | static_cast<unsigned>( Hart ) << 16 | static_cast<unsigned>( SrcId );
 }
 
 struct MemReq {

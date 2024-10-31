@@ -147,10 +147,10 @@ public:
   RevFlag getFlags() const { return Flags; }
 
   /// RevRmtMemOp: retrieve the standard set of memory flags for MemEventBase
-  RevFlag getStdFlags() const { return RevFlag{ static_cast<uint32_t>( Flags ) & 0xFFFF }; }
+  RevFlag getStdFlags() const { return RevFlag{ static_cast<uint32_t>( Flags ) & 0xFFFFFFFF }; }
 
   /// RevRmtMemOp: retrieve the flags for MemEventBase without caching enable
-  RevFlag getNonCacheFlags() const { return RevFlag{ static_cast<uint32_t>( Flags ) & 0xFFFD }; }
+  RevFlag getNonCacheFlags() const { return RevFlag{ static_cast<uint32_t>( Flags ) & 0xFFFFFFFD }; }
 
   /// RevRmtMemOp: retrieve the target address
   void* getTarget() const { return Target; }
@@ -328,6 +328,9 @@ public:
 
   /// RevRmtMemCtrl: handle a remote AMO response
   virtual void handleAMOResp( xbgasNicEvent* ev )   = 0;
+
+  /// RevRmtMemCtrl: handle flags for read responses
+  virtual void handleFlagResp( RevRmtMemOp* op )    = 0;
 
 protected:
   SST::Output* output;  ///< RevRmtMemCtrl: sst output object
@@ -522,6 +525,9 @@ public:
 
   /// RevRmtMemCtrl: handle a remote AMO response
   void handleAMOResp( xbgasNicEvent* ev ) override;
+
+  /// RevBasicRmtMemCtrl: handle flags for read responses
+  void handleFlagResp( RevRmtMemOp* op ) override { RevHandleFlagResp( op->getTarget(), op->getSize(), op->getFlags() ); }
 
   // protected:
   //   class RevRmtMemHandlers : public Event::HandlerBase {
