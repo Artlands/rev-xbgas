@@ -666,16 +666,8 @@ bool ebload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst 
   auto DestAddr = R->GetX<uint64_t>( Inst.rd );
   auto SrcAddr  = R->GetX<uint64_t>( Inst.rs1 );
   auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
-  auto Nelem    = R->GetX<uint32_t>( Inst.rs2 );
-  auto Stride   = R->GetX<uint32_t>( Inst.rs3 );
-
-  RevFlag Flags;
-
-  if( sizeof( T ) < sizeof( int64_t ) && !F->IsRV64() ) {
-    Flags = sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
-  } else {
-    Flags = sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
-  }
+  auto Nelem    = R->GetX<uint64_t>( Inst.rs2 );
+  auto Stride   = R->GetX<uint64_t>( Inst.rs3 );
 
 #ifdef _XBGAS_DEBUG_
   std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebload: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
@@ -683,7 +675,7 @@ bool ebload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst 
             << Stride << std::endl;
 #endif
 
-  M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, Stride, DestAddr, Flags );
+  M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, Stride, DestAddr );
   // update the cost
   R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
   R->AdvancePC( Inst );
@@ -696,8 +688,8 @@ bool ebstore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst
   auto SrcAddr  = R->GetX<uint64_t>( Inst.rd );
   auto DestAddr = R->GetX<uint64_t>( Inst.rs1 );
   auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
-  auto Nelem    = R->GetX<uint32_t>( Inst.rs2 );
-  auto Stride   = R->GetX<uint32_t>( Inst.rs3 );
+  auto Nelem    = R->GetX<uint64_t>( Inst.rs2 );
+  auto Stride   = R->GetX<uint64_t>( Inst.rs3 );
 
 #ifdef _XBGAS_DEBUG_
   std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebstore-32: Nmspace: " << Nmspace << ", DestAddr: 0x"

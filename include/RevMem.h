@@ -243,16 +243,9 @@ public:
 
   /// RevMem: template bulk read memory interface
   void RmtBulkRead(
-    unsigned Hart,
-    uint64_t Nmspace,
-    uint64_t SrcAddr,
-    size_t   Size,
-    uint32_t Nelem,
-    uint32_t Stride,
-    uint64_t DestAddr,
-    RevFlag  Flags
+    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint64_t DestAddr
   ) {
-    rmtCtrl->sendRmtBulkReadRqst( Hart, Nmspace, SrcAddr, Size, Nelem, Stride, DestAddr, Flags );
+    rmtCtrl->sendRmtBulkReadRqst( Hart, Nmspace, SrcAddr, Size, Nelem, Stride, DestAddr, RevFlag::F_NONE );
   }
 
   // ----------------------------------------------------
