@@ -19,7 +19,8 @@ namespace SST::RevCPU {
 class RV64X : public RevExt {
 
   // xBGAS remote loads
-  static constexpr auto& eld = eload<int64_t>;
+  static constexpr auto& elwu = eload<uint32_t>;
+  static constexpr auto& eld  = eload<int64_t>;
 
   static bool ele( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) { return true; }
 
@@ -52,14 +53,15 @@ class RV64X : public RevExt {
   // clang-format off
   std::vector<RevInstEntry> RV64XTable = {
     // Load instructions are encoded in the I-type format
+    RevInstDefaults().SetMnemonic( "elwu %rd, $imm(%rs1)"        ).SetOpcode( 0b1110111 ).SetFunct3( 0b110 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( elwu ),
     RevInstDefaults().SetMnemonic( "eld %rd, $imm(%rs1)"         ).SetOpcode( 0b1110111 ).SetFunct3( 0b011 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( eld ),
     RevInstDefaults().SetMnemonic( "ele %extd, $imm(%rs1)"       ).SetOpcode( 0b1110111 ).SetFunct3( 0b111 ).Setrs2Class( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeI ).SetImplFunc( ele ),
     // Store instructions are encoded in the S-type format
     RevInstDefaults().SetMnemonic( "esd %rs1, $imm(%rs2)"        ).SetOpcode( 0b1111011 ).SetFunct3( 0b011 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeS ).SetImplFunc( esd ),
     RevInstDefaults().SetMnemonic( "ese %ext1, $imm(%rs2)"       ).SetOpcode( 0b1111011 ).SetFunct3( 0b111 ).SetrdClass( RevRegClass::RegUNKNOWN ).Setimm( RevImmFunc::FImm ).SetFormat( RVTypeS ).SetImplFunc( ese ),
     // Raw Load instructions are encoded in the R-type format
-    RevInstDefaults().SetMnemonic( "erld %rd, %rs1, %ext2"       ).SetOpcode( 0b0110011 ).SetFunct3( 0b011 ).SetFunct2or7( 0b1010110 ).SetFormat( RVTypeR ).SetImplFunc( erld ),
-    RevInstDefaults().SetMnemonic( "erle %extd, %rs1, %ext2"     ).SetOpcode( 0b0110011 ).SetFunct3( 0b111 ).SetFunct2or7( 0b1010110 ).SetrdClass( RevRegClass::RegUNKNOWN ).SetFormat( RVTypeR ).SetImplFunc( erle ),
+    RevInstDefaults().SetMnemonic( "erld %rd, %rs1, %ext2"       ).SetOpcode( 0b0110011 ).SetFunct3( 0b011 ).SetFunct2or7( 0b1010101 ).SetFormat( RVTypeR ).SetImplFunc( erld ),
+    RevInstDefaults().SetMnemonic( "erle %extd, %rs1, %ext2"     ).SetOpcode( 0b0110011 ).SetFunct3( 0b111 ).SetFunct2or7( 0b1010101 ).SetrdClass( RevRegClass::RegUNKNOWN ).SetFormat( RVTypeR ).SetImplFunc( erle ),
     // Raw Store instructions are encoded in the R-type format
     RevInstDefaults().SetMnemonic( "ersd %rs1, %rs2, %ext3"      ).SetOpcode( 0b0110011 ).SetFunct3( 0b011 ).SetFunct2or7( 0b0100010 ).SetFormat( RVTypeR ).SetImplFunc( ersd ),
     RevInstDefaults().SetMnemonic( "erse %ext1, %rs2, %ext3"     ).SetOpcode( 0b0110011 ).SetFunct3( 0b111 ).SetFunct2or7( 0b0100011 ).SetFormat( RVTypeR ).SetImplFunc( erse ),
