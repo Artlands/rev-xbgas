@@ -854,7 +854,7 @@ void RevMem::DumpMem( const uint64_t startAddr, const uint64_t numBytes, const u
     for( uint64_t i = 0; i < bytesPerRow; ++i ) {
       if( addr + i < endAddr ) {
         uint8_t byte = physMem[addr + i];
-        outputStream << std::setw( 2 ) << std::setfill( '0' ) << std::hex << static_cast<uint32_t>( byte ) << " ";
+        outputStream << std::setw( 2 ) << std::setfill( '0' ) << std::hex << uint32_t{ byte } << " ";
       } else {
         outputStream << "   ";
       }

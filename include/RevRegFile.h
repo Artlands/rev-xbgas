@@ -326,15 +326,14 @@ public:
   /// SetX: Set the specifed X register to a specific value
   template<typename T, typename U>
   void SetX( U rd, T val ) {
-    T res;
     if( IsRV64() ) {
-      res                = RevReg( rd ) != RevReg::zero ? uint64_t( val ) : 0;
+      uint64_t res       = RevReg( rd ) != RevReg::zero ? uint64_t( val ) : 0;
       RV64[size_t( rd )] = res;
-      TRACE_REG_WRITE( size_t( rd ), uint64_t( res ) );
+      TRACE_REG_WRITE( size_t( rd ), res );
     } else {
-      res                = RevReg( rd ) != RevReg::zero ? uint32_t( val ) : 0;
+      uint32_t res       = RevReg( rd ) != RevReg::zero ? uint32_t( val ) : 0;
       RV32[size_t( rd )] = res;
-      TRACE_REG_WRITE( size_t( rd ), uint32_t( res ) );
+      TRACE_REG_WRITE( size_t( rd ), res );
     }
   }
 

@@ -85,6 +85,9 @@ howto_install() {
             if command -v dnf >/dev/null; then
                 INSTALL="sudo dnf install $package"
             elif command -v yum >/dev/null; then
+                if [[ $package = shellcheck ]]; then
+                    package=ShellCheck
+                fi
                 INSTALL="sudo yum install $package"
             fi
         elif [[ -f /etc/debian_version ]] && command -v apt-get >/dev/null; then
@@ -186,6 +189,8 @@ reformat_files() {
     fi
 
     errors=false
+    shellcheck_warning=
+
 # Fix formatting on text files
     for file in "${FILES[@]}"; do
         if [[ -f $file ]] && is_text_file "$file"; then
@@ -226,16 +231,20 @@ reformat_files() {
 
             # Shell scripts
             if [[ $file = *.sh || $file = .githooks/pre-commit ]]; then
-                if command -v shellcheck >/dev/null 2>&1; then
+                if command -v shellcheck >/dev/null 2>&1 && shellcheck -o all -e2148 /dev/null >/dev/null 2>&1; then
                     shellcheck -o all -e 1091,2059,2154,2248,2250,2312 "$file" || errors=true
                 else
-                    printf "${RED}Error: shellcheck utility not found. %s not checked with shellcheck.${END}\n" "$file"
-                    howto_install shellcheck
-                    exit 1
+                    printf "${YELLOW}Warning: %s not checked with shellcheck.${END}\n" "$file"
+                    shellcheck_warning=1
                 fi
             fi
         fi
     done
+
+    if [[ -n $shellcheck_warning ]]; then
+        printf "${YELLOW}\nWarning: shellcheck utility not found or not recent enough version.\n${END}"
+        howto_install shellcheck
+    fi
 
     if [[ $errors = true ]]; then
         exit 1

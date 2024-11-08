@@ -663,19 +663,18 @@ bool erstore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst
 // xBGAS remote bulk load template. Not supported in the current implementation.
 template<typename T>
 bool ebload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  auto DestAddr = R->GetX<uint64_t>( Inst.rd );
-  auto SrcAddr  = R->GetX<uint64_t>( Inst.rs1 );
-  auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
-  auto Nelem    = R->GetX<uint64_t>( Inst.rs2 );
-  auto Stride   = R->GetX<uint64_t>( Inst.rs3 );
+  // auto Flag      = R->GetX<uint64_t>( Inst.rd );
+  auto DestAddr = R->GetX<uint64_t>( Inst.rs1 );
+  auto SrcAddr  = R->GetX<uint64_t>( Inst.rs2 );
+  auto Nmspace  = R->GetE<uint64_t>( Inst.rs2 );
+  auto Nelem    = R->GetX<uint64_t>( Inst.rs3 );
 
 #ifdef _XBGAS_DEBUG_
   std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebload: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
-            << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem << ", Stride: " << std::dec
-            << Stride << std::endl;
+            << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem << std::endl;
 #endif
 
-  M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, Stride, DestAddr );
+  M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, DestAddr );
   // update the cost
   R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
   R->AdvancePC( Inst );
@@ -685,19 +684,18 @@ bool ebload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst 
 // xBGAS remote bulk store template. Not supported in the current implementation.
 template<typename T>
 bool ebstore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  auto SrcAddr  = R->GetX<uint64_t>( Inst.rd );
-  auto DestAddr = R->GetX<uint64_t>( Inst.rs1 );
-  auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
-  auto Nelem    = R->GetX<uint64_t>( Inst.rs2 );
-  auto Stride   = R->GetX<uint64_t>( Inst.rs3 );
+  // auto Flag     = R->GetX<uint64_t>( Inst.rd );
+  auto SrcAddr  = R->GetX<uint64_t>( Inst.rs1 );
+  auto DestAddr = R->GetX<uint64_t>( Inst.rs2 );
+  auto Nmspace  = R->GetE<uint64_t>( Inst.rs2 );
+  auto Nelem    = R->GetX<uint64_t>( Inst.rs3 );
 
 #ifdef _XBGAS_DEBUG_
   std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebstore-32: Nmspace: " << Nmspace << ", DestAddr: 0x"
-            << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem
-            << ", Stride: " << std::dec << Stride << std::endl;
+            << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem << std::endl;
 #endif
 
-  M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, Stride, SrcAddr );
+  M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, SrcAddr );
   R->AdvancePC( Inst );
   return true;
 }

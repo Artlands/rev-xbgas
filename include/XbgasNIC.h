@@ -39,7 +39,7 @@ class xbgasNicEvent : public SST::Event {
 public:
   /// xbgasNicEvent: standard constructor
   xbgasNicEvent( std::string name )
-    : Event(), Id( 0 ), SrcName( name ), SrcId( 0 ), SrcAddr( 0 ), DestAddr( 0 ), Size( 0 ), Nelem( 0 ), Stride( 0 ), Data(),
+    : Event(), Id( 0 ), SrcName( name ), SrcId( 0 ), SrcAddr( 0 ), DestAddr( 0 ), Size( 0 ), Nelem( 0 ), Data(),
       Opcode( RmtMemOp::Unknown ), Flags( RevFlag::F_NONE ), isSeg( false ), SegSz( 0 ) {}
 
   /// xbgasNicEvent: secondary constructor
@@ -67,9 +67,6 @@ public:
 
   /// xbgasNicEvent: retrieve the number of elements
   uint32_t getNelem() { return Nelem; }
-
-  /// xbgasNicEvent: retrieve the stride value
-  uint32_t getStride() { return Stride; }
 
   /// xbgasNicEvent: retrieve the packet data
   void getData( uint8_t* Buffer );
@@ -128,12 +125,6 @@ public:
     return true;
   }
 
-  /// xbgasNicEvent: set the stride value
-  bool setStride( uint32_t Sd ) {
-    Stride = Sd;
-    return true;
-  }
-
   /// xbgasNicEvent: set the packet data
   bool setData( uint8_t* Buffer, uint32_t TotalSz );
 
@@ -166,17 +157,17 @@ public:
   // ------------------------------------------------
 
   /// xbgasNicEvent: build a READ request packet
-  bool buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl );
+  bool buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl );
 
   /// xbgasNicEvent: build a READ LOCK request packet
   bool buildREADLOCKRqst( uint64_t SrcAddr, size_t Size, RevFlag Fl );
 
   /// xbgasNicEvent: build a WRITE request packet
-  bool buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer );
+  bool buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint8_t* Buffer );
 
   /// xbgasNicEvent: build a WRITE request packet that is segmented
   bool buildSegWRITERqst(
-    uint32_t SegId, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer
+    uint32_t SegId, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer
   );
 
   /// xbgasNicEvent: build a WRITE UNLOCK request packet
@@ -186,12 +177,10 @@ public:
   bool buildAMORqst( uint64_t SrcAddr, size_t Size, RevFlag Fl, uint8_t* Buffer );
 
   /// xbgasNicEvent: build a READ respond packet
-  bool buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint8_t* Buffer );
+  bool buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint8_t* Buffer );
 
   /// xbgasNicEvent: build a READ respond packet that is segmented
-  bool buildSegREADResp(
-    uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer
-  );
+  bool buildSegREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer );
 
   /// xbgasNicEvent: build a READ LOCK respond packet
   bool buildREADLOCKResp( uint64_t Id, size_t Size, uint8_t* Buffer );
@@ -220,7 +209,6 @@ protected:
   uint64_t             DestAddr{};  ///< xbgasNicEvent: destination address for write
   size_t               Size{};      ///< xbgasNicEvent: Size of each data elements
   uint32_t             Nelem{};     ///< xbgasNicEvent: Number of elements
-  uint32_t             Stride{};    ///< xbgasNicEvent: Stride for bulk transfers
   std::vector<uint8_t> Data{};      ///< xbgasNicEvent: Data payload
   RmtMemOp             Opcode{};    ///< xbgasNicEvent: Operation code
   RevFlag              Flags{};     ///< xbgasNicEvent: Memory request flags
@@ -242,7 +230,6 @@ public:
     ser & DestAddr;
     ser & Size;
     ser & Nelem;
-    ser & Stride;
     ser & Data;
     ser & Opcode;
     ser & Flags;

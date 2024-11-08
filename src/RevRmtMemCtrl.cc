@@ -49,45 +49,27 @@ std::ostream& operator<<( std::ostream& os, RmtMemOp op ) {
 RevRmtMemOp::RevRmtMemOp( unsigned Hart, RmtMemOp Op ) : Hart( Hart ), Op( Op ) {}
 
 RevRmtMemOp::RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, RmtMemOp Op, RevFlag Flags, void* Target )
-  : Hart( Hart ), Nmspace( Nmspace ), SrcAddr( SrcAddr ), Size( Size ), Nelem( 1 ), Stride( Size ), Op( Op ), Flags( Flags ),
-    Target( Target ) {}
+  : Hart( Hart ), Nmspace( Nmspace ), SrcAddr( SrcAddr ), Size( Size ), Nelem( 1 ), Op( Op ), Flags( Flags ), Target( Target ) {}
 
 RevRmtMemOp::RevRmtMemOp(
-  unsigned Hart,
-  uint64_t Nmspace,
-  uint64_t SrcAddr,
-  uint64_t DestAddr,
-  size_t   Size,
-  uint32_t Nelem,
-  uint32_t Stride,
-  RmtMemOp Op,
-  RevFlag  Flags
+  unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, RmtMemOp Op, RevFlag Flags
 )
-  : Hart( Hart ), Nmspace( Nmspace ), SrcAddr( SrcAddr ), DestAddr( DestAddr ), Size( Size ), Nelem( Nelem ), Stride( Stride ),
-    Op( Op ), Flags( Flags ) {}
+  : Hart( Hart ), Nmspace( Nmspace ), SrcAddr( SrcAddr ), DestAddr( DestAddr ), Size( Size ), Nelem( Nelem ), Op( Op ),
+    Flags( Flags ) {}
 
 RevRmtMemOp::RevRmtMemOp(
   unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, RmtMemOp Op, RevFlag Flags, uint8_t* Buffer
 )
-  : Hart( Hart ), Nmspace( Nmspace ), DestAddr( DestAddr ), Size( Size ), Nelem( 1 ), Stride( Size ), Op( Op ), Flags( Flags ) {
+  : Hart( Hart ), Nmspace( Nmspace ), DestAddr( DestAddr ), Size( Size ), Nelem( 1 ), Op( Op ), Flags( Flags ) {
   for( uint32_t i = 0; i < Size; ++i ) {
     Membuf.push_back( Buffer[i] );
   }
 }
 
 RevRmtMemOp::RevRmtMemOp(
-  unsigned Hart,
-  uint64_t Nmspace,
-  uint64_t DestAddr,
-  size_t   Size,
-  uint32_t Nelem,
-  uint32_t Stride,
-  RmtMemOp Op,
-  RevFlag  Flags,
-  uint8_t* Buffer
+  unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, RmtMemOp Op, RevFlag Flags, uint8_t* Buffer
 )
-  : Hart( Hart ), Nmspace( Nmspace ), DestAddr( DestAddr ), Size( Size ), Nelem( Nelem ), Stride( Stride ), Op( Op ),
-    Flags( Flags ) {
+  : Hart( Hart ), Nmspace( Nmspace ), DestAddr( DestAddr ), Size( Size ), Nelem( Nelem ), Op( Op ), Flags( Flags ) {
   for( uint32_t i = 0; i < Size * Nelem; ++i ) {
     Membuf.push_back( Buffer[i] );
   }
@@ -96,8 +78,8 @@ RevRmtMemOp::RevRmtMemOp(
 RevRmtMemOp::RevRmtMemOp(
   unsigned Hart, uint64_t Nmspace, uint64_t Addr, size_t Size, RmtMemOp Op, RevFlag Flags, void* Target, uint8_t* Buffer
 )
-  : Hart( Hart ), Nmspace( Nmspace ), SrcAddr( Addr ), DestAddr( Addr ), Size( Size ), Nelem( 1 ), Stride( Size ), Op( Op ),
-    Flags( Flags ), Target( Target ) {
+  : Hart( Hart ), Nmspace( Nmspace ), SrcAddr( Addr ), DestAddr( Addr ), Size( Size ), Nelem( 1 ), Op( Op ), Flags( Flags ),
+    Target( Target ) {
   for( uint32_t i = 0; i < Size; ++i ) {
     Membuf.push_back( Buffer[i] );
   }
@@ -204,7 +186,6 @@ void RevBasicRmtMemCtrl::handleReadRqst( xbgasNicEvent* ev ) {
   uint64_t DestAddr = ev->getDestAddr();
   size_t   Size     = ev->getSize();
   uint32_t Nelem    = ev->getNelem();
-  uint32_t Stride   = ev->getStride();
   RmtMemOp Opcode   = ev->getOp();
   RevFlag  Flags    = ev->getFlags();
   RmtMemOp ReqPurp;
@@ -212,7 +193,7 @@ void RevBasicRmtMemCtrl::handleReadRqst( xbgasNicEvent* ev ) {
 #ifdef _XBGAS_DEBUG_
   std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " handle READ Rqst, ";
   std::cout << "Event ID: " << Id << ", SrcId: " << SrcId << ", SrcAddr: 0x" << std::hex << SrcAddr << ", DestAddr: 0x" << std::hex
-            << DestAddr << std::dec << ", Size: " << Size << ", Nelem: " << Nelem << ", Stride: " << Stride << std::endl;
+            << DestAddr << std::dec << ", Size: " << Size << ", Nelem: " << Nelem << std::endl;
 #endif
 
   switch( Opcode ) {
@@ -224,26 +205,24 @@ void RevBasicRmtMemCtrl::handleReadRqst( xbgasNicEvent* ev ) {
   uint8_t* Buffer = new uint8_t[Size * Nelem];
 
   LocalLoadTrack.insert(
-    { RmtOpIDHash( SrcId, Id ),
-      LocalLoadRecord( virtualHart, 0, Id, SrcId, SrcAddr, DestAddr, Size, Nelem, Stride, Flags, Buffer, ReqPurp ) }
+    { RmtOpIDHash( SrcId, Id ), LocalLoadRecord( virtualHart, 0, Id, SrcId, SrcAddr, DestAddr, Size, Nelem, Flags, Buffer, ReqPurp )
+    }
   );
 
   LocalLoadCount.insert( { RmtOpIDHash( SrcId, Id ), 0 } );
 
-  for( uint32_t i = 0; i < Nelem; i++ ) {
-    MemReq Req(
-      SrcAddr + i * Stride,          // Memory address
-      SrcId,                         // Source ID
-      Id,                            // Packet ID
-      MemOp::MemOpREAD,              // Memory operation
-      true,                          // Outstanding
-      [this]( const MemReq& Req ) {  // Lambda function as a callback
-        RevBasicRmtMemCtrl::MarkLocalLoadComplete( Req );
-      }
-    );
-    // Send the request to the local memory
-    Mem->ReadMem( virtualHart, SrcAddr + i * Stride, Size, (void*) ( &Buffer[i * Size] ), std::move( Req ), Flags );
-  }
+  MemReq Req(
+    SrcAddr,                       // Memory address
+    SrcId,                         // Source ID
+    Id,                            // Packet ID
+    MemOp::MemOpREAD,              // Memory operation
+    true,                          // Outstanding
+    [this]( const MemReq& Req ) {  // Lambda function as a callback
+      RevBasicRmtMemCtrl::MarkLocalLoadComplete( Req );
+    }
+  );
+  // Send the request to the local memory
+  Mem->ReadMem( virtualHart, SrcAddr, Size * Nelem, (void*) ( Buffer ), std::move( Req ), Flags );
 }
 
 void RevBasicRmtMemCtrl::handleReadLockRqst( xbgasNicEvent* ev ) {
@@ -287,8 +266,7 @@ void RevBasicRmtMemCtrl::applyReadLockRqst( xbgasNicEvent* ev ) {
   uint8_t* Buffer    = new uint8_t[Size];
 
   LocalLoadTrack.insert(
-    { RmtOpIDHash( SrcId, Id ), LocalLoadRecord( RmtHartId, 0, Id, SrcId, SrcAddr, DestAddr, Size, 1, Size, Flags, Buffer, ReqPurp )
-    }
+    { RmtOpIDHash( SrcId, Id ), LocalLoadRecord( RmtHartId, 0, Id, SrcId, SrcAddr, DestAddr, Size, 1, Flags, Buffer, ReqPurp ) }
   );
 
   LocalLoadCount.insert( { RmtOpIDHash( SrcId, Id ), 0 } );
@@ -320,7 +298,6 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent* ev ) {
   uint64_t DestAddr  = ev->getDestAddr();
   size_t   Size      = ev->getSize();
   uint32_t Nelem     = ev->getNelem();
-  uint32_t Stride    = ev->getStride();
   RevFlag  Flags     = ev->getFlags();
 
   uint8_t* Buffer    = new uint8_t[Size * Nelem];
@@ -329,7 +306,7 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent* ev ) {
 #ifdef _XBGAS_DEBUG_
   std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " handle WRITE Rqst, ";
   std::cout << "Event ID: " << Id << ", SrcId: " << SrcId << ", DestAddr: 0x" << std::hex << DestAddr << ", Size: " << Size
-            << ", Nelem: " << Nelem << ", Stride: " << Stride << std::endl;
+            << ", Nelem: " << Nelem << std::endl;
 #endif
 
   // Copy the data to the buffer
@@ -337,9 +314,8 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent* ev ) {
 
   xbgasNicEvent* RmtEvent = new xbgasNicEvent( getName() );
 
-  for( uint32_t i = 0; i < Nelem; i++ ) {
-    Mem->WriteMem( virtualHart, DestAddr + i * Stride, Size, (void*) ( &Buffer[i * Size] ), Flags );
-  }
+  Mem->WriteMem( virtualHart, DestAddr, Size * Nelem, (void*) ( Buffer ), Flags );
+
   bool isSeg = ev->isSegmented();
   if( !isSeg ) {
     RmtEvent->buildWRITEResp( Id );
@@ -430,7 +406,7 @@ void RevBasicRmtMemCtrl::handleAMORqst( xbgasNicEvent* ev ) {
   ev->getData( Buffer );
 
   LocalLoadTrack.insert(
-    { RmtOpIDHash( SrcId, Id ), LocalLoadRecord( RmtHartId, 0, Id, SrcId, SrcAddr, 0, Size, 1, Size, Flags, TmpTarget, ReqPurp ) }
+    { RmtOpIDHash( SrcId, Id ), LocalLoadRecord( RmtHartId, 0, Id, SrcId, SrcAddr, 0, Size, 1, Flags, TmpTarget, ReqPurp ) }
   );
 
   LocalLoadCount.insert( { RmtOpIDHash( SrcId, Id ), 0 } );
@@ -487,14 +463,11 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent* ev ) {
       uint64_t DestAddr = ev->getDestAddr();
       size_t   Size     = ev->getSize();
       uint32_t Nelem    = ev->getNelem();
-      uint32_t Stride   = ev->getStride();
       RevFlag  Flags    = ev->getFlags();
       uint8_t* Buffer   = new uint8_t[Size * Nelem];
       ev->getData( Buffer );
 
-      for( uint32_t i = 0; i < Nelem; i++ ) {
-        Mem->WriteMem( virtualHart, DestAddr + i * Stride, Size, (void*) ( &Buffer[i * Size] ), Flags );
-      }
+      Mem->WriteMem( virtualHart, DestAddr, Size * Nelem, (void*) ( Buffer ), Flags );
 
 #ifdef _XBGAS_DEBUG_
       std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " handle BULK-READ Resp, ";
@@ -557,7 +530,7 @@ void RevBasicRmtMemCtrl::handleWriteResp( xbgasNicEvent* ev ) {
 #ifdef _XBGAS_DEBUG_
   std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " handle WRITE Resp, "
             << "Event ID: " << ev->getID() << ", SrcId: " << ev->getSrcId() << ", Size: " << ev->getSize()
-            << ", Nelem: " << ev->getNelem() << ", Stride: " << ev->getStride() << std::endl;
+            << ", Nelem: " << ev->getNelem() << std::endl;
 #endif
 
   if( std::find( requests.begin(), requests.end(), Id ) != requests.end() ) {
@@ -631,7 +604,6 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
   uint64_t       DestAddr = Record.DestAddr;
   size_t         Size     = Record.Size;
   uint32_t       Nelem    = Record.Nelem;
-  uint32_t       Stride   = Record.Stride;
   RevFlag        Flags    = Record.Flags;
   uint8_t*       Buffer   = Record.Buffer;
   RmtMemOp       ReqPurp  = Record.ReqPurp;
@@ -669,13 +641,13 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
             SegBuf[j] = Buffer[i * _MAX_PAYLOAD_ + j];
           }
           RmtEvent = new xbgasNicEvent( getName() );
-          RmtEvent->buildSegREADResp( Id, DestAddr + i * _MAX_PAYLOAD_, Size, SegNelem, Stride, Flags, SegSz, SegBuf );
+          RmtEvent->buildSegREADResp( Id, DestAddr + i * _MAX_PAYLOAD_, Size, SegNelem, Flags, SegSz, SegBuf );
           xbgasNic->send( RmtEvent, SrcId );
           delete[] SegBuf;
         }
       } else {
         RmtEvent = new xbgasNicEvent( getName() );
-        RmtEvent->buildREADResp( Id, DestAddr, Size, Nelem, Stride, Flags, Buffer );
+        RmtEvent->buildREADResp( Id, DestAddr, Size, Nelem, Flags, Buffer );
         // Destination is the source of the request
         xbgasNic->send( RmtEvent, SrcId );
       }
@@ -690,7 +662,7 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
 #endif
       break;
     case RmtMemOp::BulkWRITERqst:
-      Op = new RevRmtMemOp( Hart, Nmspace, DestAddr, Size, Nelem, Stride, RmtMemOp::BulkWRITERqst, Flags, Buffer );
+      Op = new RevRmtMemOp( Hart, Nmspace, DestAddr, Size, Nelem, RmtMemOp::BulkWRITERqst, Flags, Buffer );
       rqstQ.push_back( Op );
       recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWritePending, 1 );
       break;
@@ -812,7 +784,7 @@ bool RevBasicRmtMemCtrl::sendRmtWriteUnLockRqst(
 }
 
 bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst(
-  unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint64_t DestAddr, RevFlag Flags
+  unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint32_t Nelem, uint64_t DestAddr, RevFlag Flags
 ) {
   if( Size == 0 )
     return true;
@@ -822,7 +794,7 @@ bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst(
   std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Mark BULK-READ Complete to false" << std::endl;
 #endif
 
-  RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, DestAddr, Size, Nelem, Stride, RmtMemOp::BulkREADRqst, Flags );
+  RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, DestAddr, Size, Nelem, RmtMemOp::BulkREADRqst, Flags );
   // Remote memory operations are not cached
   // RevFlag TmpFlags = Op->getNonCacheFlags();
   // Op->setFlags( TmpFlags );
@@ -846,7 +818,7 @@ bool RevBasicRmtMemCtrl::sendRmtWriteRqst(
 }
 
 bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst(
-  unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint32_t Stride, uint64_t SrcAddr, RevFlag Flags
+  unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint64_t SrcAddr, RevFlag Flags
 ) {
   if( Size == 0 )
     return true;
@@ -857,13 +829,13 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst(
   uint8_t* Buffer = new uint8_t[Size * Nelem];
   LocalLoadTrack.insert(
     { RmtOpIDHash( SrcId, Id ),
-      LocalLoadRecord( Hart, Nmspace, 0, 0, SrcAddr, DestAddr, Size, Nelem, Stride, Flags, Buffer, RmtMemOp::BulkWRITERqst ) }
+      LocalLoadRecord( Hart, Nmspace, 0, 0, SrcAddr, DestAddr, Size, Nelem, Flags, Buffer, RmtMemOp::BulkWRITERqst ) }
   );
 
   LocalLoadCount.insert( { RmtOpIDHash( SrcId, Id ), 0 } );
   for( uint32_t i = 0; i < Nelem; i++ ) {
     MemReq Req(
-      SrcAddr + i * Stride,          // Memory address
+      SrcAddr + i * Size,            // Memory address
       SrcId,                         // Source ID
       Id,                            // Packet ID
       MemOp::MemOpREAD,              // Memory operation
@@ -873,7 +845,7 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst(
       }
     );
 
-    Mem->ReadMem( virtualHart, SrcAddr + i * Stride, Size, (void*) ( &Buffer[i * Size] ), std::move( Req ), Flags );
+    Mem->ReadMem( virtualHart, SrcAddr + i * Size, Size, (void*) ( &Buffer[i * Size] ), std::move( Req ), Flags );
   }
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWritePending, 1 );
   return true;
@@ -1071,13 +1043,12 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
   uint64_t             DestAddr = Op->getDestAddr();
   size_t               Size     = Op->getSize();
   uint32_t             Nelem    = Op->getNelem();
-  uint32_t             Stride   = Op->getStride();
   RevFlag              Flags    = Op->getFlags();
   std::vector<uint8_t> tmpBuf   = Op->getBuf();
 
   switch( Op->getOp() ) {
   case RmtMemOp::READRqst:
-  case RmtMemOp::BulkREADRqst: RmtEvent->buildREADRqst( SrcAddr, DestAddr, Size, Nelem, Stride, Flags ); Id = RmtEvent->getID();
+  case RmtMemOp::BulkREADRqst: RmtEvent->buildREADRqst( SrcAddr, DestAddr, Size, Nelem, Flags ); Id = RmtEvent->getID();
 #ifdef _XBGAS_DEBUG_
     std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Sending READ Rqst to PE " << DestId << " from PE " << SrcId
               << " with Event ID " << Id << std::endl;
@@ -1118,7 +1089,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
           SegBuf[j] = tmpBuf[i * _MAX_PAYLOAD_ + j];
         }
         RmtEvent = new xbgasNicEvent( getName() );
-        RmtEvent->buildSegWRITERqst( i, DestAddr + i * _MAX_PAYLOAD_, Size, SegNelem, Stride, Flags, SegSz, SegBuf );
+        RmtEvent->buildSegWRITERqst( i, DestAddr + i * _MAX_PAYLOAD_, Size, SegNelem, Flags, SegSz, SegBuf );
         if( i == 0 ) {
           Id = RmtEvent->getID();
           requests.push_back( Id );
@@ -1135,7 +1106,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
       for( unsigned i = 0; i < Size * Nelem; ++i ) {
         Buffer[i] = tmpBuf[i];
       }
-      RmtEvent->buildWRITERqst( DestAddr, Size, Nelem, Stride, Flags, Buffer );
+      RmtEvent->buildWRITERqst( DestAddr, Size, Nelem, Flags, Buffer );
       Id = RmtEvent->getID();
 #ifdef _XBGAS_DEBUG_
       std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Sending WRITE Rqst to PE " << DestId << " from PE " << SrcId

@@ -14,7 +14,7 @@
 
 CC=${RVCC}
 AS=${RVAS}
-ARCH=rv64imafdc
+ARCH=rv64imafdc_xbgas
 RV_OBJDUMP=riscv64-unknown-elf-objdump
 
 INCLUDE = -I../../common/syscalls -I../isa -I../syscalls/malloc
