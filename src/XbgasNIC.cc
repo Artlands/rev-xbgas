@@ -32,14 +32,27 @@ void xbgasNicEvent::getData( uint8_t* Buffer ) {
   }
 }
 
-bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl ) {
-  if( Nelem == 1 ) {
-    if( !setOp( RmtMemOp::READRqst ) )
-      return false;
-  } else {
-    if( !setOp( RmtMemOp::BulkREADRqst ) )
-      return false;
-  }
+bool xbgasNicEvent::buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, RevFlag Fl ) {
+  if( !setOp( RmtMemOp::READRqst ) )
+    return false;
+  if( !setId( main_id++ ) )
+    return false;
+  if( !setSrcAddr( SrcAddr ) )
+    return false;
+  if( !setDestAddr( DestAddr ) )
+    return false;
+  if( !setSize( Size ) )
+    return false;
+  if( !setNelem( 1 ) )
+    return false;
+  if( !setFlags( Fl ) )
+    return false;
+  return true;
+}
+
+bool xbgasNicEvent::buildBulkREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl ) {
+  if( !setOp( RmtMemOp::BulkREADRqst ) )
+    return false;
   if( !setId( main_id++ ) )
     return false;
   if( !setSrcAddr( SrcAddr ) )
@@ -71,14 +84,27 @@ bool xbgasNicEvent::buildREADLOCKRqst( uint64_t SrcAddr, size_t Size, RevFlag Fl
   return true;
 }
 
-bool xbgasNicEvent::buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint8_t* Buffer ) {
-  if( Nelem == 1 ) {
-    if( !setOp( RmtMemOp::WRITERqst ) )
-      return false;
-  } else {
-    if( !setOp( RmtMemOp::BulkWRITERqst ) )
-      return false;
-  }
+bool xbgasNicEvent::buildWRITERqst( uint64_t DestAddr, size_t Size, RevFlag Fl, uint8_t* Buffer ) {
+  if( !setOp( RmtMemOp::WRITERqst ) )
+    return false;
+  if( !setId( main_id++ ) )
+    return false;
+  if( !setDestAddr( DestAddr ) )
+    return false;
+  if( !setSize( Size ) )
+    return false;
+  if( !setNelem( 1 ) )
+    return false;
+  if( !setData( Buffer, Size ) )
+    return false;
+  if( !setFlags( Fl ) )
+    return false;
+  return true;
+}
+
+bool xbgasNicEvent::buildBulkWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint8_t* Buffer ) {
+  if( !setOp( RmtMemOp::BulkWRITERqst ) )
+    return false;
   if( !setId( main_id++ ) )
     return false;
   if( !setDestAddr( DestAddr ) )
@@ -94,7 +120,7 @@ bool xbgasNicEvent::buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nel
   return true;
 }
 
-bool xbgasNicEvent::buildSegWRITERqst(
+bool xbgasNicEvent::buildSegBulkWRITERqst(
   uint32_t SegId, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer
 ) {
   if( SegId == 0 ) {
@@ -157,13 +183,8 @@ bool xbgasNicEvent::buildAMORqst( uint64_t SrcAddr, size_t Size, RevFlag Fl, uin
 }
 
 bool xbgasNicEvent::buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint8_t* Buffer ) {
-  if( Nelem == 1 ) {
-    if( !setOp( RmtMemOp::READResp ) )
-      return false;
-  } else {
-    if( !setOp( RmtMemOp::BulkREADResp ) )
-      return false;
-  }
+  if( !setOp( RmtMemOp::READResp ) )
+    return false;
   if( !setId( Id ) )
     return false;
   if( !setDestAddr( DestAddr ) )
@@ -179,7 +200,25 @@ bool xbgasNicEvent::buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, 
   return true;
 }
 
-bool xbgasNicEvent::buildSegREADResp(
+bool xbgasNicEvent::buildBulkREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint8_t* Buffer ) {
+  if( !setOp( RmtMemOp::BulkREADResp ) )
+    return false;
+  if( !setId( Id ) )
+    return false;
+  if( !setDestAddr( DestAddr ) )
+    return false;
+  if( !setSize( Size ) )
+    return false;
+  if( !setNelem( Nelem ) )
+    return false;
+  if( !setFlags( Fl ) )
+    return false;
+  if( !setData( Buffer, Size * Nelem ) )
+    return false;
+  return true;
+}
+
+bool xbgasNicEvent::buildSegBulkREADResp(
   uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer
 ) {
   if( !setOp( RmtMemOp::BulkREADResp ) )
@@ -218,13 +257,16 @@ bool xbgasNicEvent::buildREADLOCKResp( uint64_t Id, size_t Size, uint8_t* Buffer
 }
 
 bool xbgasNicEvent::buildWRITEResp( uint64_t Id ) {
-  if( Nelem == 1 ) {
-    if( !setOp( RmtMemOp::WRITEResp ) )
-      return false;
-  } else {
-    if( !setOp( RmtMemOp::BulkWRITEResp ) )
-      return false;
-  }
+  if( !setOp( RmtMemOp::WRITEResp ) )
+    return false;
+  if( !setId( Id ) )
+    return false;
+  return true;
+}
+
+bool xbgasNicEvent::buildBulkWRITEResp( uint64_t Id ) {
+  if( !setOp( RmtMemOp::BulkWRITEResp ) )
+    return false;
   if( !setId( Id ) )
     return false;
   return true;

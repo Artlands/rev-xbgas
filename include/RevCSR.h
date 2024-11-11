@@ -137,7 +137,6 @@ public:
     hpmcounter29h  = 0xc9d,
     hpmcounter30h  = 0xc9e,
     hpmcounter31h  = 0xc9f,
-    bulkcompleted  = 0xca0,
 
     // Supervisor-Level CSRs
     sstatus        = 0x100,
@@ -468,15 +467,6 @@ public:
       case timeh:    return GetPerfCounter<XLEN, Half::Hi, rdtime   >();
       case instret:  return GetPerfCounter<XLEN, Half::Lo, rdinstret>();
       case instreth: return GetPerfCounter<XLEN, Half::Hi, rdinstret>();
-
-      // Memory-mapped CSR
-      case bulkcompleted:
-
-#ifdef _XBGAS_DEBUG_
-        std::cout << "Check Bulk Completed CSR: "
-        << RevRmtMemCtrl::GetBulkCompleted() << std::endl;
-#endif
-        return RevRmtMemCtrl::GetBulkCompleted();
 
       default:       return static_cast<XLEN>( CSR.at( csr ) );
     }

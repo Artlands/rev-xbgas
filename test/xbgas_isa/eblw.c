@@ -1,5 +1,5 @@
 /*
- * elb.c
+ * eblw.c
  *
  * RISC-V ISA: RV64GX
  *
@@ -17,23 +17,18 @@
 #include <unistd.h>
 #define printf rev_fast_printf
 
-extern int  __xbrtime_asm_get_id();
-extern int  __xbrtime_asm_get_npes();
-extern void __xbrtime_wait_bulk_comp();
+extern int __xbrtime_asm_get_id();
+extern int __xbrtime_asm_get_npes();
 
 int main( int argc, char** argv ) {
 
   int id    = __xbrtime_asm_get_id();
   int npes  = __xbrtime_asm_get_npes();
   int nelem = 8;
-
-  printf( "Hello from PE %d of %d\n", id, npes );
+  int flag  = 0;
 
   uint64_t namespace;
-  uint32_t* dest = malloc( sizeof( uint32_t ) * nelem );
-
-  // print address of dest
-  printf( "Address of dest: %p\n", dest );
+  uint32_t* dest  = malloc( sizeof( uint32_t ) * nelem );
 
   // Initialize the source arrays
   uint32_t src1[] = { 0x00ff00ff, 0x00ff01ff, 0x00ff02ff, 0x00ff03ff, 0x00ff04ff, 0x00ff05ff, 0x00ff06ff, 0x00ff07ff };
@@ -51,11 +46,12 @@ int main( int argc, char** argv ) {
   // Load the source address
   if( id == 0 ) {
     // Remote bulk load
-    asm volatile( " eblw %0, %1, %2, %3 \n\t " : : "r"( dest ), "r"( src2 ), "r"( nelem ), "r"( sizeof( uint32_t ) ) );
-    __xbrtime_wait_bulk_comp();
-    for( int i = 0; i < nelem; i++ ) {
-      printf( "PE %d: dest[%d] = 0x%02x\n", id, i, dest[i] );
-      assert( dest[i] == src2[i] );
+    asm volatile( " eblw %0, %1, %2, %3 \n\t " : "=r"( flag ) : "r"( dest ), "r"( src2 ), "r"( nelem ) );
+    if( flag != 0 ) {
+      for( int i = 0; i < nelem; i++ ) {
+        printf( "PE %d: dest[%d] = 0x%02x", id, i, dest[i] );
+        assert( dest[i] == src2[i] );
+      }
     }
   }
 

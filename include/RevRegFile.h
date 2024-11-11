@@ -153,7 +153,7 @@ class RevRegFile : public RevCSR {
 
   // xBGAS load-store queue
   std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>> RmtLSQueue{};
-  std::function<void( const RmtMemReq& )>                       MarkRmtLoadCompleteFunc{};
+  std::function<void( const RmtMemReq& )>                       MarkRmtOpCompleteFunc{};
 
   union {                             // Anonymous union. We zero-initialize the largest member
     uint32_t RV32[_REV_NUM_REGS_];    ///< RevRegFile: RV32I register file
@@ -256,20 +256,20 @@ public:
   /// Get the MarkLoadComplete function
   const std::function<void( const MemReq& )>& GetMarkLoadComplete() const { return MarkLoadCompleteFunc; }
 
-  /// Get the xBGAS MarkRmtLoadComplete function
-  const std::function<void( const RmtMemReq& )>& GetMarkRmtLoadComplete() const { return MarkRmtLoadCompleteFunc; }
+  /// Get the xBGAS MarkRmtOpComplete function
+  const std::function<void( const RmtMemReq& )>& GetMarkRmtOpComplete() const { return MarkRmtOpCompleteFunc; }
 
   /// Set the MarkLoadComplete function
   void SetMarkLoadComplete( std::function<void( const MemReq& )> func ) { MarkLoadCompleteFunc = std::move( func ); }
 
-  /// Set the xBGAS MarkRmtLoadComplete function
-  void SetMarkRmtLoadComplete( std::function<void( const RmtMemReq& )> func ) { MarkRmtLoadCompleteFunc = std::move( func ); }
+  /// Set the xBGAS MarkRmtOpComplete function
+  void SetMarkRmtOpComplete( std::function<void( const RmtMemReq& )> func ) { MarkRmtOpCompleteFunc = std::move( func ); }
 
   /// Invoke the MarkLoadComplete function
   void MarkLoadComplete( const MemReq& req ) const { MarkLoadCompleteFunc( req ); }
 
-  /// Invoke the xBGAS MarkRmtLoadComplete function
-  void MarkRmtLoadComplete( const RmtMemReq& req ) const { MarkRmtLoadCompleteFunc( req ); }
+  /// Invoke the xBGAS MarkRmtOpComplete function
+  void MarkRmtOpComplete( const RmtMemReq& req ) const { MarkRmtOpCompleteFunc( req ); }
 
   /// Capture the PC of current instruction which raised exception
   void SetSEPC() {

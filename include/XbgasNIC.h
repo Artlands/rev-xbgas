@@ -157,16 +157,22 @@ public:
   // ------------------------------------------------
 
   /// xbgasNicEvent: build a READ request packet
-  bool buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl );
+  bool buildREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, RevFlag Fl );
+
+  /// xbgasNicEvent: build a Bulk-READ request packet
+  bool buildBulkREADRqst( uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl );
 
   /// xbgasNicEvent: build a READ LOCK request packet
   bool buildREADLOCKRqst( uint64_t SrcAddr, size_t Size, RevFlag Fl );
 
   /// xbgasNicEvent: build a WRITE request packet
-  bool buildWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint8_t* Buffer );
+  bool buildWRITERqst( uint64_t DestAddr, size_t Size, RevFlag Fl, uint8_t* Buffer );
+
+  /// xbgasNicEvent: build a Bulk-WRITE request packet
+  bool buildBulkWRITERqst( uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint8_t* Buffer );
 
   /// xbgasNicEvent: build a WRITE request packet that is segmented
-  bool buildSegWRITERqst(
+  bool buildSegBulkWRITERqst(
     uint32_t SegId, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer
   );
 
@@ -179,14 +185,22 @@ public:
   /// xbgasNicEvent: build a READ respond packet
   bool buildREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint8_t* Buffer );
 
+  /// xbgasNicEvent: build a Bulk READ respond packet
+  bool buildBulkREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint8_t* Buffer );
+
   /// xbgasNicEvent: build a READ respond packet that is segmented
-  bool buildSegREADResp( uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer );
+  bool buildSegBulkREADResp(
+    uint64_t Id, uint64_t DestAddr, size_t Size, uint32_t Nelem, RevFlag Fl, uint32_t SegSz, uint8_t* Buffer
+  );
 
   /// xbgasNicEvent: build a READ LOCK respond packet
   bool buildREADLOCKResp( uint64_t Id, size_t Size, uint8_t* Buffer );
 
   /// xbgasNicEvent: build a WRITE respond packet
   bool buildWRITEResp( uint64_t Id );
+
+  /// xbgasNicEvent: build a Bulk WRITE respond packet
+  bool buildBulkWRITEResp( uint64_t Id );
 
   /// xbgasNicEvent: build a WRITE UNLOCK respond packet
   bool buildWRITEUNLOCKResp( uint64_t Id, size_t Size, uint8_t* Target );

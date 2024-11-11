@@ -25,8 +25,6 @@ int main( int argc, char** argv ) {
   int id   = __xbrtime_asm_get_id();
   int npes = __xbrtime_asm_get_npes();
 
-  printf( "Hello from PE %d of %d\n", id, npes );
-
   uint64_t namespace;
   uint8_t dest = 0xdd;
 
@@ -52,13 +50,13 @@ int main( int argc, char** argv ) {
   // Remote store
   asm volatile( " ersb x5, %0, e6 \n\t " : : "r"( &dest ) );
 
-  // Wait in a loop
-  while( dest == 0xdd ) {
-    asm volatile( " nop " );
+  // Wait for a few cycles
+  for( int i = 0; i < 100; i++ ) {
+    asm( "nop" );
   }
 
   // Print the value in dest
-  printf( "PE %d: dest = 0x%x\n", id, dest );
+  printf( "PE %d: dest = 0x%x", id, dest );
 
   if( id == 0 ) {
     assert( dest == src1 );

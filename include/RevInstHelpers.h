@@ -11,6 +11,8 @@
 #ifndef _SST_REVCPU_REVINSTHELPERS_H_
 #define _SST_REVCPU_REVINSTHELPERS_H_
 
+#define _XBGAS_DEBUG_
+
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -557,17 +559,7 @@ bool eload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst )
     return load<T>( F, R, M, Inst );
   } else {
     RmtMemReq req(
-      Nmspace,
-      SrcAddr,
-      1,
-      sizeof( T ),
-      _INVALID_ADDR_,
-      Inst.rd,
-      RevRegClass::RegGPR,
-      F->GetHartToExecID(),
-      RmtMemOp::READRqst,
-      true,
-      R->GetMarkRmtLoadComplete()
+      Nmspace, SrcAddr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), RmtMemOp::READRqst, true, R->GetMarkRmtOpComplete()
     );
     R->RmtLSQueue->insert( req.LSQHashPair() );
     M->RmtRead( F->GetHartToExecID(), Nmspace, SrcAddr, DestReg, std::move( req ), Flags );
@@ -621,17 +613,7 @@ bool erload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst 
     M->ReadVal( F->GetHartToExecID(), SrcAddr, DestReg, std::move( req ), Flags );
   } else {
     RmtMemReq req(
-      Nmspace,
-      SrcAddr,
-      1,
-      sizeof( T ),
-      _INVALID_ADDR_,
-      Inst.rd,
-      RevRegClass::RegGPR,
-      F->GetHartToExecID(),
-      RmtMemOp::READRqst,
-      true,
-      R->GetMarkRmtLoadComplete()
+      Nmspace, SrcAddr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), RmtMemOp::READRqst, true, R->GetMarkRmtOpComplete()
     );
     R->RmtLSQueue->insert( req.LSQHashPair() );
     M->RmtRead( F->GetHartToExecID(), Nmspace, SrcAddr, DestReg, std::move( req ), Flags );
@@ -663,18 +645,37 @@ bool erstore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst
 // xBGAS remote bulk load template. Not supported in the current implementation.
 template<typename T>
 bool ebload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  // auto Flag      = R->GetX<uint64_t>( Inst.rd );
+  T*   DestReg;
   auto DestAddr = R->GetX<uint64_t>( Inst.rs1 );
   auto SrcAddr  = R->GetX<uint64_t>( Inst.rs2 );
   auto Nmspace  = R->GetE<uint64_t>( Inst.rs2 );
   auto Nelem    = R->GetX<uint64_t>( Inst.rs3 );
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebload: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex
-            << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem << std::endl;
-#endif
+  if( sizeof( T ) < sizeof( int64_t ) && !F->IsRV64() ) {
+    DestReg = reinterpret_cast<T*>( &R->RV32[Inst.rd] );
+  } else {
+    DestReg = reinterpret_cast<T*>( &R->RV64[Inst.rd] );
+  }
 
-  M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, DestAddr );
+#ifdef _XBGAS_DEBUG_
+  std::cout << "_XBGAS_DEBUG_ : ebload: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex << DestAddr << ", SrcAddr: 0x"
+            << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem << std::endl;
+#endif
+  RmtMemReq req(
+    Nmspace,
+    SrcAddr,
+    Nelem,
+    DestAddr,
+    Inst.rd,
+    RevRegClass::RegGPR,
+    F->GetHartToExecID(),
+    RmtMemOp::BulkREADRqst,
+    true,
+    R->GetMarkRmtOpComplete()
+  );
+  R->RmtLSQueue->insert( req.LSQHashPair() );
+
+  M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, DestAddr, DestReg, std::move( req ) );
   // update the cost
   R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
   R->AdvancePC( Inst );
@@ -684,18 +685,37 @@ bool ebload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst 
 // xBGAS remote bulk store template. Not supported in the current implementation.
 template<typename T>
 bool ebstore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  // auto Flag     = R->GetX<uint64_t>( Inst.rd );
+  T*   DestReg;
   auto SrcAddr  = R->GetX<uint64_t>( Inst.rs1 );
   auto DestAddr = R->GetX<uint64_t>( Inst.rs2 );
   auto Nmspace  = R->GetE<uint64_t>( Inst.rs2 );
   auto Nelem    = R->GetX<uint64_t>( Inst.rs3 );
 
-#ifdef _XBGAS_DEBUG_
-  std::cout << "_XBGAS_DEBUG_ : PE " << R->GetE<uint64_t>( 10 ) << " ebstore-32: Nmspace: " << Nmspace << ", DestAddr: 0x"
-            << std::hex << DestAddr << ", SrcAddr: 0x" << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem << std::endl;
-#endif
+  if( sizeof( T ) < sizeof( int64_t ) && !F->IsRV64() ) {
+    DestReg = reinterpret_cast<T*>( &R->RV32[Inst.rd] );
+  } else {
+    DestReg = reinterpret_cast<T*>( &R->RV64[Inst.rd] );
+  }
 
-  M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, SrcAddr );
+#ifdef _XBGAS_DEBUG_
+  std::cout << "_XBGAS_DEBUG_ : ebstore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex << DestAddr << ", SrcAddr: 0x"
+            << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem << std::endl;
+#endif
+  RmtMemReq req(
+    Nmspace,
+    SrcAddr,
+    Nelem,
+    DestAddr,
+    Inst.rd,
+    RevRegClass::RegGPR,
+    F->GetHartToExecID(),
+    RmtMemOp::BulkWRITERqst,
+    true,
+    R->GetMarkRmtOpComplete()
+  );
+  R->RmtLSQueue->insert( req.LSQHashPair() );
+
+  M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, SrcAddr, DestReg, std::move( req ) );
   R->AdvancePC( Inst );
   return true;
 }

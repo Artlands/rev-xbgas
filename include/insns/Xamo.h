@@ -48,7 +48,7 @@ class Xamo : public RevExt {
           F->GetHartToExecID(),
           RmtMemOp::AMORqst,
           true,
-          R->GetMarkRmtLoadComplete()
+          R->GetMarkRmtOpComplete()
         );
         R->RmtLSQueue->insert( req.LSQHashPair() );
         M->RmtAMOVal( F->GetHartToExecID(), Nmspace, R->RV32[Inst.rs1], &R->RV32[Inst.rs2], &R->RV32[Inst.rd], req, flags );
@@ -79,7 +79,7 @@ class Xamo : public RevExt {
           F->GetHartToExecID(),
           RmtMemOp::AMORqst,
           true,
-          R->GetMarkRmtLoadComplete()
+          R->GetMarkRmtOpComplete()
         );
         R->RmtLSQueue->insert( req.LSQHashPair() );
         M->RmtAMOVal(

@@ -178,7 +178,7 @@ public:
   void MarkLoadComplete( const MemReq& req );
 
   ///< RevCore: Mark a current xBGAS remote request as complete
-  void MarkRmtLoadComplete( const RmtMemReq& req );
+  void MarkRmtOpComplete( const RmtMemReq& req );
 
   ///< RevCore: Get pointer to Load / Store queue used to track memory operations
   std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>> GetLSQueue() const { return LSQueue; }

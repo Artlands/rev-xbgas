@@ -55,7 +55,7 @@ RevCore::RevCore(
       LSQueue,
       RmtLSQueue,
       [=]( const MemReq& req ) { this->MarkLoadComplete( req ); },
-      [=]( const RmtMemReq& req ) { this->MarkRmtLoadComplete( req ); }
+      [=]( const RmtMemReq& req ) { this->MarkRmtOpComplete( req ); }
     ) );
     ValidHarts.set( i, true );
   }
@@ -1660,7 +1660,7 @@ void RevCore::MarkLoadComplete( const MemReq& req ) {
   );
 }
 
-void RevCore::MarkRmtLoadComplete( const RmtMemReq& req ) {
+void RevCore::MarkRmtOpComplete( const RmtMemReq& req ) {
   // Iterate over all outstanding loads for this reg (if any)
   for( auto [i, end] = RmtLSQueue->equal_range( req.LSQHash() ); i != end; ++i ) {
     if( i->second.SrcAddr == req.SrcAddr ) {

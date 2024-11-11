@@ -1,5 +1,5 @@
 /*
- * elb.c
+ * ebld.c
  *
  * RISC-V ISA: RV64GX
  *
@@ -17,17 +17,15 @@
 #include <unistd.h>
 #define printf rev_fast_printf
 
-extern int  __xbrtime_asm_get_id();
-extern int  __xbrtime_asm_get_npes();
-extern void __xbrtime_wait_bulk_comp();
+extern int __xbrtime_asm_get_id();
+extern int __xbrtime_asm_get_npes();
 
 int main( int argc, char** argv ) {
 
   int id    = __xbrtime_asm_get_id();
   int npes  = __xbrtime_asm_get_npes();
   int nelem = 8;
-
-  printf( "Hello from PE %d of %d\n", id, npes );
+  int flag  = 0;
 
   uint64_t namespace;
   uint64_t* dest  = malloc( sizeof( uint64_t ) * nelem );
@@ -66,11 +64,12 @@ int main( int argc, char** argv ) {
   // Load the source address
   if( id == 0 ) {
     // Remote bulk load
-    asm volatile( " ebld %0, %1, %2, %3 \n\t " : : "r"( dest ), "r"( src2 ), "r"( nelem ), "r"( sizeof( uint64_t ) ) );
-    __xbrtime_wait_bulk_comp();
-    for( int i = 0; i < nelem; i++ ) {
-      printf( "PE %d: dest[%d] = 0x%lx\n", id, i, dest[i] );
-      assert( dest[i] == src2[i] );
+    asm volatile( " ebld %0, %1, %2, %3 \n\t " : "=r"( flag ) : "r"( dest ), "r"( src2 ), "r"( nelem ) );
+    if( flag != 0 ) {
+      for( int i = 0; i < nelem; i++ ) {
+        printf( "PE %d: dest[%d] = 0x%lx", id, i, dest[i] );
+        assert( dest[i] == src2[i] );
+      }
     }
   }
 

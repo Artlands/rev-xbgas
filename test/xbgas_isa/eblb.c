@@ -1,5 +1,5 @@
 /*
- * elb.c
+ * eblb.c
  *
  * RISC-V ISA: RV64GX
  *
@@ -17,9 +17,8 @@
 #include <unistd.h>
 #define printf rev_fast_printf
 
-extern int  __xbrtime_asm_get_id();
-extern int  __xbrtime_asm_get_npes();
-extern void __xbrtime_wait_bulk_comp();
+extern int __xbrtime_asm_get_id();
+extern int __xbrtime_asm_get_npes();
 
 int main( int argc, char** argv ) {
   struct __kernel_timespec s, e;
@@ -27,14 +26,10 @@ int main( int argc, char** argv ) {
   int id    = __xbrtime_asm_get_id();
   int npes  = __xbrtime_asm_get_npes();
   int nelem = 8;
-
-  printf( "Hello from PE %d of %d\n", id, npes );
+  int flag  = 0;
 
   uint64_t namespace;
-  int8_t* dest = malloc( sizeof( int8_t ) * nelem );
-
-  // print address of dest
-  printf( "Address of dest: %p\n", dest );
+  int8_t* dest  = malloc( sizeof( int8_t ) * nelem );
 
   // Initialize the source arrays
   int8_t src1[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
@@ -52,16 +47,16 @@ int main( int argc, char** argv ) {
   // Load the source address
   if( id == 0 ) {
     rev_clock_gettime( 0, &s );
-    // printf( "PE %d: before buld load, clock time = %lu \n", id, s.tv_nsec );
     // Remote bulk load
-    asm volatile( " eblb %0, %1, %2, %3 \n\t " : : "r"( dest ), "r"( src2 ), "r"( nelem ), "r"( sizeof( int8_t ) ) );
-    __xbrtime_wait_bulk_comp();
-    rev_clock_gettime( 0, &e );
-    // printf( "PE %d: after buld load, clock time = %lu \n", id, e.tv_nsec );
-    printf( "PE %d: Remote bulk load time: %lu ns\n", id, ( e.tv_nsec - s.tv_nsec ) );
-    for( int i = 0; i < nelem; i++ ) {
-      printf( "PE %d: dest[%d] = 0x%02x\n", id, i, dest[i] );
-      assert( dest[i] == src2[i] );
+    asm volatile( " eblb %0, %1, %2, %3 \n\t " : "=r"( flag ) : "r"( dest ), "r"( src2 ), "r"( nelem ) );
+
+    if( flag != 0 ) {
+      rev_clock_gettime( 0, &e );
+      printf( "PE %d: Remote bulk load time: %lu ns", id, ( e.tv_nsec - s.tv_nsec ) );
+      for( int i = 0; i < nelem; i++ ) {
+        printf( "PE %d: dest[%d] = 0x%02x", id, i, dest[i] );
+        assert( dest[i] == src2[i] );
+      }
     }
   }
 

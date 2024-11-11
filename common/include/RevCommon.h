@@ -205,18 +205,17 @@ struct RmtMemReq {
     uint64_t                                Nmspace,
     uint64_t                                SrcAddr,
     uint32_t                                Nelem,
-    uint32_t                                Stride,
     uint64_t                                DestAddr,
     T                                       DestReg,
     RevRegClass                             RegType,
     unsigned                                Hart,
     RmtMemOp                                ReqType,
     bool                                    isOutstanding,
-    std::function<void( const RmtMemReq& )> MarkRmtLoadCompleteFunc
+    std::function<void( const RmtMemReq& )> MarkRmtOpCompleteFunc
   )
-    : Nmspace( Nmspace ), SrcAddr( SrcAddr ), Nelem( Nelem ), Stride( Stride ), DestAddr( DestAddr ),
-      DestReg( uint16_t( DestReg ) ), RegType( RegType ), Hart( Hart ), ReqType( ReqType ), isOutstanding( isOutstanding ),
-      MarkRmtLoadCompleteFunc( std::move( MarkRmtLoadCompleteFunc ) ) {}
+    : Nmspace( Nmspace ), SrcAddr( SrcAddr ), Nelem( Nelem ), DestAddr( DestAddr ), DestReg( uint16_t( DestReg ) ),
+      RegType( RegType ), Hart( Hart ), ReqType( ReqType ), isOutstanding( isOutstanding ),
+      MarkRmtOpCompleteFunc( std::move( MarkRmtOpCompleteFunc ) ) {}
 
   template<typename T>
   RmtMemReq(
@@ -227,29 +226,28 @@ struct RmtMemReq {
     unsigned                                Hart,
     RmtMemOp                                ReqType,
     bool                                    isOutstanding,
-    std::function<void( const RmtMemReq& )> MarkRmtLoadCompleteFunc
+    std::function<void( const RmtMemReq& )> MarkRmtOpCompleteFunc
   )
     : Nmspace( Nmspace ), SrcAddr( SrcAddr ), DestReg( uint16_t( DestReg ) ), RegType( RegType ), Hart( Hart ), ReqType( ReqType ),
-      isOutstanding( isOutstanding ), MarkRmtLoadCompleteFunc( std::move( MarkRmtLoadCompleteFunc ) ) {}
+      isOutstanding( isOutstanding ), MarkRmtOpCompleteFunc( std::move( MarkRmtOpCompleteFunc ) ) {}
 
-  void MarkRmtLoadComplete() const { MarkRmtLoadCompleteFunc( *this ); }
+  void MarkRmtOpComplete() const { MarkRmtOpCompleteFunc( *this ); }
 
   auto LSQHash() const { return SST::RevCPU::LSQHash( DestReg, RegType, Hart ); }
 
   auto LSQHashPair() const { return std::make_pair( LSQHash(), *this ); }
 
-  uint64_t    Nmspace                                             = 0;
-  uint64_t    SrcAddr                                             = _INVALID_ADDR_;
-  uint32_t    Nelem                                               = 1;
-  uint32_t    Stride                                              = 0;
-  uint64_t    DestAddr                                            = _INVALID_ADDR_;
-  uint16_t    DestReg                                             = 0;
-  RevRegClass RegType                                             = RevRegClass::RegUNKNOWN;
-  unsigned    Hart                                                = _REV_INVALID_HART_ID_;
-  RmtMemOp    ReqType                                             = RmtMemOp::Unknown;
-  bool        isOutstanding                                       = false;
+  uint64_t    Nmspace                                           = 0;
+  uint64_t    SrcAddr                                           = _INVALID_ADDR_;
+  uint32_t    Nelem                                             = 1;
+  uint64_t    DestAddr                                          = _INVALID_ADDR_;
+  uint16_t    DestReg                                           = 0;
+  RevRegClass RegType                                           = RevRegClass::RegUNKNOWN;
+  unsigned    Hart                                              = _REV_INVALID_HART_ID_;
+  RmtMemOp    ReqType                                           = RmtMemOp::Unknown;
+  bool        isOutstanding                                     = false;
 
-  std::function<void( const RmtMemReq& )> MarkRmtLoadCompleteFunc = nullptr;
+  std::function<void( const RmtMemReq& )> MarkRmtOpCompleteFunc = nullptr;
 };  //struct RmtMemReq
 
 // Enum for tracking the state of a RevThread.

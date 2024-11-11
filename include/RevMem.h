@@ -242,8 +242,18 @@ public:
   }
 
   /// RevMem: template bulk read memory interface
-  void RmtBulkRead( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint32_t Nelem, uint64_t DestAddr ) {
-    rmtCtrl->sendRmtBulkReadRqst( Hart, Nmspace, SrcAddr, Size, Nelem, DestAddr, RevFlag::F_NONE );
+  template<typename T>
+  void RmtBulkRead(
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         SrcAddr,
+    size_t           Size,
+    uint32_t         Nelem,
+    uint64_t         DestAddr,
+    T*               Target,
+    const RmtMemReq& Req
+  ) {
+    rmtCtrl->sendRmtBulkReadRqst( Hart, Nmspace, SrcAddr, Size, Nelem, DestAddr, Target, Req, RevFlag::F_NONE );
   }
 
   // ----------------------------------------------------
@@ -257,8 +267,18 @@ public:
   }
 
   /// RevMem: template remote bulk write memory interface
-  void RmtBulkWrite( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint64_t SrcAddr ) {
-    rmtCtrl->sendRmtBulkWriteRqst( Hart, Nmspace, DestAddr, Size, Nelem, SrcAddr, RevFlag::F_NONE );
+  template<typename T>
+  void RmtBulkWrite(
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         DestAddr,
+    size_t           Size,
+    uint32_t         Nelem,
+    uint64_t         SrcAddr,
+    T*               Target,
+    const RmtMemReq& Req
+  ) {
+    rmtCtrl->sendRmtBulkWriteRqst( Hart, Nmspace, DestAddr, Size, Nelem, SrcAddr, Target, Req, RevFlag::F_NONE );
   }
 
   ///  RevMem: template remote LOAD RESERVE memory interface

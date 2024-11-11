@@ -33,17 +33,19 @@ class RevMem;
 
 // xBGAS memory local load records
 struct LocalLoadRecord {
-  unsigned Hart;      // xBGAS Hart ID
-  uint64_t Nmspace;   // xBGAS namespace
-  uint32_t Id;        // xBGAS NIC event ID
-  uint32_t SrcId;     // xBGAS NIC source ID
-  uint64_t SrcAddr;   // xBGAS source address of this load
-  uint64_t DestAddr;  // xBGAS destination address of this load
-  size_t   Size;      // xBGAS size of this load
-  uint32_t Nelem;     // xBGAS number of elements
-  RevFlag  Flags;     // xBGAS flag
-  uint8_t* Buffer;    // xBGAS buffer pointer
-  RmtMemOp ReqPurp;   // xBGAS the purpose of this local load
+  unsigned  Hart{};      // xBGAS Hart ID
+  uint64_t  Nmspace{};   // xBGAS namespace
+  uint32_t  Id{};        // xBGAS NIC event ID
+  uint32_t  SrcId{};     // xBGAS NIC source ID
+  uint64_t  SrcAddr{};   // xBGAS source address of this load
+  uint64_t  DestAddr{};  // xBGAS destination address of this load
+  size_t    Size{};      // xBGAS size of this load
+  uint32_t  Nelem{};     // xBGAS number of elements
+  RevFlag   Flags{};     // xBGAS flag
+  void*     Target{};    // xBGAS target pointer
+  uint8_t*  Buffer{};    // xBGAS buffer pointer
+  RmtMemOp  ReqPurp{};   // xBGAS the purpose of this local load
+  RmtMemReq RmtReq{};    // xBGAS remote memory operation
 
   LocalLoadRecord(
     unsigned H,
@@ -60,6 +62,24 @@ struct LocalLoadRecord {
   )
     : Hart( H ), Nmspace( N ), Id( I ), SrcId( S ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( Ne ), Flags( F ), Buffer( B ),
       ReqPurp( P ) {}
+
+  LocalLoadRecord(
+    unsigned         H,
+    uint64_t         N,
+    uint64_t         Sr,
+    uint64_t         D,
+    size_t           Sz,
+    uint32_t         Ne,
+    RevFlag          F,
+    void*            T,
+    uint8_t*         B,
+    RmtMemOp         P,
+    const RmtMemReq& R
+  )
+    : Hart( H ), Nmspace( N ), Id( 0 ), SrcId( 0 ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( Ne ), Flags( F ), Target( T ),
+      Buffer( B ), ReqPurp( P ) {
+    RmtReq = R;
+  }
 };
 
 // ----------------------------------------
@@ -75,7 +95,15 @@ public:
 
   /// RevRmtMemOp: constructor - bulk read
   RevRmtMemOp(
-    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, uint64_t DestAddr, size_t Size, uint32_t Nelem, RmtMemOp Op, RevFlag Flags
+    unsigned Hart,
+    uint64_t Nmspace,
+    uint64_t SrcAddr,
+    uint64_t DestAddr,
+    size_t   Size,
+    uint32_t Nelem,
+    RmtMemOp Op,
+    RevFlag  Flags,
+    void*    Target
   );
 
   /// RevRmtMemOp: overloaded constructor - write
@@ -83,7 +111,15 @@ public:
 
   /// RevRmtMemOp: overloaded constructor - bulk write
   RevRmtMemOp(
-    unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, RmtMemOp Op, RevFlag Flags, uint8_t* Buffer
+    unsigned Hart,
+    uint64_t Nmspace,
+    uint64_t DestAddr,
+    size_t   Size,
+    uint32_t Nelem,
+    RmtMemOp Op,
+    RevFlag  Flags,
+    void*    Target,
+    uint8_t* Buffer
   );
 
   /// RevRmtMemOp: overloaded constructor - AMO
@@ -240,7 +276,15 @@ public:
 
   /// RevRmtMemCtrl: send a remote bulk memory read request
   virtual bool sendRmtBulkReadRqst(
-    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint32_t Nelem, uint64_t DestAddr, RevFlag Flags
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         SrcAddr,
+    size_t           Size,
+    uint32_t         Nelem,
+    uint64_t         DestAddr,
+    void*            Target,
+    const RmtMemReq& Req,
+    RevFlag          Flags
   ) = 0;
 
   /// RevRmtMemCtrl: send a remote memory write request
@@ -249,7 +293,15 @@ public:
 
   /// RevRmtMemCtrl: send a remote bulk memory write request
   virtual bool sendRmtBulkWriteRqst(
-    unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint64_t SrcAddr, RevFlag Flags
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         DestAddr,
+    size_t           Size,
+    uint32_t         Nelem,
+    uint64_t         SrcAddr,
+    void*            Target,
+    const RmtMemReq& Req,
+    RevFlag          Flags
   ) = 0;
 
   virtual bool sendRmtAMORqst(
@@ -261,16 +313,10 @@ public:
     void*            Target,
     const RmtMemReq& Req,
     RevFlag          Flags
-  )                                       = 0;
+  )                                                                                                                     = 0;
 
   /// RevRmtMemCtrl: send a FENCE request
-  virtual bool sendFENCE( unsigned Hart ) = 0;
-
-  /// RevRmtMemCtrl: Set the bulk operation completion flag
-  void SetBulkCompleted( bool Completed ) { bulkCompleted = Completed; }
-
-  /// RevRmtMemCtrl: Used to get the bulk operation completion flag
-  static bool GetBulkCompleted() { return bulkCompleted; }
+  virtual bool sendFENCE( unsigned Hart )                                                                               = 0;
 
   /// RevRmtMemCtrl: handle a remote memory read request
   virtual void handleReadRqst( xbgasNicEvent* ev )                                                                      = 0;
@@ -311,9 +357,7 @@ public:
 protected:
   SST::Output* output;  ///< RevRmtMemCtrl: sst output object
 
-private:
-  static bool bulkCompleted;  ///< RevRmtMemCtrl: bulk operation completion flag
-};                            // class RevRmtMemCtrl
+};  // class RevRmtMemCtrl
 
 // ----------------------------------------
 // RevBasicRmtMemCtrl
@@ -444,7 +488,15 @@ public:
 
   /// RevBasicRmtMemCtrl: send a remote bulk memory read request
   bool sendRmtBulkReadRqst(
-    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint32_t Nelem, uint64_t DestAddr, RevFlag Flags
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         SrcAddr,
+    size_t           Size,
+    uint32_t         Nelem,
+    uint64_t         DestAddr,
+    void*            Target,
+    const RmtMemReq& Req,
+    RevFlag          Flags
   ) override;
 
   /// RevBasicRmtMemCtrl: send a remote memory write request
@@ -452,7 +504,15 @@ public:
 
   /// RevBasicRmtMemCtrl: send a remote bulk memory write request
   bool sendRmtBulkWriteRqst(
-    unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint64_t SrcAddr, RevFlag Flags
+    unsigned         Hart,
+    uint64_t         Nmspace,
+    uint64_t         DestAddr,
+    size_t           Size,
+    uint32_t         Nelem,
+    uint64_t         SrcAddr,
+    void*            Target,
+    const RmtMemReq& Req,
+    RevFlag          Flags
   ) override;
 
   /// RevBasicRmtMemCtrl: send a remote AMO request
@@ -580,7 +640,6 @@ private:
   static std::atomic<uint32_t>                  local_read_id;  ///< RevBasicRmtMemCtrl: load read id counter
   std::unordered_map<uint64_t, LocalLoadRecord> LocalLoadTrack{
   };  ///< RevBasicRmtMemCtrl: the association between hashed id and local load record
-  std::unordered_map<uint64_t, uint32_t> LocalLoadCount{};  ///< RevBasicRmtMemCtrl: the number of local load operations
   std::unordered_map<uint64_t, uint32_t> PacketSegCount{};  ///< RevBasicRmtMemCtrl: the number of segments for a packet
 
   std::vector<std::pair<uint64_t, size_t>> RmtLRSC{};  ///< RevBasicRmtMemCtrl: remote load-reserve/store-conditional container

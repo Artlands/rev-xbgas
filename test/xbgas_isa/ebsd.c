@@ -1,5 +1,5 @@
 /*
- * elb.c
+ * ebsd.c
  *
  * RISC-V ISA: RV64GX
  *
@@ -25,8 +25,7 @@ int main( int argc, char** argv ) {
   int id    = __xbrtime_asm_get_id();
   int npes  = __xbrtime_asm_get_npes();
   int nelem = 8;
-
-  printf( "Hello from PE %d of %d\n", id, npes );
+  int flag  = 0;
 
   uint64_t namespace;
   uint64_t* dest  = malloc( sizeof( uint64_t ) * nelem );
@@ -65,7 +64,7 @@ int main( int argc, char** argv ) {
   // Load the source address
   if( id == 0 ) {
     // Remote bulk store
-    asm volatile( " ebsd %0, %1, %2, %3 \n\t " : : "r"( src2 ), "r"( dest ), "r"( nelem ), "r"( sizeof( uint64_t ) ) );
+    asm volatile( " ebsd %0, %1, %2, %3 \n\t " : "=r"( flag ) : "r"( src2 ), "r"( dest ), "r"( nelem ) );
   }
 
   // Wait for a few cycles
@@ -75,7 +74,7 @@ int main( int argc, char** argv ) {
 
   for( int i = 0; i < nelem; i++ ) {
     if( id == 1 ) {
-      printf( "PE %d: dest[%d] = 0x%lx\n", id, i, dest[i] );
+      printf( "PE %d: dest[%d] = 0x%lx", id, i, dest[i] );
       assert( dest[i] == src2[i] );
     }
   }

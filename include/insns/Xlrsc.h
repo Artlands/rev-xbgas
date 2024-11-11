@@ -49,7 +49,7 @@ class Xlrsc : public RevExt {
     } else {
       // Send load-reserve (Remote READLOCK) request to the remote node
       RmtMemReq req(
-        nmspace, addr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), RmtMemOp::READLOCKRqst, true, R->GetMarkRmtLoadComplete()
+        nmspace, addr, Inst.rd, RevRegClass::RegGPR, F->GetHartToExecID(), RmtMemOp::READLOCKRqst, true, R->GetMarkRmtOpComplete()
       );
       R->RmtLSQueue->insert( req.LSQHashPair() );
       M->RmtLR( F->GetHartToExecID(), nmspace, addr, sizeof( XLEN ), target, req, flags );
@@ -95,7 +95,7 @@ class Xlrsc : public RevExt {
         F->GetHartToExecID(),
         RmtMemOp::WRITEUNLOCKRqst,
         true,
-        R->GetMarkRmtLoadComplete()
+        R->GetMarkRmtOpComplete()
       );
       R->RmtLSQueue->insert( req.LSQHashPair() );
       // Send store-conditional request to the remote node

@@ -34,8 +34,8 @@ class RevHart {
   ///< RevHart: Pointer to the Proc's MarkLoadCompleteFunc
   std::function<void( const MemReq& )> MarkLoadCompleteFunc{};
 
-  ///< RevHart: Pointer to the Proc's MarkRmtLoadCompleteFunc for xBGAS
-  std::function<void( const RmtMemReq& )> MarkRmtLoadCompleteFunc{};
+  ///< RevHart: Pointer to the Proc's MarkRmtOpCompleteFunc for xBGAS
+  std::function<void( const RmtMemReq& )> MarkRmtOpCompleteFunc{};
 
   ///< RevHart: Thread currently executing on this Hart
   std::unique_ptr<RevThread>  Thread  = nullptr;
@@ -51,10 +51,10 @@ public:
     const std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>>&    LSQueue,
     const std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>>& RmtLSQueue,
     std::function<void( const MemReq& )>                                 MarkLoadCompleteFunc,
-    std::function<void( const RmtMemReq& )>                              MarkRmtLoadCompleteFunc
+    std::function<void( const RmtMemReq& )>                              MarkRmtOpCompleteFunc
   )
     : ID( ID ), LSQueue( LSQueue ), RmtLSQueue( RmtLSQueue ), MarkLoadCompleteFunc( std::move( MarkLoadCompleteFunc ) ),
-      MarkRmtLoadCompleteFunc( std::move( MarkRmtLoadCompleteFunc ) ) {}
+      MarkRmtOpCompleteFunc( std::move( MarkRmtOpCompleteFunc ) ) {}
 
   ///< RevHart: Destructor
   ~RevHart() = default;
@@ -74,7 +74,7 @@ public:
   void LoadRegFile( std::unique_ptr<RevRegFile> regFile ) {
     RegFile = std::move( regFile );
     RegFile->SetMarkLoadComplete( MarkLoadCompleteFunc );
-    RegFile->SetMarkRmtLoadComplete( MarkRmtLoadCompleteFunc );
+    RegFile->SetMarkRmtOpComplete( MarkRmtOpCompleteFunc );
     RegFile->SetLSQueue( LSQueue );
     RegFile->SetRmtLSQueue( RmtLSQueue );
   }
