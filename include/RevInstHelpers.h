@@ -671,11 +671,14 @@ bool ebload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst 
     true,
     R->GetMarkRmtOpComplete()
   );
-  R->RmtLSQueue->insert( req.LSQHashPair() );
+
+  if( Inst.rd != 0 ) {
+    R->RmtLSQueue->insert( req.LSQHashPair() );
+    // update the cost
+    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+  }
 
   M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, DestAddr, DestReg, std::move( req ) );
-  // update the cost
-  R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
   R->AdvancePC( Inst );
   return true;
 }
@@ -711,11 +714,14 @@ bool ebstore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst
     true,
     R->GetMarkRmtOpComplete()
   );
-  R->RmtLSQueue->insert( req.LSQHashPair() );
+
+  if( Inst.rd != 0 ) {
+    R->RmtLSQueue->insert( req.LSQHashPair() );
+    // update the cost
+    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
+  }
 
   M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, SrcAddr, DestReg, std::move( req ) );
-  // update the cost
-  R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
   R->AdvancePC( Inst );
   return true;
 }
