@@ -1663,7 +1663,7 @@ void RevCore::MarkLoadComplete( const MemReq& req ) {
 void RevCore::MarkRmtOpComplete( const RmtMemReq& req ) {
   // Iterate over all outstanding loads for this reg (if any)
   for( auto [i, end] = RmtLSQueue->equal_range( req.LSQHash() ); i != end; ++i ) {
-    if( i->second.SrcAddr == req.SrcAddr ) {
+    if( ( i->second.SrcAddr == req.SrcAddr ) && ( i->second.DestAddr == req.DestAddr ) ) {
       // Only clear the dependency if this is the
       // LAST outstanding load for this register
       if( RmtLSQueue->count( req.LSQHash() ) == 1 ) {

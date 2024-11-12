@@ -11,8 +11,6 @@
 #ifndef _SST_REVCPU_REVINSTHELPERS_H_
 #define _SST_REVCPU_REVINSTHELPERS_H_
 
-#define _XBGAS_DEBUG_
-
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -716,6 +714,8 @@ bool ebstore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst
   R->RmtLSQueue->insert( req.LSQHashPair() );
 
   M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, SrcAddr, DestReg, std::move( req ) );
+  // update the cost
+  R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
   R->AdvancePC( Inst );
   return true;
 }

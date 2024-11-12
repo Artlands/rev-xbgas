@@ -11,8 +11,6 @@
 #include "RevMem.h"
 #include "RevRmtMemCtrl.h"
 
-#define _XBGAS_DEBUG_
-
 std::atomic<uint32_t> SST::RevCPU::RevBasicRmtMemCtrl::local_read_id( 0 );
 
 namespace SST::RevCPU {
@@ -539,10 +537,8 @@ void RevBasicRmtMemCtrl::handleBulkReadResp( xbgasNicEvent* ev ) {
 
     bool isSeg = ev->isSegmented();
     if( !isSeg ) {
-      // Update Target register to non-zero values
-      for( size_t i = 0; i < Size; i++ ) {
-        Target[i] = 1;
-      }
+      // Update Target register to 1
+      Target[0] = 1;
       r.MarkRmtOpComplete();  // Mark the remote bulk load complete
 
 #ifdef _XBGAS_DEBUG_
@@ -558,10 +554,8 @@ void RevBasicRmtMemCtrl::handleBulkReadResp( xbgasNicEvent* ev ) {
         // Check if all the segments have been received
         if( PacketSegCount[Id] == ev->getSegSz() ) {
           PacketSegCount.erase( Id );
-          // Update Target register to non-zero values
-          for( size_t i = 0; i < Size; i++ ) {
-            Target[i] = 1;
-          }
+          // Update Target register to 1
+          Target[0] = 1;
           r.MarkRmtOpComplete();  // Mark the remote bulk load complete
 
 #ifdef _XBGAS_DEBUG_
@@ -625,11 +619,10 @@ void RevBasicRmtMemCtrl::handleWriteResp( xbgasNicEvent* ev ) {
 }
 
 void RevBasicRmtMemCtrl::handleBulkWriteResp( xbgasNicEvent* ev ) {
-  uint32_t Id   = ev->getID();
-  size_t   Size = ev->getSize();
+  uint32_t Id = ev->getID();
+  // size_t   Size = ev->getSize();
 
   if( std::find( requests.begin(), requests.end(), Id ) != requests.end() ) {
-    requests.erase( std::find( requests.begin(), requests.end(), Id ) );
     RevRmtMemOp* Op = outstanding[Id];
     if( !Op )
       output->fatal( CALL_INFO, -1, "RevRmtMemOp is null in handleBulkWriteResp\n" );
@@ -641,13 +634,12 @@ void RevBasicRmtMemCtrl::handleBulkWriteResp( xbgasNicEvent* ev ) {
     std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Mark Bulk WRITE Complete" << std::endl;
 #endif
 
-    // Update Target register to non-zero values
-    for( size_t i = 0; i < Size; i++ ) {
-      Target[i] = 1;
-    }
+    // Update Target register to 1
+    Target[0] = 1;
     r.MarkRmtOpComplete();  // Mark the remote bulk write complete
-    num_write_rqst--;
+    requests.erase( std::find( requests.begin(), requests.end(), Id ) );
     outstanding.erase( Id );
+    num_write_rqst--;
   } else {
     output->fatal( CALL_INFO, -1, "Error: found unknown response\n" );
   }
@@ -975,12 +967,13 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst(
   std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Mark BULK-WRITE Complete to false" << std::endl;
 #endif
 
+  RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, DestAddr, Size, Nelem, RmtMemOp::BulkWRITERqst, Flags, Target );
+
   // Set Target to zero values
   for( size_t i = 0; i < Size; i++ ) {
     static_cast<uint8_t*>( Target )[i] = 0;
   }
 
-  RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, DestAddr, Size, Nelem, RmtMemOp::BulkWRITERqst, Flags, Target );
   Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWritePending, 1 );
