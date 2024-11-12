@@ -202,6 +202,9 @@ public:
   /// xbgasNicEvent: build a Bulk WRITE respond packet
   bool buildBulkWRITEResp( uint64_t Id );
 
+  /// xbgasNicEvent: build a Bulk WRITE respond packet
+  bool buildSegBulkWRITEResp( uint64_t Id, uint32_t SegSz );
+
   /// xbgasNicEvent: build a WRITE UNLOCK respond packet
   bool buildWRITEUNLOCKResp( uint64_t Id, size_t Size, uint8_t* Target );
 

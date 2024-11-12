@@ -31,65 +31,6 @@ namespace SST::RevCPU {
 
 class RevMem;
 
-// xBGAS memory local load records
-struct LocalLoadRecord {
-  unsigned  Hart{};      // xBGAS Hart ID
-  uint64_t  Nmspace{};   // xBGAS namespace
-  uint32_t  Id{};        // xBGAS NIC event ID
-  uint32_t  SrcId{};     // xBGAS NIC source ID
-  uint64_t  SrcAddr{};   // xBGAS source address of this load
-  uint64_t  DestAddr{};  // xBGAS destination address of this load
-  size_t    Size{};      // xBGAS size of this load
-  uint32_t  Nelem{};     // xBGAS number of elements
-  RevFlag   Flags{};     // xBGAS flag
-  void*     Target{};    // xBGAS target pointer
-  uint8_t*  Buffer{};    // xBGAS buffer pointer
-  RmtMemOp  ReqPurp{};   // xBGAS the purpose of this local load
-  RmtMemReq RmtReq{};    // xBGAS remote memory operation
-
-  // For single element load
-  LocalLoadRecord(
-    unsigned H, uint64_t N, uint32_t I, uint32_t S, uint64_t Sr, uint64_t D, size_t Sz, RevFlag F, uint8_t* B, RmtMemOp P
-  )
-    : Hart( H ), Nmspace( N ), Id( I ), SrcId( S ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( 1 ), Flags( F ), Buffer( B ),
-      ReqPurp( P ) {}
-
-  // For bulk load
-  LocalLoadRecord(
-    unsigned H,
-    uint64_t N,
-    uint32_t I,
-    uint32_t S,
-    uint64_t Sr,
-    uint64_t D,
-    size_t   Sz,
-    uint32_t Ne,
-    RevFlag  F,
-    uint8_t* B,
-    RmtMemOp P
-  )
-    : Hart( H ), Nmspace( N ), Id( I ), SrcId( S ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( Ne ), Flags( F ), Buffer( B ),
-      ReqPurp( P ) {}
-
-  LocalLoadRecord(
-    unsigned         H,
-    uint64_t         N,
-    uint64_t         Sr,
-    uint64_t         D,
-    size_t           Sz,
-    uint32_t         Ne,
-    RevFlag          F,
-    void*            T,
-    uint8_t*         B,
-    RmtMemOp         P,
-    const RmtMemReq& Re
-  )
-    : Hart( H ), Nmspace( N ), Id( 0 ), SrcId( 0 ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( Ne ), Flags( F ), Target( T ),
-      Buffer( B ), ReqPurp( P ) {
-    RmtReq = Re;
-  }
-};
-
 // ----------------------------------------
 // RevRmtMemOp
 // ----------------------------------------
@@ -214,6 +155,67 @@ private:
   void*                Target{};    ///< RevRmtMemOp: Target register pointer
   std::vector<uint8_t> Membuf{};    ///< RevRmtMemOp: Buffer
   RmtMemReq            ProcReq{};   ///< RevRmtMemOp: remote memory request from RevProc
+};
+
+// xBGAS memory local load records
+struct LocalLoadRecord {
+  unsigned     Hart{};      // xBGAS Hart ID
+  uint64_t     Nmspace{};   // xBGAS namespace
+  uint32_t     Id{};        // xBGAS NIC event ID
+  uint32_t     SrcId{};     // xBGAS NIC ID
+  uint32_t     DestId{};    // xBGAS destination ID
+  uint64_t     SrcAddr{};   // xBGAS source address of this load
+  uint64_t     DestAddr{};  // xBGAS destination address of this load
+  size_t       Size{};      // xBGAS size of this load
+  uint32_t     Nelem{};     // xBGAS number of elements
+  RevFlag      Flags{};     // xBGAS flag
+  void*        Target{};    // xBGAS target pointer
+  uint8_t*     Buffer{};    // xBGAS buffer pointer
+  RevRmtMemOp* Op{};        // xBGAS remote memory operation
+  RmtMemOp     ReqPurp{};   // xBGAS the purpose of this local load
+  RmtMemReq    RmtReq{};    // xBGAS remote memory request
+
+  // For single element load
+  LocalLoadRecord(
+    unsigned H, uint64_t N, uint32_t I, uint32_t S, uint64_t Sr, uint64_t D, size_t Sz, RevFlag F, uint8_t* B, RmtMemOp P
+  )
+    : Hart( H ), Nmspace( N ), Id( I ), SrcId( S ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( 1 ), Flags( F ), Buffer( B ),
+      ReqPurp( P ) {}
+
+  // For bulk load
+  LocalLoadRecord(
+    unsigned H,
+    uint64_t N,
+    uint32_t I,
+    uint32_t S,
+    uint64_t Sr,
+    uint64_t D,
+    size_t   Sz,
+    uint32_t Ne,
+    RevFlag  F,
+    uint8_t* B,
+    RmtMemOp P
+  )
+    : Hart( H ), Nmspace( N ), Id( I ), SrcId( S ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( Ne ), Flags( F ), Buffer( B ),
+      ReqPurp( P ) {}
+
+  // For bulk write
+  LocalLoadRecord(
+    unsigned     H,
+    uint64_t     N,
+    uint32_t     I,
+    uint32_t     Di,
+    uint64_t     Sr,
+    uint64_t     D,
+    size_t       Sz,
+    uint32_t     Ne,
+    RevFlag      F,
+    uint8_t*     B,
+    RevRmtMemOp* O,
+    RmtMemOp     P
+  )
+    : Hart( H ), Nmspace( N ), Id( I ), DestId( Di ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( Ne ), Flags( F ),
+      Buffer( B ), Op( O ), ReqPurp( P ) {}
 };
 
 // ----------------------------------------

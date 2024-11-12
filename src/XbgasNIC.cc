@@ -272,6 +272,18 @@ bool xbgasNicEvent::buildBulkWRITEResp( uint64_t Id ) {
   return true;
 }
 
+bool xbgasNicEvent::buildSegBulkWRITEResp( uint64_t Id, uint32_t SegSz ) {
+  if( !setOp( RmtMemOp::BulkWRITEResp ) )
+    return false;
+  if( !setId( Id ) )
+    return false;
+  if( !setSegSz( SegSz ) )
+    return false;
+  if( !setSegmented( true ) )
+    return false;
+  return true;
+}
+
 bool xbgasNicEvent::buildWRITEUNLOCKResp( uint64_t Id, size_t Size, uint8_t* Target ) {
   if( !setOp( RmtMemOp::WRITEUNLOCKResp ) )
     return false;
