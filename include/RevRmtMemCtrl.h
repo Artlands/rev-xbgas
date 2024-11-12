@@ -47,6 +47,14 @@ struct LocalLoadRecord {
   RmtMemOp  ReqPurp{};   // xBGAS the purpose of this local load
   RmtMemReq RmtReq{};    // xBGAS remote memory operation
 
+  // For single element load
+  LocalLoadRecord(
+    unsigned H, uint64_t N, uint32_t I, uint32_t S, uint64_t Sr, uint64_t D, size_t Sz, RevFlag F, uint8_t* B, RmtMemOp P
+  )
+    : Hart( H ), Nmspace( N ), Id( I ), SrcId( S ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( 1 ), Flags( F ), Buffer( B ),
+      ReqPurp( P ) {}
+
+  // For bulk load
   LocalLoadRecord(
     unsigned H,
     uint64_t N,
@@ -74,11 +82,11 @@ struct LocalLoadRecord {
     void*            T,
     uint8_t*         B,
     RmtMemOp         P,
-    const RmtMemReq& R
+    const RmtMemReq& Re
   )
     : Hart( H ), Nmspace( N ), Id( 0 ), SrcId( 0 ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( Ne ), Flags( F ), Target( T ),
       Buffer( B ), ReqPurp( P ) {
-    RmtReq = R;
+    RmtReq = Re;
   }
 };
 
@@ -321,6 +329,9 @@ public:
   /// RevRmtMemCtrl: handle a remote memory read request
   virtual void handleReadRqst( xbgasNicEvent* ev )                                                                      = 0;
 
+  /// RevRmtMemCtrl: handle a remote bulk memory read request
+  virtual void handleBulkReadRqst( xbgasNicEvent* ev )                                                                  = 0;
+
   /// RevRmtMemCtrl: handle a remote memory read lock request
   virtual void handleReadLockRqst( xbgasNicEvent* ev )                                                                  = 0;
 
@@ -333,6 +344,9 @@ public:
   /// RevRmtMemCtrl: handle a remote memory write request
   virtual void handleWriteRqst( xbgasNicEvent* ev )                                                                     = 0;
 
+  /// RevRmtMemCtrl: handle a remote bulk memory write request
+  virtual void handleBulkWriteRqst( xbgasNicEvent* ev )                                                                 = 0;
+
   /// RevRmtMemCtrl: handle a remote memory write request
   virtual void handleWriteUnlockRqst( xbgasNicEvent* ev )                                                               = 0;
 
@@ -342,8 +356,20 @@ public:
   /// RevRmtMemCtrl: handle a remote memory read response
   virtual void handleReadResp( xbgasNicEvent* ev )                                                                      = 0;
 
+  /// RevRmtMemCtrl: handle a remote memory read lock response
+  virtual void handleReadLockResp( xbgasNicEvent* ev )                                                                  = 0;
+
+  /// RevRmtMemCtrl: handle a remote bulk memory read response
+  virtual void handleBulkReadResp( xbgasNicEvent* ev )                                                                  = 0;
+
   /// RevRmtMemCtrl: handle a remote memory write response
   virtual void handleWriteResp( xbgasNicEvent* ev )                                                                     = 0;
+
+  /// RevRmtMemCtrl: handle a remote bulk memory write response
+  virtual void handleBulkWriteResp( xbgasNicEvent* ev )                                                                 = 0;
+
+  /// RevRmtMemCtrl: handle a remote memory write unlock response
+  virtual void handleWriteUnlockResp( xbgasNicEvent* ev )                                                               = 0;
 
   /// RevRmtMemCtrl: handle a remote AMO response
   virtual void handleAMOResp( xbgasNicEvent* ev )                                                                       = 0;
@@ -533,6 +559,9 @@ public:
   /// RevBasicRmtMemCtrl: handle a remote memory read request
   void handleReadRqst( xbgasNicEvent* ev ) override;
 
+  /// RevBasicRmtMemCtrl: handle a remote bulk memory read request
+  void handleBulkReadRqst( xbgasNicEvent* ev ) override;
+
   /// RevBasicRmtMemCtrl: handle a remote memory read lock request
   void handleReadLockRqst( xbgasNicEvent* ev ) override;
 
@@ -545,6 +574,9 @@ public:
   /// RevBasicRmtMemCtrl: handle a remote memory write request
   void handleWriteRqst( xbgasNicEvent* ev ) override;
 
+  /// RevBasicRmtMemCtrl: handle a remote bulk memory write request
+  void handleBulkWriteRqst( xbgasNicEvent* ev ) override;
+
   /// RevRmtMemCtrl: handle a remote memory write request
   void handleWriteUnlockRqst( xbgasNicEvent* ev ) override;
 
@@ -554,10 +586,22 @@ public:
   /// RevBasicRmtMemCtrl: handle a remote memory read response
   void handleReadResp( xbgasNicEvent* ev ) override;
 
-  /// RevRmtMemCtrl: handle a remote memory write response
+  /// RevBasicRmtMemCtrl: handle a remote bulk memory read response
+  void handleBulkReadResp( xbgasNicEvent* ev ) override;
+
+  /// RevBasicRmtMemCtrl: handle a remote memory read lock response
+  void handleReadLockResp( xbgasNicEvent* ev ) override;
+
+  /// RevBasicRmtMemCtrl: handle a remote memory write response
   void handleWriteResp( xbgasNicEvent* ev ) override;
 
-  /// RevRmtMemCtrl: handle a remote AMO response
+  /// RevBasicRmtMemCtrl: handle a remote bulk memory write response
+  void handleBulkWriteResp( xbgasNicEvent* ev ) override;
+
+  /// RevBasicRmtMemCtrl: handle a remote memory write unlock response
+  void handleWriteUnlockResp( xbgasNicEvent* ev ) override;
+
+  /// RevBasicRmtMemCtrl: handle a remote AMO response
   void handleAMOResp( xbgasNicEvent* ev ) override;
 
   /// RevBasicRmtMemCtrl: handle flags for read responses
@@ -640,6 +684,7 @@ private:
   static std::atomic<uint32_t>                  local_read_id;  ///< RevBasicRmtMemCtrl: load read id counter
   std::unordered_map<uint64_t, LocalLoadRecord> LocalLoadTrack{
   };  ///< RevBasicRmtMemCtrl: the association between hashed id and local load record
+  std::unordered_map<uint64_t, uint32_t> LocalLoadCount{};  ///< RevBasicRmtMemCtrl: the number of local load operations
   std::unordered_map<uint64_t, uint32_t> PacketSegCount{};  ///< RevBasicRmtMemCtrl: the number of segments for a packet
 
   std::vector<std::pair<uint64_t, size_t>> RmtLRSC{};  ///< RevBasicRmtMemCtrl: remote load-reserve/store-conditional container
