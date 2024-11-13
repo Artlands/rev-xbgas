@@ -11,6 +11,8 @@
 #include "RevMem.h"
 #include "RevRmtMemCtrl.h"
 
+// #define _XBGAS_DEBUG_
+
 std::atomic<uint32_t> SST::RevCPU::RevBasicRmtMemCtrl::local_read_id( 0 );
 
 namespace SST::RevCPU {
@@ -346,7 +348,13 @@ void RevBasicRmtMemCtrl::handleWriteRqst( xbgasNicEvent* ev ) {
   size_t   Size     = ev->getSize();
   RevFlag  Flags    = ev->getFlags();
 
-  uint8_t* Buffer   = new uint8_t[Size];
+#ifdef _XBGAS_DEBUG_
+  std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " handle WRITE Rqst, "
+            << "Event ID: " << Id << ", SrcId: " << SrcId << ", DestAddr: 0x" << std::hex << DestAddr << std::dec
+            << ", Size: " << Size << std::endl;
+#endif
+
+  uint8_t* Buffer = new uint8_t[Size];
 
   // Copy the data to the buffer
   ev->getData( Buffer );
@@ -378,7 +386,8 @@ void RevBasicRmtMemCtrl::handleBulkWriteRqst( xbgasNicEvent* ev ) {
     xbgasNicEvent* RmtEvent = new xbgasNicEvent( getName() );
 
 #ifdef _XBGAS_DEBUG_
-    std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Build Bulk-WRITE response" << std::endl;
+    std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " build Bulk WRITE Resp, "
+              << "SrcId: " << std::dec << SrcId << ", Id: " << Id << std::endl;
 #endif
 
     RmtEvent->buildBulkWRITEResp( Id );
@@ -392,7 +401,8 @@ void RevBasicRmtMemCtrl::handleBulkWriteRqst( xbgasNicEvent* ev ) {
         xbgasNicEvent* RmtEvent = new xbgasNicEvent( getName() );
 
 #ifdef _XBGAS_DEBUG_
-        std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Build Bulk-WRITE response (Segmented)" << std::endl;
+        std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " build Bulk WRITE Resp (segmented), "
+                  << "SrcId: " << std::dec << SrcId << ", Id: " << Id << std::endl;
 #endif
 
         RmtEvent->buildSegBulkWRITEResp( Id, ev->getSegSz() );
@@ -465,6 +475,12 @@ void RevBasicRmtMemCtrl::handleAMORqst( xbgasNicEvent* ev ) {
   uint8_t* Buffer    = new uint8_t[Size];
   uint8_t* TmpTarget = new uint8_t[Size];
 
+#ifdef _XBGAS_DEBUG_
+  std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " handle AMO Rqst, "
+            << "Event ID: " << Id << ", SrcId: " << SrcId << ", SrcAddr: 0x" << std::hex << SrcAddr << std::dec
+            << ", Size: " << Size << std::endl;
+#endif
+
   // Copy the data to the buffer
   ev->getData( Buffer );
 
@@ -502,7 +518,6 @@ void RevBasicRmtMemCtrl::handleReadResp( xbgasNicEvent* ev ) {
     r.MarkRmtOpComplete();  // Mark the remote load complete
     requests.erase( std::find( requests.begin(), requests.end(), Id ) );
     outstanding.erase( Id );
-    // Update the stats
     num_read_rqst--;
   } else {
     output->fatal( CALL_INFO, -1, "Error: found unknown ReadResp\n" );
@@ -592,7 +607,6 @@ void RevBasicRmtMemCtrl::handleReadLockResp( xbgasNicEvent* ev ) {
     r.MarkRmtOpComplete();  // Mark the remote load complete
     requests.erase( std::find( requests.begin(), requests.end(), Id ) );
     outstanding.erase( Id );
-    // Update the stats
     num_read_lock_rqst--;
   } else {
     output->fatal( CALL_INFO, -1, "Error: found unknown ReadResp\n" );
@@ -605,14 +619,14 @@ void RevBasicRmtMemCtrl::handleWriteResp( xbgasNicEvent* ev ) {
   uint32_t Id = ev->getID();
 
   if( std::find( requests.begin(), requests.end(), Id ) != requests.end() ) {
-    requests.erase( std::find( requests.begin(), requests.end(), Id ) );
     RevRmtMemOp* Op = outstanding[Id];
     if( !Op )
       output->fatal( CALL_INFO, -1, "RevRmtMemOp is null in handleWriteResp\n" );
-    num_write_rqst--;
+    requests.erase( std::find( requests.begin(), requests.end(), Id ) );
     outstanding.erase( Id );
+    num_write_rqst--;
   } else {
-    output->fatal( CALL_INFO, -1, "Error: found unknown response\n" );
+    output->fatal( CALL_INFO, -1, "Error: handleWriteResp: found unknown response\n" );
   }
   delete ev;
   return;
@@ -620,8 +634,6 @@ void RevBasicRmtMemCtrl::handleWriteResp( xbgasNicEvent* ev ) {
 
 void RevBasicRmtMemCtrl::handleBulkWriteResp( xbgasNicEvent* ev ) {
   uint32_t Id = ev->getID();
-  // size_t   Size = ev->getSize();
-
   if( std::find( requests.begin(), requests.end(), Id ) != requests.end() ) {
     RevRmtMemOp* Op = outstanding[Id];
     if( !Op )
@@ -641,7 +653,7 @@ void RevBasicRmtMemCtrl::handleBulkWriteResp( xbgasNicEvent* ev ) {
     outstanding.erase( Id );
     num_write_rqst--;
   } else {
-    output->fatal( CALL_INFO, -1, "Error: found unknown response\n" );
+    output->fatal( CALL_INFO, -1, "Error: handleBulkWriteResp: found unknown response\n" );
   }
   delete ev;
   return;
@@ -651,7 +663,6 @@ void RevBasicRmtMemCtrl::handleWriteUnlockResp( xbgasNicEvent* ev ) {
   uint32_t Id = ev->getID();
 
   if( std::find( requests.begin(), requests.end(), Id ) != requests.end() ) {
-    requests.erase( std::find( requests.begin(), requests.end(), Id ) );
     RevRmtMemOp* Op = outstanding[Id];
     if( !Op )
       output->fatal( CALL_INFO, -1, "RevRmtMemOp is null in handleWriteUnlockResp\n" );
@@ -660,33 +671,33 @@ void RevBasicRmtMemCtrl::handleWriteUnlockResp( xbgasNicEvent* ev ) {
     ev->getData( Target );  // Copy the data to the target register
     handleFlagResp( Op );   // determine if we need to sign/zero extend
     r.MarkRmtOpComplete();  // Mark the remote write complete
-    num_write_unlock_rqst--;
+    requests.erase( std::find( requests.begin(), requests.end(), Id ) );
     outstanding.erase( Id );
+    num_write_unlock_rqst--;
   } else {
-    output->fatal( CALL_INFO, -1, "Error: found unknown response\n" );
+    output->fatal( CALL_INFO, -1, "Error: handleWriteUnlockResp: found unknown response\n" );
   }
   delete ev;
   return;
 }
 
 void RevBasicRmtMemCtrl::handleAMOResp( xbgasNicEvent* ev ) {
-  RmtMemOp Opcode = ev->getOp();
-  uint32_t Id     = ev->getID();
+  uint32_t Id = ev->getID();
 
   if( std::find( requests.begin(), requests.end(), Id ) != requests.end() ) {
+    RevRmtMemOp*     Op     = outstanding[Id];
+    const RmtMemReq& r      = Op->getRmtMemReq();
+    uint8_t*         Target = static_cast<uint8_t*>( Op->getTarget() );
+    ev->getData( Target );  // Copy the data to the target register
+    handleFlagResp( Op );   // determine if we need to sign/zero extend
+    r.MarkRmtOpComplete();  // Mark the remote load complete
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " handle AMO Resp, Mark AMO Complete, "
+              << "Event ID: " << Id << std::endl;
+#endif
     requests.erase( std::find( requests.begin(), requests.end(), Id ) );
-    if( Opcode == RmtMemOp::AMOResp ) {
-      RevRmtMemOp*     Op     = outstanding[Id];
-      const RmtMemReq& r      = Op->getRmtMemReq();
-      uint8_t*         Target = static_cast<uint8_t*>( Op->getTarget() );
-      ev->getData( Target );  // Copy the data to the target register
-      handleFlagResp( Op );   // determine if we need to sign/zero extend
-      r.MarkRmtOpComplete();  // Mark the remote load complete
-      num_amo_rqst--;
-    } else {
-      output->fatal( CALL_INFO, -1, "Error: unknown remote memory response\n" );
-    }
     outstanding.erase( Id );
+    num_amo_rqst--;
   } else {
     output->fatal( CALL_INFO, -1, "Error: found unknown AMOResp\n" );
   }
@@ -759,6 +770,11 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
       } else {
         RmtEvent = new xbgasNicEvent( getName() );
         RmtEvent->buildBulkREADResp( Id, DestAddr, Size, Nelem, Flags, Buffer );
+
+#ifdef _XBGAS_DEBUG_
+        std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Bulk READ Resp, "
+                  << ", SrcId: " << std::dec << SrcId << ", Id: " << Id << std::endl;
+#endif
         // Destination is the source of the request
         xbgasNic->send( RmtEvent, SrcId );
       }
@@ -793,6 +809,7 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
             SegBuf[j] = Buffer[i * _MAX_PAYLOAD_ + j];
           }
           RmtEvent = new xbgasNicEvent( getName() );
+          RmtEvent->setSrcId( SrcId );
           RmtEvent->buildSegBulkWRITERqst( i, DestAddr + i * _MAX_PAYLOAD_, Size, SegNelem, Flags, SegSz, SegBuf );
           if( i == 0 ) {
             Id = RmtEvent->getID();
@@ -803,7 +820,8 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
           }
 
 #ifdef _XBGAS_DEBUG_
-          std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Send out the Bulk-WRITE request (segmented)" << std::endl;
+          std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Send out the Bulk WRITE request (segmented)"
+                    << " to SrcId: " << std::dec << SrcId << " Id: " << Id << std::endl;
 #endif
 
           xbgasNic->send( RmtEvent, DestId );
@@ -812,18 +830,26 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
         }
       } else {
         RmtEvent = new xbgasNicEvent( getName() );
+        RmtEvent->setSrcId( SrcId );
         RmtEvent->buildBulkWRITERqst( DestAddr, Size, Nelem, Flags, Buffer );
         Id = RmtEvent->getID();
-#ifdef _XBGAS_DEBUG_
-        std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Send out the Bulk-WRITE request" << std::endl;
-#endif
-        xbgasNic->send( RmtEvent, DestId );
         requests.push_back( Id );
         outstanding[Id] = Op;
+#ifdef _XBGAS_DEBUG_
+        std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Send out the Bulk WRITE request"
+                  << " to SrcId: " << std::dec << SrcId << " Id: " << Id << std::endl;
+#endif
+        xbgasNic->send( RmtEvent, DestId );
         recordStat( RmtWriteInFlight, 1 );
       }
       break;
     case RmtMemOp::AMOResp:
+
+#ifdef _XBGAS_DEBUG_
+      std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Send out the AMO response"
+                << " to SrcId: " << std::dec << SrcId << " Id: " << Id << std::endl;
+#endif
+
       RmtEvent = new xbgasNicEvent( getName() );
       RmtEvent->buildAMOResp( Id, Size, Buffer );
       xbgasNic->send( RmtEvent, SrcId );
@@ -964,7 +990,7 @@ bool RevBasicRmtMemCtrl::sendRmtBulkWriteRqst(
     return true;
 
 #ifdef _XBGAS_DEBUG_
-  std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Mark BULK-WRITE Complete to false" << std::endl;
+  std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Mark Bulk WRITE Complete to false" << std::endl;
 #endif
 
   RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, DestAddr, Size, Nelem, RmtMemOp::BulkWRITERqst, Flags, Target );
@@ -1272,7 +1298,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     num_write_rqst += 1;
 #ifdef _XBGAS_DEBUG_
     std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Sending WRITE Rqst to PE " << DestId << " from PE " << SrcId
-              << " with Event ID " << Id << std::endl;
+              << " with Event ID " << Id << ", Size: " << Size << ", DestAddr: 0x" << std::hex << DestAddr << std::endl;
 #endif
     break;
   case RmtMemOp::BulkWRITERqst:
@@ -1283,7 +1309,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     LocalLoadTrack.insert(
       { RmtOpIDHash( SrcId, localId ),
         LocalLoadRecord(
-          Hart, Nmspace, localId, DestId, SrcAddr, DestAddr, Size, Nelem, Flags, Buffer, Op, RmtMemOp::BulkWRITERqst
+          Hart, Nmspace, localId, SrcId, DestId, SrcAddr, DestAddr, Size, Nelem, Flags, Buffer, Op, RmtMemOp::BulkWRITERqst
         ) }
     );
 
@@ -1342,6 +1368,10 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
     recordStat( RmtAMOInFlight, 1 );
     num_amo_rqst += 1;
     delete[] Buffer;
+#ifdef _XBGAS_DEBUG_
+    std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Sending AMO Rqst to PE " << DestId << " from PE " << SrcId
+              << " with Event ID " << Id << ", Size: " << Size << ", SrcAddr: 0x" << std::hex << SrcAddr << std::endl;
+#endif
     break;
   default: return false; break;
   }

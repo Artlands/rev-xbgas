@@ -204,6 +204,7 @@ struct LocalLoadRecord {
     unsigned     H,
     uint64_t     N,
     uint32_t     I,
+    uint32_t     S,
     uint32_t     Di,
     uint64_t     Sr,
     uint64_t     D,
@@ -214,7 +215,7 @@ struct LocalLoadRecord {
     RevRmtMemOp* O,
     RmtMemOp     P
   )
-    : Hart( H ), Nmspace( N ), Id( I ), DestId( Di ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( Ne ), Flags( F ),
+    : Hart( H ), Nmspace( N ), Id( I ), SrcId( S ), DestId( Di ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( Ne ), Flags( F ),
       Buffer( B ), Op( O ), ReqPurp( P ) {}
 };
 
