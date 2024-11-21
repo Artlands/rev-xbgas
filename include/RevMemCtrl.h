@@ -613,6 +613,9 @@ private:
   /// RevBasicMemCtrl: determine if we need to utilize RL ordering semantics
   bool isRL( unsigned Slot, unsigned Hart );
 
+  /// RevBasicMemCtrl: determine if there is a pending AMO request corresponding to the same address in the AMOTable
+  bool isAMOReadyToDispatch( unsigned Slot );
+
   /// RevBasicMemCtrl: register statistics
   void registerStats();
 
@@ -670,8 +673,15 @@ private:
 #define AMOTABLE_MEMOP  4
 #define AMOTABLE_IN     5
 
+  struct ReadWritePair {
+    std::tuple<unsigned, char*, void*, RevFlag, RevMemOp*, bool> read{};
+    std::tuple<unsigned, char*, void*, RevFlag, RevMemOp*, bool> write{};
+  };
+
   /// RevBasicMemCtrl: map of amo operations to memory addresses
-  std::multimap<uint64_t, std::tuple<unsigned, char*, void*, RevFlag, RevMemOp*, bool>> AMOTable{};
+  std::multimap<uint64_t, ReadWritePair> AMOTable{};
+
+  std::map<std::uint64_t, std::deque<unsigned>> AMOQueues;
 
   std::vector<Statistic<uint64_t>*> stats{};  ///< statistics vector
 

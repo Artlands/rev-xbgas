@@ -12,6 +12,8 @@
 #include "RevRmtMemCtrl.h"
 
 // #define _XBGAS_RMT_DEBUG_
+// #define _XBGAS_AMO_DEBUG_
+// #define _XBGAS_DEBUG_LL_
 
 std::atomic<uint32_t> SST::RevCPU::RevBasicRmtMemCtrl::local_read_id( 0 );
 
@@ -488,10 +490,10 @@ void RevBasicRmtMemCtrl::handleAMORqst( xbgasNicEvent* ev ) {
   uint8_t* Buffer    = new uint8_t[Size];
   uint8_t* TmpTarget = new uint8_t[Size];
 
-#ifdef _XBGAS_DEBUG_
+#ifdef _XBGAS_AMO_DEBUG_
   std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " handle AMO Rqst, "
             << "Event ID: " << Id << ", SrcId: " << SrcId << ", SrcAddr: 0x" << std::hex << SrcAddr << std::dec
-            << ", Size: " << Size << std::endl;
+            << ", Size: " << Size << ", RmtHartId: 0x" << std::hex << RmtHartId << std::endl;
 #endif
 
   // Copy the data to the buffer
@@ -862,9 +864,11 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
       break;
     case RmtMemOp::AMOResp:
 
-#ifdef _XBGAS_DEBUG_
+#ifdef _XBGAS_AMO_DEBUG_
       std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Send out the AMO response"
                 << " to SrcId: " << std::dec << SrcId << " Id: " << Id << std::endl;
+      // Print the content of the buffer
+      std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " AMO Response Buffer: " << std::dec << *(int*) Buffer << std::endl;
 #endif
 
       RmtEvent = new xbgasNicEvent( getName() );

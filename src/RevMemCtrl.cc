@@ -12,6 +12,8 @@
 #include "RevRegFile.h"
 #include "RevRmtMemCtrl.h"
 
+// #define _XBGAS_AMO_DEBUG_
+
 namespace SST::RevCPU {
 
 /// MemOp: Formatted Output
@@ -230,7 +232,16 @@ bool RevBasicMemCtrl::sendAMORequest(
   // the MODIFY (using the operation in flags), then dispatch
   // a WRITE operation.
   auto tmp = std::make_tuple( Hart, buffer, target, flags, Op, false );
-  AMOTable.insert( { Addr, tmp } );
+
+#ifdef _XBGAS_AMO_DEBUG_
+  std::cout << "AMO: Inserting AMO Request into AMOTable: Hart = " << std::hex << Hart << " Addr = 0x" << std::hex << Addr
+            << std::endl;
+#endif
+
+  AMOTable.insert( {
+    Addr, { tmp, {} }
+  } );
+  AMOQueues[Addr].push_back( Hart );
 
   // We have the request created and recorded in the AMOTable
   // Push it onto the request queue
@@ -994,6 +1005,23 @@ bool RevBasicMemCtrl::isRL( unsigned Slot, unsigned Hart ) {
   return false;
 }
 
+bool RevBasicMemCtrl::isAMOReadyToDispatch( unsigned Slot ) {
+  if( AMOTable.size() == 0 ) {
+    return true;
+  }
+
+  // If this is a memory read request and there is an AMO associated with this address,
+  // we cannot dispatch this request until the AMO is complete
+  if( rqstQ[Slot]->getOp() == MemOp::MemOpREAD ) {
+    auto it = AMOQueues.find( rqstQ[Slot]->getAddr() );
+    if( it != AMOQueues.end() ) {
+      if( rqstQ[Slot]->getHart() != it->second.front() )
+        return false;
+    }
+  }
+  return true;
+}
+
 bool RevBasicMemCtrl::isPendingAMO( unsigned Slot ) {
   return ( isAQ( Slot, rqstQ[Slot]->getHart() ) || isRL( Slot, rqstQ[Slot]->getHart() ) );
 }
@@ -1042,6 +1070,11 @@ bool RevBasicMemCtrl::processNextRqst(
       if( isPendingAMO( i ) ) {
         t_max_ops = max_ops;
         return true;
+      }
+
+      if( !isAMOReadyToDispatch( i ) ) {
+        // Cannot dispatch this request
+        continue;
       }
 
       // build a StandardMem request
@@ -1151,14 +1184,11 @@ void RevBasicMemCtrl::handleReadResp( StandardMem::ReadResp* ev ) {
     std::cout << "Address of the target register = 0x" << std::hex << (uint64_t*) ( op->getTarget() ) << std::dec << std::endl;
 #endif
 
-    auto range = AMOTable.equal_range( op->getAddr() );
     bool isAMO = false;
-    for( auto i = range.first; i != range.second; ++i ) {
-      auto Entry = i->second;
-      // determine if we have an atomic request associated
-      // with this read operation
-      if( std::get<AMOTABLE_MEMOP>( Entry ) == op ) {
+    for( const auto& [addr, ops] : AMOTable ) {
+      if( std::get<AMOTABLE_MEMOP>( ops.read ) == op ) {
         isAMO = true;
+        break;
       }
     }
 
@@ -1280,18 +1310,25 @@ void RevBasicMemCtrl::performAMO( std::tuple<unsigned, char*, void*, RevFlag, Re
     Op,
     true
   );
-  AMOTable.insert( { Op->getAddr(), NewEntry } );
+  // AMOTable.insert( { Op->getAddr(), NewEntry } );
+  auto range = AMOTable.equal_range( Op->getAddr() );
+  for( auto it = range.first; it != range.second; ++it ) {
+    if( std::get<AMOTABLE_HART>( it->second.read ) == Op->getHart() ) {
+      it->second.write = NewEntry;
+      break;
+    }
+  }
   rqstQ.push_back( Op );
 }
 
 void RevBasicMemCtrl::handleAMO( RevMemOp* op ) {
   auto range = AMOTable.equal_range( op->getAddr() );
   for( auto i = range.first; i != range.second; ++i ) {
-    auto Entry = i->second;
+    auto Entry = i->second.read;
     // perform the arithmetic operation and generate a WRITE request
     if( std::get<AMOTABLE_MEMOP>( Entry ) == op ) {
       performAMO( Entry );
-      AMOTable.erase( i );  // erase the current entry so we can add a new one
+      // AMOTable.erase( i );  // erase the current entry so we can add a new one
       return;
     }
   }
@@ -1312,11 +1349,19 @@ void RevBasicMemCtrl::handleWriteResp( StandardMem::WriteResp* ev ) {
     bool isAMO = false;
     auto range = AMOTable.equal_range( op->getAddr() );
     for( auto i = range.first; i != range.second; ) {
-      auto Entry = i->second;
+      auto Entry = i->second.write;
       // if the request matches the target,
       // then delete it
       if( std::get<AMOTABLE_MEMOP>( Entry ) == op ) {
         AMOTable.erase( i++ );
+        auto it = AMOQueues.find( op->getAddr() );
+        if( it != AMOQueues.end() ) {
+          std::deque<unsigned>& deque = it->second;
+          auto                  it2   = std::find( deque.begin(), deque.end(), op->getHart() );
+          if( it2 != deque.end() ) {
+            deque.erase( it2 );
+          }
+        }
         isAMO = true;
       } else {
         ++i;
