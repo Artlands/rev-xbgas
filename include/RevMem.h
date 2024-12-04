@@ -268,17 +268,9 @@ public:
 
   /// RevMem: template remote bulk write memory interface
   template<typename T>
-  void RmtBulkWrite(
-    unsigned         Hart,
-    uint64_t         Nmspace,
-    uint64_t         DestAddr,
-    size_t           Size,
-    uint32_t         Nelem,
-    uint64_t         SrcAddr,
-    T*               Target,
-    const RmtMemReq& Req
-  ) {
-    rmtCtrl->sendRmtBulkWriteRqst( Hart, Nmspace, DestAddr, Size, Nelem, SrcAddr, Target, Req, RevFlag::F_NONE );
+  void
+    RmtBulkWrite( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint64_t SrcAddr, T* Target ) {
+    rmtCtrl->sendRmtBulkWriteRqst( Hart, Nmspace, DestAddr, Size, Nelem, SrcAddr, Target, RevFlag::F_NONE );
   }
 
   ///  RevMem: template remote LOAD RESERVE memory interface
@@ -484,7 +476,7 @@ private:
 
   std::vector<uint64_t>                                     FutureRes{};  ///< RevMem: future operation reservations
   std::unordered_map<unsigned, std::pair<uint64_t, size_t>> LRSC{};       ///< RevMem: load reserve/store conditional set
-};                                                                        // class RevMem
+};  // class RevMem
 
 }  // namespace SST::RevCPU
 

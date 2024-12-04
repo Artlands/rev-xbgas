@@ -1565,7 +1565,8 @@ bool RevCore::DependencyCheck( unsigned HartID, const RevInst* I ) const {
   // For ECALL, check for any outstanding dependencies on a0-a7
   if( I->opcode == 0b1110011 && I->imm == 0 && I->funct3 == 0 && I->rd == 0 && I->rs1 == 0 ) {
     for( RevReg reg : { RevReg::a7, RevReg::a0, RevReg::a1, RevReg::a2, RevReg::a3, RevReg::a4, RevReg::a5, RevReg::a6 } ) {
-      if( LSQCheck( HartToDecodeID, RegFile, uint16_t( reg ), RevRegClass::RegGPR ) || ScoreboardCheck( RegFile, uint16_t( reg ), RevRegClass::RegGPR ) ) {
+      if( LSQCheck( HartToDecodeID, RegFile, uint16_t( reg ), RevRegClass::RegGPR ) ||
+          ScoreboardCheck( RegFile, uint16_t( reg ), RevRegClass::RegGPR ) ) {
         return true;
       }
     }
@@ -1663,7 +1664,7 @@ void RevCore::MarkLoadComplete( const MemReq& req ) {
 void RevCore::MarkRmtOpComplete( const RmtMemReq& req ) {
   // Iterate over all outstanding loads for this reg (if any)
   for( auto [i, end] = RmtLSQueue->equal_range( req.LSQHash() ); i != end; ++i ) {
-    if( ( i->second.SrcAddr == req.SrcAddr ) && ( i->second.DestAddr == req.DestAddr ) ) {
+    if( i->second.SrcAddr == req.SrcAddr ) {
       // Only clear the dependency if this is the
       // LAST outstanding load for this register
       if( RmtLSQueue->count( req.LSQHash() ) == 1 ) {
@@ -1778,7 +1779,8 @@ bool RevCore::ClockTick( SST::Cycle_t currentCycle ) {
     // -- BEGIN new pipelining implementation
     Pipeline.emplace_back( std::make_pair( HartToExecID, Inst ) );
 
-    if( ( Ext->GetName() == "RV32F" ) || ( Ext->GetName() == "RV32D" ) || ( Ext->GetName() == "RV64F" ) || ( Ext->GetName() == "RV64D" ) ) {
+    if( ( Ext->GetName() == "RV32F" ) || ( Ext->GetName() == "RV32D" ) || ( Ext->GetName() == "RV64F" ) ||
+        ( Ext->GetName() == "RV64D" ) ) {
       Stats.floatsExec++;
     }
 

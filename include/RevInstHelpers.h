@@ -702,26 +702,8 @@ bool ebstore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst
   std::cout << "_XBGAS_DEBUG_ : ebstore: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex << DestAddr << ", SrcAddr: 0x"
             << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem << std::endl;
 #endif
-  RmtMemReq req(
-    Nmspace,
-    SrcAddr,
-    Nelem,
-    DestAddr,
-    Inst.rd,
-    RevRegClass::RegGPR,
-    F->GetHartToExecID(),
-    RmtMemOp::BulkWRITERqst,
-    true,
-    R->GetMarkRmtOpComplete()
-  );
 
-  if( Inst.rd != 0 ) {
-    R->RmtLSQueue->insert( req.LSQHashPair() );
-    // update the cost
-    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
-  }
-
-  M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, SrcAddr, DestReg, std::move( req ) );
+  M->RmtBulkWrite( F->GetHartToExecID(), Nmspace, DestAddr, sizeof( T ), Nelem, SrcAddr, DestReg );
   R->AdvancePC( Inst );
   return true;
 }

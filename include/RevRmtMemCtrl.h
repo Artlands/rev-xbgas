@@ -42,7 +42,7 @@ public:
   /// RevRmtMemOp: constructor - read
   RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, RmtMemOp Op, RevFlag Flags, void* Target );
 
-  /// RevRmtMemOp: constructor - bulk read
+  /// RevRmtMemOp: constructor - bulk read/write
   RevRmtMemOp(
     unsigned Hart,
     uint64_t Nmspace,
@@ -58,18 +58,18 @@ public:
   /// RevRmtMemOp: overloaded constructor - write
   RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, RmtMemOp Op, RevFlag Flags, uint8_t* Buffer );
 
-  /// RevRmtMemOp: overloaded constructor - bulk write
-  RevRmtMemOp(
-    unsigned Hart,
-    uint64_t Nmspace,
-    uint64_t DestAddr,
-    size_t   Size,
-    uint32_t Nelem,
-    RmtMemOp Op,
-    RevFlag  Flags,
-    void*    Target,
-    uint8_t* Buffer
-  );
+  // /// RevRmtMemOp: overloaded constructor - bulk write
+  // RevRmtMemOp(
+  //   unsigned Hart,
+  //   uint64_t Nmspace,
+  //   uint64_t DestAddr,
+  //   size_t   Size,
+  //   uint32_t Nelem,
+  //   RmtMemOp Op,
+  //   RevFlag  Flags,
+  //   void*    Target,
+  //   uint8_t* Buffer
+  // );
 
   /// RevRmtMemOp: overloaded constructor - AMO
   RevRmtMemOp(
@@ -211,12 +211,13 @@ struct LocalLoadRecord {
     size_t       Sz,
     uint32_t     Ne,
     RevFlag      F,
+    void*        T,
     uint8_t*     B,
     RevRmtMemOp* O,
     RmtMemOp     P
   )
     : Hart( H ), Nmspace( N ), Id( I ), SrcId( S ), DestId( Di ), SrcAddr( Sr ), DestAddr( D ), Size( Sz ), Nelem( Ne ), Flags( F ),
-      Buffer( B ), Op( O ), ReqPurp( P ) {}
+      Target( T ), Buffer( B ), Op( O ), ReqPurp( P ) {}
 };
 
 // ----------------------------------------
@@ -304,15 +305,7 @@ public:
 
   /// RevRmtMemCtrl: send a remote bulk memory write request
   virtual bool sendRmtBulkWriteRqst(
-    unsigned         Hart,
-    uint64_t         Nmspace,
-    uint64_t         DestAddr,
-    size_t           Size,
-    uint32_t         Nelem,
-    uint64_t         SrcAddr,
-    void*            Target,
-    const RmtMemReq& Req,
-    RevFlag          Flags
+    unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint64_t SrcAddr, void* Target, RevFlag Flags
   ) = 0;
 
   virtual bool sendRmtAMORqst(
@@ -533,15 +526,7 @@ public:
 
   /// RevBasicRmtMemCtrl: send a remote bulk memory write request
   bool sendRmtBulkWriteRqst(
-    unsigned         Hart,
-    uint64_t         Nmspace,
-    uint64_t         DestAddr,
-    size_t           Size,
-    uint32_t         Nelem,
-    uint64_t         SrcAddr,
-    void*            Target,
-    const RmtMemReq& Req,
-    RevFlag          Flags
+    unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, uint32_t Nelem, uint64_t SrcAddr, void* Target, RevFlag Flags
   ) override;
 
   /// RevBasicRmtMemCtrl: send a remote AMO request
@@ -694,7 +679,7 @@ private:
   std::vector<xbgasNicEvent*>              PendingRmtLRSC{};  ///< RevBasicRmtMemCtrl: remote memory events container
 
   std::vector<Statistic<uint64_t>*> stats{};  ///< RevBasicRmtMemCtrl: vector of statistics
-};                                            // class RevBasicRmtMemCtrl
+};  // class RevBasicRmtMemCtrl
 
 }  // namespace SST::RevCPU
 
