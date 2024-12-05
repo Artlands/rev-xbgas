@@ -659,26 +659,8 @@ bool ebload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst 
   std::cout << "_XBGAS_DEBUG_ : ebload: Nmspace: " << Nmspace << ", DestAddr: 0x" << std::hex << DestAddr << ", SrcAddr: 0x"
             << std::hex << SrcAddr << ", Nelem: " << std::dec << Nelem << std::endl;
 #endif
-  RmtMemReq req(
-    Nmspace,
-    SrcAddr,
-    Nelem,
-    DestAddr,
-    Inst.rd,
-    RevRegClass::RegGPR,
-    F->GetHartToExecID(),
-    RmtMemOp::BulkREADRqst,
-    true,
-    R->GetMarkRmtOpComplete()
-  );
 
-  if( Inst.rd != 0 ) {
-    R->RmtLSQueue->insert( req.LSQHashPair() );
-    // update the cost
-    R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
-  }
-
-  M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, DestAddr, DestReg, std::move( req ) );
+  M->RmtBulkRead( F->GetHartToExecID(), Nmspace, SrcAddr, sizeof( T ), Nelem, DestAddr, DestReg );
   R->AdvancePC( Inst );
   return true;
 }

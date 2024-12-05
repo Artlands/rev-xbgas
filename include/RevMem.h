@@ -243,17 +243,8 @@ public:
 
   /// RevMem: template bulk read memory interface
   template<typename T>
-  void RmtBulkRead(
-    unsigned         Hart,
-    uint64_t         Nmspace,
-    uint64_t         SrcAddr,
-    size_t           Size,
-    uint32_t         Nelem,
-    uint64_t         DestAddr,
-    T*               Target,
-    const RmtMemReq& Req
-  ) {
-    rmtCtrl->sendRmtBulkReadRqst( Hart, Nmspace, SrcAddr, Size, Nelem, DestAddr, Target, Req, RevFlag::F_NONE );
+  void RmtBulkRead( unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint32_t Nelem, uint64_t DestAddr, T* Target ) {
+    rmtCtrl->sendRmtBulkReadRqst( Hart, Nmspace, SrcAddr, Size, Nelem, DestAddr, Target, RevFlag::F_NONE );
   }
 
   // ----------------------------------------------------

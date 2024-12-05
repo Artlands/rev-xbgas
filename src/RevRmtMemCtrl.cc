@@ -11,7 +11,7 @@
 #include "RevMem.h"
 #include "RevRmtMemCtrl.h"
 
-#define _XBGAS_RMT_DEBUG_
+// #define _XBGAS_RMT_DEBUG_
 // #define _XBGAS_AMO_DEBUG_
 // #define _XBGAS_DEBUG_LL_
 
@@ -531,13 +531,12 @@ void RevBasicRmtMemCtrl::handleBulkReadResp( xbgasNicEvent* ev ) {
     if( !Op )
       output->fatal( CALL_INFO, -1, "RevRmtMemOp is null in handleBulkReadResp\n" );
 
-    const RmtMemReq& r        = Op->getRmtMemReq();
-    uint8_t*         Target   = (uint8_t*) ( Op->getTarget() );
-    uint64_t         DestAddr = ev->getDestAddr();
-    size_t           Size     = ev->getSize();
-    uint32_t         Nelem    = ev->getNelem();
-    RevFlag          Flags    = ev->getFlags();
-    uint8_t*         Buffer   = new uint8_t[Size * Nelem];
+    uint8_t* Target   = (uint8_t*) ( Op->getTarget() );
+    uint64_t DestAddr = ev->getDestAddr();
+    size_t   Size     = ev->getSize();
+    uint32_t Nelem    = ev->getNelem();
+    RevFlag  Flags    = ev->getFlags();
+    uint8_t* Buffer   = new uint8_t[Size * Nelem];
 
     ev->getData( Buffer );
 
@@ -551,7 +550,6 @@ void RevBasicRmtMemCtrl::handleBulkReadResp( xbgasNicEvent* ev ) {
     if( !isSeg ) {
       // Update Target register to 1
       *Target = 1;
-      r.MarkRmtOpComplete();  // Mark the remote bulk load complete
 
 #ifdef _XBGAS_RMT_DEBUG_
       std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Mark Bulk READ Complete" << std::endl;
@@ -568,7 +566,6 @@ void RevBasicRmtMemCtrl::handleBulkReadResp( xbgasNicEvent* ev ) {
           PacketSegCount.erase( Id );
           // Update Target register to 1
           *Target = 1;
-          r.MarkRmtOpComplete();  // Mark the remote bulk load complete
 
 #ifdef _XBGAS_RMT_DEBUG_
           std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << ", Mark Bulk READ (Segmented) Complete" << std::endl;
@@ -940,15 +937,7 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst(
 }
 
 bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst(
-  unsigned         Hart,
-  uint64_t         Nmspace,
-  uint64_t         SrcAddr,
-  size_t           Size,
-  uint32_t         Nelem,
-  uint64_t         DestAddr,
-  void*            Target,
-  const RmtMemReq& Req,
-  RevFlag          Flags
+  unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint32_t Nelem, uint64_t DestAddr, void* Target, RevFlag Flags
 ) {
   if( Size == 0 )
     return true;
@@ -969,7 +958,6 @@ bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst(
     tmpTarget++;
   }
 
-  Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtReadPending, 1 );
   return true;

@@ -288,15 +288,7 @@ public:
 
   /// RevRmtMemCtrl: send a remote bulk memory read request
   virtual bool sendRmtBulkReadRqst(
-    unsigned         Hart,
-    uint64_t         Nmspace,
-    uint64_t         SrcAddr,
-    size_t           Size,
-    uint32_t         Nelem,
-    uint64_t         DestAddr,
-    void*            Target,
-    const RmtMemReq& Req,
-    RevFlag          Flags
+    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint32_t Nelem, uint64_t DestAddr, void* Target, RevFlag Flags
   ) = 0;
 
   /// RevRmtMemCtrl: send a remote memory write request
@@ -510,15 +502,7 @@ public:
 
   /// RevBasicRmtMemCtrl: send a remote bulk memory read request
   bool sendRmtBulkReadRqst(
-    unsigned         Hart,
-    uint64_t         Nmspace,
-    uint64_t         SrcAddr,
-    size_t           Size,
-    uint32_t         Nelem,
-    uint64_t         DestAddr,
-    void*            Target,
-    const RmtMemReq& Req,
-    RevFlag          Flags
+    unsigned Hart, uint64_t Nmspace, uint64_t SrcAddr, size_t Size, uint32_t Nelem, uint64_t DestAddr, void* Target, RevFlag Flags
   ) override;
 
   /// RevBasicRmtMemCtrl: send a remote memory write request
