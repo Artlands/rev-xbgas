@@ -1,7 +1,7 @@
 //
 // _XbgasNIC_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -35,7 +35,7 @@ using namespace SST::Interfaces;
 /**
  * xbgasNicEvent : inherited class to handle the individual network events for XbgasNIC
  */
-class xbgasNicEvent : public SST::Event {
+class xbgasNicEvent final : public SST::Event {
 public:
   /// xbgasNicEvent: standard constructor
   xbgasNicEvent( std::string name )
@@ -43,9 +43,8 @@ public:
       Opcode( RmtMemOp::Unknown ), Flags( RevFlag::F_NONE ), isSeg( false ), SegSz( 0 ) {}
 
   /// xbgasNicEvent: secondary constructor
-  xbgasNicEvent() : Event() {}
-
-  ~xbgasNicEvent() {}
+  xbgasNicEvent()        = default;
+  ~xbgasNicEvent() final = default;
 
   /// xbgasNicEvent: retrieve the Hart ID
   unsigned getHart() { return Hart; }
@@ -212,7 +211,7 @@ public:
   bool buildAMOResp( uint64_t Id, size_t Size, uint8_t* Buffer );
 
   /// xbgasNicEvent: virtual function to clone an event
-  virtual Event* clone( void ) override {
+  Event* clone() final {
     xbgasNicEvent* ev = new xbgasNicEvent( *this );
     return ev;
   }
@@ -277,16 +276,16 @@ public:
   virtual void setMsgHandler( Event::HandlerBase* handler )                  = 0;
 
   /// xbgasNicAPI: initializes the network
-  virtual void init( unsigned int phase )                                    = 0;
+  void init( uint32_t phase ) override                                       = 0;
 
   /// xbgasNicAPI: setup the network
-  virtual void setup()                                                       = 0;
+  void setup() override                                                      = 0;
 
   /// xbgasNicAPI: finish function
-  virtual void finish()                                                      = 0;
+  void finish() override                                                     = 0;
 
   /// xbgasNicAPI: send a message on the network
-  virtual void send( xbgasNicEvent* ev, int dest )                           = 0;
+  virtual void send( xbgasNicEvent* ev, uint32_t dest )                      = 0;
 
   /// xbgasNicAPI: retrieve the number of potential destinations
   virtual int getNumDestinations()                                           = 0;
@@ -302,12 +301,12 @@ public:
 
 protected:
   SST::Output* output;  ///< xbgasNicEvent: SST output object
-};                      /// end xbgasNicAPI
+};  /// end xbgasNicAPI
 
 // ----------------------------------------
 // XbgasNIC: the Rev network interface controller subcomponent
 // ----------------------------------------
-class XbgasNIC : public xbgasNicAPI {
+class XbgasNIC final : public xbgasNicAPI {
 public:
   // Register with the SST Core
   SST_ELI_REGISTER_SUBCOMPONENT(
@@ -334,10 +333,10 @@ public:
   ~XbgasNIC();
 
   /// XbgasNIC: set the event handler
-  virtual void setMsgHandler( Event::HandlerBase* handler ) { msgHandler = handler; };
+  void setMsgHandler( Event::HandlerBase* handler ) override { msgHandler = handler; };
 
   /// XbgasNIC: initialization function
-  void init( unsigned int phase ) override;
+  void init( uint32_t phase ) override;
 
   /// XbgasNIC: setup function
   void setup() override;
@@ -346,7 +345,7 @@ public:
   void finish() override;
 
   /// XbgasNIC: send event to the destination id
-  void send( xbgasNicEvent* ev, int dest ) override;
+  void send( xbgasNicEvent* ev, uint32_t dest ) override;
 
   /// XbgasNIC: retrieve the number of destinations
   int getNumDestinations() override;
@@ -355,7 +354,7 @@ public:
   SST::Interfaces::SimpleNetwork::nid_t getAddress() override;
 
   /// XbgasNIC: retrieve the hosts
-  std::vector<SST::Interfaces::SimpleNetwork::nid_t> getXbgasHosts() { return xbgasHosts; }
+  std::vector<SST::Interfaces::SimpleNetwork::nid_t> getXbgasHosts() override { return xbgasHosts; }
 
   /// XbgasNIC: callback function for the SimpleNetwork interface
   bool msgNotify( int virtualNetwork );
@@ -364,7 +363,7 @@ public:
   bool clockTick( Cycle_t cycle );
 
   /// XbgasNIC: check if the queue is empty
-  bool isQueueEmpty() { return sendQ.empty(); };
+  bool isQueueEmpty() override { return sendQ.empty(); };
 
 protected:
   SST::Output* output;  ///< XbgasNIC: SST output object
@@ -381,7 +380,7 @@ protected:
 
 private:
   std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts;  ///< XbgasNIC: xbgas hosts list
-};                                                                // end XbgasNIC
+};  // end XbgasNIC
 
 }  // namespace SST::RevCPU
 

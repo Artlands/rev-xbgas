@@ -1,7 +1,7 @@
 //
 // _RevOpts_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -26,16 +26,16 @@ namespace SST::RevCPU {
 class RevOpts {
 public:
   /// RevOpts: options constructor
-  RevOpts( unsigned NumCores, unsigned NumHarts, const int Verbosity );
+  RevOpts( uint32_t NumCores, uint32_t NumHarts, const int Verbosity );
 
   /// RevOpts: options destructor
   ~RevOpts() = default;
 
   /// RevOpts: retrieve the number of configured cores
-  unsigned GetNumCores() { return numCores; }
+  uint32_t GetNumCores() { return numCores; }
 
   /// RevOpts: retrieve the number of configured harts per core
-  unsigned GetNumHarts() { return numHarts; }
+  uint32_t GetNumHarts() { return numHarts; }
 
   /// RevOpts: retrieve the verbosity level
   int GetVerbosity() { return verbosity; }
@@ -59,22 +59,22 @@ public:
   bool InitPrefetchDepth( const std::vector<std::string>& Depths );
 
   /// RevOpts: retrieve the start address for the target core
-  bool GetStartAddr( unsigned Core, uint64_t& StartAddr );
+  bool GetStartAddr( uint32_t Core, uint64_t& StartAddr );
 
   /// RevOpts: retrieve the start symbol for the target core
-  bool GetStartSymbol( unsigned Core, std::string& Symbol );
+  bool GetStartSymbol( uint32_t Core, std::string& Symbol );
 
   /// RevOpts: retrieve the machine model string for the target core
-  bool GetMachineModel( unsigned Core, std::string& MachModel );
+  bool GetMachineModel( uint32_t Core, std::string& MachModel );
 
   /// RevOpts: retrieve instruction table for the target core
-  bool GetInstTable( unsigned Core, std::string& Table );
+  bool GetInstTable( uint32_t Core, std::string& Table );
 
   /// RevOpts: retrieve the memory cost range for the target core
-  bool GetMemCost( unsigned Core, unsigned& Min, unsigned& Max );
+  bool GetMemCost( uint32_t Core, uint32_t& Min, uint32_t& Max );
 
   /// RevOpts: retrieve the prefetch depth for the target core
-  bool GetPrefetchDepth( unsigned Core, unsigned& Depth );
+  bool GetPrefetchDepth( uint32_t Core, uint32_t& Depth );
 
   /// RevOpts: set the argv array
   void SetArgs( const SST::Params& params );
@@ -91,16 +91,16 @@ public:
   }
 
 private:
-  unsigned numCores{};   ///< RevOpts: number of initialized cores
-  unsigned numHarts{};   ///< RevOpts: number of harts per core
+  uint32_t numCores{};   ///< RevOpts: number of initialized cores
+  uint32_t numHarts{};   ///< RevOpts: number of harts per core
   int      verbosity{};  ///< RevOpts: verbosity level
 
-  std::unordered_map<unsigned, uint64_t>     startAddr{};      ///< RevOpts: map of core id to starting address
-  std::unordered_map<unsigned, std::string>  startSym{};       ///< RevOpts: map of core id to starting symbol
-  std::unordered_map<unsigned, std::string>  machine{};        ///< RevOpts: map of core id to machine model
-  std::unordered_map<unsigned, std::string>  table{};          ///< RevOpts: map of core id to inst table
-  std::unordered_map<unsigned, unsigned>     prefetchDepth{};  ///< RevOpts: map of core id to prefretch depth
-  std::vector<std::pair<unsigned, unsigned>> memCosts{};       ///< RevOpts: vector of memory cost ranges
+  std::unordered_map<uint32_t, uint64_t>     startAddr{};      ///< RevOpts: map of core id to starting address
+  std::unordered_map<uint32_t, std::string>  startSym{};       ///< RevOpts: map of core id to starting symbol
+  std::unordered_map<uint32_t, std::string>  machine{};        ///< RevOpts: map of core id to machine model
+  std::unordered_map<uint32_t, std::string>  table{};          ///< RevOpts: map of core id to inst table
+  std::unordered_map<uint32_t, uint32_t>     prefetchDepth{};  ///< RevOpts: map of core id to prefretch depth
+  std::vector<std::pair<uint32_t, uint32_t>> memCosts{};       ///< RevOpts: vector of memory cost ranges
   std::vector<std::string>                   Argv{};           ///< RevOpts: vector of function arguments
   std::vector<std::string>                   MemDumpRanges{};  ///< RevOpts: vector of function arguments
 

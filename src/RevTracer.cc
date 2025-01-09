@@ -1,7 +1,7 @@
 //
 // _RevTracer_cc_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -25,7 +25,7 @@ RevTracer::RevTracer( std::string Name, SST::Output* o ) : name( Name ), pOutput
 
   // Initialize NOP trace controls
   uint32_t cmd_template = s2op.at( TRC_OP_DEFAULT );
-  for( unsigned i = 0; i < NOP_COUNT; i++ )
+  for( uint32_t i = 0; i < NOP_COUNT; i++ )
     nops[i] = cmd_template | ( i << TRC_OP_POS );
 
 #if 1
@@ -87,8 +87,8 @@ void RevTracer::SetCmdTemplate( std::string cmd ) {
     pOutput->fatal( CALL_INFO, -1, "Unsupported parameter [trcCmd=%s]. Supported values are: %s\n", cmd.c_str(), s.str().c_str() );
   }
 
-  unsigned cmd_template = s2op.at( cmd );
-  for( unsigned i = 0; i < NOP_COUNT; i++ )
+  uint32_t cmd_template = s2op.at( cmd );
+  for( uint32_t i = 0; i < NOP_COUNT; i++ )
     nops[i] = cmd_template | ( i << TRC_OP_POS );
 }
 
@@ -117,19 +117,19 @@ void RevTracer::CheckUserControls( uint64_t cycle ) {
 
   // programatic controls
   bool nextState = outputEnabled;
-  if( insn == nops[safe_static_cast<unsigned>( TRC_CMD_IDX::TRACE_OFF )] ) {
+  if( insn == nops[safe_static_cast<uint32_t>( TRC_CMD_IDX::TRACE_OFF )] ) {
     nextState = false;
-  } else if( insn == nops[safe_static_cast<unsigned>( TRC_CMD_IDX::TRACE_ON )] ) {
+  } else if( insn == nops[safe_static_cast<uint32_t>( TRC_CMD_IDX::TRACE_ON )] ) {
     nextState = true;
-  } else if( insn == nops[safe_static_cast<unsigned>( TRC_CMD_IDX::TRACE_PUSH_OFF )] ) {
+  } else if( insn == nops[safe_static_cast<uint32_t>( TRC_CMD_IDX::TRACE_PUSH_OFF )] ) {
     enableQ[enableQindex] = outputEnabled;
     enableQindex          = ( enableQindex + 1 ) % MAX_ENABLE_Q;
     nextState             = false;
-  } else if( insn == nops[safe_static_cast<unsigned>( TRC_CMD_IDX::TRACE_PUSH_ON )] ) {
+  } else if( insn == nops[safe_static_cast<uint32_t>( TRC_CMD_IDX::TRACE_PUSH_ON )] ) {
     enableQ[enableQindex] = outputEnabled;
     enableQindex          = ( enableQindex + 1 ) % MAX_ENABLE_Q;
     nextState             = true;
-  } else if( insn == nops[safe_static_cast<unsigned>( TRC_CMD_IDX::TRACE_POP )] ) {
+  } else if( insn == nops[safe_static_cast<uint32_t>( TRC_CMD_IDX::TRACE_POP )] ) {
     enableQindex = ( enableQindex - 1 ) % MAX_ENABLE_Q;
     nextState    = enableQ[enableQindex];
   }
@@ -189,7 +189,7 @@ void RevTracer::pcWrite( uint64_t newpc ) {
   traceRecs.emplace_back( TraceRec_t( PcWrite, newpc, 0, 0 ) );
 }
 
-void RevTracer::Exec( size_t cycle, unsigned id, unsigned hart, unsigned tid, const std::string& fallbackMnemonic ) {
+void RevTracer::Exec( size_t cycle, uint32_t id, uint32_t hart, uint32_t tid, const std::string& fallbackMnemonic ) {
   instHeader.set( cycle, id, hart, tid, fallbackMnemonic );
 }
 
@@ -361,26 +361,22 @@ std::string RevTracer::fmt_reg( uint8_t r ) {
     s << xpr_name[r];  // defined in disasm.h
     return s.str();
   }
-  s << "?" << (unsigned) r;
+  s << "?" << (uint32_t) r;
 #else
   s << "x" << std::dec << (uint16_t) r;  // Use SST::RevCPU::RevReg?
 #endif
   return s.str();
 }
 
-std::string RevTracer::fmt_data( unsigned len, uint64_t d ) {
+std::string RevTracer::fmt_data( size_t len, uint64_t d ) {
   std::stringstream s;
   if( len == 0 )
     return "";
   s << "0x" << std::hex << std::setfill( '0' );
-  if( len > 8 )
-    s << std::setw( 8 * 2 ) << d << "..+" << std::dec << ( 8 - len );
-  else if( len == 8 )
-    s << std::setw( 8 * 2 ) << d;
+  if( len > sizeof( d ) )
+    s << std::setw( sizeof( d ) * 2 ) << d << "..+" << std::dec << len - sizeof( d );
   else {
-    unsigned shift = ( 8 - len ) * 8;
-    uint64_t mask  = ( ~0ULL ) >> shift;
-    s << std::setw( len * 2 ) << ( d & mask );
+    s << std::setw( len * 2 ) << ( d & ~( ~uint64_t{} << len * 8 ) );
   }
   return s.str();
 }

@@ -1,7 +1,7 @@
 //
 // _XbgasNIC_cc_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -315,7 +315,7 @@ bool xbgasNicEvent::buildAMOResp( uint64_t Id, size_t Size, uint8_t* Buffer ) {
 XbgasNIC::XbgasNIC( ComponentId_t id, Params& params ) : xbgasNicAPI( id, params ) {
 
   // setup the initial logging functions
-  int         verbosity = params.find<int>( "verbose", 0 );
+  auto        verbosity = params.find<uint32_t>( "verbose", 0 );
   std::string ClockFreq = params.find<std::string>( "clock", "1Ghz" );
 
   output                = new SST::Output( "", verbosity, 0, SST::Output::STDOUT );
@@ -407,7 +407,7 @@ bool XbgasNIC::msgNotify( int vn ) {
   return true;
 }
 
-void XbgasNIC::send( xbgasNicEvent* event, int destination ) {
+void XbgasNIC::send( xbgasNicEvent* event, uint32_t destination ) {
   SST::Interfaces::SimpleNetwork::Request* req = new SST::Interfaces::SimpleNetwork::Request();
   req->dest                                    = destination;
   req->src                                     = iFace->getEndpointID();

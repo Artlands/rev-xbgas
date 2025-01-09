@@ -1,7 +1,7 @@
 //
 // _RevPrefetcher_cc_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -21,8 +21,8 @@ delete[] s;
 bool RevPrefetcher::IsAvail( uint64_t Addr ) {
 
   // note: this logic now considers compressed instructions
-  uint64_t lastAddr = 0x00ull;
-  for( unsigned i = 0; i < baseAddr.size(); i++ ) {
+  uint64_t lastAddr = 0;
+  for( uint32_t i = 0; i < baseAddr.size(); i++ ) {
     lastAddr = baseAddr[i] + ( depth * 4 );
     if( ( Addr >= baseAddr[i] ) && ( Addr < lastAddr ) ) {
       // found it, fetch the address
@@ -87,8 +87,8 @@ void RevPrefetcher::MarkInstructionLoadComplete( const MemReq& req ) {
 }
 
 bool RevPrefetcher::FetchUpper( uint64_t Addr, bool& Fetched, uint32_t& UInst ) {
-  uint64_t lastAddr = 0x00ull;
-  for( unsigned i = 0; i < baseAddr.size(); i++ ) {
+  uint64_t lastAddr = 0;
+  for( uint32_t i = 0; i < baseAddr.size(); i++ ) {
     lastAddr = baseAddr[i] + ( depth * 4 );
     if( ( Addr >= baseAddr[i] ) && ( Addr < lastAddr ) ) {
       uint32_t Off = static_cast<uint32_t>( ( Addr - baseAddr[i] ) / 4 );
@@ -121,8 +121,8 @@ bool RevPrefetcher::FetchUpper( uint64_t Addr, bool& Fetched, uint32_t& UInst ) 
 
 bool RevPrefetcher::InstFetch( uint64_t Addr, bool& Fetched, uint32_t& Inst ) {
   // scan the baseAddr vector to see if the address is cached
-  uint64_t lastAddr = 0x00ull;
-  for( unsigned i = 0; i < baseAddr.size(); i++ ) {
+  uint64_t lastAddr = 0;
+  for( uint32_t i = 0; i < baseAddr.size(); i++ ) {
     lastAddr = baseAddr[i] + ( depth * 4 );
     if( ( Addr >= baseAddr[i] ) && ( Addr < lastAddr ) ) {
       // found it, fetch the address
@@ -205,8 +205,8 @@ void RevPrefetcher::Fill( uint64_t Addr ) {
 void RevPrefetcher::DeleteStream( size_t i ) {
   // delete the target stream as we no longer need it
   if( i < baseAddr.size() ) {
-    iStack.erase( iStack.begin() + i );
-    baseAddr.erase( baseAddr.begin() + i );
+    iStack.erase( iStack.begin() + ptrdiff_t( i ) );
+    baseAddr.erase( baseAddr.begin() + ptrdiff_t( i ) );
   }
 }
 

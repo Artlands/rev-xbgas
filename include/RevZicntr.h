@@ -1,7 +1,7 @@
 //
 // _RevZicntr_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -23,6 +23,7 @@ class RevCore;
 class RevZicntr {
   uint64_t InstRet{};  ///< RevZicntr: Number of instructions retired
 
+protected:
   /// RevZicntr: Get the core owning this hart
   virtual RevCore* GetCore() const = 0;
 
@@ -34,30 +35,30 @@ class RevZicntr {
 
   // Performance counters
   // Template allows RevCore to be an incomplete type now
-  // std::enable_if_t<...> makes the functions only match ZICNTR == RevZicntr
 
-  template<typename ZICNTR, typename = std::enable_if_t<std::is_same_v<ZICNTR, RevZicntr>>>
-  static void fatal( const ZICNTR* Zicntr, const char* msg ) {
-    return Zicntr->GetCore()->output->fatal( CALL_INFO, -1, msg, Zicntr->GetPC() );
-  }
-
-  template<typename ZICNTR, typename = std::enable_if_t<std::is_same_v<ZICNTR, RevZicntr>>>
-  static bool isZicntr( const ZICNTR* Zicntr ) {
-    return Zicntr->GetCore()->GetRevFeature()->IsModeEnabled( RV_ZICNTR );
+  template<typename T>
+  void fatal( const T* msg ) const {
+    return make_dependent<T>( GetCore() )->output->fatal( CALL_INFO, -1, msg, GetPC() );
   }
 
 protected:
-  template<typename ZICNTR, typename = std::enable_if_t<std::is_same_v<ZICNTR, RevZicntr>>>
+  RevZicntr()                              = default;
+  RevZicntr( const RevZicntr& )            = delete;
+  RevZicntr( RevZicntr&& )                 = default;
+  RevZicntr& operator=( const RevZicntr& ) = delete;
+  RevZicntr& operator=( RevZicntr&& )      = delete;
+
+  template<typename ZICNTR>
   static uint64_t rdcycle( const ZICNTR* Zicntr ) {
     return Zicntr->GetCore()->GetCycles();
   }
 
-  template<typename ZICNTR, typename = std::enable_if_t<std::is_same_v<ZICNTR, RevZicntr>>>
+  template<typename ZICNTR>
   static uint64_t rdtime( const ZICNTR* Zicntr ) {
     return Zicntr->GetCore()->GetCurrentSimCycle();
   }
 
-  template<typename ZICNTR, typename = std::enable_if_t<std::is_same_v<ZICNTR, RevZicntr>>>
+  template<typename ZICNTR>
   static uint64_t rdinstret( const ZICNTR* Zicntr ) {
     return Zicntr->InstRet;
   }
@@ -68,12 +69,12 @@ protected:
   // Passed a COUNTER function which gets the 64-bit value of a performance counter
   template<typename XLEN, Half HALF, uint64_t COUNTER( const RevZicntr* )>
   XLEN GetPerfCounter() const {
-    if( !isZicntr( this ) ) {
-      fatal( this, "Illegal instruction at PC = 0x%" PRIx64 ": Zicntr extension not available\n" );
+    if( !make_dependent<XLEN>( GetCore() )->GetRevFeature()->IsModeEnabled( RV_ZICNTR ) ) {
+      fatal( "Illegal instruction at PC = 0x%" PRIx64 ": Zicntr extension not available\n" );
       return 0;
     } else if( IsRV64() ) {
       if constexpr( HALF == Half::Hi ) {
-        fatal( this, "Illegal instruction at PC = 0x%" PRIx64 ": High half of Zicntr register not available on RV64\n" );
+        fatal( "Illegal instruction at PC = 0x%" PRIx64 ": High half of Zicntr register not available on RV64\n" );
         return 0;
       } else {
         return COUNTER( this );

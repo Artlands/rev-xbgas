@@ -1,7 +1,7 @@
 //
 // _RevInstHelpers_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -64,7 +64,7 @@ inline constexpr double fpmin<double, uint64_t> = 0x0p+0;
 
 /// General template for converting between Floating Point and Integer.
 /// FP values outside the range of the target integer type are clipped
-/// at the integer type's numerical limits, whether signed or unsigned.
+/// at the integer type's numerical limits, whether signed or uint32_t.
 template<typename INT, typename FP>
 bool fcvtif( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   // Read the FP register. Round to integer according to current rounding mode.
@@ -138,7 +138,7 @@ bool load( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) 
       sizeof( T ) < sizeof( int32_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT32 : RevFlag::F_ZEXT32 : RevFlag::F_NONE;
     auto   rs1 = R->GetX<uint64_t>( Inst.rs1 );  // read once for tracer
     MemReq req{
-      rs1 + Inst.ImmSignExt( 12 ),
+      rs1 + uint64_t( Inst.ImmSignExt( 12 ) ),
       Inst.rd,
       RevRegClass::RegGPR,
       F->GetHartToExecID(),
@@ -148,14 +148,18 @@ bool load( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) 
     };
     R->LSQueue->insert( req.LSQHashPair() );
     M->ReadVal(
-      F->GetHartToExecID(), rs1 + Inst.ImmSignExt( 12 ), reinterpret_cast<T*>( &R->RV32[Inst.rd] ), std::move( req ), flags
+      F->GetHartToExecID(),
+      rs1 + uint64_t( Inst.ImmSignExt( 12 ) ),
+      reinterpret_cast<T*>( &R->RV32[Inst.rd] ),
+      std::move( req ),
+      flags
     );
   } else {
     static constexpr RevFlag flags =
       sizeof( T ) < sizeof( int64_t ) ? std::is_signed_v<T> ? RevFlag::F_SEXT64 : RevFlag::F_ZEXT64 : RevFlag::F_NONE;
     auto   rs1 = R->GetX<uint64_t>( Inst.rs1 );
     MemReq req{
-      rs1 + Inst.ImmSignExt( 12 ),
+      rs1 + uint64_t( Inst.ImmSignExt( 12 ) ),
       Inst.rd,
       RevRegClass::RegGPR,
       F->GetHartToExecID(),
@@ -165,7 +169,11 @@ bool load( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) 
     };
     R->LSQueue->insert( req.LSQHashPair() );
     M->ReadVal(
-      F->GetHartToExecID(), rs1 + Inst.ImmSignExt( 12 ), reinterpret_cast<T*>( &R->RV64[Inst.rd] ), std::move( req ), flags
+      F->GetHartToExecID(),
+      rs1 + uint64_t( Inst.ImmSignExt( 12 ) ),
+      reinterpret_cast<T*>( &R->RV64[Inst.rd] ),
+      std::move( req ),
+      flags
     );
   }
 
@@ -178,7 +186,7 @@ bool load( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) 
 /// Store template
 template<typename T>
 bool store( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
-  M->Write( F->GetHartToExecID(), R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 ), R->GetX<T>( Inst.rs2 ) );
+  M->Write( F->GetHartToExecID(), R->GetX<uint64_t>( Inst.rs1 ) + uint64_t( Inst.ImmSignExt( 12 ) ), R->GetX<T>( Inst.rs2 ) );
   R->AdvancePC( Inst );
   return true;
 }
@@ -190,7 +198,7 @@ bool fload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst )
     static constexpr RevFlag flags = sizeof( T ) < sizeof( double ) ? RevFlag::F_BOXNAN : RevFlag::F_NONE;
     uint64_t                 rs1   = R->GetX<uint64_t>( Inst.rs1 );
     MemReq                   req{
-      rs1 + Inst.ImmSignExt( 12 ),
+      rs1 + uint64_t( Inst.ImmSignExt( 12 ) ),
       Inst.rd,
       RevRegClass::RegFLOAT,
       F->GetHartToExecID(),
@@ -200,12 +208,16 @@ bool fload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst )
     };
     R->LSQueue->insert( req.LSQHashPair() );
     M->ReadVal(
-      F->GetHartToExecID(), rs1 + Inst.ImmSignExt( 12 ), reinterpret_cast<T*>( &R->DPF[Inst.rd] ), std::move( req ), flags
+      F->GetHartToExecID(),
+      rs1 + uint64_t( Inst.ImmSignExt( 12 ) ),
+      reinterpret_cast<T*>( &R->DPF[Inst.rd] ),
+      std::move( req ),
+      flags
     );
   } else {
     uint64_t rs1 = R->GetX<uint64_t>( Inst.rs1 );
     MemReq   req{
-      rs1 + Inst.ImmSignExt( 12 ),
+      rs1 + uint64_t( Inst.ImmSignExt( 12 ) ),
       Inst.rd,
       RevRegClass::RegFLOAT,
       F->GetHartToExecID(),
@@ -214,7 +226,9 @@ bool fload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst )
       R->GetMarkLoadComplete()
     };
     R->LSQueue->insert( req.LSQHashPair() );
-    M->ReadVal( F->GetHartToExecID(), rs1 + Inst.ImmSignExt( 12 ), &R->SPF[Inst.rd], std::move( req ), RevFlag::F_NONE );
+    M->ReadVal(
+      F->GetHartToExecID(), rs1 + uint64_t( Inst.ImmSignExt( 12 ) ), &R->SPF[Inst.rd], std::move( req ), RevFlag::F_NONE
+    );
   }
   // update the cost
   R->cost += M->RandCost( F->GetMinCost(), F->GetMaxCost() );
@@ -226,7 +240,7 @@ bool fload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst )
 template<typename T>
 bool fstore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   T val = R->GetFP<T, true>( Inst.rs2 );
-  M->Write( F->GetHartToExecID(), R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 ), val );
+  M->Write( F->GetHartToExecID(), R->GetX<uint64_t>( Inst.rs1 ) + uint64_t( Inst.ImmSignExt( 12 ) ), val );
   R->AdvancePC( Inst );
   return true;
 }
@@ -309,8 +323,8 @@ bool oper( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) 
 /// Left shift functor
 template<typename = void>
 struct ShiftLeft {
-  template<typename T>
-  constexpr T operator()( T val, unsigned shift ) const {
+  template<typename T, typename U>
+  constexpr T operator()( T val, U shift ) const {
     return val << ( sizeof( T ) == 4 ? shift & 0x1f : shift & 0x3f );
   }
 };
@@ -318,8 +332,8 @@ struct ShiftLeft {
 /// Right shift functor
 template<typename = void>
 struct ShiftRight {
-  template<typename T>
-  constexpr T operator()( T val, unsigned shift ) const {
+  template<typename T, typename U>
+  constexpr T operator()( T val, U shift ) const {
     return val >> ( sizeof( T ) == 4 ? shift & 0x1f : shift & 0x3f );
   }
 };
@@ -398,7 +412,7 @@ bool bcond( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst )
     cond = OP()( R->GetX<SIGN<int32_t>>( Inst.rs1 ), R->GetX<SIGN<int32_t>>( Inst.rs2 ) );
   }
   if( cond ) {
-    R->SetPC( R->GetPC() + Inst.ImmSignExt( 13 ) );
+    R->SetPC( R->GetPC() + uint64_t( Inst.ImmSignExt( 13 ) ) );
   } else {
     R->AdvancePC( Inst );
   }
@@ -538,7 +552,7 @@ static bool fcvtff( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst
 template<typename T>
 bool eload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   auto    Nmspace = R->GetE<uint64_t>( Inst.rs1 );
-  auto    SrcAddr = R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
+  auto    SrcAddr = R->GetX<uint64_t>( Inst.rs1 ) + uint64_t( Inst.ImmSignExt( 12 ) );
   RevFlag Flags;
   T*      DestReg;
 
@@ -572,7 +586,7 @@ bool eload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst )
 template<typename T>
 bool estore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   auto Nmspace  = R->GetE<uint64_t>( Inst.rs1 );
-  auto DestAddr = R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 );
+  auto DestAddr = R->GetX<uint64_t>( Inst.rs1 ) + uint64_t( Inst.ImmSignExt( 12 ) );
 
   if( Nmspace == 0 ) {
 #ifdef _XBGAS_DEBUG_

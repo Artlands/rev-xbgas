@@ -1,7 +1,7 @@
 //
 // _RevCSR_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -10,6 +10,7 @@
 #ifndef _SST_REVCSR_H_
 #define _SST_REVCSR_H_
 
+#include "RevCommon.h"
 #include "RevFCSR.h"
 #include "RevFeature.h"
 #include "RevRmtMemCtrl.h"
@@ -18,61 +19,73 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <type_traits>
+#include <unordered_map>
+#include <utility>
 
 namespace SST::RevCPU {
 
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// A note about the separation of scopes in include/insns/Zicsr.h and
-// include/RevCSR.h:
+// A note about the separation of scopes in include/insns/Zicsr.h and include/RevCSR.h:
 //
-// RevCSR.h: GetCSR() and SetCSR() are used to get and set specific CSR
-// registers in the register file, regardless of how we arrive here. If a
-// particular CSR register is disabled because of CPU extensions present, or if
-// a particular CSR register does not apply to it (such as RDTIMEH on RV64),
-// then raise an invalid instruction or other exception here.
+// RevCSR.h: GetCSR() and SetCSR() are used to get and set specific CSR registers in the register file, regardless of how we arrive
+// here. If a particular CSR register is disabled because of CPU extensions present, or if a particular CSR register does not apply
+// to it (such as RDTIMEH on RV64), then raise an invalid instruction or other exception here.
 //
-// Zicsr.h: Decode and execute one of only 6 CSR instructions (csrrw, csrrs,
-// csrrc, csrrwi, csrrsi, csrrci). Do not enable or disable certain CSR
-// registers, or implement the semantics of particular CSR registers here.
-// All CSR instructions with a valid encoding are valid as far as Zicsr.h is
-// concerned. The particular CSR register accessed in a CSR instruction is
-// secondary to the scope of Zicsr.h. Certain pseudoinstructions like RDTIME or
-// FRFLAGS are listed separately in Zicsr.h only for user-friendly disassembly,
-// not for enabling, disabling or implementing them.
+// Zicsr.h: Decode and execute one of only 6 CSR instructions (csrrw, csrrs, csrrc, csrrwi, csrrsi, csrrci). Do not enable or
+// disable certain CSR registers, or implement the semantics of particular CSR registers here. All CSR instructions with a valid
+// encoding are valid as far as Zicsr.h is concerned. The particular CSR register accessed in a CSR instruction is secondary to the
+// scope of Zicsr.h. Certain pseudoinstructions like RDTIME or FRFLAGS are listed separately in Zicsr.h only for user-friendly
+// disassembly, not for enabling, disabling or implementing them.
 //
-// To ease maintainability and prevent large code size, it is recommended that
-// functions related to specific CSR registers be made base classes of RevCSR
-// in separate header files (e.g. RevZicntr). RevCSR can then dispatch the
-// GetCSR()/SetCSR() functions of these CSR registers to the base class.
+// To ease maintainability and prevent large code size, it is recommended that functions related to specific CSR registers be made
+// base classes of RevCSR in separate header files (e.g. RevZicntr). RevCSR can then dispatch the GetCSR()/SetCSR() functions of
+// these CSR registers to the base class.
 //
-// To access a RevCSR or RevRegFile member function in one of its base classes,
-// it is recommended that the function be made a pure virtual function in the
-// base class so that RevCSR or RevRegFile must override it, similar to how
-// GetCore() is a pure virtual function in RevZicntr which RevRegFile
-// overrides. RevZicntr needs GetCore(), but rather than have to store a
-// pointer in RevZicntr's constructor, it is much simpler to simply declare
-// GetCore() as a pure virtual function in RevZicntr which must be overriden,
-// which makes RevZicntr and RevCSR abstract classes which cannot be
-// instantiated except as a base class of RevRegFile, which defines GetCore().
+// To access a RevCSR or RevRegFile member function in one of its base classes, it is recommended that the function be made a pure
+// virtual function in the base class so that RevCSR or RevRegFile must override it, similar to how GetCore() is a pure virtual
+// function in RevZicntr which RevRegFile overrides. RevZicntr needs GetCore(), but rather than have to store a pointer in
+// RevZicntr's constructor, it is much simpler to simply declare GetCore() as a pure virtual function in RevZicntr which must be
+// overriden, which makes RevZicntr and RevCSR abstract classes which cannot be instantiated except as a base class of RevRegFile,
+// which defines GetCore().
 //
-////////////////////////////////////////////////////////////////////////////////
+// To register a handler to Get or Set a CSR register, call SetCSRGetter() and SetCSRSetter(), supplying it a function. For CSR
+// registers which are not Hart-local but are Core-local, call SetCSRGetter() and SetCSRSetter() in RevCore.
+//
+// The GetCSR() and SetCSR() functions in this class are called at the Hart execution level, and the CSR registers in this class
+// are hart-specific, but the GetCSR() and SetCSR() functions can be overriden to read/write CSR resources outside of this class.
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class RevCore;
 class RevRmtMemCtrl;
 
-class RevCSR : public RevZicntr {
-  static constexpr size_t         CSR_LIMIT = 0x1000;
-  std::array<uint64_t, CSR_LIMIT> CSR{};  ///< RegCSR: CSR registers
+struct RevCSR : RevZicntr {
+  static constexpr size_t CSR_LIMIT  = 0x1000;
 
-public:
+  RevCSR()                           = default;
+  RevCSR( const RevCSR& )            = delete;
+  RevCSR( RevCSR&& )                 = default;
+  RevCSR& operator=( const RevCSR& ) = delete;
+  RevCSR& operator=( RevCSR&& )      = delete;
+  virtual ~RevCSR()                  = default;
+
   // CSR Registers
   enum : uint16_t {
     // Unprivileged and User-level CSRs
     fflags         = 0x001,
     frm            = 0x002,
     fcsr           = 0x003,
+
+    // Vector CSR Group 1
+    vstart         = 0x008,
+    vxsat          = 0x009,
+    vxrm           = 0x00a,
+    vcsr           = 0x00f,
+
+    // Performance counters
     cycle          = 0xc00,
     time           = 0xc01,
     instret        = 0xc02,
@@ -105,6 +118,13 @@ public:
     hpmcounter29   = 0xc1d,
     hpmcounter30   = 0xc1e,
     hpmcounter31   = 0xc1f,
+
+    // Vector CSR Group 2
+    vl             = 0xc20,
+    vtype          = 0xc21,
+    vlenb          = 0xc22,
+
+    // Performance counters high 32 bits
     cycleh         = 0xc80,
     timeh          = 0xc81,
     instreth       = 0xc82,
@@ -445,8 +465,34 @@ public:
     dscratch1      = 0x7b3,
   };
 
+  ///< RevCSR: Register a custom getter for a particular CSR register
+  void SetCSRGetter( uint16_t csr, std::function<uint64_t( uint16_t )> handler ) {
+    handler ? (void) Getter.insert_or_assign( csr, std::move( handler ) ) : (void) Getter.erase( csr );
+  }
+
+  ///< RevCSR: Register a custom setter for a particular CSR register
+  void SetCSRSetter( uint16_t csr, std::function<bool( uint16_t, uint64_t )> handler ) {
+    handler ? (void) Setter.insert_or_assign( csr, std::move( handler ) ) : (void) Setter.erase( csr );
+  }
+
+  ///< RevCSR: Get the custom getter for a particular CSR register
+  // If no custom getter exists for this RevCSR, look for one in the owning RevCore
+  template<typename CSR>
+  auto GetCSRGetter( CSR csr ) const {
+    auto it = Getter.find( csr );
+    return it != Getter.end() && it->second ? it->second : make_dependent<CSR>( GetCore() )->GetCSRGetter( csr );
+  }
+
+  ///< RevCSR: Get the custom setter for a particular CSR register
+  // If no custom setter exists for this RevCSR, look for one in the owning RevCore
+  template<typename CSR>
+  auto GetCSRSetter( CSR csr ) {
+    auto it = Setter.find( csr );
+    return it != Setter.end() && it->second ? it->second : make_dependent<CSR>( GetCore() )->GetCSRSetter( csr );
+  }
+
   /// Get the Floating-Point Rounding Mode
-  FRMode GetFRM() const { return static_cast<FRMode>( CSR[fcsr] >> 5 & 0b111 ); }
+  FRMode GetFRM() const { return static_cast<FRMode>( BitExtract<5, 3>( CSR[fcsr] ) ); }
 
   /// Set Floating-Point flags
   void SetFFlags( FCSR flags ) { CSR[fcsr] |= static_cast<uint32_t>( flags ) & 0b11111; }
@@ -454,11 +500,18 @@ public:
   /// Get a CSR register
   template<typename XLEN>
   XLEN GetCSR( uint16_t csr ) const {
+
+    // If a custom Getter exists, use it
+    auto getter = GetCSRGetter( make_dependent<XLEN>( csr ) );
+    if( getter )
+      return static_cast<XLEN>( getter( csr ) );
+
     // clang-format off
     switch( csr ) {
-      case fflags:   return static_cast<XLEN>( CSR[fcsr] >> 0 & 0b00011111 );
-      case frm:      return static_cast<XLEN>( CSR[fcsr] >> 5 & 0b00000111 );
-      case fcsr:     return static_cast<XLEN>( CSR[fcsr] >> 0 & 0b11111111 );
+      // Floating Point flags
+      case fflags:   return BitExtract<0, 5, XLEN>( CSR[fcsr] );
+      case frm:      return BitExtract<5, 3, XLEN>( CSR[fcsr] );
+      case fcsr:     return BitExtract<0, 8, XLEN>( CSR[fcsr] );
 
       // Performance Counters
       case cycle:    return GetPerfCounter<XLEN, Half::Lo, rdcycle  >();
@@ -468,6 +521,7 @@ public:
       case instret:  return GetPerfCounter<XLEN, Half::Lo, rdinstret>();
       case instreth: return GetPerfCounter<XLEN, Half::Hi, rdinstret>();
 
+      // Default behavior is to read it as an ordinary register with no side effects
       default:       return static_cast<XLEN>( CSR.at( csr ) );
     }
     // clang-format on
@@ -476,18 +530,35 @@ public:
   /// Set a CSR register
   template<typename XLEN>
   bool SetCSR( uint16_t csr, XLEN val ) {
+
     // Read-only CSRs cannot be written to
     if( csr >= 0xc00 && csr < 0xe00 )
       return false;
 
+    // If a custom setter exists, use it
+    auto setter = GetCSRSetter( make_dependent<XLEN>( csr ) );
+    if( setter )
+      return setter( csr, val );
+
+    // clang-format off
     switch( csr ) {
-    case fflags: CSR[fcsr] = ( CSR[fcsr] & ~uint64_t{ 0b00011111 } ) | ( val & 0b00011111 ); break;
-    case frm: CSR[fcsr] = ( CSR[fcsr] & ~uint64_t{ 0b11100000 } ) | ( val & 0b00000111 ) << 5; break;
-    case fcsr: CSR[fcsr] = ( CSR[fcsr] & ~uint64_t{ 0b11111111 } ) | ( val & 0b11111111 ); break;
-    default: CSR.at( csr ) = val;
+      // Floating Point flags
+      case fflags: BitDeposit<0, 5>(CSR[fcsr], val); break;
+      case frm:    BitDeposit<5, 3>(CSR[fcsr], val); break;
+      case fcsr:   BitDeposit<0, 8>(CSR[fcsr], val); break;
+
+      // Default behavior is to write to it as an ordinary register
+      default:     CSR.at( csr ) = val;
     }
+    // clang-format on
     return true;
   }
+
+private:
+  std::array<uint64_t, CSR_LIMIT>                                         CSR{};     ///< RegCSR: CSR registers
+  std::unordered_map<uint16_t, std::function<uint64_t( uint16_t )>>       Getter{};  ///< RevCSR: CSR Getters
+  std::unordered_map<uint16_t, std::function<bool( uint16_t, uint64_t )>> Setter{};  ///< RevCSR: CSR Setters
+
 };  // class RevCSR
 
 }  // namespace SST::RevCPU

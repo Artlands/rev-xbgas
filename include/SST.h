@@ -1,7 +1,7 @@
 //
 // _SST_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -17,6 +17,14 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wsuggest-override"
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+
+#if defined( __GNUC__ ) && !defined( __clang__ )
+#pragma GCC diagnostic ignored "-Wsuggest-final-methods"
+#pragma GCC diagnostic ignored "-Wsuggest-final-types"
+#endif
 
 // The #include order is important, so we prevent clang-format from reordering
 // clang-format off

@@ -1,7 +1,7 @@
 //
 // _RevRmtMemCtrl_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -1412,7 +1412,7 @@ bool RevBasicRmtMemCtrl::checkRangeOverlap( const std::vector<std::pair<uint64_t
 uint32_t RevBasicRmtMemCtrl::findDest( uint64_t Nmspace ) {
   auto it = nmspaceLB.find( Nmspace );
   if( it == nmspaceLB.end() )
-    return -1;
+    return static_cast<uint32_t>( -1 );
   else
     return it->second;
 }

@@ -1,7 +1,7 @@
 //
 // _RevThread_cc_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -17,7 +17,7 @@ std::ostream& operator<<( std::ostream& os, const RevThread& Thread ) {
   os << "\n";
 
   // Calculate total width of the table
-  int tableWidth = 6 /*Reg*/ + 7 /*Alias*/ + 16 /*Value*/ + 23 /*Info*/ + 9 /*Separators*/;
+  size_t tableWidth = 6 /*Reg*/ + 7 /*Alias*/ + 16 /*Value*/ + 23 /*Info*/ + 9 /*Separators*/;
 
   // Print a top border
   os << "|" << std::string( tableWidth - 1, '=' ) << "|" << '\n';

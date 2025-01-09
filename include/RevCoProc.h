@@ -1,7 +1,7 @@
 //
 // _RevCoProc_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -63,12 +63,11 @@ public:
   virtual bool sendRawData( std::vector<uint8_t> Data ) { return true; }
 
   /// RevCoProc: retrieve raw data from the coprocessor
-  virtual const std::vector<uint8_t> getRawData() {
+  virtual std::vector<uint8_t> getRawData() {
     output->fatal( CALL_INFO, -1, "Error : no override method defined for getRawData()\n" );
 
     // inserting code to quiesce warnings
-    std::vector<uint8_t> D;
-    return D;
+    return {};
   }
 
   // --------------------
@@ -102,7 +101,7 @@ protected:
 // ----------------------------------------
 // RevSimpleCoProc
 // ----------------------------------------
-class RevSimpleCoProc : public RevCoProc {
+class RevSimpleCoProc final : public RevCoProc {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
     RevSimpleCoProc,
@@ -130,7 +129,7 @@ public:
   );
 
   // Enum for referencing statistics
-  enum CoProcStats {
+  enum class CoProcStats {
     InstRetired = 0,
   };
 
@@ -138,30 +137,30 @@ public:
   RevSimpleCoProc( ComponentId_t id, Params& params, RevCore* parent );
 
   /// RevSimpleCoProc: destructor
-  virtual ~RevSimpleCoProc()                           = default;
+  ~RevSimpleCoProc() final                             = default;
 
   /// RevSimpleCoProc: disallow copying and assignment
   RevSimpleCoProc( const RevSimpleCoProc& )            = delete;
   RevSimpleCoProc& operator=( const RevSimpleCoProc& ) = delete;
 
-  /// RevSimpleCoProc: clock tick function - currently not registeres with SST, called by RevCPU
-  virtual bool ClockTick( SST::Cycle_t cycle );
+  /// RevSimpleCoProc: clock tick function - currently not registered with SST, called by RevCPU
+  bool ClockTick( SST::Cycle_t cycle ) final;
 
   void registerStats();
 
   /// RevSimpleCoProc: Enqueue Inst into the InstQ and return
-  virtual bool IssueInst( const RevFeature* F, RevRegFile* R, RevMem* M, uint32_t Inst );
+  bool IssueInst( const RevFeature* F, RevRegFile* R, RevMem* M, uint32_t Inst ) final;
 
   /// RevSimpleCoProc: Reset the co-processor by emmptying the InstQ
-  virtual bool Reset();
+  bool Reset() final;
 
-  /// RevSimpleCoProv: Called when the attached RevCore completes simulation. Could be used to
+  /// RevSimpleCoProc: Called when the attached RevCore completes simulation. Could be used to
   ///                   also signal to SST that the co-processor is done if ClockTick is registered
   ///                   to SSTCore vs. being driven by RevCPU
-  virtual bool Teardown() { return Reset(); };
+  bool Teardown() final { return Reset(); };
 
   /// RevSimpleCoProc: Returns true if instruction queue is empty
-  virtual bool IsDone() { return InstQ.empty(); }
+  bool IsDone() final { return InstQ.empty(); }
 
 private:
   struct RevCoProcInst {

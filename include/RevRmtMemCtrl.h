@@ -1,7 +1,7 @@
 //
 // _RevRmtMemCtrl_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -227,7 +227,7 @@ class RevRmtMemCtrl : public SST::SubComponent {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT_API( SST::RevCPU::RevRmtMemCtrl )
 
-  SST_ELI_DOCUMENT_PARAMS( { "verbose", "Set the verbosity of output for the memory controller", "0" } )
+  SST_ELI_DOCUMENT_PARAMS( { "verbose", "Set the verbosity of output for the remote memory controller", "0" } )
 
   /// RevRmtMemCtrl: constructor
   RevRmtMemCtrl( ComponentId_t id, const Params& params );
@@ -235,35 +235,33 @@ public:
   /// RevRmtMemCtrl: destructor
   virtual ~RevRmtMemCtrl();
 
+  /// RevRmtMemCtrl: disallow copying and assignment
+  RevRmtMemCtrl( const RevRmtMemCtrl& )            = delete;
+  RevRmtMemCtrl& operator=( const RevRmtMemCtrl& ) = delete;
+
   /// RevRmtMemCtrl: initialization function
-  virtual void init( unsigned int phase ) = 0;
+  void init( uint32_t phase ) override             = 0;
 
   /// RevRmtMemCtrl: setup function
-  virtual void setup()                    = 0;
+  void setup() override                            = 0;
 
   /// RevRmtMemCtrl: finish function
-  virtual void finish()                   = 0;
-
-  /// RevRmtMemCtrl: clock tick function
-  virtual bool clockTick( Cycle_t cycle ) = 0;
+  void finish() override                           = 0;
 
   /// RevRmtMemCtrl: get PE id
-  virtual unsigned getPEID()              = 0;
+  virtual unsigned getPEID()                       = 0;
 
   /// RevRmtMemCtrl: get the number of PEs
-  virtual unsigned getNumPEs()            = 0;
+  virtual unsigned getNumPEs()                     = 0;
 
   /// RevRmtMemCtrl: check is remote memory operation is done
-  virtual bool isDone()                   = 0;
+  virtual bool isDone()                            = 0;
 
   // RevRmtMemCtrl: determines if outstanding requests exist
-  virtual uint64_t getTotalRqsts()        = 0;
+  virtual uint64_t getTotalRqsts()                 = 0;
 
   /// RevRmtMemCtrl: set the local memory object
-  virtual void setMem( RevMem* mem )      = 0;
-
-  // /// RevRmtMemCtrl: set the xBGAS NIC interface
-  // virtual void setNic(xbgasNicAPI *Nic) = 0;
+  virtual void setMem( RevMem* mem )               = 0;
 
   /// RevRmtMemCtrl: send a remote memory read request
   virtual bool sendRmtReadRqst(
@@ -376,7 +374,7 @@ protected:
 // ----------------------------------------
 // RevBasicRmtMemCtrl
 // ----------------------------------------
-class RevBasicRmtMemCtrl : public RevRmtMemCtrl {
+class RevBasicRmtMemCtrl final : public RevRmtMemCtrl {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
     RevBasicRmtMemCtrl,
@@ -445,8 +443,12 @@ public:
   /// RevBasicRmtMemCtrl: destructor
   ~RevBasicRmtMemCtrl();
 
+  /// RevBasicRmtMemCtrl: disallow copying and assignment
+  RevBasicRmtMemCtrl( const RevBasicRmtMemCtrl& )            = delete;
+  RevBasicRmtMemCtrl& operator=( const RevBasicRmtMemCtrl& ) = delete;
+
   /// RevBasicRmtMemCtrl: initialization function
-  void init( unsigned int phase ) override;
+  void init( uint32_t phase ) override;
 
   /// RevBasicRmtMemCtrl: setup function
   void setup() override;
@@ -455,25 +457,22 @@ public:
   void finish() override;
 
   /// RevBasicRmtMemCtrl: clock tick function
-  bool clockTick( Cycle_t cycle ) override;
+  bool clockTick( Cycle_t cycle );
 
   /// RevBasicRmtMemCtrl: get PE id
-  unsigned getPEID() { return myPEid; };
+  unsigned getPEID() override { return myPEid; }
 
   /// RevBasicRmtMemCtrl: get the number of PEs
-  unsigned getNumPEs() { return numPEs; };
+  unsigned getNumPEs() override { return numPEs; }
 
   /// RevBasicRmtMemCtrl: check is remote memory operation is done
   bool isDone() override;
 
   // RevBasicRmtMemCtrl: determines if outstanding requests exist
-  uint64_t getTotalRqsts() { return num_read_rqst + num_write_rqst + num_read_lock_rqst + num_write_unlock_rqst; };
-
-  /// RevBasicRmtMemCtrl: xBGAS event processing handler
-  // void processEvent( xbgasNicEvent *ev );
+  uint64_t getTotalRqsts() override { return num_read_rqst + num_write_rqst + num_read_lock_rqst + num_write_unlock_rqst; };
 
   /// RevBasicRmtMemCtrl: set the local memory object
-  void setMem( RevMem* mem ) { Mem = mem; };
+  void setMem( RevMem* mem ) override { Mem = mem; };
 
   /// RevBasicRmtMemCtrl: remote memory event processing handler
   void rmtMemEventHandler( Event* ev );
@@ -581,24 +580,6 @@ public:
 
   /// RevBasicRmtMemCtrl: check if a range overlaps with any LR operations
   bool checkRangeOverlap( const std::vector<std::pair<uint64_t, size_t>>& RmtLRSC, uint64_t Addr, size_t Size ) override;
-
-  // protected:
-  //   class RevRmtMemHandlers : public Event::HandlerBase {
-  //   public:
-  //     friend class RevBasicRmtMemCtrl;
-
-  //     /// RevRmtMemHandlers: constructor
-  //     RevRmtMemHandlers( RevBasicRmtMemCtrl* Ctrl, SST::Output* Output );
-
-  //     /// RevRmtMemHandlers: destructor
-  //     virtual ~RevRmtMemHandlers();
-
-  //     /// RevRmtMemHandlers: handle remote memory operation events
-  //     virtual void handle(xbgasNicEvent* ev);
-
-  //   private:
-  //     RevBasicRmtMemCtrl* Ctrl;   ///< RevRmtMemHandlers: pointer to the parent controller
-  //   }; // class RevRmtMemHandlers
 
 private:
   /// RevBasicRmtMemCtrl: process the next memory request

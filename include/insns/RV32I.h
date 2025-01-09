@@ -1,7 +1,7 @@
 //
 // _RV32I_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -35,20 +35,20 @@ class RV32I : public RevExt {
 
   static bool auipc( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto ui = static_cast<int32_t>( Inst.imm << 12 );
-    R->SetX( Inst.rd, ui + R->GetPC() );
+    R->SetX( Inst.rd, uint64_t( ui ) + R->GetPC() );
     R->AdvancePC( Inst );
     return true;
   }
 
   static bool jal( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     R->SetX( Inst.rd, R->GetPC() + Inst.instSize );
-    R->SetPC( R->GetPC() + Inst.ImmSignExt( 21 ) );
+    R->SetPC( R->GetPC() + uint64_t( Inst.ImmSignExt( 21 ) ) );
     return true;
   }
 
   static bool jalr( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto ret = R->GetPC() + Inst.instSize;
-    R->SetPC( ( R->GetX<uint64_t>( Inst.rs1 ) + Inst.ImmSignExt( 12 ) ) & -2 );
+    R->SetPC( ( R->GetX<uint64_t>( Inst.rs1 ) + uint64_t( Inst.ImmSignExt( 12 ) ) ) & ~uint64_t{ 1 } );
     R->SetX( Inst.rd, ret );
     return true;
   }

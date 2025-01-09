@@ -1,7 +1,7 @@
 //
 // _RevFeature_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -48,9 +48,10 @@ enum RevFeatureType : uint32_t {
   RV_XBGAS    = 1 << 22,  ///< RevFeatureType: xBGAS-extension
 };
 
-struct RevFeature {
+class RevFeature {
+public:
   /// RevFeature: standard constructor
-  RevFeature( std::string Machine, SST::Output* Output, unsigned Min, unsigned Max, unsigned Id );
+  RevFeature( std::string Machine, SST::Output* Output, uint32_t Min, uint32_t Max, uint32_t Id );
 
   /// RevFeature: standard destructor
   ~RevFeature()                              = default;
@@ -98,17 +99,17 @@ struct RevFeature {
   uint16_t GetHartToExecID() const { return HartToExecID; }
 
   /// SetHartToExecID: Set the current executing Hart
-  void SetHartToExecID( unsigned hart ) { HartToExecID = hart; }
+  void SetHartToExecID( uint32_t hart ) { HartToExecID = hart; }
 
 private:
   const std::string  machine;                 ///< RevFeature: feature string
   SST::Output* const output;                  ///< RevFeature: output handler
-  const unsigned     MinCost;                 ///< RevFeature: min memory cost
-  const unsigned     MaxCost;                 ///< RevFeature: max memory cost
-  const unsigned     ProcID;                  ///< RevFeature: RISC-V Proc ID
-  unsigned           HartToExecID{};          ///< RevFeature: The current executing Hart on RevCore
+  const uint32_t     MinCost;                 ///< RevFeature: min memory cost
+  const uint32_t     MaxCost;                 ///< RevFeature: max memory cost
+  const uint32_t     ProcID;                  ///< RevFeature: RISC-V Proc ID
+  uint32_t           HartToExecID{};          ///< RevFeature: The current executing Hart on RevCore
   RevFeatureType     features{ RV_UNKNOWN };  ///< RevFeature: feature elements
-  unsigned           xlen{};                  ///< RevFeature: RISC-V Xlen
+  uint32_t           xlen{};                  ///< RevFeature: RISC-V Xlen
 
   /// ParseMachineModel: parse the machine model string
   bool ParseMachineModel();

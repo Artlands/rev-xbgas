@@ -1,7 +1,7 @@
 //
 // _RevHart_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -20,7 +20,7 @@ namespace SST::RevCPU {
 
 class RevHart {
   ///< RevHart: Id for the Hart (0,1,2,3,etc)
-  unsigned ID{};
+  uint32_t ID{};
 
   ///< RevHart: State management object when a Hart is executing a system call
   EcallState Ecall{};
@@ -47,7 +47,7 @@ class RevHart {
 public:
   ///< RevHart: Constructor
   RevHart(
-    unsigned                                                             ID,
+    uint32_t                                                             ID,
     const std::shared_ptr<std::unordered_multimap<uint64_t, MemReq>>&    LSQueue,
     const std::shared_ptr<std::unordered_multimap<uint64_t, RmtMemReq>>& RmtLSQueue,
     std::function<void( const MemReq& )>                                 MarkLoadCompleteFunc,

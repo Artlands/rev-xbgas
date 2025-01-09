@@ -2,7 +2,7 @@
 #
 # scripts/slurm/build-llvm12-sst14.0.0.sh
 #
-# Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+# Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 # All Rights Reserved
 # contact@tactcomplabs.com
 #
@@ -35,7 +35,7 @@ cd build || exit
 rm -Rf ./*
 
 #-- Stage 3: initiate the build
-cmake -DBUILD_ASM_TESTING=ON -DCMAKE_BUILD_TYPE=Debug -DRVCC=${RVCC} ../
+cmake -DCMAKE_BUILD_TYPE=Debug -DRVCC=${RVCC} ../
 make clean
 make uninstall
 make -j

@@ -1,7 +1,7 @@
 //
 // _RV32X_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -45,21 +45,21 @@ class RV32X : public RevExt {
   // xBGAS register operations
   static bool eaddi( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto rs1 = R->GetE<uint64_t>( Inst.rs1 );
-    R->SetX( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
+    R->SetX( Inst.rd, rs1 + uint64_t( Inst.ImmSignExt( 12 ) ) );
     R->AdvancePC( Inst );
     return true;
   }
 
   static bool eaddie( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto rs1 = R->GetX<uint64_t>( Inst.rs1 );
-    R->SetE( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
+    R->SetE( Inst.rd, rs1 + uint64_t( Inst.ImmSignExt( 12 ) ) );
     R->AdvancePC( Inst );
     return true;
   }
 
   static bool eaddix( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
     auto rs1 = R->GetX<uint64_t>( Inst.rs1 );
-    R->SetE( Inst.rd, rs1 + Inst.ImmSignExt( 12 ) );
+    R->SetE( Inst.rd, rs1 + uint64_t( Inst.ImmSignExt( 12 ) ) );
     R->AdvancePC( Inst );
     return true;
   }

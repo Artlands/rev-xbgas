@@ -1,7 +1,7 @@
 //
 // _Rev_Common_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -11,6 +11,7 @@
 #ifndef __REV_COMMON__
 #define __REV_COMMON__
 
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -43,42 +44,72 @@ namespace SST::RevCPU {
 /// Safe non-narrowing cast of enum to integer type
 /// C++17 allows non-narrowing cast of integer to scoped enum, but not the reverse
 template<typename INT, typename ENUM, typename = decltype( INT{ std::declval<std::underlying_type_t<ENUM>>() } )>
-inline constexpr std::enable_if_t<std::is_integral_v<INT> && std::is_enum_v<ENUM>, INT> safe_static_cast( ENUM e ) {
+constexpr std::enable_if_t<std::is_integral_v<INT> && std::is_enum_v<ENUM>, INT> safe_static_cast( ENUM e ) {
   return static_cast<INT>( e );
 }
 
 /// Allow non-narrowing int->int cast with enum_int_cast
 template<typename INT, typename ENUM, typename = decltype( INT{ std::declval<ENUM>() } )>
-inline constexpr std::enable_if_t<std::is_integral_v<INT> && std::is_integral_v<ENUM>, INT> safe_static_cast( ENUM e ) {
+constexpr std::enable_if_t<std::is_integral_v<INT> && std::is_integral_v<ENUM>, INT> safe_static_cast( ENUM e ) {
   return static_cast<INT>( e );
+}
+
+/// Make an expression dependent on arbitrary template type parameters.
+/// This has the effect of lazy evaluation of an expression until a template containing it is instantiated.
+/// It can be used to wrap an incomplete class type which will be completed by template instantiation time.
+template<typename..., typename T>
+constexpr T&& make_dependent( T&& x ) {
+  return std::forward<T>( x );
 }
 
 /// Zero-extend value of bits size
 template<typename T>
-inline constexpr auto ZeroExt( T val, size_t bits ) {
-  return static_cast<std::make_unsigned_t<T>>( val ) & ( ( std::make_unsigned_t<T>( 1 ) << bits ) - 1 );
+constexpr auto ZeroExt( T val, int bits ) {
+  using UT = std::make_unsigned_t<T>;
+  return UT( val & ~( UT( ~UT{} ) << bits ) );
 }
 
 /// Sign-extend value of bits size
 template<typename T>
-constexpr auto SignExt( T val, size_t bits ) {
+constexpr auto SignExt( T val, int bits ) {
   auto signbit = std::make_unsigned_t<T>{ 1 } << ( bits - 1 );
-  return static_cast<std::make_signed_t<T>>( ( ZeroExt( val, bits ) ^ signbit ) - signbit );
+  return std::make_signed_t<T>( ( ZeroExt( val, bits ) ^ signbit ) - signbit );
 }
 
 /// Base-2 logarithm of integers
 template<typename T>
-inline constexpr int lg( T x ) {
+constexpr int lg( T x ) {
   static_assert( std::is_integral_v<T> );
-
   // We select the __builtin_clz which takes integers no smaller than x
   if constexpr( sizeof( x ) <= sizeof( int ) ) {
-    return x ? 8 * sizeof( int ) - 1 - __builtin_clz( x ) : -1;
+    return x ? int{ 8 * sizeof( int ) - 1 } - __builtin_clz( x ) : INT_MIN;
   } else if constexpr( sizeof( x ) <= sizeof( long ) ) {
-    return x ? 8 * sizeof( long ) - 1 - __builtin_clzl( x ) : -1;
+    return x ? int{ 8 * sizeof( long ) - 1 } - __builtin_clzl( x ) : INT_MIN;
   } else {
-    return x ? 8 * sizeof( long long ) - 1 - __builtin_clzll( x ) : -1;
+    return x ? int{ 8 * sizeof( long long ) - 1 } - __builtin_clzll( x ) : INT_MIN;
   }
+}
+
+/// Bit extraction of (pos+width-1 : pos) into a signed or unsigned type
+template<int pos, int width, typename T>
+constexpr auto BitExtract( T x ) {
+  if constexpr( std::is_signed_v<T> )
+    return SignExt( x >> pos, width );
+  else
+    return ZeroExt( x >> pos, width );
+}
+
+/// Bit deposit of a value into (pos+width-1 : pos)
+template<int pos, int width, typename T, typename U>
+constexpr T& BitDeposit( T& x, U val ) {
+  auto mask = ~std::make_unsigned_t<T>( ( std::make_unsigned_t<T>( ~std::make_unsigned_t<T>{} ) << width ) << pos );
+  return x  = ( x & ~mask ) | ( std::make_unsigned_t<T>( val ) << pos & mask );
+}
+
+/// Bit shift of a value by a positive (left) or negative (right) shift amount
+template<typename T>
+constexpr auto BitShift( T x, int shift ) {
+  return shift <= 0 ? T( x >> -shift ) : T( std::make_unsigned_t<T>( x ) << shift );
 }
 
 enum class RevRegClass : uint8_t {  ///< Rev CPU Register Classes
@@ -87,6 +118,7 @@ enum class RevRegClass : uint8_t {  ///< Rev CPU Register Classes
   RegGPR     = 2,                   ///< RevRegClass: GPR reg file
   RegCSR     = 3,                   ///< RevRegClass: CSR reg file
   RegFLOAT   = 4,                   ///< RevRegClass: Float register file
+  RegVEC     = 5,                   ///< RevRegClass: Vector register file
 };
 
 enum class MemOp : uint8_t {
@@ -124,7 +156,7 @@ enum class RmtMemOp : uint8_t {
 std::ostream& operator<<( std::ostream& os, MemOp op );
 
 template<typename T>
-inline constexpr uint64_t LSQHash( T DestReg, RevRegClass RegType, unsigned Hart ) {
+constexpr uint64_t LSQHash( T DestReg, RevRegClass RegType, unsigned Hart ) {
   return static_cast<uint64_t>( RegType ) << ( 16 + 8 ) | static_cast<uint64_t>( DestReg ) << 16 | Hart;
 }
 

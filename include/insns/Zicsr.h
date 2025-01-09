@@ -1,33 +1,31 @@
 //
 // _Zicsr_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
 // See LICENSE in the top level directory for licensing details
 //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// A note about the separation of scopes in include/insns/Zicsr.h and
-// include/RevCSR.h:
+// A note about the separation of scopes in include/insns/Zicsr.h and include/RevCSR.h:
 //
-// Zicsr.h: Decode and execute one of only 6 CSR instructions (csrrw, csrrs,
-// csrrc, csrrwi, csrrsi, csrrci). Do not enable or disable certain CSR
-// registers, or implement the semantics of particular CSR registers here.
-// All CSR instructions with a valid encoding are valid as far as Zicsr.h is
-// concerned. The particular CSR register accessed in a CSR instruction is
-// secondary to the scope of Zicsr.h. Certain pseudoinstructions like RDTIME or
-// FRFLAGS are listed separately in Zicsr.h only for user-friendly disassembly,
-// not for enabling, disabling or implementing them.
+// Zicsr.h: Decode and execute one of only 6 CSR instructions (csrrw, csrrs, csrrc, csrrwi, csrrsi, csrrci). Do not enable or
+// disable certain CSR registers, or implement the semantics of particular CSR registers here. All CSR instructions with a valid
+// encoding are valid as far as Zicsr.h is concerned. The particular CSR register accessed in a CSR instruction is secondary to the
+// scope of Zicsr.h. Certain pseudoinstructions like RDTIME or FRFLAGS are listed separately in Zicsr.h only for user-friendly
+// disassembly, not for enabling, disabling or implementing them.
 //
-// RevCSR.h: GetCSR() and SetCSR() are used to get and set specific CSR
-// registers in the register file, regardless of how we arrive here. If a
-// particular CSR register is disabled because of CPU extensions present, or if
-// a particular CSR register does not apply to it (such as RDTIMEH on RV64),
-// then raise an invalid instruction or other exception here.
+// RevCSR.h: GetCSR() and SetCSR() are used to get and set specific CSR registers in the register file, regardless of how we arrive
+// here. If a particular CSR register is disabled because of CPU extensions present, or if a particular CSR register does not apply
+// to it (such as RDTIMEH on RV64), then raise an invalid instruction or other exception here.
 //
-////////////////////////////////////////////////////////////////////////////////
+// DO NOT enable/disable CSR registers in this file, or make them get decoded by a coprocessor instead of by the tables in here.
+// These 6 instructions are the same for any RISC-V processor with Zicsr. The semantics of specific CSR registers and whether they
+// are supported should not be handled here, but rather in RevCSR.h and its registered SetCSRGetter() and SetCSRSetter().
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifndef _SST_REVCPU_ZICSR_H_
 #define _SST_REVCPU_ZICSR_H_
@@ -42,14 +40,21 @@ class Zicsr : public RevExt {
   enum class CSROp { Write, Set, Clear };
 
   /// Modify a CSR Register according to CSRRW, CSRRS, or CSRRC
-  // Because CSR has a 32/64-bit width, this function is templatized
+  // Because CSR has a 32/64-bit width depending on XLEN, this function is templatized.
+  //
+  // Note: This function and its functionality is the same for ALL CSR registers, and particular CSR registers should not be
+  // distinguished or enabled/disabled here. That should be done in RevCSR.h. Every CSR register, regardless of its functionality
+  // in certain extensions, always has 6 atomic instructions which operate on it, which are composed of an optional read, modify,
+  // and/or write of the CSR register. That sequence of read/modify/write is the same for ALL CSR registers across ALL extensions,
+  // whether implemented in the processor or in a coprocessor, and it is composed of calls to GetCSR() and/or SetCSR() which are
+  // implemented here.
   template<typename XLEN, OpKind OPKIND, CSROp OP>
   static bool ModCSRImpl( RevRegFile* R, const RevInst& Inst ) {
     static_assert( std::is_unsigned_v<XLEN>, "XLEN must be an unsigned type" );
 
     XLEN old = 0;
 
-    // CSRRW with rd == zero does not read CSR
+    // CSRRW with rd == zero definitionally does not read CSR, which might have side effects
     if( OP != CSROp::Write || Inst.rd != 0 ) {
       old = R->GetCSR<XLEN>( Inst.imm );
     }

@@ -1,7 +1,7 @@
 //
 // _RevOpts_cc_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -12,10 +12,10 @@
 
 namespace SST::RevCPU {
 
-RevOpts::RevOpts( unsigned NumCores, unsigned NumHarts, const int Verbosity )
+RevOpts::RevOpts( uint32_t NumCores, uint32_t NumHarts, const int Verbosity )
   : numCores( NumCores ), numHarts( NumHarts ), verbosity( Verbosity ) {
 
-  std::pair<unsigned, unsigned> InitialPair;
+  std::pair<uint32_t, uint32_t> InitialPair;
   InitialPair.first  = 0;
   InitialPair.second = 10;
 
@@ -26,12 +26,12 @@ RevOpts::RevOpts( unsigned NumCores, unsigned NumHarts, const int Verbosity )
   // -- table = internal
   // -- memCosts[core] = 0:10
   // -- prefetch depth = 16
-  for( unsigned i = 0; i < numCores; i++ ) {
-    startAddr.insert( std::pair<unsigned, uint64_t>( i, 0 ) );
-    machine.insert( std::pair<unsigned, std::string>( i, "G" ) );
-    table.insert( std::pair<unsigned, std::string>( i, "_REV_INTERNAL_" ) );
+  for( uint32_t i = 0; i < numCores; i++ ) {
+    startAddr.insert( std::pair<uint32_t, uint64_t>( i, 0 ) );
+    machine.insert( std::pair<uint32_t, std::string>( i, "G" ) );
+    table.insert( std::pair<uint32_t, std::string>( i, "_REV_INTERNAL_" ) );
     memCosts.push_back( InitialPair );
-    prefetchDepth.insert( std::pair<unsigned, unsigned>( i, 16 ) );
+    prefetchDepth.insert( std::pair<uint32_t, uint32_t>( i, 16 ) );
   }
 }
 
@@ -51,18 +51,18 @@ void RevOpts::SetArgs( const SST::Params& params ) {
 
 bool RevOpts::InitPrefetchDepth( const std::vector<std::string>& Depths ) {
   std::vector<std::string> vstr;
-  for( unsigned i = 0; i < Depths.size(); i++ ) {
+  for( uint32_t i = 0; i < Depths.size(); i++ ) {
     std::string s = Depths[i];
     splitStr( s, ":", vstr );
     if( vstr.size() != 2 )
       return false;
 
-    unsigned Core = std::stoul( vstr[0], nullptr, 0 );
+    uint32_t Core = std::stoul( vstr[0], nullptr, 0 );
     if( Core > numCores )
       return false;
 
     std::string::size_type sz          = 0;
-    unsigned               Depth       = std::stoul( vstr[1], &sz, 0 );
+    uint32_t               Depth       = std::stoul( vstr[1], &sz, 0 );
 
     prefetchDepth.find( Core )->second = Depth;
     vstr.clear();
@@ -84,20 +84,20 @@ bool RevOpts::InitStartAddrs( const std::vector<std::string>& StartAddrs ) {
       // set all cores to the target machine model
       std::string::size_type sz   = 0;
       uint64_t               Addr = std::stoull( vstr[1], &sz, 0 );
-      for( unsigned i = 0; i < numCores; i++ ) {
+      for( uint32_t i = 0; i < numCores; i++ ) {
         startAddr.find( i )->second = Addr;
       }
       return true;
     }
   }
 
-  for( unsigned i = 0; i < StartAddrs.size(); i++ ) {
+  for( uint32_t i = 0; i < StartAddrs.size(); i++ ) {
     std::string s = StartAddrs[i];
     splitStr( s, ":", vstr );
     if( vstr.size() != 2 )
       return false;
 
-    unsigned Core = std::stoi( vstr[0], nullptr, 0 );
+    uint32_t Core = std::stoul( vstr[0], nullptr, 0 );
     if( Core > numCores )
       return false;
 
@@ -112,17 +112,17 @@ bool RevOpts::InitStartAddrs( const std::vector<std::string>& StartAddrs ) {
 
 bool RevOpts::InitStartSymbols( const std::vector<std::string>& StartSymbols ) {
   std::vector<std::string> vstr;
-  for( unsigned i = 0; i < StartSymbols.size(); i++ ) {
+  for( uint32_t i = 0; i < StartSymbols.size(); i++ ) {
     std::string s = StartSymbols[i];
     splitStr( s, ":", vstr );
     if( vstr.size() != 2 )
       return false;
 
-    unsigned Core = std::stoi( vstr[0], nullptr, 0 );
+    uint32_t Core = std::stoul( vstr[0], nullptr, 0 );
     if( Core > numCores )
       return false;
 
-    startSym.insert( std::pair<unsigned, std::string>( Core, vstr[1] ) );
+    startSym.insert( std::pair<uint32_t, std::string>( Core, vstr[1] ) );
     vstr.clear();
   }
   return true;
@@ -140,7 +140,7 @@ bool RevOpts::InitMachineModels( const std::vector<std::string>& Machines ) {
 
     if( vstr[0] == "CORES" ) {
       // set all cores to the target machine model
-      for( unsigned i = 0; i < numCores; i++ ) {
+      for( uint32_t i = 0; i < numCores; i++ ) {
         machine.at( i ) = vstr[1];
       }
       return true;
@@ -148,13 +148,13 @@ bool RevOpts::InitMachineModels( const std::vector<std::string>& Machines ) {
   }
 
   // parse individual core configs
-  for( unsigned i = 0; i < Machines.size(); i++ ) {
+  for( uint32_t i = 0; i < Machines.size(); i++ ) {
     std::string s = Machines[i];
     splitStr( s, ":", vstr );
     if( vstr.size() != 2 )
       return false;
 
-    unsigned Core = std::stoi( vstr[0], nullptr, 0 );
+    uint32_t Core = std::stoul( vstr[0], nullptr, 0 );
     if( Core > numCores )
       return false;
 
@@ -166,13 +166,13 @@ bool RevOpts::InitMachineModels( const std::vector<std::string>& Machines ) {
 
 bool RevOpts::InitInstTables( const std::vector<std::string>& InstTables ) {
   std::vector<std::string> vstr;
-  for( unsigned i = 0; i < InstTables.size(); i++ ) {
+  for( uint32_t i = 0; i < InstTables.size(); i++ ) {
     std::string s = InstTables[i];
     splitStr( s, ":", vstr );
     if( vstr.size() != 2 )
       return false;
 
-    unsigned Core = std::stoi( vstr[0], nullptr, 0 );
+    uint32_t Core = std::stoul( vstr[0], nullptr, 0 );
     if( Core > numCores )
       return false;
 
@@ -185,15 +185,15 @@ bool RevOpts::InitInstTables( const std::vector<std::string>& InstTables ) {
 bool RevOpts::InitMemCosts( const std::vector<std::string>& MemCosts ) {
   std::vector<std::string> vstr;
 
-  for( unsigned i = 0; i < MemCosts.size(); i++ ) {
+  for( uint32_t i = 0; i < MemCosts.size(); i++ ) {
     std::string s = MemCosts[i];
     splitStr( s, ":", vstr );
     if( vstr.size() != 3 )
       return false;
 
-    unsigned Core         = std::stoi( vstr[0], nullptr, 0 );
-    unsigned Min          = std::stoi( vstr[1], nullptr, 0 );
-    unsigned Max          = std::stoi( vstr[2], nullptr, 0 );
+    uint32_t Core         = std::stoul( vstr[0], nullptr, 0 );
+    uint32_t Min          = std::stoul( vstr[1], nullptr, 0 );
+    uint32_t Max          = std::stoul( vstr[2], nullptr, 0 );
     memCosts[Core].first  = Min;
     memCosts[Core].second = Max;
     if( ( Min == 0 ) || ( Max == 0 ) ) {
@@ -205,7 +205,7 @@ bool RevOpts::InitMemCosts( const std::vector<std::string>& MemCosts ) {
   return true;
 }
 
-bool RevOpts::GetPrefetchDepth( unsigned Core, unsigned& Depth ) {
+bool RevOpts::GetPrefetchDepth( uint32_t Core, uint32_t& Depth ) {
   if( Core > numCores )
     return false;
 
@@ -216,7 +216,7 @@ bool RevOpts::GetPrefetchDepth( unsigned Core, unsigned& Depth ) {
   return true;
 }
 
-bool RevOpts::GetStartAddr( unsigned Core, uint64_t& StartAddr ) {
+bool RevOpts::GetStartAddr( uint32_t Core, uint64_t& StartAddr ) {
   if( Core > numCores )
     return false;
 
@@ -227,7 +227,7 @@ bool RevOpts::GetStartAddr( unsigned Core, uint64_t& StartAddr ) {
   return true;
 }
 
-bool RevOpts::GetStartSymbol( unsigned Core, std::string& Symbol ) {
+bool RevOpts::GetStartSymbol( uint32_t Core, std::string& Symbol ) {
   if( Core > numCores )
     return false;
 
@@ -238,7 +238,7 @@ bool RevOpts::GetStartSymbol( unsigned Core, std::string& Symbol ) {
   return true;
 }
 
-bool RevOpts::GetMachineModel( unsigned Core, std::string& MachModel ) {
+bool RevOpts::GetMachineModel( uint32_t Core, std::string& MachModel ) {
   if( Core > numCores )
     return false;
 
@@ -246,7 +246,7 @@ bool RevOpts::GetMachineModel( unsigned Core, std::string& MachModel ) {
   return true;
 }
 
-bool RevOpts::GetInstTable( unsigned Core, std::string& Table ) {
+bool RevOpts::GetInstTable( uint32_t Core, std::string& Table ) {
   if( Core > numCores )
     return false;
 
@@ -254,7 +254,7 @@ bool RevOpts::GetInstTable( unsigned Core, std::string& Table ) {
   return true;
 }
 
-bool RevOpts::GetMemCost( unsigned Core, unsigned& Min, unsigned& Max ) {
+bool RevOpts::GetMemCost( uint32_t Core, uint32_t& Min, uint32_t& Max ) {
   if( Core > numCores )
     return false;
 

@@ -1,7 +1,7 @@
 //
 // _RevCPU_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -55,13 +55,13 @@ public:
   RevCPU& operator=( const RevCPU& ) = delete;
 
   /// RevCPU: standard SST component 'setup' function
-  void setup();
+  void setup() final;
 
   /// RevCPU: standard SST component 'finish' function
-  void finish();
+  void finish() final;
 
   /// RevCPU: standard SST component 'init' function
-  void init( unsigned int phase );
+  void init( uint32_t phase ) final;
 
   /// RevCPU: standard SST component clock function
   bool clockTick( SST::Cycle_t currentCycle );
@@ -113,7 +113,7 @@ public:
     { "testIters",       "Number of PAN test messages to send",          "255" },
     { "trcOp",           "Tracer instruction trigger",                   "slli" },
     { "trcLimit",        "Max trace lines per core (0 no limit)",        "0" },
-    { "trcStartCycle",   "Starting tracer cycle (disables trcOp)",       "0" },
+    { "trcStartCycle",   "Starting tracer cycle to use with verbose=5",  "0" },
     { "splash",          "Display the splash logo",                      "0" },
     { "independentCoprocClock",  "Enables each coprocessor to register its own clock handler", "0" },
     { "enable_xbgas",            "Enable xBGAS",                         "0"},
@@ -218,10 +218,10 @@ public:
 private:
   uint32_t numCores{};     ///< RevCPU: number of RISC-V cores
   uint32_t numHarts{};     ///< RevCPU: number of RISC-V cores
-  unsigned msgPerCycle{};  ///< RevCPU: number of messages to send per cycle
-  //  unsigned          RDMAPerCycle{};  ///< RevCPU: number of RDMA messages per cycle to inject into PAN network
-  //  unsigned          testStage{};     ///< RevCPU: controls the PAN Test harness staging
-  //  unsigned          testIters{};     ///< RevCPU: the number of message iters for each PAN Test
+  uint32_t msgPerCycle{};  ///< RevCPU: number of messages to send per cycle
+  //  uint32_t          RDMAPerCycle{};  ///< RevCPU: number of RDMA messages per cycle to inject into PAN network
+  //  uint32_t          testStage{};     ///< RevCPU: controls the PAN Test harness staging
+  //  uint32_t          testIters{};     ///< RevCPU: the number of message iters for each PAN Test
   std::unique_ptr<RevOpts>              Opts;     ///< RevCPU: Simulation options object
   std::unique_ptr<RevMem>               Mem;      ///< RevCPU: RISC-V main memory object
   std::unique_ptr<RevLoader>            Loader;   ///< RevCPU: RISC-V loader
@@ -237,7 +237,7 @@ private:
 
   // Adds Thread with ThreadID to AssignedThreads vector for ProcID
   // - Handles updating LSQueue & MarkLoadComplete function pointers
-  void AssignThread( std::unique_ptr<RevThread>&& ThreadToAssign, unsigned ProcID );
+  void AssignThread( std::unique_ptr<RevThread>&& ThreadToAssign, uint32_t ProcID );
 
   // Checks the status of ALL threads that are currently blocked.
   void CheckBlockedThreads();
@@ -272,7 +272,7 @@ private:
 
   int address{ -1 };  ///< RevCPU: local network address
 
-  unsigned fault_width{};  ///< RevCPU: the width (in bits) for target faults
+  uint32_t fault_width{};  ///< RevCPU: the width (in bits) for target faults
   // int64_t  fault_range{};  ///< RevCPU: the range of cycles to inject the fault
   int64_t FaultCntr{};  ///< RevCPU: the fault counter
 
@@ -311,12 +311,12 @@ private:
   std::list<std::pair<uint8_t, int>>     TrackTags{};  ///< RevCPU: tracks the outgoing messages; pair<Tag, Dest>
   std::vector<std::tuple<uint8_t, uint64_t, uint32_t>> TrackGets{
   };  ///< RevCPU: tracks the outstanding get messages; tuple<Tag, Addr, Sz>
-  std::vector<std::tuple<uint8_t, uint32_t, unsigned, int, uint64_t>> ReadQueue{};  ///< RevCPU: outgoing memory read queue
   ///<         - Tag
   ///<         - Size
   ///<         - Cost
   ///<         - Src
   ///<         - Addr
+  std::vector<std::tuple<uint8_t, uint32_t, uint32_t, int, uint64_t>> ReadQueue{};  ///< RevCPU: outgoing memory read queue
 
   //-------------------------------------------------------
   // -- STATISTICS
@@ -417,7 +417,7 @@ private:
   void HandleALUFault( SST::Cycle_t currentCycle );
 
   /// RevCPU: updates sst statistics on a per core basis
-  void UpdateCoreStatistics( unsigned coreNum );
+  void UpdateCoreStatistics( uint32_t coreNum );
 
 };  // class RevCPU
 

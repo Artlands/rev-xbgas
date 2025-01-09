@@ -2,7 +2,7 @@
 #
 # scripts/slurm/build-gcc11-sst13.1.0.sh
 #
-# Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+# Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 # All Rights Reserved
 # contact@tactcomplabs.com
 #
@@ -25,7 +25,7 @@ export CC=gcc-11
 export CXX=g++-11
 export RVCC=riscv64-unknown-elf-gcc
 
-exec >> "../rev.jenkins.${SLURM_JOB_ID}.out" 2>&1
+exec >> "rev.jenkins.${SLURM_JOB_ID}.out" 2>&1
 sst --version
 sst-info revcpu
 
@@ -35,7 +35,7 @@ cd build || exit
 rm -Rf ./*
 
 #-- Stage 3: initiate the build
-cmake -DBUILD_ASM_TESTING=ON -DCMAKE_BUILD_TYPE=Debug -DRVCC=${RVCC} ../
+cmake -DCMAKE_BUILD_TYPE=Debug -DRVCC=${RVCC} ../
 make clean
 make uninstall
 make -j

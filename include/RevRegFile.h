@@ -1,7 +1,7 @@
 //
 // _RevRegFile_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -134,12 +134,12 @@ enum class RevExceptionCause : int32_t {
 class RevCore;
 class RevTracer;
 
-class RevRegFile : public RevCSR {
+class RevRegFile final : public RevCSR {
   RevCore* const Core;       ///< RevRegFile: Owning core of this register file's hart
   const bool     IsRV64_v;   ///< RevRegFile: Cached copy of Features->IsRV64()
   const bool     HasD_v;     ///< RevRegFile: Cached copy of Features->HasD()
   bool           trigger{};  ///< RevRegFile: Has the instruction been triggered?
-  unsigned       Entry{};    ///< RevRegFile: Instruction entry
+  uint32_t       Entry{};    ///< RevRegFile: Instruction entry
   uint32_t       cost{};     ///< RevRegFile: Cost of the instruction
   RevTracer*     Tracer{};   ///< RegRegFile: Tracer object
 
@@ -205,14 +205,14 @@ public:
   RevRegFile& operator=( const RevRegFile& ) = delete;
 
   /// RevRegFile: standard destructor
-  ~RevRegFile()                              = default;
+  ~RevRegFile() final                        = default;
 
   ///< RevRegFile: Return the core owning this hart
-  RevCore* GetCore() const { return Core; }
+  RevCore* GetCore() const final { return Core; }
 
   // Feature tests
   ///< RevRegFile: Whether it is RV64
-  bool IsRV64() const { return IsRV64_v; }
+  bool IsRV64() const final { return IsRV64_v; }
 
   ///< RevRegFile: Whenter it is D
   bool HasD() const { return HasD_v; }
@@ -233,10 +233,10 @@ public:
   void SetTrigger( bool t ) { trigger = t; }
 
   /// Get the instruction entry
-  unsigned GetEntry() const { return Entry; }
+  uint32_t GetEntry() const { return Entry; }
 
   /// Set the instruction entry
-  void SetEntry( unsigned e ) { Entry = e; }
+  void SetEntry( uint32_t e ) { Entry = e; }
 
   /// Get the Load/Store Queue
   const auto& GetLSQueue() const { return LSQueue; }
@@ -285,9 +285,9 @@ public:
   template<typename T>
   void SetSTVAL( T val ) {
     if( IsRV64() ) {
-      RV64_STVAL = val;
+      RV64_STVAL = uint64_t( val );
     } else {
-      RV32_STVAL = val;
+      RV32_STVAL = uint32_t( val );
     }
   }
 
@@ -348,7 +348,7 @@ public:
   }
 
   /// GetPC: Get the Program Counter
-  uint64_t GetPC() const {
+  uint64_t GetPC() const final {
     if( IsRV64() ) {
       return RV64_PC;
     } else {

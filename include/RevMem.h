@@ -1,7 +1,7 @@
 //
 // _RevMem_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -145,7 +145,7 @@ public:
   void handleEvent( Interfaces::StandardMem::Request* ev ) {}
 
   /// RevMem: handle memory injection
-  void HandleMemFault( unsigned width );
+  void HandleMemFault( uint32_t width );
 
   /// RevMem: get the stack_top address
   uint64_t GetStackTop() { return stacktop; }
@@ -163,10 +163,10 @@ public:
   uint64_t GetStackBottom() { return stacktop - _STACK_SIZE_; }
 
   /// RevMem: initiate a memory fence
-  bool FenceMem( unsigned Hart );
+  bool FenceMem( uint32_t Hart );
 
   /// RevMem: retrieves the cache line size.  Returns 0 if no cache is configured
-  unsigned getLineSize() { return ctrl ? ctrl->getLineSize() : 64; }
+  uint32_t getLineSize() { return ctrl ? ctrl->getLineSize() : 64; }
 
   /// RevMem: Enable tracing of load and store instructions.
   void SetTracer( RevTracer* tracer ) { Tracer = tracer; }
@@ -175,38 +175,38 @@ public:
   // ---- Base Memory Interfaces
   // ----------------------------------------------------
   /// RevMem: write to the target memory location with the target flags
-  bool WriteMem( unsigned Hart, uint64_t Addr, size_t Len, const void* Data, RevFlag flags = RevFlag::F_NONE );
+  bool WriteMem( uint32_t Hart, uint64_t Addr, size_t Len, const void* Data, RevFlag flags = RevFlag::F_NONE );
 
   /// RevMem: read data from the target memory location
-  bool ReadMem( unsigned Hart, uint64_t Addr, size_t Len, void* Target, const MemReq& req, RevFlag flags = RevFlag::F_NONE );
+  bool ReadMem( uint32_t Hart, uint64_t Addr, size_t Len, void* Target, const MemReq& req, RevFlag flags = RevFlag::F_NONE );
 
   /// RevMem: flush a cache line
-  bool FlushLine( unsigned Hart, uint64_t Addr );
+  bool FlushLine( uint32_t Hart, uint64_t Addr );
 
   /// RevMem: invalidate a cache line
-  bool InvLine( unsigned Hart, uint64_t Addr );
+  bool InvLine( uint32_t Hart, uint64_t Addr );
 
   /// RevMem: clean a line
-  bool CleanLine( unsigned Hart, uint64_t Addr );
+  bool CleanLine( uint32_t Hart, uint64_t Addr );
 
   // ----------------------------------------------------
   // ---- Read Memory Interfaces
   // ----------------------------------------------------
   /// RevMem: template read memory interface
   template<typename T>
-  bool ReadVal( unsigned Hart, uint64_t Addr, T* Target, const MemReq& req, RevFlag flags ) {
+  bool ReadVal( uint32_t Hart, uint64_t Addr, T* Target, const MemReq& req, RevFlag flags ) {
     return ReadMem( Hart, Addr, sizeof( T ), Target, req, flags );
   }
 
   ///  RevMem: LOAD RESERVE memory interface
-  void LR( unsigned hart, uint64_t addr, size_t len, void* target, const MemReq& req, RevFlag flags );
+  void LR( uint32_t hart, uint64_t addr, size_t len, void* target, const MemReq& req, RevFlag flags );
 
   ///  RevMem: STORE CONDITIONAL memory interface
-  bool SC( unsigned Hart, uint64_t addr, size_t len, void* data, RevFlag flags );
+  bool SC( uint32_t Hart, uint64_t addr, size_t len, void* data, RevFlag flags );
 
   /// RevMem: template AMO memory interface
   template<typename T>
-  bool AMOVal( unsigned Hart, uint64_t Addr, T* Data, T* Target, const MemReq& req, RevFlag flags ) {
+  bool AMOVal( uint32_t Hart, uint64_t Addr, T* Data, T* Target, const MemReq& req, RevFlag flags ) {
     return AMOMem( Hart, Addr, sizeof( T ), Data, Target, req, flags );
   }
 
@@ -215,7 +215,7 @@ public:
   // ----------------------------------------------------
 
   template<typename T>
-  void Write( unsigned Hart, uint64_t Addr, T Value ) {
+  void Write( uint32_t Hart, uint64_t Addr, T Value ) {
     if( std::is_same_v<T, float> ) {
       memStats.floatsWritten++;
     } else if( std::is_same_v<T, double> ) {
@@ -288,10 +288,10 @@ public:
   // ---- Atomic/Future/LRSC Interfaces
   // ----------------------------------------------------
   /// RevMem: Initiated an AMO request
-  bool AMOMem( unsigned Hart, uint64_t Addr, size_t Len, void* Data, void* Target, const MemReq& req, RevFlag flags );
+  bool AMOMem( uint32_t Hart, uint64_t Addr, size_t Len, void* Data, void* Target, const MemReq& req, RevFlag flags );
 
   /// RevMem: Invalidate Matching LR reservations
-  bool InvalidateLRReservations( unsigned hart, uint64_t addr, size_t len );
+  bool InvalidateLRReservations( uint32_t hart, uint64_t addr, size_t len );
 
   /// RevMem: Initiates a future operation [RV64P only]
   bool SetFuture( uint64_t Addr );
@@ -303,16 +303,16 @@ public:
   bool StatusFuture( uint64_t Addr );
 
   /// RevMem: Randomly assign a memory cost
-  unsigned RandCost( unsigned Min, unsigned Max ) { return RevRand( Min, Max ); }
+  uint32_t RandCost( uint32_t Min, uint32_t Max ) { return RevRand( Min, Max ); }
 
   /// RevMem: Used to access & incremenet the global software PID counter
   uint32_t GetNewThreadPID();
 
   /// RevMem: Used to set the size of the TLBSize
-  void SetTLBSize( unsigned numEntries ) { tlbSize = numEntries; }
+  void SetTLBSize( uint32_t numEntries ) { tlbSize = numEntries; }
 
   /// RevMem: Used to set the size of the TLBSize
-  void SetMaxHeapSize( const unsigned MaxHeapSize ) { maxHeapSize = MaxHeapSize; }
+  void SetMaxHeapSize( uint64_t MaxHeapSize ) { maxHeapSize = MaxHeapSize; }
 
   /// RevMem: Get memSize value set in .py file
   uint64_t GetMemSize() const { return memSize; }
@@ -420,15 +420,15 @@ public:
   void DumpThreadMem( const uint64_t bytesPerRow = 16, std::ostream& outputStream = std::cout );
 
 protected:
-  char* physMem = nullptr;  ///< RevMem: memory container
+  unsigned char* physMem = nullptr;  ///< RevMem: memory container
 
 private:
   RevMemStats memStats{};
   RevMemStats memStatsTotal{};
 
-  unsigned long memSize{};      ///< RevMem: size of the target memory
-  unsigned      tlbSize{};      ///< RevMem: number of entries in the TLB
-  unsigned      maxHeapSize{};  ///< RevMem: maximum size of the heap
+  uint64_t memSize{};      ///< RevMem: size of the target memory
+  uint32_t tlbSize{};      ///< RevMem: number of entries in the TLB
+  uint64_t maxHeapSize{};  ///< RevMem: maximum size of the heap
   std::unordered_map<uint64_t, std::pair<uint64_t, std::list<uint64_t>::iterator>> TLB{};
   std::list<uint64_t> LRUQueue{};  ///< RevMem: List ordered by last access for implementing LRU policy when TLB fills up
   RevOpts*            opts{};      ///< RevMem: options object
@@ -466,7 +466,7 @@ private:
   uint64_t stacktop{};   ///< RevMem: top of the stack
 
   std::vector<uint64_t>                                     FutureRes{};  ///< RevMem: future operation reservations
-  std::unordered_map<unsigned, std::pair<uint64_t, size_t>> LRSC{};       ///< RevMem: load reserve/store conditional set
+  std::unordered_map<uint32_t, std::pair<uint64_t, size_t>> LRSC{};       ///< RevMem: load reserve/store conditional set
 };  // class RevMem
 
 }  // namespace SST::RevCPU

@@ -1,7 +1,7 @@
 //
 // _RevInstTables_h_
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -29,6 +29,9 @@
 #include "insns/RV64I.h"
 #include "insns/RV64M.h"
 #include "insns/RV64P.h"
+#ifdef REVVEC
+#include "insns/RVVec.h"
+#endif
 #include "insns/RV64X.h"
 #include "insns/Xamo.h"
 #include "insns/Xlrsc.h"

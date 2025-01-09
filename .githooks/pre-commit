@@ -159,20 +159,55 @@ is_text_file() {
 
 # Test if argument is a C/C++ file
 is_cxx_file() {
+    local file=$1
     trap "$(shopt -p nocasematch)" RETURN
     shopt -u nocasematch
-    case $1 in
+    case $file in
         *.c|*.h|*.cc) true ;;
-        *.hpp) printf "${RED}$1: Error: C++ header files should have .h extension instead of .hpp${END}\n"
+       *.hpp)  printf "${RED}${file}: Error: C++ header files should have .h extension instead of .hpp${END}\n\n"
                errors=true ;;
-        *.cxx) printf "${RED}$1: Error: C++ source files should have .cc extension instead of .cxx${END}\n"
+        *.cxx) printf "${RED}${file}: Error: C++ source files should have .cc extension instead of .cxx${END}\n\n"
                errors=true ;;
-        *.cpp) printf "${RED}$1: Error: C++ source files should have .cc extension instead of .cpp${END}\n"
+        *.cpp) printf "${RED}${file}: Error: C++ source files should have .cc extension instead of .cpp${END}\n\n"
                errors=true ;;
-        *.C)   printf "${RED}$1: Error: C++ source files should have .cc extension instead of .C${END}\n"
+        *.C)   printf "${RED}${file}: Error: C++ source files should have .cc extension instead of .C${END}\n\n"
                errors=true ;;
         *) false
     esac
+}
+
+
+# Check for redundant C++ directives
+check_override_final() {
+    local file=$1 err
+    if err=$(grep -Hno "^[^/].*\bvirtual\b.*\boverride\b" "$file"); then
+        printf "${err}\n${RED}Error: virtual keyword is redundant with override directive${END}\n\n"
+        errors=true
+    elif err=$(grep -Hno "^[^/].*\bvirtual\b.*\bfinal\b" "$file"); then
+        printf "${err}\n${RED}Error: If final directive is used, virtual should not be specified${END}\n\n"
+        errors=true
+    elif err=$(grep -Hno "^[^/].*\boverride\b.*\bfinal\b" "$file") || err=$(grep -Hno "\bfinal\b.*\boverride\b" "$file"); then
+        printf "${err}\n${RED}Error: If final directive is used, override is redundant${END}\n\n"
+        errors=true
+    fi
+}
+
+# Check for correct magic and filename extensions
+# filename extension mime-type shebang
+check_extension() {
+    local file=$1 ext=$2 mimetype=$3 shebang=$4 instead
+    trap "$(shopt -p nocasematch)" RETURN
+    shopt -u nocasematch
+    if [[ $(file -Lb --mime-type "$1") != "${mimetype}" ]]; then
+        if [[ $file = *$ext ]]; then
+            printf "\n${RED}${file}: Error: Not recognized as ${mimetype}.\n${shebang:+Make sure that shebang ${shebang} is at the top of ${file}.\n}${END}"
+            errors=true
+        fi
+    elif [[ $file != *$ext ]]; then
+        instead=$( if [[ $file = *.* ]]; then echo "instead of .${file##*.}"; fi )
+        printf "\n${RED}${file}: Error: ${mimetype} filenames should have $ext extension ${instead}${END}\n"
+        errors=true
+    fi
 }
 
 reformat_files() {
@@ -195,10 +230,22 @@ reformat_files() {
     for file in "${FILES[@]}"; do
         if [[ -f $file ]] && is_text_file "$file"; then
             # Replace non-ASCII characters with ASCII equivalents
-            iconv -s -f utf-8 -t ascii//TRANSLIT "$file" > "$temp"
+            if ! iconv -s -f utf-8 -t ascii//TRANSLIT "$file" > "$temp"; then
+                cat <<EOF
+${YELLOW}iconv -f utf-8 -t ascii//TRANSLIT "$file" > "$temp"${END}
+EOF
+                iconv -f utf-8 -t ascii//TRANSLIT "$file" > "$temp" || true
+                fold -s -w79 <<EOF
+${RED}Some non-ASCII characters in $file could not be converted into equivalent
+ASCII characters. Please replace non-ASCII characters in $file and try again.${END}
+EOF
+                exit 1
+            fi
+
             detect_change "$file" "$temp" "%s: Converting non-ASCII characters to ASCII equivalents"
 
             # Change the copyright date at the top of any text files
+            perl -e ''
             if perl -pe 'INIT { exit 1 if !-f $ARGV[0] || -B $ARGV[0]; $year = (localtime)[5] + 1900 } s/^([*\/#\/"*[:space:]]*)Copyright\s+(?:\(C\)\s*)?(\d+)(?:\s*-\s*\d+)?(?=\s+Tactical Computing)/qq($1Copyright (C) $2@{[$year != $2 ? "-$year" : ""]})/ie if $. < 10' "$file" > "$temp"; then
                 detect_change "$file" "$temp" "%s: Changing copyright date"
             fi
@@ -208,6 +255,7 @@ reformat_files() {
                 check_clang_format
                 (cd "$REPO" && clang-format) < "$file" > "$temp"
                 detect_change "$file" "$temp" "%s: Reformatting with clang-format according to coding guidelines"
+                check_override_final "$file"
             fi
 
             # Remove trailing whitespace at end of lines
@@ -217,6 +265,13 @@ reformat_files() {
             # Add missing newline at EOF
             awk 1 < "$file" > "$temp"
             detect_change "$file" "$temp" "%s: Adding missing newline at end of file"
+
+            # check filename extensions and magic
+            if [[ $file != **/pre-commit ]]; then
+                check_extension  "$file"  ".sh"  "text/x-shellscript"    "#!/bin/bash"
+                check_extension  "$file"  ".py"  "text/x-script.python"  "#!/usr/bin/env python3"
+                check_extension  "$file"  ".pl"  "text/x-perl"           "#!/usr/bin/perl"
+            fi
 
             # Python files
             if [[ $file = *.py ]]; then
@@ -230,7 +285,7 @@ reformat_files() {
             fi
 
             # Shell scripts
-            if [[ $file = *.sh || $file = .githooks/pre-commit ]]; then
+            if [[ $file = *.sh || $file = **/pre-commit ]]; then
                 if command -v shellcheck >/dev/null 2>&1 && shellcheck -o all -e2148 /dev/null >/dev/null 2>&1; then
                     shellcheck -o all -e 1091,2059,2154,2248,2250,2312 "$file" || errors=true
                 else
