@@ -58,19 +58,6 @@ public:
   /// RevRmtMemOp: overloaded constructor - write
   RevRmtMemOp( unsigned Hart, uint64_t Nmspace, uint64_t DestAddr, size_t Size, RmtMemOp Op, RevFlag Flags, uint8_t* Buffer );
 
-  // /// RevRmtMemOp: overloaded constructor - bulk write
-  // RevRmtMemOp(
-  //   unsigned Hart,
-  //   uint64_t Nmspace,
-  //   uint64_t DestAddr,
-  //   size_t   Size,
-  //   uint32_t Nelem,
-  //   RmtMemOp Op,
-  //   RevFlag  Flags,
-  //   void*    Target,
-  //   uint8_t* Buffer
-  // );
-
   /// RevRmtMemOp: overloaded constructor - AMO
   RevRmtMemOp(
     unsigned Hart, uint64_t Nmspace, uint64_t Addr, size_t Size, RmtMemOp Op, RevFlag Flags, void* Target, uint8_t* Buffer
@@ -111,10 +98,10 @@ public:
   RevFlag getFlags() const { return Flags; }
 
   /// RevRmtMemOp: retrieve the standard set of memory flags for MemEventBase
-  RevFlag getStdFlags() const { return RevFlag{ static_cast<uint32_t>( Flags ) & 0xFFFFFFFF }; }
+  RevFlag getStdFlags() const { return RevFlag{ static_cast<uint32_t>( Flags ) & 0xFFFF }; }
 
   /// RevRmtMemOp: retrieve the flags for MemEventBase without caching enable
-  RevFlag getNonCacheFlags() const { return RevFlag{ static_cast<uint32_t>( Flags ) & 0xFFFFFFFD }; }
+  RevFlag getNonCacheFlags() const { return RevFlag{ static_cast<uint32_t>( Flags ) & 0xFFFD }; }
 
   /// RevRmtMemOp: retrieve the target address
   void* getTarget() const { return Target; }
@@ -262,6 +249,9 @@ public:
 
   /// RevRmtMemCtrl: set the local memory object
   virtual void setMem( RevMem* mem )               = 0;
+
+  /// RevRmtMemCtrl: set the xBGAS request to be cacheable or not
+  virtual void setCacheFlag( bool enableCache )    = 0;
 
   /// RevRmtMemCtrl: send a remote memory read request
   virtual bool sendRmtReadRqst(
@@ -474,6 +464,9 @@ public:
   /// RevBasicRmtMemCtrl: set the local memory object
   void setMem( RevMem* mem ) override { Mem = mem; };
 
+  /// RevBasicRmtMemCtrl: set the xBGAS request to be cacheable or not
+  void setCacheFlag( bool enableCache ) override { cacheable = enableCache; };
+
   /// RevBasicRmtMemCtrl: remote memory event processing handler
   void rmtMemEventHandler( Event* ev );
 
@@ -608,8 +601,9 @@ private:
   void MarkLocalLoadComplete( const MemReq& Req );
 
   // -- private data members;
-  RevMem*                      Mem{};       ///< RevBasicRmtMemCtrl: pointer to the memory object
-  xbgasNicAPI*                 xbgasNic{};  ///< RevBasicRmtMemCtrl: xBGAS NIC interface
+  RevMem*                      Mem{};        ///< RevBasicRmtMemCtrl: pointer to the memory object
+  bool                         cacheable{};  ///< RevBasicRmtMemCtrl: cacheable flag
+  xbgasNicAPI*                 xbgasNic{};   ///< RevBasicRmtMemCtrl: xBGAS NIC interface
   std::map<uint64_t, uint32_t> nmspaceLB{
   };  ///< RevBasicRmtMemCtrl: TODO: track in the LRU policy. namespace lookaside Buffer map; <Namespace, Dest>
   std::vector<SST::Interfaces::SimpleNetwork::nid_t> xbgasHosts{};   ///< RevBasicRmtMemCtrl: xbgas hosts list

@@ -196,6 +196,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params ) : SST::Compon
 
   // See if we should load the xBGAS remote memory controller
   EnableXBGAS      = params.find<bool>( "enable_xbgas", 0 );
+  EnableXBGASCache = params.find<bool>( "enable_xbgas_cache", 0 );
   EnableXBGASStats = params.find<bool>( "enable_xbgas_stats", 0 );
   SharedMemorySize = params.find<unsigned long>( "shared_memory_size", 4096 );
 
@@ -206,6 +207,8 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params ) : SST::Compon
       output.fatal( CALL_INFO, -1, "Error : failed to inintialize the remote memory controller subcomponent\n" );
     // Set memory object for xBGAS
     rmtCtrl->setMem( Mem.get() );
+    // Set the cache flag for remote memory requests
+    rmtCtrl->setCacheFlag( EnableXBGASCache );
     // Set remote memory controller for Mem
     Mem->setRmtMemCtrl( rmtCtrl.get() );
     // Set remote memory controller for MemCtrl

@@ -654,7 +654,7 @@ bool erstore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst
   return true;
 }
 
-// xBGAS remote bulk load template. Not supported in the current implementation.
+// xBGAS remote bulk load template.
 template<typename T>
 bool ebload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   T*   DestReg;
@@ -679,7 +679,7 @@ bool ebload( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst 
   return true;
 }
 
-// xBGAS remote bulk store template. Not supported in the current implementation.
+// xBGAS remote bulk store template.
 template<typename T>
 bool ebstore( const RevFeature* F, RevRegFile* R, RevMem* M, const RevInst& Inst ) {
   T*   DestReg;

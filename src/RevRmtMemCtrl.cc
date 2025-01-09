@@ -927,9 +927,11 @@ bool RevBasicRmtMemCtrl::sendRmtReadRqst(
   if( Size == 0 )
     return true;
   RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, RmtMemOp::READRqst, Flags, Target );
-  // Remote memory operations are not cached
-  // RevFlag TmpFlags = Op->getNonCacheFlags();
-  // Op->setFlags( TmpFlags );
+  // Determine if remote memory operations are cached or not
+  if( !cacheable ) {
+    RevFlag TmpFlags = Op->getNonCacheFlags();
+    Op->setFlags( TmpFlags );
+  }
   Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtReadPending, 1 );
@@ -943,9 +945,11 @@ bool RevBasicRmtMemCtrl::sendRmtBulkReadRqst(
     return true;
 
   RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, DestAddr, Size, Nelem, RmtMemOp::BulkREADRqst, Flags, Target );
-  // Remote memory operations are not cached
-  // RevFlag TmpFlags = Op->getNonCacheFlags();
-  // Op->setFlags( TmpFlags );
+  // Determine if remote memory operations are cached or not
+  if( !cacheable ) {
+    RevFlag TmpFlags = Op->getNonCacheFlags();
+    Op->setFlags( TmpFlags );
+  }
   // Set Target to zero values
 
 #ifdef _XBGAS_RMT_DEBUG_
@@ -969,9 +973,11 @@ bool RevBasicRmtMemCtrl::sendRmtWriteRqst(
   if( Size == 0 )
     return true;
   RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, DestAddr, Size, RmtMemOp::WRITERqst, Flags, Buffer );
-  // Remote memory operations are not cached
-  // RevFlag TmpFlags = Op->getNonCacheFlags();
-  // Op->setFlags( TmpFlags );
+  // Determine if remote memory operations are cached or not
+  if( !cacheable ) {
+    RevFlag TmpFlags = Op->getNonCacheFlags();
+    Op->setFlags( TmpFlags );
+  }
   rqstQ.push_back( Op );
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWritePending, 1 );
   return true;
@@ -1010,9 +1016,11 @@ bool RevBasicRmtMemCtrl::sendRmtReadLockRqst(
   if( Size == 0 )
     return true;
   RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, SrcAddr, Size, RmtMemOp::READLOCKRqst, Flags, Target );
-  // Remote memory operations are not cached
-  // RevFlag TmpFlags = Op->getNonCacheFlags();
-  // Op->setFlags( TmpFlags );
+  // Determine if remote memory operations are cached or not
+  if( !cacheable ) {
+    RevFlag TmpFlags = Op->getNonCacheFlags();
+    Op->setFlags( TmpFlags );
+  }
   Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtReadLockPending, 1 );
@@ -1032,9 +1040,11 @@ bool RevBasicRmtMemCtrl::sendRmtWriteUnLockRqst(
   if( Size == 0 )
     return true;
   RevRmtMemOp* Op = new RevRmtMemOp( Hart, Nmspace, DestAddr, Size, RmtMemOp::WRITEUNLOCKRqst, Flags, Target, Buffer );
-  // Remote memory operations are not cached
-  // RevFlag TmpFlags = Op->getNonCacheFlags();
-  // Op->setFlags( TmpFlags );
+  // Determine if remote memory operations are cached or not
+  if( !cacheable ) {
+    RevFlag TmpFlags = Op->getNonCacheFlags();
+    Op->setFlags( TmpFlags );
+  }
   Op->setRmtMemReq( Req );
   rqstQ.push_back( Op );
   recordStat( RevBasicRmtMemCtrl::RmtMemCtrlStats::RmtWriteUnlockPending, 1 );

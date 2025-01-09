@@ -117,6 +117,7 @@ public:
     { "splash",          "Display the splash logo",                      "0" },
     { "independentCoprocClock",  "Enables each coprocessor to register its own clock handler", "0" },
     { "enable_xbgas",            "Enable xBGAS",                         "0"},
+    { "enable_xbgas_cache",      "Enable xBGAS requests to be cached",   "0"},
     { "enable_xbgas_stats",      "Enable xBGAS statistics",              "0"},
     { "shared_memory_size",     "Shared memory size in bytes",           "4096"},
     )
@@ -291,6 +292,7 @@ private:
   bool DisableCoprocClock{};  ///< RevCPU: Disables manual coproc clocking
 
   bool                           EnableXBGAS{};       ///< RevCPU: Enable xBGAS
+  bool                           EnableXBGASCache{};  ///< RevCPU: Enable xBGAS cache
   bool                           EnableXBGASStats{};  ///< RevCPU: Enable xBGAS statistics
   uint64_t                       SharedMemorySize{};  ///< RevCPU: Shared memory size
   uint64_t                       SharedMemoryBase{};  ///< RevCPU: Shared memory base address
