@@ -3,7 +3,7 @@
  *
  * RISC-V ISA: RV64GX
  *
- * Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+ * Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
  * All Rights Reserved
  * contact@tactcomplabs.com
  *
@@ -12,10 +12,10 @@
  */
 #include "isa_test_macros.h"
 #include "malloc.h"
+#include "printf.h"
 #include "syscalls.h"
 #include <stdbool.h>
 #include <unistd.h>
-#define printf rev_fast_printf
 
 extern int __xbrtime_asm_get_id();
 extern int __xbrtime_asm_get_npes();
@@ -67,7 +67,7 @@ int main( int argc, char** argv ) {
     asm volatile( " ebld %0, %1, %2, %3 \n\t " : "=r"( flag ) : "r"( dest ), "r"( src2 ), "r"( nelem ) );
     if( flag != 0 ) {
       for( int i = 0; i < nelem; i++ ) {
-        printf( "PE %d: dest[%d] = 0x%lx", id, i, dest[i] );
+        printf( "PE %d: dest[%d] = 0x%lx\n", id, i, dest[i] );
         assert( dest[i] == src2[i] );
       }
     }

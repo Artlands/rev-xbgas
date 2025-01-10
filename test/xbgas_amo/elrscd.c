@@ -3,17 +3,17 @@
  *
  * RISC-V ISA: RV64GX
  *
- * Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+ * Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
  * All Rights Reserved
  * contact@tactcomplabs.com
  *
  * See LICENSE in the top level directory for licensing details
  *
  */
+#include "printf.h"
 #include "syscalls.h"
 #include <stdbool.h>
 #include <unistd.h>
-#define printf rev_fast_printf
 
 extern int __xbrtime_asm_get_id();
 extern int __xbrtime_asm_get_npes();
@@ -65,7 +65,7 @@ int main( int argc, char** argv ) {
 
   // Before CAS
   if( id == 0 ) {
-    printf( "Before CAS: PE %d: test_val = 0x%x ", id, test_val );
+    printf( "Before CAS: PE %d: test_val = 0x%x\n", id, test_val );
   }
 
   // Set the remote namespace
@@ -73,13 +73,13 @@ int main( int argc, char** argv ) {
 
   if( id == 1 ) {
     cas_result = atomic_cas( &test_val, expected, desired );
-    printf( "PE %d: cas_result = %d ", id, cas_result );
-    printf( "PE %d: desired = 0x%x ", id, desired );
+    printf( "PE %d: cas_result = %d\n", id, cas_result );
+    printf( "PE %d: desired = 0x%x\n", id, desired );
   } else {
     //Wait for a few cycles
     for( int i = 0; i < 100; i++ ) {
       asm volatile( "" );
     }
-    printf( "After CAS: PE %d: test_val = 0x%x ", id, test_val );
+    printf( "After CAS: PE %d: test_val = 0x%x\n", id, test_val );
   }
 }

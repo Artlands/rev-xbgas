@@ -3,17 +3,17 @@
  *
  * RISC-V ISA: RV64GX
  *
- * Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+ * Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
  * All Rights Reserved
  * contact@tactcomplabs.com
  *
  * See LICENSE in the top level directory for licensing details
  *
  */
+#include "printf.h"
 #include "syscalls.h"
 #include <stdbool.h>
 #include <unistd.h>
-#define printf rev_fast_printf
 
 extern int __xbrtime_asm_get_id();
 extern int __xbrtime_asm_get_npes();
@@ -41,7 +41,7 @@ int main( int argc, char** argv ) {
   }
 
   // Before AMO
-  printf( "Before AMO MinU: PE %d: test_val = 0x%x, ret = 0x%x, val = 0x%x ", id, test_val, ret, val );
+  printf( "Before AMO MinU: PE %d: test_val = 0x%x, ret = 0x%x, val = 0x%x\n", id, test_val, ret, val );
 
   // Set the remote namespace
   asm volatile( " eaddie e13, %0, 0 \n\t " : : "r"( namespace ) );
@@ -52,5 +52,5 @@ int main( int argc, char** argv ) {
   // For id = 0, the ret should be changed to 1 (test_val on PE 1) and test_val should be 0xf0f0 (min(val on PE 1, test_val on PE 0)).
   asm volatile( "eamomin.w %1, %2, %0" : "+A"( test_val ), "+r"( ret ) : "r"( val ) : "memory" );
 
-  printf( "After AMO MinU: PE %d: test_val = 0x%x, ret = 0x%x, val = 0x%x ", id, test_val, ret, val );
+  printf( "After AMO MinU: PE %d: test_val = 0x%x, ret = 0x%x, val = 0x%x\n", id, test_val, ret, val );
 }

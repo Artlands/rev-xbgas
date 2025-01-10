@@ -3,7 +3,7 @@
 #
 # makefile: ex2
 #
-# Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+# Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 # All Rights Reserved
 # contact@tactcomplabs.com
 #
@@ -19,9 +19,11 @@ CC="${RVCC}"
 ARCH=rv64imafdc
 RV_OBJDUMP=riscv64-unknown-elf-objdump
 
+RISCV_GCC_OPTS ?= -DPREALLOCATE=1 -mcmodel=medany -static  -std=gnu17 -O0 -ffast-math -fno-common -fno-builtin-printf -march=$(ARCH) -mabi=lp64d -fsignaling-nans -frounding-math -fno-associative-math
+
 all: $(EXAMPLE).exe
 $(EXAMPLE).exe: $(EXAMPLE).c
-	$(CC) -march=$(ARCH) -O0 -o $(EXAMPLE).exe $(EXAMPLE).c -static
+	$(CC) $(RISCV_GCC_OPTS) -o $@ $^ -static -lm -Wl,-e,main
 clean:
 	rm -Rf $(EXAMPLE).exe
 

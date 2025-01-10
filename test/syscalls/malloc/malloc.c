@@ -1,6 +1,6 @@
 #include "../../../common/syscalls/syscalls.h"
-#include <stdlib.h>
-#define printf rev_fast_printf
+#include "../printf/printf.h"
+#include "malloc.h"
 
 int main() {
   int* array = (int*) malloc( 1 * sizeof( int ) );

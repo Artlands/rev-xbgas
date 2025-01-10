@@ -3,7 +3,7 @@
 #
 # makefile: ex1
 #
-# Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+# Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 # All Rights Reserved
 # contact@tactcomplabs.com
 #
@@ -17,7 +17,7 @@ AS=${RVAS}
 ARCH=rv64imafdc
 RV_OBJDUMP=riscv64-unknown-elf-objdump
 
-INCLUDE = -I../../common/syscalls
+INCLUDE = -I../../common/syscalls -I../syscalls/printf
 
 ISA_SOURCES := $(wildcard *.c)
 ISA_HEADERS := $(wildcard *.h)
