@@ -1,25 +1,19 @@
 // See LICENSE for license details.
 
+#ifndef _PRINTF_H_
+#define _PRINTF_H_
+
+#include "../../../common/syscalls/syscalls.h"
 #include <limits.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-//#include <sys/signal.h>
-//#include "util.h"
-#include "../../../common/syscalls/syscalls.h"
-#include <math.h>
 
-#define SYS_write 64
-
-#undef strcmp
-
-extern volatile uint64_t tohost;
-extern volatile uint64_t fromhost;
-
-#define NUM_COUNTERS 2
-static uintptr_t counters[NUM_COUNTERS];
-static char*     counter_names[NUM_COUNTERS];
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void printstr( const char* s ) {
   ssize_t bytes_written2 = rev_write( STDOUT_FILENO, s, strlen( s ) );
@@ -390,3 +384,11 @@ long atol(const char* str)
   return sign ? -res : res;
 }
 */
+
+#ifdef __cplusplus
+}
+#endif /* extern "C" */
+
+#endif /* _PRINTF_H_ */
+
+/* EOF */

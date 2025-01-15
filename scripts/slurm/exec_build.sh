@@ -14,7 +14,7 @@ USER=$(id -un)
 
 #-- execute the job
 SCRIPT=$1
-SLURM_ID=$(sbatch -N1 --export=ALL "$SCRIPT" | awk '{print $4}')
+SLURM_ID=$(sbatch -N1 --exclusive --export=ALL "$SCRIPT" | awk '{print $4}')
 
 #-- wait for completion
 COMPLETE=$(squeue -u "$USER" | grep "${SLURM_ID}")

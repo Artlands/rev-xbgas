@@ -429,7 +429,7 @@ inline auto negate( T x ) {
 // RISC-V requires INVALID exception when x * y is INVALID even when z = qNaN
 template<typename T>
 inline auto revFMA( T x, T y, T z ) {
-  if( ( !y && std::isinf( x ) ) || ( !x && std::isinf( y ) ) ) {
+  if( ( y == 0 && std::isinf( x ) ) || ( x == 0 && std::isinf( y ) ) ) {
     feraiseexcept( FE_INVALID );
   }
   return std::fma( x, y, z );

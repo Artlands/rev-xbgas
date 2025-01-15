@@ -66,7 +66,7 @@ constexpr T&& make_dependent( T&& x ) {
 template<typename T>
 constexpr auto ZeroExt( T val, int bits ) {
   using UT = std::make_unsigned_t<T>;
-  return UT( val & ~( UT( ~UT{} ) << bits ) );
+  return UT( UT( val ) & UT( ~( UT( ~UT{} ) << bits ) ) );
 }
 
 /// Sign-extend value of bits size

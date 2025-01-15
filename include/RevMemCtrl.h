@@ -43,15 +43,19 @@ using namespace SST::Interfaces;
 // Extended StandardMem::Request::Flag enums
 // ----------------------------------------
 enum class RevFlag : uint32_t {
-  F_NONE         = 0,         /// no special operation
-  F_NONCACHEABLE = 1u << 1,   /// non cacheable
+  F_NONE         = 0,        /// no special operation
+  F_NONCACHEABLE = 1u << 1,  /// non cacheable
+
   F_BOXNAN       = 1u << 16,  /// NaN-box the 32-bit float
   F_SEXT32       = 1u << 17,  /// sign extend the 32bit result
   F_SEXT64       = 1u << 18,  /// sign extend the 64bit result
   F_ZEXT32       = 1u << 19,  /// zero extend the 32bit result
   F_ZEXT64       = 1u << 20,  /// zero extend the 64bit result
+  F_RESP         = F_BOXNAN | F_SEXT32 | F_SEXT64 | F_ZEXT32 | F_ZEXT64,
+
   F_AQ           = 1u << 21,  /// AMO AQ Flag
   F_RL           = 1u << 22,  /// AMO RL Flag
+
   F_AMOADD       = 1u << 23,  /// AMO Add
   F_AMOXOR       = 2u << 23,  /// AMO Xor
   F_AMOAND       = 3u << 23,  /// AMO And
@@ -61,7 +65,8 @@ enum class RevFlag : uint32_t {
   F_AMOMINU      = 7u << 23,  /// AMO Minu
   F_AMOMAXU      = 8u << 23,  /// AMO Maxu
   F_AMOSWAP      = 9u << 23,  /// AMO Swap
-  F_ATOMIC       = 0xf << 23  /// Mask indicating atomic operations F_AMOADD through F_AMOSWAP
+  F_ATOMIC       = F_AMOADD | F_AMOXOR | F_AMOAND | F_AMOOR | F_AMOMIN | F_AMOMAX | F_AMOMINU | F_AMOMAXU | F_AMOSWAP,
+
 };
 
 // Ensure RevFlag is same underlying type as StandardMem::Request::flags_t
@@ -69,7 +74,7 @@ static_assert( std::is_same_v<StandardMem::Request::flags_t, std::underlying_typ
 
 /// RevFlag: determine if the request has certain flags set
 constexpr bool RevFlagHas( RevFlag flag, RevFlag has ) {
-  return ( safe_static_cast<uint32_t>( flag ) & safe_static_cast<uint32_t>( has ) ) != 0;
+  return ( safe_static_cast<uint32_t>( flag ) & safe_static_cast<uint32_t>( has ) ) == safe_static_cast<uint32_t>( has );
 }
 
 /// RevFlag: set certain flags
@@ -78,8 +83,13 @@ constexpr void RevFlagSet( RevFlag& flag, RevFlag set ) {
 }
 
 /// RevFlag: determine if the request is an AMO, and if so, return the operation; otherwise return 0
-constexpr auto RevFlagAtomic( RevFlag flag ) {
-  return safe_static_cast<uint32_t>( flag ) & safe_static_cast<uint32_t>( RevFlag::F_ATOMIC );
+constexpr RevFlag RevFlagAtomic( RevFlag flag ) {
+  return RevFlag{ safe_static_cast<uint32_t>( flag ) & safe_static_cast<uint32_t>( RevFlag::F_ATOMIC ) };
+}
+
+/// RevFlag: determine which response flags are present
+constexpr RevFlag RevFlagResp( RevFlag flag ) {
+  return RevFlag{ safe_static_cast<uint32_t>( flag ) & safe_static_cast<uint32_t>( RevFlag::F_RESP ) };
 }
 
 /// RevFlag: Handle flag response
@@ -668,24 +678,24 @@ private:
   StandardMem*       memIface{};         ///< StandardMem memory interface
   RevStdMemHandlers* stdMemHandlers{};   ///< StandardMem interface response handlers
   bool               hasCache{};         ///< detects whether cache layers are present
-  uint64_t           lineSize{};         ///< cache line size
-  uint64_t           max_loads{};        ///< maximum number of outstanding loads
-  uint64_t           max_stores{};       ///< maximum number of outstanding stores
-  uint64_t           max_flush{};        ///< maximum number of oustanding flush events
-  uint64_t           max_llsc{};         ///< maximum number of outstanding llsc events
-  uint64_t           max_readlock{};     ///< maximum number of oustanding readlock events
-  uint64_t           max_writeunlock{};  ///< maximum number of oustanding writelock events
-  uint64_t           max_custom{};       ///< maximum number of oustanding custom events
-  uint64_t           max_ops{};          ///< maximum number of ops to issue per cycle
+  uint32_t           lineSize{};         ///< cache line size
+  uint32_t           max_loads{};        ///< maximum number of outstanding loads
+  uint32_t           max_stores{};       ///< maximum number of outstanding stores
+  uint32_t           max_flush{};        ///< maximum number of oustanding flush events
+  uint32_t           max_llsc{};         ///< maximum number of outstanding llsc events
+  uint32_t           max_readlock{};     ///< maximum number of oustanding readlock events
+  uint32_t           max_writeunlock{};  ///< maximum number of oustanding writelock events
+  uint32_t           max_custom{};       ///< maximum number of oustanding custom events
+  uint32_t           max_ops{};          ///< maximum number of ops to issue per cycle
 
-  uint64_t num_read{};         ///< number of outstanding read requests
-  uint64_t num_write{};        ///< number of outstanding write requests
-  uint64_t num_flush{};        ///< number of outstanding flush requests
-  uint64_t num_llsc{};         ///< number of outstanding LL/SC requests
-  uint64_t num_readlock{};     ///< number of oustanding readlock requests
-  uint64_t num_writeunlock{};  ///< number of oustanding writelock requests
-  uint64_t num_custom{};       ///< number of outstanding custom requests
-  uint64_t num_fence{};        ///< number of oustanding fence requests
+  uint32_t num_read{};         ///< number of outstanding read requests
+  uint32_t num_write{};        ///< number of outstanding write requests
+  uint32_t num_flush{};        ///< number of outstanding flush requests
+  uint32_t num_llsc{};         ///< number of outstanding LL/SC requests
+  uint32_t num_readlock{};     ///< number of oustanding readlock requests
+  uint32_t num_writeunlock{};  ///< number of oustanding writelock requests
+  uint32_t num_custom{};       ///< number of outstanding custom requests
+  uint32_t num_fence{};        ///< number of oustanding fence requests
 
   std::vector<StandardMem::Request::id_t>         requests{};     ///< outstanding StandardMem requests
   std::vector<RevMemOp*>                          rqstQ{};        ///< queued memory requests
@@ -724,7 +734,7 @@ void ApplyAMO( RevFlag flags, void* Target, T value ) {
 
   // Table mapping atomic operations to executable code
   // clang-format off
-  static const std::pair<RevCPU::RevFlag, std::function<void()>> table[] = {
+  static const std::pair<RevFlag, std::function<void()>> table[] = {
     { RevFlag::F_AMOADD,  [&]{ *TmpTarget += TmpBuf; } },
     { RevFlag::F_AMOXOR,  [&]{ *TmpTarget ^= TmpBuf; } },
     { RevFlag::F_AMOAND,  [&]{ *TmpTarget &= TmpBuf; } },
@@ -736,9 +746,8 @@ void ApplyAMO( RevFlag flags, void* Target, T value ) {
     { RevFlag::F_AMOMAXU, [&]{ *TmpTargetU = std::max(*TmpTargetU, TmpBufU); } },
   };
   // clang-format on
-  RevFlag amo{ RevFlagAtomic( flags ) };
-  for( const auto& [flag, op] : table ) {
-    if( amo == flag ) {
+  for( const auto& [amo, op] : table ) {
+    if( RevFlagAtomic( flags ) == amo ) {
       op();
       break;
     }

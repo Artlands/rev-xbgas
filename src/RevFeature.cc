@@ -55,7 +55,7 @@ bool RevFeature::ParseMachineModel() {
   ///< Values of -1, 0 for the fourth and fifth values indicates no Rev support yet.
   ///<
   ///< ExtensionName DefaultMajor DefaultMinor MinSupportedVersion MaxSupportedVersion Flags
-  static constexpr std::tuple<std::string_view, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t> table[] = {
+  static constexpr std::tuple<std::string_view, uint64_t, uint64_t, uint64_t, uint64_t, uint32_t> table[] = {
     { "I",          2, 1,  2, 2, RV_I                                   },
     { "E",          2, 0, -1, 0, RV_E                                   }, // Unsupported
     { "M",          2, 0,  2, 2, RV_M | RV_ZMMUL                        },
@@ -68,7 +68,7 @@ bool RevFeature::ParseMachineModel() {
     { "C",          2, 0,  2, 2, RV_C                                   },
     { "B",          1, 0, -1, 0, RV_B                                   }, // Unsupported
     { "P",          0, 2, -1, 0, RV_P                                   }, // Unsupported
-    { "V",          1, 0, -1, 0, RV_V | RV_D | RV_F | RV_ZICSR          },
+    { "V",          1, 0,  1, 1, RV_V | RV_D | RV_F | RV_ZICSR          },
     { "H",          1, 0, -1, 0, RV_H                                   }, // Unsupported
     { "Zicbom",     1, 0,  1, 1, RV_ZICBOM                              },
     { "Zicntr",     2, 0,  2, 2, RV_ZICNTR | RV_ZICSR                   },
@@ -114,7 +114,7 @@ bool RevFeature::ParseMachineModel() {
           snprintf(
             unsupported_version,
             sizeof( unsupported_version ),
-            "Error: Version %" PRIu32 ".%" PRIu32 " of %s extension is not supported\n",
+            "Error: Version %" PRIu64 ".%" PRIu64 " of %s extension is not supported\n",
             majorVersion,
             minorVersion,
             ext.data()
