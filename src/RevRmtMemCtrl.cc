@@ -242,9 +242,47 @@ void RevBasicRmtMemCtrl::handleBulkReadRqst( xbgasNicEvent* ev ) {
 
   LocalLoadCount.insert( { RmtOpIDHash( SrcId, Id ), 0 } );
 
-  for( unsigned i = 0; i < Nelem; i++ ) {
+  // for( unsigned i = 0; i < Nelem; i++ ) {
+  //   MemReq Req(
+  //     SrcAddr + i * Size,            // Memory address
+  //     SrcId,                         // Source ID
+  //     Id,                            // Packet ID
+  //     MemOp::MemOpREAD,              // Memory operation
+  //     true,                          // Outstanding
+  //     [this]( const MemReq& Req ) {  // Lambda function as a callback
+  //       RevBasicRmtMemCtrl::MarkLocalLoadComplete( Req );
+  //     }
+  //   );
+  //   // Send the request to the local memory
+  //   Mem->ReadMem( virtualHart, SrcAddr + i * Size, Size, (void*) ( &Buffer[i * Size] ), std::move( Req ), Flags );
+  // }
+
+  // Read the target memory to the buffer. The read request is split into _MAX_MEM_RQST_ chunks.
+  if( Size * Nelem > _MAX_MEM_RQST_ ) {
+    uint32_t SegSz = ( Size * Nelem ) / _MAX_MEM_RQST_;
+    uint32_t Rem   = ( Size * Nelem ) % _MAX_MEM_RQST_;
+    if( Rem != 0 )
+      SegSz++;
+
+    for( uint32_t i = 0; i < SegSz; i++ ) {
+      uint32_t SegSize    = ( Rem == 0 ) ? _MAX_MEM_RQST_ : ( i == SegSz - 1 ) ? Rem : _MAX_MEM_RQST_;
+      uint64_t SegSrcAddr = SrcAddr + i * _MAX_MEM_RQST_;
+      MemReq   Req(
+        SegSrcAddr,                    // Memory address
+        SrcId,                         // Source ID
+        Id,                            // Packet ID
+        MemOp::MemOpREAD,              // Memory operation
+        true,                          // Outstanding
+        [this]( const MemReq& Req ) {  // Lambda function as a callback
+          RevBasicRmtMemCtrl::MarkLocalLoadComplete( Req );
+        }
+      );
+      // Send the request to the local memory
+      Mem->ReadMem( virtualHart, SegSrcAddr, SegSize, (void*) ( &Buffer[i * _MAX_MEM_RQST_] ), std::move( Req ), Flags );
+    }
+  } else {
     MemReq Req(
-      SrcAddr + i * Size,            // Memory address
+      SrcAddr,                       // Memory address
       SrcId,                         // Source ID
       Id,                            // Packet ID
       MemOp::MemOpREAD,              // Memory operation
@@ -254,7 +292,7 @@ void RevBasicRmtMemCtrl::handleBulkReadRqst( xbgasNicEvent* ev ) {
       }
     );
     // Send the request to the local memory
-    Mem->ReadMem( virtualHart, SrcAddr + i * Size, Size, (void*) ( &Buffer[i * Size] ), std::move( Req ), Flags );
+    Mem->ReadMem( virtualHart, SrcAddr, Size * Nelem, (void*) ( Buffer ), std::move( Req ), Flags );
   }
 }
 
@@ -374,8 +412,24 @@ void RevBasicRmtMemCtrl::handleBulkWriteRqst( xbgasNicEvent* ev ) {
   std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Last element of the buffer: " << std::dec << *lastElem << std::endl;
 #endif
 
-  for( unsigned i = 0; i < Nelem; i++ ) {
-    Mem->WriteMem( virtualHart, DestAddr + i * Size, Size, (void*) ( &Buffer[i * Size] ), Flags );
+  // for( unsigned i = 0; i < Nelem; i++ ) {
+  //   Mem->WriteMem( virtualHart, DestAddr + i * Size, Size, (void*) ( &Buffer[i * Size] ), Flags );
+  // }
+
+  // Write the data in buffer to the target memory. Split the write request into _MAX_MEM_RQST_ chunks.
+  if( Size * Nelem > _MAX_MEM_RQST_ ) {
+    uint32_t SegSz = ( Size * Nelem ) / _MAX_MEM_RQST_;
+    uint32_t Rem   = ( Size * Nelem ) % _MAX_MEM_RQST_;
+    if( Rem != 0 )
+      SegSz++;
+
+    for( uint32_t i = 0; i < SegSz; i++ ) {
+      uint32_t SegSize     = ( Rem == 0 ) ? _MAX_MEM_RQST_ : ( i == SegSz - 1 ) ? Rem : _MAX_MEM_RQST_;
+      uint64_t SegDestAddr = DestAddr + i * _MAX_MEM_RQST_;
+      Mem->WriteMem( virtualHart, SegDestAddr, SegSize, (void*) ( &Buffer[i * _MAX_MEM_RQST_] ), Flags );
+    }
+  } else {
+    Mem->WriteMem( virtualHart, DestAddr, Size * Nelem, (void*) ( Buffer ), Flags );
   }
 
   bool isSeg = ev->isSegmented();
@@ -540,8 +594,24 @@ void RevBasicRmtMemCtrl::handleBulkReadResp( xbgasNicEvent* ev ) {
 
     ev->getData( Buffer );
 
-    for( unsigned i = 0; i < Nelem; i++ ) {
-      Mem->WriteMem( virtualHart, DestAddr + i * Size, Size, (void*) ( &Buffer[i * Size] ), Flags );
+    // for( unsigned i = 0; i < Nelem; i++ ) {
+    //   Mem->WriteMem( virtualHart, DestAddr + i * Size, Size, (void*) ( &Buffer[i * Size] ), Flags );
+    // }
+
+    // Write the data in buffer to the target memory. Split the write request into _MAX_MEM_RQST_ chunks.
+    if( Size * Nelem > _MAX_MEM_RQST_ ) {
+      uint32_t SegSz = ( Size * Nelem ) / _MAX_MEM_RQST_;
+      uint32_t Rem   = ( Size * Nelem ) % _MAX_MEM_RQST_;
+      if( Rem != 0 )
+        SegSz++;
+
+      for( uint32_t i = 0; i < SegSz; i++ ) {
+        uint32_t SegSize     = ( Rem == 0 ) ? _MAX_MEM_RQST_ : ( i == SegSz - 1 ) ? Rem : _MAX_MEM_RQST_;
+        uint64_t SegDestAddr = DestAddr + i * _MAX_MEM_RQST_;
+        Mem->WriteMem( virtualHart, SegDestAddr, SegSize, (void*) ( &Buffer[i * _MAX_MEM_RQST_] ), Flags );
+      }
+    } else {
+      Mem->WriteMem( virtualHart, DestAddr, Size * Nelem, (void*) ( Buffer ), Flags );
     }
 
     delete[] Buffer;
@@ -696,7 +766,7 @@ void RevBasicRmtMemCtrl::handleAMOResp( xbgasNicEvent* ev ) {
 void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
   uint64_t hashedId = RmtOpIDHash( Req.SrcId, Req.PktId );
 
-#ifdef _XBGAS_DEBUG_LL_
+#ifdef _XBGAS_RMT_DEBUG_
   std::cout << "_XBGAS_DEBUG_ : PE " << getPEID() << " Mark Local Load Complete, ";
   std::cout << "Addr: 0x" << std::hex << Req.Addr << ", hashedId: " << std::hex << hashedId << std::endl;
 #endif
@@ -714,7 +784,19 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
   RmtMemOp       ReqPurp  = Record.ReqPurp;
   RmtMemReq      RmtReq   = Record.RmtReq;
   uint8_t*       Target   = (uint8_t*) ( Record.Target );
+  uint32_t       MeSegSz  = 0;
+  uint32_t       MeRem    = 0;
   xbgasNicEvent* RmtEvent;
+
+  // Get the segments count
+  if( Size * Nelem > _MAX_MEM_RQST_ ) {
+    MeSegSz = ( Size * Nelem ) / _MAX_MEM_RQST_;
+    MeRem   = ( Size * Nelem ) % _MAX_MEM_RQST_;
+    if( MeRem != 0 )
+      MeSegSz++;
+  } else {
+    MeSegSz = 1;
+  }
 
   if( LocalLoadCount.find( hashedId ) != LocalLoadCount.end() ) {
     LocalLoadCount[hashedId]++;
@@ -723,7 +805,7 @@ void RevBasicRmtMemCtrl::MarkLocalLoadComplete( const MemReq& Req ) {
   }
 
   // Check if all the elements have been loaded
-  if( LocalLoadCount[hashedId] == Nelem ) {
+  if( LocalLoadCount[hashedId] == MeSegSz ) {
     switch( ReqPurp ) {
     case RmtMemOp::READResp:
       RmtEvent = new xbgasNicEvent( getName() );
@@ -1342,9 +1424,47 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
 
     LocalLoadCount.insert( { RmtOpIDHash( SrcId, localId ), 0 } );
 
-    for( unsigned i = 0; i < Nelem; i++ ) {
+    // // Read the data from the local memory.
+    // for( unsigned i = 0; i < Nelem; i++ ) {
+    //   MemReq LocalReq(
+    //     SrcAddr + i * Size,            // Memory address
+    //     SrcId,                         // Source ID
+    //     localId,                       // Packet ID
+    //     MemOp::MemOpREAD,              // Memory operation
+    //     true,                          // Outstanding
+    //     [this]( const MemReq& Req ) {  // Lambda function as a callback
+    //       RevBasicRmtMemCtrl::MarkLocalLoadComplete( Req );
+    //     }
+    //   );
+    //   Mem->ReadMem( virtualHart, SrcAddr + i * Size, Size, (void*) ( &Buffer[i * Size] ), std::move( LocalReq ), Flags );
+    // }
+
+    // Read the data from the local memory. Split the read request into into _MAX_MEM_RQST_ chunks.
+    if( Size * Nelem > _MAX_MEM_RQST_ ) {
+      uint32_t SegSz = ( Size * Nelem ) / _MAX_MEM_RQST_;
+      uint32_t Rem   = ( Size * Nelem ) % _MAX_MEM_RQST_;
+      if( Rem != 0 )
+        SegSz++;
+      for( uint32_t i = 0; i < SegSz; i++ ) {
+        uint32_t SegSize    = ( Rem == 0 ) ? _MAX_MEM_RQST_ : ( i == SegSz - 1 ) ? Rem : _MAX_MEM_RQST_;
+        uint64_t SegSrcAddr = SrcAddr + i * _MAX_MEM_RQST_;
+        // Read the data from the local memory
+        MemReq LocalReq(
+          SegSrcAddr,                    // Memory address
+          SrcId,                         // Source ID
+          localId,                       // Packet ID
+          MemOp::MemOpREAD,              // Memory operation
+          true,                          // Outstanding
+          [this]( const MemReq& Req ) {  // Lambda function as a callback
+            RevBasicRmtMemCtrl::MarkLocalLoadComplete( Req );
+          }
+        );
+        Mem->ReadMem( virtualHart, SegSrcAddr, SegSize, (void*) ( &Buffer[i * _MAX_MEM_RQST_] ), std::move( LocalReq ), Flags );
+      }
+    } else {
+      // Read the data from the local memory
       MemReq LocalReq(
-        SrcAddr + i * Size,            // Memory address
+        SrcAddr,                       // Memory address
         SrcId,                         // Source ID
         localId,                       // Packet ID
         MemOp::MemOpREAD,              // Memory operation
@@ -1353,7 +1473,7 @@ bool RevBasicRmtMemCtrl::buildRmtMemRqst( RevRmtMemOp* Op, bool& Success ) {
           RevBasicRmtMemCtrl::MarkLocalLoadComplete( Req );
         }
       );
-      Mem->ReadMem( virtualHart, SrcAddr + i * Size, Size, (void*) ( &Buffer[i * Size] ), std::move( LocalReq ), Flags );
+      Mem->ReadMem( virtualHart, SrcAddr, Size * Nelem, (void*) ( &Buffer[0] ), std::move( LocalReq ), Flags );
     }
 
     // Decide if the Write request should be segmented

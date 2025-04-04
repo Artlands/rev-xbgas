@@ -11,6 +11,8 @@
 #ifndef _SST_REVCPU_REVRMTMEMCTRL_H_
 #define _SST_REVCPU_REVRMTMEMCTRL_H_
 
+#define _MAX_MEM_RQST_ 1024
+
 // -- C++ Headers
 #include <list>
 #include <stdio.h>
