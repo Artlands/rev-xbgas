@@ -398,11 +398,9 @@ void XbgasNIC::finish() {
 bool XbgasNIC::msgNotify( int vn ) {
   SST::Interfaces::SimpleNetwork::Request* req = iFace->recv( 0 );
   if( req != nullptr ) {
-    if( req != nullptr ) {
-      xbgasNicEvent* ev = static_cast<xbgasNicEvent*>( req->takePayload() );
-      delete req;
-      ( *msgHandler )( ev );
-    }
+    xbgasNicEvent* ev = static_cast<xbgasNicEvent*>( req->takePayload() );
+    delete req;
+    ( *msgHandler )( ev );
   }
   return true;
 }
